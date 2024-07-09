@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.config;
 
+import com.example.petbuddybackend.utils.keycloak.KeycloakJwtAuthenticationConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
