@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.io.IOException;
 @Configuration
 @EnableWebMvc
 @Slf4j
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class CORSFilter implements Filter {
 
     @Override

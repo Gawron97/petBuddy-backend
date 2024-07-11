@@ -5,13 +5,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
 
     @GetMapping
-    public String test() {
-        return "test";
+    public List<String> test() {
+        return new ArrayList<>(List.of("test1", "test2"));
     }
 
     @GetMapping("/admin")

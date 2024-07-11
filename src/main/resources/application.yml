@@ -1,14 +1,24 @@
 spring:
-  application.name: petBuddy-backend
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8180/realms/pet-buddy
-  keycloak:
-    resource-roles-claim: "pet-buddy-client"
-    claim-name: "preferred_username"
+          issuer-uri: http://74.248.81.129:8080/realms/pet-buddy
+  datasource:
+    url: ${url}
+    username: ${username}
+    password: ${password}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      dialect: org.hibernate.dialect.PostgreSQL94Dialect
+
+keycloak:
+  resource-roles-claim: "pet-buddy-client"
+  claim-name: "preferred_username"
 
 logging:
   level:
     root: info
+

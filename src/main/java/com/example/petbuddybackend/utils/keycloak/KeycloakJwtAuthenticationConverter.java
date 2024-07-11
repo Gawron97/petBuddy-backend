@@ -22,12 +22,12 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 
     private static final String RESOURCE_ACCESS = "resource_access";
 
-    @Value("${spring.keycloak.resource-roles-claim}")
+    @Value("${keycloak.resource-roles-claim}")
     private String resourceRolesClaim;
 
     private static final String ROLES = "roles";
 
-    @Value("${spring.keycloak.claim-name}")
+    @Value("${keycloak.claim-name}")
     private String claimName;
 
     @Override
