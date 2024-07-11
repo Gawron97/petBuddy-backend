@@ -26,10 +26,12 @@ public class UserRegistrationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        JwtAuthenticationToken token = (JwtAuthenticationToken) request.getUserPrincipal();
-        log.info("Request by user with email: " + token.getTokenAttributes().get("email"));
+        if(!"OPTIONS".equalsIgnoreCase((request.getMethod()))) {
+            JwtAuthenticationToken token = (JwtAuthenticationToken) request.getUserPrincipal();
+            log.info("Request by user with email: " + token.getTokenAttributes().get("email"));
 
-        createUserIfNotExist(token);
+            createUserIfNotExist(token);
+        }
 
         filterChain.doFilter(request, response);
 
