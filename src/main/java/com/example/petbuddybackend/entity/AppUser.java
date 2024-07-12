@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.entity;
 
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.*;
@@ -12,7 +13,7 @@ import lombok.*;
 @Builder
 public class AppUser {
 
-    @Id
+    @Id @Nonnull
     private String email;
     private String name;
     private String surname;

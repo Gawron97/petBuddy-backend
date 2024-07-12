@@ -3,7 +3,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://74.248.81.129:8080/realms/pet-buddy
+          issuer-uri: http://localhost:8080/realms/pet-buddy
   datasource:
     url: ${url}
     username: ${username}
@@ -22,3 +22,5 @@ logging:
   level:
     root: info
 
+server:
+  port: 8081
