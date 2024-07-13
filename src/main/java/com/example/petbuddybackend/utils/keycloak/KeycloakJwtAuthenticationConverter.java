@@ -27,7 +27,7 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 
     private static final String ROLES = "roles";
 
-    @Value("${keycloak.claim-name}")
+    @Value("${keycloak.claim-name:" + JwtClaimNames.SUB + "}")
     private String claimName;
 
     @Override
@@ -71,12 +71,7 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
     }
 
     private String getPrincipleClaimName(Jwt jwt) {
-
-        if (claimName == null) {
-            claimName = JwtClaimNames.SUB;
-        }
         return jwt.getClaim(claimName);
-
     }
 
 }
