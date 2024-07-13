@@ -5,9 +5,9 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/realms/pet-buddy
   datasource:
-    url: ${url}
-    username: ${username}
-    password: ${password}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -24,3 +24,6 @@ logging:
 
 server:
   port: 8081
+
+sentry:
+  dsn: https://aea7d4722318a9965e1ef62e26a4109b@o4507593891184640.ingest.de.sentry.io/4507593901998160
