@@ -21,14 +21,13 @@ import java.util.stream.Stream;
 public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
     private static final String RESOURCE_ACCESS = "resource_access";
-
-    @Value("${keycloak.resource-roles-claim}")
-    private String resourceRolesClaim;
-
     private static final String ROLES = "roles";
 
+    @Value("${keycloak.resource-roles-claim}")
+    private String RESOURCE_ROLES_CLAIM;
+
     @Value("${keycloak.claim-name:" + JwtClaimNames.SUB + "}")
-    private String claimName;
+    private String CLAIM_NAME;
 
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
@@ -55,10 +54,10 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
         }
         resourceAccess = jwt.getClaim(RESOURCE_ACCESS);
 
-        if(resourceAccess.get(resourceRolesClaim) == null) {
+        if(resourceAccess.get(RESOURCE_ROLES_CLAIM) == null) {
             return Set.of();
         }
-        resource = (Map<String, Object>) resourceAccess.get(resourceRolesClaim);
+        resource = (Map<String, Object>) resourceAccess.get(RESOURCE_ROLES_CLAIM);
         roles = (List<String>) resource.get(ROLES);
 
         log.info("Roles extracted from jwt");
@@ -71,7 +70,7 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
     }
 
     private String getPrincipleClaimName(Jwt jwt) {
-        return jwt.getClaim(claimName);
+        return jwt.getClaim(CLAIM_NAME);
     }
 
 }
