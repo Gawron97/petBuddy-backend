@@ -1,7 +1,5 @@
 package com.example.petbuddybackend.filter;
 
-import com.example.petbuddybackend.entity.AppUser;
-import com.example.petbuddybackend.repository.AppUserRepository;
 import com.example.petbuddybackend.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -27,14 +24,13 @@ public class UserRegistrationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         JwtAuthenticationToken token = (JwtAuthenticationToken) request.getUserPrincipal();
-        log.info("Request by user with email: " + token.getTokenAttributes().get("email"));
 
-        userService.createUserIfNotExist(token);
+        if(token != null) {
+            log.info("Request by user with email: " + token.getTokenAttributes().get("email"));
+            userService.createUserIfNotExist(token);
+        }
 
         filterChain.doFilter(request, response);
-
     }
-
 }
