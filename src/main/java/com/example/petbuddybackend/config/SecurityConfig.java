@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.config;
 
+//import com.example.petbuddybackend.filter.CsrfCookieFilter;
 import com.example.petbuddybackend.utils.keycloak.KeycloakJwtAuthenticationConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +11,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -21,8 +25,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                )
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers(
@@ -30,7 +41,7 @@ public class SecurityConfig {
                                         "/v2/api-docs.yaml",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
-                                        "/api/test/**"
+                                        "/api/csrf**"
                                 )
                                     .permitAll()
                                 .anyRequest()
@@ -38,8 +49,7 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(auth ->
                         auth.jwt(token -> token.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter))
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                );
 
         return http.build();
     }
