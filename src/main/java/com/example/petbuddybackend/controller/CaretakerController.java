@@ -23,7 +23,7 @@ public class CaretakerController {
     public Page<CaretakerDTO> getCaretakers(
             @ModelAttribute PagingParams pagingParams,
             @ModelAttribute CaretakerSearchCriteria filters
-            ) {
+    ) {
         var pageable = PagingUtils.createPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters);
     }
