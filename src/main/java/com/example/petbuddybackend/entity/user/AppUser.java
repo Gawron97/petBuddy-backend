@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.entity;
+package com.example.petbuddybackend.entity.user;
 
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.Entity;

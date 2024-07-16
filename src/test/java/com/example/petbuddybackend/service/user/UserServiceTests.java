@@ -1,11 +1,10 @@
-package com.example.petbuddybackend.service;
+package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.entity.AppUser;
+import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.AppUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.security.oauth2.core.OAuth2Token;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 

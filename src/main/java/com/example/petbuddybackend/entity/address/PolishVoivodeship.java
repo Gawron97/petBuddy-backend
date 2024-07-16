@@ -1,0 +1,20 @@
+package com.example.petbuddybackend.entity.address;
+
+public enum PolishVoivodeship {
+    DOLNOSLASKIE,
+    KUJAWSKO_POMORSKIE,
+    LUBELSKIE,
+    LUBUSKIE,
+    LODZKIE,
+    MALOPOLSKIE,
+    MAZOWIECKIE,
+    OPOLSKIE,
+    PODKARPACKIE,
+    PODLASKIE,
+    POMORSKIE,
+    SLASKIE,
+    SWIETOKRZYSKIE,
+    WARMINSKO_MAZURSKIE,
+    WIELKOPOLSKIE,
+    ZACHODNIOPOMORSKIE
+}
