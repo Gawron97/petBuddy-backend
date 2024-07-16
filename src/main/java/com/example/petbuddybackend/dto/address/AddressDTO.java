@@ -1,12 +1,12 @@
 package com.example.petbuddybackend.dto.address;
 
-import com.example.petbuddybackend.entity.address.PolishVoivodeship;
+import com.example.petbuddybackend.entity.address.Voivodeship;
 
 public record AddressDTO(
     Long id,
     String city,
     String postalCode,
-    PolishVoivodeship voivodeship,
+    Voivodeship voivodeship,
     String street,
     String buildingNumber,
     String apartmentNumber

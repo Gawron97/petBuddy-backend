@@ -20,7 +20,7 @@ public class Address {
     private String postalCode;
 
     @Column(nullable = false, length = 50)
-    private PolishVoivodeship voivodeship;
+    private Voivodeship voivodeship;
 
     @Column(nullable = false, length = 150)
     private String street;

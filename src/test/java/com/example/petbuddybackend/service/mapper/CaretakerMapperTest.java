@@ -9,15 +9,14 @@ public class CaretakerMapperTest {
 
     private final CaretakerMapper mapper = CaretakerMapper.INSTANCE;
 
+
     @Test
     void mapToCaretakerDTO_shouldNotLeaveNullFields() throws IllegalAccessException {
-        // given
         var caretaker = MockUtils.createMockCaretaker();
+        caretaker.getAddress().setId(1L);
 
-        // when
         var caretakerDTO = mapper.mapToCaretakerDTO(caretaker);
 
-        // then
         assertTrue(ValidationUtils.fieldsNotNull(caretakerDTO));
         assertTrue(ValidationUtils.fieldsNotNull(caretakerDTO.address()));
     }

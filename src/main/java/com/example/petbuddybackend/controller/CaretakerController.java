@@ -2,6 +2,7 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.paging.PagingParams;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +21,11 @@ public class CaretakerController {
 
     @GetMapping
     public Page<CaretakerDTO> getCaretakers(
-            @ModelAttribute PagingParams pagingParams
-    ) {
+            @ModelAttribute PagingParams pagingParams,
+            @ModelAttribute CaretakerSearchCriteria filters
+            ) {
         var pageable = PagingUtils.createPageable(pagingParams);
-        return caretakerService.getCaretakers(pageable);
+        return caretakerService.getCaretakers(pageable, filters);
     }
 }
 

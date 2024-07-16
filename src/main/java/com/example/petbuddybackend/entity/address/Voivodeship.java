@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.entity.address;
 
-public enum PolishVoivodeship {
+public enum Voivodeship {
     DOLNOSLASKIE,
     KUJAWSKO_POMORSKIE,
     LUBELSKIE,

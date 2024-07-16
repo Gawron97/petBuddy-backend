@@ -1,0 +1,18 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      dialect: org.hibernate.dialect.PostgreSQL94Dialect
+
+keycloak:
+  resource-roles-claim: "pet-buddy-client"
+  claim-name: "preferred_username"
+
+logging:
+  level:
+    root: info
+
+server:
+  port: 8081
+
