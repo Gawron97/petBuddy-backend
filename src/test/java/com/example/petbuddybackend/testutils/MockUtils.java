@@ -40,11 +40,11 @@ public final class MockUtils {
                 .build();
 
         return Caretaker.builder()
+                .email(accountData.getEmail())
                 .accountData(accountData)
                 .address(address)
                 .description("description")
                 .phoneNumber("number")
-                .email("email")
                 .animalsTakenCareOf(Set.copyOf(animalTypes))
                 .build();
     }

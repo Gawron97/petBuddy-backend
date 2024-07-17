@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class CaretakerService {
     private final CaretakerRepository caretakerRepository;
     private final CaretakerMapper caretakerMapper = CaretakerMapper.INSTANCE;
 
+    @Transactional
     public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters);
 

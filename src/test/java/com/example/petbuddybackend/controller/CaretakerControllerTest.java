@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,11 +47,11 @@ public class CaretakerControllerTest {
     @Test
     void getCaretakers_shouldReturnFilteredResults() throws Exception {
         var caretakerDTO1 = CaretakerDTO.builder()
-                .name("John Doe")
+                .accountData(AccountDataDTO.builder().name("John Doe").build())
                 .build();
 
         var caretakerDTO2 = CaretakerDTO.builder()
-                .name("Jane Doe")
+                .accountData(AccountDataDTO.builder().name("Jane Doe").build())
                 .build();
 
         var caretakers = List.of(caretakerDTO1, caretakerDTO2);
@@ -60,12 +61,12 @@ public class CaretakerControllerTest {
         mockMvc.perform(get("/api/caretaker")
                         .param("page", "0")
                         .param("size", "10")
-                        .param("personalDataLike", "Doe")
+                        .param("sort", "name,asc")
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.content[0].name").value("John Doe"))
-                .andExpect(jsonPath("$.content[1].name").value("Jane Doe"));
+                .andExpect(jsonPath("$.content[0].accountData.name").value("John Doe"))
+                .andExpect(jsonPath("$.content[1].accountData.name").value("Jane Doe"));
     }
 }

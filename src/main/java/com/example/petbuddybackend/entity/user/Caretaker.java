@@ -24,7 +24,7 @@ public class Caretaker {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @ElementCollection(targetClass = AnimalType.class)
+    @ElementCollection(targetClass = AnimalType.class, fetch = FetchType.EAGER)
     @JoinTable(name = "animals_taken_care_of", joinColumns = @JoinColumn(name = "email"))
     @Column(name = "takes_care_of", nullable = false)
     Set<AnimalType> animalsTakenCareOf;
@@ -32,7 +32,7 @@ public class Caretaker {
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     private Address address;
 
-    @OneToOne(cascade = CascadeType.REMOVE, optional = false)
+    @OneToOne(cascade = { CascadeType.MERGE, CascadeType.REMOVE }, optional = false)
     @PrimaryKeyJoinColumn
     private AppUser accountData;
 }

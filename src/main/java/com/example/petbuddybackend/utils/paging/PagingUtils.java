@@ -4,6 +4,8 @@ import com.example.petbuddybackend.dto.paging.PagingParams;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
+
 
 public final class PagingUtils {
 
@@ -11,7 +13,7 @@ public final class PagingUtils {
 
     public static Pageable createPageable(PagingParams params) {
 
-        if(params.getSortBy().isBlank()) {
+        if(CollectionUtils.isEmpty(params.getSortBy())) {
             return PageRequest.of(
                 params.getPage(),
                 params.getSize()
@@ -22,8 +24,8 @@ public final class PagingUtils {
             params.getPage(),
             params.getSize(),
             Sort.by(
-                Sort.Direction.fromString(params.getSortDirection()),
-                params.getSortBy()
+                params.getSortDirection(),
+                params.getSortBy().toArray(String[]::new)
             )
         );
     }

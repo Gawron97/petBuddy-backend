@@ -11,8 +11,6 @@ public interface CaretakerMapper {
 
     CaretakerMapper INSTANCE = Mappers.getMapper(CaretakerMapper.class);
 
-    @Mapping(source = "accountData.name", target = "name")
-    @Mapping(source = "accountData.surname", target = "surname")
     @Mapping(target = "address", source = "address")
     CaretakerDTO mapToCaretakerDTO(Caretaker caretaker);
 }
