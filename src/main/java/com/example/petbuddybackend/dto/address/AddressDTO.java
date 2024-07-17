@@ -5,7 +5,7 @@ import com.example.petbuddybackend.entity.address.Voivodeship;
 public record AddressDTO(
     Long id,
     String city,
-    String postalCode,
+    String zipCode,
     Voivodeship voivodeship,
     String street,
     String buildingNumber,

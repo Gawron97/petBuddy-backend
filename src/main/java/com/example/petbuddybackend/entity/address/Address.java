@@ -16,8 +16,8 @@ public class Address {
     @Column(nullable = false, length = 50)
     private String city;
 
-    @Column(nullable = false, length = 6)
-    private String postalCode;
+    @Column(nullable = false, length = 15)
+    private String zipCode;
 
     @Column(nullable = false, length = 50)
     private Voivodeship voivodeship;

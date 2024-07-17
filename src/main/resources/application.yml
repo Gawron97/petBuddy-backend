@@ -10,9 +10,11 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     properties:
       dialect: org.hibernate.dialect.PostgreSQL94Dialect
+  profiles:
+    active: dev
 
 keycloak:
   resource-roles-claim: "pet-buddy-client"

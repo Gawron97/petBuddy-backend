@@ -22,7 +22,7 @@ public final class MockUtils {
                 .city(city)
                 .voivodeship(voivodeship)
                 .street("street")
-                .postalCode("12-123")
+                .zipCode("12-123")
                 .buildingNumber("5A")
                 .apartmentNumber("10")
                 .build();
