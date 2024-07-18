@@ -11,7 +11,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Profile("dev | test")
 @Service
@@ -60,13 +62,18 @@ public class MockService {
                 .apartmentNumber(faker.address().secondaryAddress())
                 .build();
 
-        return Caretaker.builder()
+        Caretaker caretaker = Caretaker.builder()
                 .email(user.getEmail())
                 .address(address)
-                .animalsTakenCareOf(generateAnimal())
                 .description(faker.lorem().sentence())
                 .phoneNumber(faker.phoneNumber().cellPhone())
                 .build();
+
+        List<Animal> animals = generateAnimal();
+        animals = animals.stream().peek(animal -> animal.setCaretaker(caretaker)).toList();
+        caretaker.setAnimalsTakenCareOf(animals);
+
+        return caretaker;
     }
 
     public Voivodeship randomVoivodeship() {
@@ -78,7 +85,7 @@ public class MockService {
         AnimalType[] animalTypes = AnimalType.values();
 
         int numberOfTypes = faker.random().nextInt(1, (animalTypes.length + 1) / 2);
-        List<Animal> animals = new ArrayList<>(numberOfTypes);
+        Set<Animal> animals = new HashSet<>(numberOfTypes);
 
         while (animals.size() < numberOfTypes) {
             animals.add(
@@ -87,6 +94,6 @@ public class MockService {
                             .build()
             );
         }
-        return animals;
+        return animals.stream().toList();
     }
 }

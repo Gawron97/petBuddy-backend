@@ -5,6 +5,7 @@ import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,11 +23,10 @@ public class CaretakerController {
 
     @GetMapping
     public Page<CaretakerDTO> getCaretakers(
-            @ModelAttribute PagingParams pagingParams,
+            @ModelAttribute @Valid PagingParams pagingParams,
             @ModelAttribute CaretakerSearchCriteria filters
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters);
     }
 }
-
