@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Table(
         uniqueConstraints = { @UniqueConstraint(columnNames = { "caretaker_email", "animalType" }) }
 )
-public class Animal {
+public class AnimalTakenCareOf {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

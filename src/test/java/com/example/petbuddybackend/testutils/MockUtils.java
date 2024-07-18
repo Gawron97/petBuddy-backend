@@ -2,7 +2,7 @@ package com.example.petbuddybackend.testutils;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.Animal;
+import com.example.petbuddybackend.entity.animal.AnimalTakenCareOf;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -33,7 +33,7 @@ public final class MockUtils {
         return createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa");
     }
 
-    public static Caretaker createMockCaretaker(String name, String surname, String email, List<Animal> animals, Address address) {
+    public static Caretaker createMockCaretaker(String name, String surname, String email, List<AnimalTakenCareOf> animals, Address address) {
         AppUser accountData = AppUser.builder()
                 .email(email)
                 .name(name)
@@ -77,13 +77,13 @@ public final class MockUtils {
         );
     }
 
-    public static Animal animalOfType(AnimalType animalType) {
-        return Animal.builder()
+    public static AnimalTakenCareOf animalOfType(AnimalType animalType) {
+        return AnimalTakenCareOf.builder()
                 .animalType(animalType)
                 .build();
     }
 
-    public static List<Animal> animalsOfTypes(AnimalType... animalTypes) {
+    public static List<AnimalTakenCareOf> animalsOfTypes(AnimalType... animalTypes) {
         return Arrays.stream(animalTypes)
                 .map(MockUtils::animalOfType)
                 .toList();
