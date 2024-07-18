@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.mock;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -10,9 +11,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Profile("dev | test")
 @Service
@@ -64,7 +63,7 @@ public class MockService {
         return Caretaker.builder()
                 .email(user.getEmail())
                 .address(address)
-                .animalsTakenCareOf(randomAnimalTypes())
+                .animalsTakenCareOf(generateAnimal())
                 .description(faker.lorem().sentence())
                 .phoneNumber(faker.phoneNumber().cellPhone())
                 .build();
@@ -75,16 +74,19 @@ public class MockService {
         return voivodeships[faker.random().nextInt(voivodeships.length)];
     }
 
-    public Set<AnimalType> randomAnimalTypes() {
+    public List<Animal> generateAnimal() {
         AnimalType[] animalTypes = AnimalType.values();
 
         int numberOfTypes = faker.random().nextInt(1, (animalTypes.length + 1) / 2);
-        Set<AnimalType> types = new HashSet<>(numberOfTypes);
+        List<Animal> animals = new ArrayList<>(numberOfTypes);
 
-        while (types.size() < numberOfTypes) {
-            types.add(animalTypes[faker.random().nextInt(animalTypes.length)]);
+        while (animals.size() < numberOfTypes) {
+            animals.add(
+                    Animal.builder()
+                            .animalType(animalTypes[faker.random().nextInt(animalTypes.length)])
+                            .build()
+            );
         }
-
-        return types;
+        return animals;
     }
 }

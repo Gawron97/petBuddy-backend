@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.dto.paging;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -10,7 +9,6 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class PagingParams {
     private int page = 0;
     private int size = 10;

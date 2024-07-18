@@ -1,11 +1,11 @@
 package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.address.Address;
-import com.example.petbuddybackend.entity.animal.AnimalType;
+import com.example.petbuddybackend.entity.animal.Animal;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
+import java.util.List;
 
 @Entity
 @Builder
@@ -23,11 +23,8 @@ public class Caretaker {
     @Column(length = 1500)
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @ElementCollection(targetClass = AnimalType.class, fetch = FetchType.EAGER)
-    @JoinTable(name = "animals_taken_care_of", joinColumns = @JoinColumn(name = "email"))
-    @Column(name = "takes_care_of", nullable = false)
-    Set<AnimalType> animalsTakenCareOf;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "caretaker")
+    private List<Animal> animalsTakenCareOf;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     private Address address;

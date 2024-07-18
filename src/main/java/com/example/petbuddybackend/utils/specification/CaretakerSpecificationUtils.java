@@ -4,6 +4,7 @@ import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.user.Caretaker;
+import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
@@ -21,8 +22,9 @@ public final class CaretakerSpecificationUtils {
     public static final String ACCOUNT_DATA = "accountData";
     public static final String NAME = "name";
     public static final String SURNAME = "surname";
-    public static final String ANIMAL_TYPES = "animalsTakenCareOf";
     public static final String EMAIL = "email";
+    public static final String ANIMALS_TAKEN_CARE_OF = "animalsTakenCareOf";
+    public static final String ANIMAL_TYPE = "animalType";
 
 
     private CaretakerSpecificationUtils() {
@@ -85,7 +87,9 @@ public final class CaretakerSpecificationUtils {
     }
 
     private static Specification<Caretaker> animalTypesIn(Set<AnimalType> animalTypes) {
-        return (root, query, criteriaBuilder) ->
-                root.join(ANIMAL_TYPES).in(animalTypes);
+        return (root, query, criteriaBuilder) -> {
+            Join<Object, Object> animalsJoin = root.join(ANIMALS_TAKEN_CARE_OF);
+            return animalsJoin.get(ANIMAL_TYPE).in(animalTypes);
+        };
     }
 }

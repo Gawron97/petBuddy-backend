@@ -2,12 +2,13 @@ package com.example.petbuddybackend.testutils;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import static com.example.petbuddybackend.entity.animal.AnimalType.*;
 
@@ -32,21 +33,27 @@ public final class MockUtils {
         return createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa");
     }
 
-    public static Caretaker createMockCaretaker(String name, String surname, String email, List<AnimalType> animalTypes, Address address) {
+    public static Caretaker createMockCaretaker(String name, String surname, String email, List<Animal> animals, Address address) {
         AppUser accountData = AppUser.builder()
                 .email(email)
                 .name(name)
                 .surname(surname)
                 .build();
 
-        return Caretaker.builder()
+        Caretaker caretaker = Caretaker.builder()
                 .email(accountData.getEmail())
                 .accountData(accountData)
                 .address(address)
                 .description("description")
                 .phoneNumber("number")
-                .animalsTakenCareOf(Set.copyOf(animalTypes))
                 .build();
+
+        animals = animals.stream()
+                .peek(animal -> animal.setCaretaker(caretaker))
+                .toList();
+
+        caretaker.setAnimalsTakenCareOf(animals);
+        return caretaker;
     }
 
     public static Caretaker createMockCaretaker() {
@@ -54,19 +61,31 @@ public final class MockUtils {
                 "name",
                 "surname",
                 "email",
-                List.of(AnimalType.CAT, AnimalType.DOG),
+                animalsOfTypes(CAT, DOG),
                 createMockAddress()
         );
     }
 
     public static List<Caretaker> createMockCaretakers() {
         return List.of(
-                MockUtils.createMockCaretaker("John", "Doe", "testmail@mail.com", List.of(DOG, CAT, BIRD),
+                MockUtils.createMockCaretaker("John", "Doe", "testmail@mail.com", animalsOfTypes(DOG, CAT, BIRD),
                         createMockAddress(Voivodeship.SLASKIE, "Katowice")),
-                MockUtils.createMockCaretaker("Jane", "Doe", "another@mail.com", List.of(DOG),
+                MockUtils.createMockCaretaker("Jane", "Doe", "another@mail.com", animalsOfTypes(DOG),
                         createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa")),
-                MockUtils.createMockCaretaker("John", "Smith", "onceagain@mail.com", List.of(REPTILE),
+                MockUtils.createMockCaretaker("John", "Smith", "onceagain@mail.com", animalsOfTypes(REPTILE),
                         createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa"))
         );
+    }
+
+    public static Animal animalOfType(AnimalType animalType) {
+        return Animal.builder()
+                .animalType(animalType)
+                .build();
+    }
+
+    public static List<Animal> animalsOfTypes(AnimalType... animalTypes) {
+        return Arrays.stream(animalTypes)
+                .map(MockUtils::animalOfType)
+                .toList();
     }
 }
