@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
@@ -46,16 +47,18 @@ public class CaretakerControllerTest {
 
     @Test
     void getCaretakers_shouldReturnFilteredResults() throws Exception {
-        var caretakerDTO1 = CaretakerDTO.builder()
+        CaretakerDTO caretakerDTO1 = CaretakerDTO.builder()
                 .accountData(AccountDataDTO.builder().name("John Doe").build())
                 .build();
 
-        var caretakerDTO2 = CaretakerDTO.builder()
+        CaretakerDTO caretakerDTO2 = CaretakerDTO.builder()
                 .accountData(AccountDataDTO.builder().name("Jane Doe").build())
                 .build();
 
-        var caretakers = List.of(caretakerDTO1, caretakerDTO2);
-        var page = new PageImpl<>(caretakers, PageRequest.of(0, 10), caretakers.size());
+        List<CaretakerDTO> caretakerDTOs = List.of(caretakerDTO1, caretakerDTO2);
+        Page<CaretakerDTO> page =
+                new PageImpl<>(caretakerDTOs, PageRequest.of(0, 10), caretakerDTOs.size());
+
         when(caretakerService.getCaretakers(any(), any())).thenReturn(page);
 
         mockMvc.perform(get("/api/caretaker")

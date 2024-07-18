@@ -5,6 +5,7 @@ import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.AppUserRepository;
 import com.example.petbuddybackend.repository.CaretakerRepository;
@@ -18,6 +19,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -52,9 +54,9 @@ public class CaretakerServiceTest {
 
     @BeforeEach
     void init() {
-        var caretakers = createMockCaretakers();
+        List<Caretaker> caretakers = createMockCaretakers();
 
-        var accountData = caretakers.stream()
+        List<AppUser> accountData = caretakers.stream()
                 .map(Caretaker::getAccountData)
                 .toList();
 
@@ -64,7 +66,6 @@ public class CaretakerServiceTest {
 
     @AfterEach
     void cleanUp() {
-        caretakerRepository.deleteAll();
         appUserRepository.deleteAll();
     }
 
@@ -74,7 +75,7 @@ public class CaretakerServiceTest {
             CaretakerSearchCriteria filters,
             int expectedSize
     ) {
-        var resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters);
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters);
 
         assertEquals(expectedSize, resultPage.getContent().size());
     }
@@ -86,7 +87,7 @@ public class CaretakerServiceTest {
         fieldNames.addAll(getPrimitiveNames(AccountDataDTO.class, "accountData_"));
 
         for (String fieldName : fieldNames) {
-            var resultPage = caretakerService.getCaretakers(
+            Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
                     CaretakerSearchCriteria.builder().build()
             );

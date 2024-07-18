@@ -29,7 +29,7 @@ public final class CaretakerSpecificationUtils {
     }
 
     public static Specification<Caretaker> toSpecification(CaretakerSearchCriteria filters) {
-        var spec = Specification.<Caretaker>where(
+        Specification<Caretaker> spec = Specification.where(
                 (root, query, criteriaBuilder) -> criteriaBuilder.conjunction()
         );
 

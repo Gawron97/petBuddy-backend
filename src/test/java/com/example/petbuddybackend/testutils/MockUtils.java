@@ -33,7 +33,7 @@ public final class MockUtils {
     }
 
     public static Caretaker createMockCaretaker(String name, String surname, String email, List<AnimalType> animalTypes, Address address) {
-        var accountData = AppUser.builder()
+        AppUser accountData = AppUser.builder()
                 .email(email)
                 .name(name)
                 .surname(surname)

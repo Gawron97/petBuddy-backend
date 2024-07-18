@@ -7,6 +7,7 @@ import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +25,7 @@ public class CaretakerController {
             @ModelAttribute PagingParams pagingParams,
             @ModelAttribute CaretakerSearchCriteria filters
     ) {
-        var pageable = PagingUtils.createPageable(pagingParams);
+        Pageable pageable = PagingUtils.createPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters);
     }
 }

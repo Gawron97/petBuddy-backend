@@ -25,12 +25,21 @@ public final class ReflectionUtils {
     }
 
     public static boolean isPrimitiveOrBoxed(Field field) {
-        var fieldType = field.getType();
+        Class<?> fieldType = field.getType();
 
         return fieldType.isPrimitive() ||
                 fieldType.equals(String.class) ||
                 fieldType.equals(Long.class) ||
                 fieldType.equals(Integer.class) ||
                 fieldType.equals(Boolean.class);
+    }
+
+    public static boolean isClass(Field field) {
+        Class<?> fieldType = field.getType();
+
+        return fieldType.isRecord() ||
+                fieldType.isAnonymousClass() ||
+                fieldType.isMemberClass() ||
+                fieldType.isLocalClass();
     }
 }

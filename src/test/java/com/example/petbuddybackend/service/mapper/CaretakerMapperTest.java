@@ -1,5 +1,7 @@
 package com.example.petbuddybackend.service.mapper;
 
+import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
 import org.junit.jupiter.api.Test;
@@ -12,12 +14,11 @@ public class CaretakerMapperTest {
 
     @Test
     void mapToCaretakerDTO_shouldNotLeaveNullFields() throws IllegalAccessException {
-        var caretaker = MockUtils.createMockCaretaker();
+        Caretaker caretaker = MockUtils.createMockCaretaker();
         caretaker.getAddress().setId(1L);
 
-        var caretakerDTO = mapper.mapToCaretakerDTO(caretaker);
+        CaretakerDTO caretakerDTO = mapper.mapToCaretakerDTO(caretaker);
 
-        assertTrue(ValidationUtils.fieldsNotNull(caretakerDTO));
-        assertTrue(ValidationUtils.fieldsNotNull(caretakerDTO.address()));
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerDTO));
     }
 }
