@@ -13,6 +13,8 @@ spring:
       ddl-auto: update
     properties:
       dialect: org.hibernate.dialect.PostgreSQL94Dialect
+  profiles:
+    active: dev
 
 keycloak:
   resource-roles-claim: "pet-buddy-client"

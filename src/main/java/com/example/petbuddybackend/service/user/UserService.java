@@ -1,6 +1,6 @@
-package com.example.petbuddybackend.service;
+package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.entity.AppUser;
+import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
