@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
+@Deprecated(forRemoval = true)
 @RequestMapping("/api/test")
 public class TestController {
 
