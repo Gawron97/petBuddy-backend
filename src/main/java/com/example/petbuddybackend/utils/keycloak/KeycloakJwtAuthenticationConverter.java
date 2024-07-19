@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 @Slf4j
 public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
-    private static final String RESOURCE_ACCESS = "resource_access";
-    private static final String ROLES = "roles";
+    public static final String RESOURCE_ACCESS = "resource_access";
+    public static final String ROLES = "roles";
 
     @Value("${keycloak.resource-roles-claim}")
     private String RESOURCE_ROLES_CLAIM;
@@ -34,31 +34,41 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
 
         return new JwtAuthenticationToken(
                 jwt,
-                Stream.concat(
-                     new JwtGrantedAuthoritiesConverter().convert(jwt).stream(),
-                     extractResourceRoles(jwt).stream()
-                ).collect(Collectors.toSet()),
+                generateAuthorities(jwt),
                 getPrincipleClaimName(jwt)
         );
-
     }
 
+    private Set<GrantedAuthority> generateAuthorities(Jwt jwt) {
+
+        Stream<GrantedAuthority> stream = Stream.concat(
+                new JwtGrantedAuthoritiesConverter().convert(jwt).stream(),
+                extractResourceRoles(jwt).stream()
+        );
+
+        return stream.collect(Collectors.toSet());
+    }
+
+    @SuppressWarnings("unchecked")
     private Collection<? extends GrantedAuthority> extractResourceRoles(Jwt jwt) {
 
-        Map<String, Object> resourceAccess;
-        Map<String, Object> resource;
-        List<String> roles;
-
-        if(jwt.getClaim(RESOURCE_ACCESS) == null) {
-            return Set.of();
+        if(!(jwt.getClaim(RESOURCE_ACCESS) instanceof Map)) {
+            return Collections.emptySet();
         }
-        resourceAccess = jwt.getClaim(RESOURCE_ACCESS);
 
-        if(resourceAccess.get(RESOURCE_ROLES_CLAIM) == null) {
-            return Set.of();
+        Map<String, Object> resourceAccess = jwt.getClaim(RESOURCE_ACCESS);
+
+        if(!(resourceAccess.get(RESOURCE_ROLES_CLAIM) instanceof Map)) {
+            return Collections.emptySet();
         }
-        resource = (Map<String, Object>) resourceAccess.get(RESOURCE_ROLES_CLAIM);
-        roles = (List<String>) resource.get(ROLES);
+
+        Map<String, Object> resource = (Map<String, Object>) resourceAccess.get(RESOURCE_ROLES_CLAIM);
+
+        if(!(resource.get(ROLES) instanceof List)) {
+            return Collections.emptySet();
+        }
+
+        List<String> roles = (List<String>) resource.get(ROLES);
 
         log.info("Roles extracted from jwt");
         log.trace("Extracted roles: {}", roles);
@@ -72,5 +82,4 @@ public class KeycloakJwtAuthenticationConverter implements Converter<Jwt, Abstra
     private String getPrincipleClaimName(Jwt jwt) {
         return jwt.getClaim(CLAIM_NAME);
     }
-
 }
