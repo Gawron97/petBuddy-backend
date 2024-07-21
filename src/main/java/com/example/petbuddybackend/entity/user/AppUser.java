@@ -1,10 +1,7 @@
 package com.example.petbuddybackend.entity.user;
 
 import jakarta.annotation.Nonnull;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -21,6 +18,7 @@ public class AppUser {
     private String surname;
     private String username;
 
+    @JoinColumn(name = "email")
     @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE)
     private Caretaker caretaker;
 }

@@ -29,7 +29,7 @@ public class Caretaker {
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     private Address address;
 
-    @OneToOne(cascade = CascadeType.MERGE, optional = false)
     @PrimaryKeyJoinColumn
+    @OneToOne(cascade = CascadeType.MERGE, optional = false)
     private AppUser accountData;
 }
