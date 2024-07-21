@@ -26,11 +26,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers(
-                                        "/v3/api-docs/**",
-                                        "/v2/api-docs.yaml",
+                                        "/api-docs/**",
+                                        "/api-docs.yaml",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
-                                        "/api/test/**",
+
                                         "/api/caretaker"
                                 )
                                     .permitAll()
