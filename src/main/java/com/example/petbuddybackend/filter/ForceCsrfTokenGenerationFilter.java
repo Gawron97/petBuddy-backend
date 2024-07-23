@@ -20,18 +20,9 @@ public class ForceCsrfTokenGenerationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-
         log.info("Invoking ForceCsrfTokenGenerationFilter");
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
         csrfToken.getToken();
         filterChain.doFilter(request, response);
-
     }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getServletPath().startsWith("/api/csrf");
-    }
-
-
 }
