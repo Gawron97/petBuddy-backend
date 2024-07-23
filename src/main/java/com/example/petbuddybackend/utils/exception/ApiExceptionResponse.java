@@ -15,10 +15,13 @@ public class ApiExceptionResponse {
     @JsonFormat(pattern = TimeFormat.DATE_TIME_FORMAT)
     LocalDateTime timestamp;
 
-    public ApiExceptionResponse(Throwable e) {
+    public ApiExceptionResponse(Throwable e, String message) {
         this.type = e.getClass().getSimpleName();
-        this.message = e.getMessage();
+        this.message = message;
         this.timestamp = LocalDateTime.now();
     }
 
+    public ApiExceptionResponse(Throwable e) {
+        this(e, "An unexpected error occurred");
+    }
 }
