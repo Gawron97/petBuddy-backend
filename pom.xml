@@ -117,6 +117,7 @@
                             <exclude>com/example/petbuddybackend/config/SecurityConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/controller/TestController.class</exclude>
                             <exclude>com/example/petbuddybackend/service/mock/MockService.class</exclude>
+                            <exclude>com/example/petbuddybackend/filter/ExceptionHandlerFilter.class</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
