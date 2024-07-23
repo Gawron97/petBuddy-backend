@@ -111,11 +111,13 @@
                     <configuration>
                         <excludes>
                             <exclude>com/example/petbuddybackend/dto/**</exclude>
+                            <exclude>com/example/petbuddybackend/utils/exception/**</exclude>
                             <exclude>com/example/petbuddybackend/PetBuddyBackendApplication.class</exclude>
                             <exclude>com/example/petbuddybackend/config/MockDataCreator.class</exclude>
                             <exclude>com/example/petbuddybackend/config/SecurityConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/controller/TestController.class</exclude>
                             <exclude>com/example/petbuddybackend/service/mock/MockService.class</exclude>
+                            <exclude>com/example/petbuddybackend/filter/ExceptionHandlerFilter.class</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
