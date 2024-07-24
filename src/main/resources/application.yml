@@ -29,3 +29,9 @@ server:
 
 sentry:
   dsn: https://aea7d4722318a9965e1ef62e26a4109b@o4507593891184640.ingest.de.sentry.io/4507593901998160
+
+springdoc:
+  api-docs:
+    path: "/api-docs"
+  swagger-ui:
+    path: "/swagger-ui.html"
