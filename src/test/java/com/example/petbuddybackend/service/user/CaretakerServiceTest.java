@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
+import com.example.petbuddybackend.dto.rating.RatingDTO;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
@@ -40,8 +41,7 @@ import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.entity.animal.AnimalType.CAT;
 import static com.example.petbuddybackend.entity.animal.AnimalType.DOG;
-import static com.example.petbuddybackend.testutils.MockUtils.createMockCaretakers;
-import static com.example.petbuddybackend.testutils.MockUtils.createMockClient;
+import static com.example.petbuddybackend.testutils.MockUtils.*;
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -165,13 +165,7 @@ public class CaretakerServiceTest {
     @Test
     @Transactional
     void rateCaretaker_ratingExists_shouldUpdateRating() {
-        ratingRepository.save(Rating.builder()
-                .clientId(client.getId())
-                .caretakerId(caretaker.getId())
-                .rating(3)
-                .comment("comment")
-                .build()
-        );
+        ratingRepository.save(createMockRating(caretaker, client));
 
         caretakerService.rateCaretaker(
                 caretaker.getId(),
@@ -231,13 +225,7 @@ public class CaretakerServiceTest {
 
     @Test
     void deleteRating_shouldSucceed() {
-        ratingRepository.save(Rating.builder()
-                .clientId(client.getId())
-                .caretakerId(caretaker.getId())
-                .rating(3)
-                .comment("comment")
-                .build()
-        );
+        ratingRepository.saveAndFlush(createMockRating(caretaker, client));
 
         caretakerService.deleteRating(caretaker.getId(), client.getAccountData().getUsername());
         assertEquals(0, ratingRepository.count());
@@ -257,6 +245,14 @@ public class CaretakerServiceTest {
                 caretaker.getId(),
                 client.getAccountData().getUsername()
         ));
+    }
+
+    @Test
+    void getRatings_shouldReturnRatings() {
+        ratingRepository.saveAndFlush(createMockRating(caretaker, client));
+
+        Page<RatingDTO> ratings = caretakerService.getRatings(Pageable.ofSize(10), caretaker.getId());
+        assertEquals(1, ratings.getContent().size());
     }
 
     private static Stream<Arguments> provideRatingParams() {

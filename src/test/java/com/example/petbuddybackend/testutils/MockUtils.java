@@ -4,6 +4,7 @@ import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.animal.AnimalTakenCareOf;
 import com.example.petbuddybackend.entity.animal.AnimalType;
+import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -100,6 +101,17 @@ public final class MockUtils {
                         .surname("clientSurname")
                         .username("clientUsername")
                         .build())
+                .build();
+    }
+
+    public static Rating createMockRating(Caretaker caretaker, Client client) {
+        return Rating.builder()
+                .caretakerId(caretaker.getId())
+                .clientId(client.getId())
+                .caretaker(caretaker)
+                .client(client)
+                .rating(5)
+                .comment("comment")
                 .build();
     }
 }

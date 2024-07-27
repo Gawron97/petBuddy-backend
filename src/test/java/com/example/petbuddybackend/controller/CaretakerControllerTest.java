@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -37,16 +36,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class CaretakerControllerTest {
 
+    private static final String RATING_BODY = "{\"rating\": %d, \"comment\": \"%s\"}";
+
+    @MockBean
+    private JwtDecoder jwtDecoder;
+
     @MockBean
     private CaretakerService caretakerService;
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private JwtDecoder jwtDecoder;
-
-    private static final String RATING_BODY = "{\"rating\": %d, \"comment\": \"%s\"}";
 
 
     @BeforeEach
@@ -86,7 +86,7 @@ public class CaretakerControllerTest {
     @MethodSource("provideRatingData")
     @WithMockUser(username = "client")
     void rateCaretaker(String body, ResultMatcher expectedResponse) throws Exception {
-        mockMvc.perform(post("/api/caretaker/1/rate")
+        mockMvc.perform(post("/api/caretaker/1/rating")
                         .content(body)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -96,10 +96,18 @@ public class CaretakerControllerTest {
     @Test
     @WithMockUser(username = "client")
     void deleteRating() throws Exception {
-        mockMvc.perform(delete("/api/caretaker/1/rate")
+        mockMvc.perform(delete("/api/caretaker/1/rating")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void getRatingsOfCaretaker() throws Exception {
+        mockMvc.perform(get("/api/caretaker/1/rating")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     private static Stream<Arguments> provideRatingData() {

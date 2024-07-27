@@ -28,10 +28,10 @@ public class AppUser {
     private String surname;
 
     @JoinColumn(name = "email")
-    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Caretaker caretaker;
 
     @JoinColumn(name = "email")
-    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE)
+    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Client client;
 }

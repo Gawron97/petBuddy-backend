@@ -39,10 +39,23 @@ public class CaretakerController {
         return caretakerService.getCaretakers(pageable, filters);
     }
 
-    @PostMapping("/{caretakerId}/rate")
+    @GetMapping("/{caretakerId}/rating")
+    @Operation(
+            summary = "Get ratings of caretaker",
+            description = "Retrieves a paginated list of ratings for a caretaker."
+    )
+    public Page<RatingDTO> getRatings(
+            @ParameterObject @ModelAttribute @Valid PagingParams pagingParams,
+            @PathVariable Long caretakerId
+    ) {
+        Pageable pageable = PagingUtils.createPageable(pagingParams);
+        return caretakerService.getRatings(pageable, caretakerId);
+    }
+
+    @PostMapping("/{caretakerId}/rating")
     @Operation(
             summary = "Rate caretaker",
-            description = "Rates a caretaker with a given rating and comment."
+            description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void rateCaretaker(
@@ -53,7 +66,7 @@ public class CaretakerController {
         caretakerService.rateCaretaker(caretakerId, principal.getName(), ratingDTO.rating(), ratingDTO.comment());
     }
 
-    @DeleteMapping("/{caretakerId}/rate")
+    @DeleteMapping("/{caretakerId}/rating")
     @Operation(
             summary = "Delete rating",
             description = "Deletes a rating for a caretaker."

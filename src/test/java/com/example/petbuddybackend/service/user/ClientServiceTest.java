@@ -6,6 +6,7 @@ import com.example.petbuddybackend.repository.AppUserRepository;
 import com.example.petbuddybackend.repository.ClientRepository;
 import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,6 +31,11 @@ public class ClientServiceTest {
     @Autowired
     private ClientService clientService;
 
+
+    @AfterEach
+    void tearDown() {
+        appUserRepository.deleteAll();
+    }
 
     @Test
     void getClientIdByUsername_shouldSucceed() {

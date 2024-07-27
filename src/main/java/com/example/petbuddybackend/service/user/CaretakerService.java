@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.rating.RatingDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -35,6 +36,10 @@ public class CaretakerService {
         return caretakerRepository
                 .findAll(spec, pageable)
                 .map(caretakerMapper::mapToCaretakerDTO);
+    }
+
+    public Page<RatingDTO> getRatings(Pageable pageable, Long caretakerId) {
+        return ratingRepository.findAllByCaretakerId(caretakerId, pageable);
     }
 
     public void rateCaretaker(Long caretakerId, String clientUsername, int rating, String comment) {
