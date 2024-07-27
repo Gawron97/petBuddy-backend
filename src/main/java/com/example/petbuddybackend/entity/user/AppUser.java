@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.entity.user;
 
-import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,13 +11,27 @@ import lombok.*;
 @Builder
 public class AppUser {
 
-    @Id @Nonnull
-    private String email;
-    private String name;
-    private String surname;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 60)
     private String username;
+
+    @Column(nullable = false, unique = true, length = 255)
+    private String email;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(nullable = false, length = 100)
+    private String surname;
 
     @JoinColumn(name = "email")
     @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE)
     private Caretaker caretaker;
+
+    @JoinColumn(name = "email")
+    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE)
+    private Client client;
 }

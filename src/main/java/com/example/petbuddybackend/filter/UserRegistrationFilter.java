@@ -24,9 +24,8 @@ public class UserRegistrationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        JwtAuthenticationToken token = (JwtAuthenticationToken) request.getUserPrincipal();
 
-        if(token != null) {
+        if(request.getUserPrincipal() instanceof JwtAuthenticationToken token ) {
             log.info("Request by user with email: " + token.getTokenAttributes().get("email"));
             userService.createUserIfNotExist(token);
         }

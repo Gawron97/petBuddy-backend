@@ -6,6 +6,7 @@ import com.example.petbuddybackend.entity.animal.AnimalTakenCareOf;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.entity.user.Client;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,19 +34,20 @@ public final class MockUtils {
         return createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa");
     }
 
-    public static Caretaker createMockCaretaker(String name, String surname, String email, List<AnimalTakenCareOf> animals, Address address) {
+    public static Caretaker createMockCaretaker(String name, String surname, String username, String email, List<AnimalTakenCareOf> animals, Address address) {
         AppUser accountData = AppUser.builder()
                 .email(email)
                 .name(name)
                 .surname(surname)
+                .username(username)
                 .build();
 
         Caretaker caretaker = Caretaker.builder()
-                .email(accountData.getEmail())
                 .accountData(accountData)
                 .address(address)
                 .description("description")
                 .phoneNumber("number")
+                .avgRating(4.5f)
                 .build();
 
         animals = animals.stream()
@@ -60,6 +62,7 @@ public final class MockUtils {
         return createMockCaretaker(
                 "name",
                 "surname",
+                "username",
                 "email",
                 animalsOfTypes(CAT, DOG),
                 createMockAddress()
@@ -68,11 +71,11 @@ public final class MockUtils {
 
     public static List<Caretaker> createMockCaretakers() {
         return List.of(
-                MockUtils.createMockCaretaker("John", "Doe", "testmail@mail.com", animalsOfTypes(DOG, CAT, BIRD),
+                MockUtils.createMockCaretaker("John", "Doe", "johndoe", "testmail@mail.com", animalsOfTypes(DOG, CAT, BIRD),
                         createMockAddress(Voivodeship.SLASKIE, "Katowice")),
-                MockUtils.createMockCaretaker("Jane", "Doe", "another@mail.com", animalsOfTypes(DOG),
+                MockUtils.createMockCaretaker("Jane", "Doe", "janedoe", "another@mail.com", animalsOfTypes(DOG),
                         createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa")),
-                MockUtils.createMockCaretaker("John", "Smith", "onceagain@mail.com", animalsOfTypes(REPTILE),
+                MockUtils.createMockCaretaker("John", "Smith", "johnsmith", "onceagain@mail.com", animalsOfTypes(REPTILE),
                         createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa"))
         );
     }
@@ -87,5 +90,16 @@ public final class MockUtils {
         return Arrays.stream(animalTypes)
                 .map(MockUtils::animalOfType)
                 .toList();
+    }
+
+    public static Client createMockClient() {
+        return Client.builder()
+                .accountData(AppUser.builder()
+                        .email("clientEmail")
+                        .name("clientName")
+                        .surname("clientSurname")
+                        .username("clientUsername")
+                        .build())
+                .build();
     }
 }
