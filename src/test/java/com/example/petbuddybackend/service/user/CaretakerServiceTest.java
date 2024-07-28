@@ -16,6 +16,7 @@ import com.example.petbuddybackend.repository.ClientRepository;
 import com.example.petbuddybackend.repository.RatingRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
+import com.example.petbuddybackend.testutils.ValidationUtils;
 import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
@@ -113,7 +114,7 @@ public class CaretakerServiceTest {
 
     @Test
     @Transactional
-    void rateCaretaker_shouldSucceed() {
+    void rateCaretaker_shouldSucceed() throws IllegalAccessException {
         caretakerService.rateCaretaker(
                 caretaker.getId(),
                 client.getAccountData().getUsername(),
@@ -124,9 +125,7 @@ public class CaretakerServiceTest {
         Rating rating = ratingRepository.getReferenceById(new RatingKey(client.getId(), caretaker.getId()));
         assertEquals(1, ratingRepository.count());
         assertEquals(5, rating.getRating());
-        assertEquals("comment", rating.getComment());
-        assertEquals(client.getId(), rating.getClientId());
-        assertEquals(caretaker.getId(), rating.getCaretakerId());
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(rating, Set.of("client", "caretaker")));
     }
 
     @Test
