@@ -1,9 +1,9 @@
 package com.example.petbuddybackend.repository;
 
 import com.example.petbuddybackend.dto.rating.RatingDTO;
-import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,16 +42,8 @@ public class RatingRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        client = createMockClient();
-        caretaker = createMockCaretaker();
-
-        AppUser clientAccountData = appUserRepository.saveAndFlush(client.getAccountData());
-        AppUser caretakerAccountData = appUserRepository.saveAndFlush(caretaker.getAccountData());
-        caretaker.setId(caretakerAccountData.getId());
-        client.setId(clientAccountData.getId());
-
-        caretakerRepository.saveAndFlush(caretaker);
-        clientRepository.saveAndFlush(client);
+        client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+        caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
     }
 
     @AfterEach

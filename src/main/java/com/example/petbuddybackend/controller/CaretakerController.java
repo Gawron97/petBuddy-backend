@@ -39,6 +39,7 @@ public class CaretakerController {
         return caretakerService.getCaretakers(pageable, filters);
     }
 
+    @SecurityRequirements
     @GetMapping("/{caretakerId}/rating")
     @Operation(
             summary = "Get ratings of caretaker",

@@ -8,13 +8,13 @@ import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
-import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.AppUserRepository;
 import com.example.petbuddybackend.repository.CaretakerRepository;
 import com.example.petbuddybackend.repository.ClientRepository;
 import com.example.petbuddybackend.repository.RatingRepository;
+import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
@@ -77,39 +77,6 @@ public class CaretakerServiceTest {
         initCaretakers();
         initClients(this.caretaker);
     }
-
-    private void initCaretakers() {
-        List<Caretaker> caretakers = createMockCaretakers();
-
-        List<AppUser> accountData = caretakers.stream()
-                .map(Caretaker::getAccountData)
-                .toList();
-
-        accountData = appUserRepository.saveAllAndFlush(accountData);
-
-        for (int i = 0; i < caretakers.size(); i++) {
-            caretakers.get(i).setId(accountData.get(i).getId());
-        }
-
-        caretakerRepository.saveAllAndFlush(caretakers);
-        this.caretaker = caretakers.get(0);
-    }
-
-    private void initClients(Caretaker caretaker) {
-        client = createMockClient();
-        clientSameAsCaretaker = Client.builder()
-                .id(caretaker.getId())
-                .accountData(caretaker.getAccountData())
-                .build();
-
-        AppUser newUserData = appUserRepository.saveAndFlush(client.getAccountData());
-        appUserRepository.saveAndFlush(clientSameAsCaretaker.getAccountData());
-
-        client.setId(newUserData.getId());
-        clientRepository.saveAndFlush(client);
-        clientRepository.saveAndFlush(clientSameAsCaretaker);
-    }
-
 
     @AfterEach
     void cleanUp() {
@@ -266,6 +233,22 @@ public class CaretakerServiceTest {
                 Arguments.of(5, true),
                 Arguments.of(6, false)
         );
+    }
+
+    private void initCaretakers() {
+        List<Caretaker> caretakers = PersistenceUtils.addCaretakers(caretakerRepository, appUserRepository);
+        this.caretaker = caretakers.get(0);
+    }
+
+    private void initClients(Caretaker caretaker) {
+        client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+
+        clientSameAsCaretaker = Client.builder()
+                .id(caretaker.getId())
+                .accountData(caretaker.getAccountData())
+                .build();
+
+        clientSameAsCaretaker = PersistenceUtils.addClient(appUserRepository, clientRepository, clientSameAsCaretaker);
     }
 
     private static Stream<Arguments> provideSpecificationParams() {
