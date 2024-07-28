@@ -13,15 +13,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "caretaker_email", "animalType" }) }
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerId", "animalType" }) }
 )
 public class AnimalTakenCareOf {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "caretaker_email", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "caretakerId", nullable = false, updatable = false)
     private Caretaker caretaker;
 
     @Enumerated(EnumType.STRING)

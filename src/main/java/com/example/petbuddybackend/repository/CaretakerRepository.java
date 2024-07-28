@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 
-public interface CaretakerRepository extends JpaRepository<Caretaker, String>, JpaSpecificationExecutor<Caretaker> {
+public interface CaretakerRepository extends JpaRepository<Caretaker, Long>, JpaSpecificationExecutor<Caretaker> {
 
     Page<Caretaker> findAll(Specification<Caretaker> spec, Pageable pageable);
 }

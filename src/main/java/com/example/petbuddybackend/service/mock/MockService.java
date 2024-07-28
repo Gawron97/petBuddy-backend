@@ -4,8 +4,10 @@ import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.animal.AnimalTakenCareOf;
 import com.example.petbuddybackend.entity.animal.AnimalType;
+import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.entity.user.Client;
 import com.github.javafaker.Faker;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ public class MockService {
     private final Faker faker = new Faker();
 
 
-    public List<AppUser> createAppUsers(int count) {
+    public List<AppUser> createMockAppUsers(int count) {
         List<AppUser> caretakers = new ArrayList<>(count);
 
         for (int i = 0; i < count; i++) {
@@ -63,7 +65,7 @@ public class MockService {
                 .build();
 
         Caretaker caretaker = Caretaker.builder()
-                .email(user.getEmail())
+                .id(user.getId())
                 .address(address)
                 .description(faker.lorem().sentence())
                 .phoneNumber(faker.phoneNumber().cellPhone())
@@ -95,5 +97,45 @@ public class MockService {
             );
         }
         return animals.stream().toList();
+    }
+
+    public Rating createMockRating(Caretaker caretaker, Client client) {
+        return Rating.builder()
+                .caretakerId(caretaker.getId())
+                .clientId(client.getId())
+                .caretaker(caretaker)
+                .client(client)
+                .rating(faker.random().nextInt(1, 5))
+                .comment(faker.lorem().sentence())
+                .build();
+    }
+
+    public List<Rating> createMockRatings(List<Caretaker> caretakers, List<Client> clients) {
+        List<Rating> ratings = new ArrayList<>(caretakers.size() * clients.size());
+
+        for(Caretaker caretaker : caretakers) {
+            for(Client client : clients) {
+                ratings.add(createMockRating(caretaker, client));
+            }
+        }
+
+        return ratings;
+    }
+
+
+    public Client createClient(AppUser user) {
+        return Client.builder()
+                .id(user.getId())
+                .build();
+    }
+
+    public List<Client> createMockClients(List<AppUser> users) {
+        List<Client> clients = new ArrayList<>();
+
+        for (AppUser user : users) {
+            clients.add(createClient(user));
+        }
+
+        return clients;
     }
 }
