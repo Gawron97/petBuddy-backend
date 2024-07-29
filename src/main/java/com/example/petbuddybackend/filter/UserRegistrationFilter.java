@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.filter;
 
-import com.example.petbuddybackend.service.UserService;
+import com.example.petbuddybackend.service.user.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

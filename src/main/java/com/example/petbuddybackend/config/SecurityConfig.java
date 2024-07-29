@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.config;
 
-//import com.example.petbuddybackend.filter.CsrfCookieFilter;
+import com.example.petbuddybackend.filter.ExceptionHandlerFilter;
 import com.example.petbuddybackend.utils.keycloak.KeycloakJwtAuthenticationConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -21,6 +22,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final ExceptionHandlerFilter exceptionHandlerFilter;
     private final KeycloakJwtAuthenticationConverter keycloakJwtAuthenticationConverter;
 
     @Bean
@@ -37,11 +39,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers(
-                                        "/v3/api-docs/**",
-                                        "/v2/api-docs.yaml",
+                                        "/api-docs/**",
+                                        "/api-docs.yaml",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
                                         "/api/csrf**"
+                                        "/api/caretaker"
                                 )
                                     .permitAll()
                                 .anyRequest()
@@ -49,7 +52,9 @@ public class SecurityConfig {
                 )
                 .oauth2ResourceServer(auth ->
                         auth.jwt(token -> token.jwtAuthenticationConverter(keycloakJwtAuthenticationConverter))
-                );
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(exceptionHandlerFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
