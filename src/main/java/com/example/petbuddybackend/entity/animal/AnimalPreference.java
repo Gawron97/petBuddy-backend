@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.entity.animal;
 
+import com.example.petbuddybackend.entity.offer.CaretakerOffer;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import java.util.List;
 @Table(
         uniqueConstraints = { @UniqueConstraint(columnNames = { "animalType", "optionName" }) }
 )
-public class AnimalOption {
+public class AnimalPreference {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

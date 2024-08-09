@@ -2,7 +2,7 @@ package com.example.petbuddybackend.service.mock;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.CaretakerOffer;
+import com.example.petbuddybackend.entity.offer.CaretakerOffer;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -86,14 +86,14 @@ public class MockService {
         int numberOfTypes = faker.random().nextInt(1, (animalTypes.length + 1) / 2);
         Set<CaretakerOffer> offers = new HashSet<>(numberOfTypes);
 
-        while (offers.size() < numberOfTypes) {
-            offers.add(
-                    CaretakerOffer.builder()
-                            .animalType(animalTypes[faker.random().nextInt(animalTypes.length)])
-                            .caretaker(caretaker)
-                            .build()
-            );
-        }
+//        while (offers.size() < numberOfTypes) {
+//            offers.add(
+//                    CaretakerOffer.builder()
+//                            .animalType(animalTypes[faker.random().nextInt(animalTypes.length)])
+//                            .caretaker(caretaker)
+//                            .build()
+//            );
+//        }
         return offers.stream().toList();
     }
 

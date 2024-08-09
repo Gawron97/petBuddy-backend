@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.dto.user;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
-import com.example.petbuddybackend.dto.animal.CaretakerOfferDTO;
+import com.example.petbuddybackend.dto.offer.CaretakerOfferDTO;
 import lombok.Builder;
 
 import java.util.List;

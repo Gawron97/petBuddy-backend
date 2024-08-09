@@ -2,7 +2,7 @@ package com.example.petbuddybackend.testutils;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.CaretakerOffer;
+import com.example.petbuddybackend.entity.offer.CaretakerOffer;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;

@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.address.Address;
-import com.example.petbuddybackend.entity.animal.CaretakerOffer;
+import com.example.petbuddybackend.entity.offer.CaretakerOffer;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +12,7 @@ import java.util.List;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Caretaker extends AppUser {
+public class Caretaker {
 
     @Id
     private String email;

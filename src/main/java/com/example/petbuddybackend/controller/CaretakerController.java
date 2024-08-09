@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.offer.CaretakerOfferDTO;
 import com.example.petbuddybackend.dto.paging.PagingParams;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
@@ -12,12 +13,12 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,4 +40,33 @@ public class CaretakerController {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters);
     }
+
+    @SecurityRequirements
+    @Operation(
+            summary = "Add or edit caretaker offer",
+            description = "Adds or edits a caretaker offer for currently logged caretaker."
+    )
+    @PostMapping("/offer")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<CaretakerOfferDTO> addOrEditCaretakerOfferForCaretaker(
+            @RequestBody CaretakerOfferDTO caretakerOffer,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(caretakerService.addOrEditCaretakerOfferForCaretaker(caretakerOffer, principal.getName()));
+    }
+
+    @SecurityRequirements
+    @Operation(
+            summary = "Add or edit caretaker offers",
+            description = "Adds or edits caretaker offers for currently logged caretaker."
+    )
+    @PostMapping("/offers")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<CaretakerOfferDTO>> addOrEditCaretakerOffersForCaretaker(
+            @RequestBody List<CaretakerOfferDTO> caretakerOffers,
+            Principal principal
+    ) {
+        return ResponseEntity.ok(caretakerService.addOrEditCaretakerOffersForCaretaker(caretakerOffers, principal.getName()));
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.user.CaretakerNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -33,4 +34,11 @@ public class GeneralAdvice {
 
         return new ApiExceptionResponse(e, errors.toString());
     }
+
+    @ExceptionHandler(CaretakerNotFoundException.class)
+    @ResponseStatus(code = HttpStatus.NOT_FOUND)
+    public ApiExceptionResponse handleCaretakerNotFoundException(CaretakerNotFoundException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
 }
