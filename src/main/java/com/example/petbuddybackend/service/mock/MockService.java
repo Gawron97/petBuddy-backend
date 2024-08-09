@@ -2,7 +2,7 @@ package com.example.petbuddybackend.service.mock;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.AnimalTakenCareOf;
+import com.example.petbuddybackend.entity.animal.CaretakerOffer;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -69,9 +69,8 @@ public class MockService {
                 .phoneNumber(faker.phoneNumber().cellPhone())
                 .build();
 
-        List<AnimalTakenCareOf> animals = generateAnimal();
-        animals = animals.stream().peek(animal -> animal.setCaretaker(caretaker)).toList();
-        caretaker.setAnimalsTakenCareOf(animals);
+        List<CaretakerOffer> offers = generateCaretakerOffers(caretaker);
+        caretaker.setCaretakerOffers(offers);
 
         return caretaker;
     }
@@ -81,19 +80,21 @@ public class MockService {
         return voivodeships[faker.random().nextInt(voivodeships.length)];
     }
 
-    public List<AnimalTakenCareOf> generateAnimal() {
+    public List<CaretakerOffer> generateCaretakerOffers(Caretaker caretaker) {
         AnimalType[] animalTypes = AnimalType.values();
 
         int numberOfTypes = faker.random().nextInt(1, (animalTypes.length + 1) / 2);
-        Set<AnimalTakenCareOf> animals = new HashSet<>(numberOfTypes);
+        Set<CaretakerOffer> offers = new HashSet<>(numberOfTypes);
 
-        while (animals.size() < numberOfTypes) {
-            animals.add(
-                    AnimalTakenCareOf.builder()
+        while (offers.size() < numberOfTypes) {
+            offers.add(
+                    CaretakerOffer.builder()
                             .animalType(animalTypes[faker.random().nextInt(animalTypes.length)])
+                            .caretaker(caretaker)
                             .build()
             );
         }
-        return animals.stream().toList();
+        return offers.stream().toList();
     }
+
 }

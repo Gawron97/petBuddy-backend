@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.dto.user;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
-import com.example.petbuddybackend.dto.animal.AnimalDTO;
+import com.example.petbuddybackend.dto.animal.CaretakerOfferDTO;
 import lombok.Builder;
 
 import java.util.List;
@@ -12,6 +12,6 @@ public record CaretakerDTO(
         String phoneNumber,
         String description,
         AddressDTO address,
-        List<AnimalDTO> animalsTakenCareOf
+        List<CaretakerOfferDTO> caretakerOffers
 ) {
 }

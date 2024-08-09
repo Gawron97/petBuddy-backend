@@ -23,7 +23,7 @@ public final class CaretakerSpecificationUtils {
     public static final String NAME = "name";
     public static final String SURNAME = "surname";
     public static final String EMAIL = "email";
-    public static final String ANIMALS_TAKEN_CARE_OF = "animalsTakenCareOf";
+    public static final String CARETAKER_OFFERS = "caretakerOffers";
     public static final String ANIMAL_TYPE = "animalType";
 
 
@@ -88,8 +88,8 @@ public final class CaretakerSpecificationUtils {
 
     private static Specification<Caretaker> animalTypesIn(Set<AnimalType> animalTypes) {
         return (root, query, criteriaBuilder) -> {
-            Join<Object, Object> animalsJoin = root.join(ANIMALS_TAKEN_CARE_OF);
-            return animalsJoin.get(ANIMAL_TYPE).in(animalTypes);
+            Join<Object, Object> offersJoin = root.join(CARETAKER_OFFERS);
+            return offersJoin.get(ANIMAL_TYPE).in(animalTypes);
         };
     }
 }

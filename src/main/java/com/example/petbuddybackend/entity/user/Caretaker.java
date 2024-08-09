@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.address.Address;
-import com.example.petbuddybackend.entity.animal.AnimalTakenCareOf;
+import com.example.petbuddybackend.entity.animal.CaretakerOffer;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +12,7 @@ import java.util.List;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Caretaker {
+public class Caretaker extends AppUser {
 
     @Id
     private String email;
@@ -24,8 +24,9 @@ public class Caretaker {
     private String description;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "caretaker")
-    private List<AnimalTakenCareOf> animalsTakenCareOf;
+    private List<CaretakerOffer> caretakerOffers;
 
+    @JoinColumn(name = "address_id")
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     private Address address;
 

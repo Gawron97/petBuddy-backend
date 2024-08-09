@@ -1,11 +1,12 @@
 package com.example.petbuddybackend.entity.animal;
 
-import com.example.petbuddybackend.entity.user.Caretaker;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -13,18 +14,21 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "caretaker_email", "animalType" }) }
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "animalType", "optionName" }) }
 )
-public class AnimalTakenCareOf {
+public class AnimalOption {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "caretaker_email", nullable = false)
-    private Caretaker caretaker;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AnimalType animalType;
+
+    @Column(nullable = false)
+    private String animalDetails;
+
+    @OneToMany(mappedBy = "animalOption", fetch = FetchType.LAZY)
+    private List<CaretakerOffer> caretakerOffers;
+
 }
