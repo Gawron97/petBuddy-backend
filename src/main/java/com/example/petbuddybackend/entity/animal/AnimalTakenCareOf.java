@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Entity
 @Table(
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerId", "animalType" }) }
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerEmail", "animalType" }) }
 )
 public class AnimalTakenCareOf {
 
@@ -21,7 +21,7 @@ public class AnimalTakenCareOf {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "caretakerId", nullable = false, updatable = false)
+    @JoinColumn(name = "caretakerEmail", nullable = false, updatable = false)
     private Caretaker caretaker;
 
     @Enumerated(EnumType.STRING)

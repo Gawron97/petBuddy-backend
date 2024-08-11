@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface ClientRepository extends JpaRepository<Client, Long> {
+public interface ClientRepository extends JpaRepository<Client, String> {
 
-    @Query("SELECT c.id FROM Client c WHERE c.accountData.username = :username")
-    Optional<Long> findClientIdByUsername(String username);
+    @Query("SELECT c.email FROM Client c WHERE c.accountData.email = :email")
+    Optional<Long> findClientIdByEmail(String email);
 }

@@ -35,12 +35,11 @@ public final class MockUtils {
         return createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa");
     }
 
-    public static Caretaker createMockCaretaker(String name, String surname, String username, String email, List<AnimalTakenCareOf> animals, Address address) {
+    public static Caretaker createMockCaretaker(String name, String surname, String email, List<AnimalTakenCareOf> animals, Address address) {
         AppUser accountData = AppUser.builder()
                 .email(email)
                 .name(name)
                 .surname(surname)
-                .username(username)
                 .build();
 
         Caretaker caretaker = Caretaker.builder()
@@ -63,7 +62,6 @@ public final class MockUtils {
         return createMockCaretaker(
                 "name",
                 "surname",
-                "username",
                 "email",
                 animalsOfTypes(CAT, DOG),
                 createMockAddress()
@@ -72,11 +70,11 @@ public final class MockUtils {
 
     public static List<Caretaker> createMockCaretakers() {
         return List.of(
-                MockUtils.createMockCaretaker("John", "Doe", "johndoe", "testmail@mail.com", animalsOfTypes(DOG, CAT, BIRD),
+                MockUtils.createMockCaretaker("John", "Doe", "testmail@mail.com", animalsOfTypes(DOG, CAT, BIRD),
                         createMockAddress(Voivodeship.SLASKIE, "Katowice")),
-                MockUtils.createMockCaretaker("Jane", "Doe", "janedoe", "another@mail.com", animalsOfTypes(DOG),
+                MockUtils.createMockCaretaker("Jane", "Doe", "another@mail.com", animalsOfTypes(DOG),
                         createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa")),
-                MockUtils.createMockCaretaker("John", "Smith", "johnsmith", "onceagain@mail.com", animalsOfTypes(REPTILE),
+                MockUtils.createMockCaretaker("John", "Smith", "onceagain@mail.com", animalsOfTypes(REPTILE),
                         createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa"))
         );
     }
@@ -99,15 +97,14 @@ public final class MockUtils {
                         .email("clientEmail")
                         .name("clientName")
                         .surname("clientSurname")
-                        .username("clientUsername")
                         .build())
                 .build();
     }
 
     public static Rating createMockRating(Caretaker caretaker, Client client) {
         return Rating.builder()
-                .caretakerId(caretaker.getId())
-                .clientId(client.getId())
+                .caretakerEmail(caretaker.getEmail())
+                .clientEmail(client.getEmail())
                 .caretaker(caretaker)
                 .client(client)
                 .rating(5)

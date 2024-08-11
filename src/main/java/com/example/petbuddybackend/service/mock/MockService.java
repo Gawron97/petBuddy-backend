@@ -36,7 +36,6 @@ public class MockService {
 
     public AppUser createAppUser() {
         return AppUser.builder()
-                .username(faker.name().username())
                 .email(faker.internet().emailAddress())
                 .name(faker.name().firstName())
                 .surname(faker.name().lastName())
@@ -65,7 +64,7 @@ public class MockService {
                 .build();
 
         Caretaker caretaker = Caretaker.builder()
-                .id(user.getId())
+                .email(user.getEmail())
                 .address(address)
                 .description(faker.lorem().sentence())
                 .phoneNumber(faker.phoneNumber().cellPhone())
@@ -101,8 +100,8 @@ public class MockService {
 
     public Rating createMockRating(Caretaker caretaker, Client client) {
         return Rating.builder()
-                .caretakerId(caretaker.getId())
-                .clientId(client.getId())
+                .caretakerEmail(caretaker.getEmail())
+                .clientEmail(client.getEmail())
                 .caretaker(caretaker)
                 .client(client)
                 .rating(faker.random().nextInt(1, 5))
@@ -125,7 +124,7 @@ public class MockService {
 
     public Client createClient(AppUser user) {
         return Client.builder()
-                .id(user.getId())
+                .email(user.getEmail())
                 .build();
     }
 

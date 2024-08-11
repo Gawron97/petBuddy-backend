@@ -66,7 +66,6 @@ public class UserServiceTests {
         assertEquals(email, user.getEmail());
         assertEquals(firstname, user.getName());
         assertEquals(lastname, user.getSurname());
-        assertEquals(username, user.getUsername());
     }
 
     @Test

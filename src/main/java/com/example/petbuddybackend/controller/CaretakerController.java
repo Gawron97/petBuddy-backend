@@ -40,43 +40,43 @@ public class CaretakerController {
     }
 
     @SecurityRequirements
-    @GetMapping("/{caretakerId}/rating")
+    @GetMapping("/{caretakerEmail}/rating")
     @Operation(
             summary = "Get ratings of caretaker",
             description = "Retrieves a paginated list of ratings for a caretaker."
     )
     public Page<RatingDTO> getRatings(
             @ParameterObject @ModelAttribute @Valid PagingParams pagingParams,
-            @PathVariable Long caretakerId
+            @PathVariable String caretakerEmail
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return caretakerService.getRatings(pageable, caretakerId);
+        return caretakerService.getRatings(pageable, caretakerEmail);
     }
 
-    @PostMapping("/{caretakerId}/rating")
+    @PostMapping("/{caretakerEmail}/rating")
     @Operation(
             summary = "Rate caretaker",
             description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void rateCaretaker(
-            @PathVariable Long caretakerId,
+            @PathVariable String caretakerEmail,
             @RequestBody @Valid RatingDTO ratingDTO,
             Principal principal
     ) {
-        caretakerService.rateCaretaker(caretakerId, principal.getName(), ratingDTO.rating(), ratingDTO.comment());
+        caretakerService.rateCaretaker(caretakerEmail, principal.getName(), ratingDTO.rating(), ratingDTO.comment());
     }
 
-    @DeleteMapping("/{caretakerId}/rating")
+    @DeleteMapping("/{caretakerEmail}/rating")
     @Operation(
             summary = "Delete rating",
             description = "Deletes a rating for a caretaker."
     )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRating(
-            @PathVariable Long caretakerId,
+            @PathVariable String caretakerEmail,
             Principal principal
     ) {
-        caretakerService.deleteRating(caretakerId, principal.getName());
+        caretakerService.deleteRating(caretakerEmail, principal.getName());
     }
 }

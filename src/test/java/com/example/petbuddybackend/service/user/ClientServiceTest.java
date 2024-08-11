@@ -5,7 +5,6 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.AppUserRepository;
 import com.example.petbuddybackend.repository.ClientRepository;
 import com.example.petbuddybackend.testutils.MockUtils;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 public class ClientServiceTest {
@@ -37,23 +35,22 @@ public class ClientServiceTest {
         appUserRepository.deleteAll();
     }
 
+
     @Test
-    void getClientIdByUsername_shouldSucceed() {
+    void checkClientExists_shouldReturnTrue() {
         Client client = MockUtils.createMockClient();
 
         AppUser accountData = appUserRepository.saveAndFlush(client.getAccountData());
-        client.setId(accountData.getId());
+        client.setEmail(accountData.getEmail());
         clientRepository.saveAndFlush(client);
 
-        Long clientId = clientService.getClientIdByUsername(client.getAccountData().getUsername());
-        assertNotNull(clientId);
+        boolean clientExists = clientService.clientExists(client.getAccountData().getEmail());
+        assertNotNull(clientExists);
     }
 
     @Test
-    void getClientIdByUsername_noSuchClientPresent_shouldThrowNotFoundException() {
-        assertThrows(
-                NotFoundException.class,
-                () -> clientService.getClientIdByUsername("username")
-        );
+    void checkClientExists_noSuchClientPresent_shouldReturnFalse() {
+        boolean clientExists = clientService.clientExists("invalidEmail");
+        assertNotNull(clientExists);
     }
 }

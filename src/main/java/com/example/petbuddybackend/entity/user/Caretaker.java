@@ -17,7 +17,7 @@ import java.util.List;
 public class Caretaker {
 
     @Id
-    private Long id;
+    private String email;
 
     @Column(nullable = false, length = 14)
     private String phoneNumber;
@@ -30,7 +30,7 @@ public class Caretaker {
     private AppUser accountData;
 
     @Basic(fetch = FetchType.LAZY)
-    @Formula("(SELECT AVG(r.rating) FROM Rating r WHERE r.caretaker_id = id)")
+    @Formula("(SELECT AVG(r.rating) FROM Rating r WHERE r.caretaker_email = email)")
     private Float avgRating;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "caretaker", fetch = FetchType.LAZY)

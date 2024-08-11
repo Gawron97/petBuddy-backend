@@ -17,7 +17,7 @@ public interface RatingRepository extends JpaRepository<Rating, RatingKey> {
                 r.comment
             )
             FROM Rating r
-            WHERE r.caretakerId = :caretakerId
+            WHERE r.caretakerEmail = :caretakerEmail
     """)
-    Page<RatingDTO> findAllByCaretakerId(Long caretakerId, Pageable pageable);
+    Page<RatingDTO> findAllByCaretakerEmail(String caretakerEmail, Pageable pageable);
 }

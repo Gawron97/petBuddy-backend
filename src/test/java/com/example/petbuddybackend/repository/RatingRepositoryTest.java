@@ -55,7 +55,7 @@ public class RatingRepositoryTest {
     void testFindAllByCaretakerId_shouldReturnRatingsWithNoNulls() throws IllegalAccessException {
         ratingRepository.saveAndFlush(createMockRating(caretaker, client));
 
-        Page<RatingDTO> ratings = ratingRepository.findAllByCaretakerId(caretaker.getId(), PageRequest.of(0, 10));
+        Page<RatingDTO> ratings = ratingRepository.findAllByCaretakerEmail(caretaker.getEmail(), PageRequest.of(0, 10));
         RatingDTO ratingDTO = ratings.getContent().get(0);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(ratingDTO));

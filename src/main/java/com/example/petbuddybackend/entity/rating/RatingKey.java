@@ -12,6 +12,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RatingKey implements Serializable {
-    private Long clientId;
-    private Long caretakerId;
+    private String caretakerEmail;
+    private String clientEmail;
 }

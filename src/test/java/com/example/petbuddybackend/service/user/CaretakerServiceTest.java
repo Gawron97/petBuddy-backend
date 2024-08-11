@@ -96,7 +96,7 @@ public class CaretakerServiceTest {
     }
 
     @Test
-    void testSortingParamsAlignWithDTO() {
+    void testSortingParamsAlignWithDTO_shouldMatch() {
         List<String> fieldNames = ReflectionUtils.getPrimitiveNames(CaretakerDTO.class);
         fieldNames.addAll(getPrimitiveNames(AddressDTO.class, "address_"));
         fieldNames.addAll(getPrimitiveNames(AccountDataDTO.class, "accountData_"));
@@ -116,13 +116,13 @@ public class CaretakerServiceTest {
     @Transactional
     void rateCaretaker_shouldSucceed() throws IllegalAccessException {
         caretakerService.rateCaretaker(
-                caretaker.getId(),
-                client.getAccountData().getUsername(),
+                caretaker.getEmail(),
+                client.getAccountData().getEmail(),
                 5,
                 "comment"
         );
 
-        Rating rating = ratingRepository.getReferenceById(new RatingKey(client.getId(), caretaker.getId()));
+        Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail()));
         assertEquals(1, ratingRepository.count());
         assertEquals(5, rating.getRating());
         assertTrue(ValidationUtils.fieldsNotNullRecursive(rating, Set.of("client", "caretaker")));
@@ -134,18 +134,18 @@ public class CaretakerServiceTest {
         ratingRepository.save(createMockRating(caretaker, client));
 
         caretakerService.rateCaretaker(
-                caretaker.getId(),
-                client.getAccountData().getUsername(),
+                caretaker.getEmail(),
+                client.getAccountData().getEmail(),
                 5,
                 "new comment"
         );
 
-        Rating rating = ratingRepository.getReferenceById(new RatingKey(client.getId(), caretaker.getId()));
+        Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail()));
         assertEquals(1, ratingRepository.count());
         assertEquals(5, rating.getRating());
         assertEquals("new comment", rating.getComment());
-        assertEquals(client.getId(), rating.getClientId());
-        assertEquals(caretaker.getId(), rating.getCaretakerId());
+        assertEquals(client.getEmail(), rating.getClientEmail());
+        assertEquals(caretaker.getEmail(), rating.getCaretakerEmail());
     }
 
     @ParameterizedTest
@@ -153,8 +153,8 @@ public class CaretakerServiceTest {
     void rateCaretaker_invalidRating_(int rating, boolean shouldSucceed) {
         if (shouldSucceed) {
             caretakerService.rateCaretaker(
-                    caretaker.getId(),
-                    client.getAccountData().getUsername(),
+                    caretaker.getEmail(),
+                    client.getAccountData().getEmail(),
                     rating,
                     "comment"
             );
@@ -162,8 +162,8 @@ public class CaretakerServiceTest {
         }
 
         assertThrows(DataIntegrityViolationException.class, () -> caretakerService.rateCaretaker(
-                caretaker.getId(),
-                client.getAccountData().getUsername(),
+                caretaker.getEmail(),
+                client.getAccountData().getEmail(),
                 rating,
                 "comment"
         ));
@@ -172,8 +172,8 @@ public class CaretakerServiceTest {
     @Test
     void rateCaretaker_clientRatesHimself_shouldThrowIllegalActionException() {
         assertThrows(IllegalActionException.class, () -> caretakerService.rateCaretaker(
-                caretaker.getId(),
-                clientSameAsCaretaker.getAccountData().getUsername(),
+                caretaker.getEmail(),
+                clientSameAsCaretaker.getAccountData().getEmail(),
                 5,
                 "comment"
         ));
@@ -182,8 +182,8 @@ public class CaretakerServiceTest {
     @Test
     void rateCaretaker_caretakerDoesNotExist_shouldThrowNotFoundException() {
         assertThrows(NotFoundException.class, () -> caretakerService.rateCaretaker(
-                -1L,
-                client.getAccountData().getUsername(),
+                "invalidEmail",
+                client.getAccountData().getEmail(),
                 5,
                 "comment"
         ));
@@ -193,23 +193,23 @@ public class CaretakerServiceTest {
     void deleteRating_shouldSucceed() {
         ratingRepository.saveAndFlush(createMockRating(caretaker, client));
 
-        caretakerService.deleteRating(caretaker.getId(), client.getAccountData().getUsername());
+        caretakerService.deleteRating(caretaker.getEmail(), client.getAccountData().getEmail());
         assertEquals(0, ratingRepository.count());
     }
 
     @Test
     void deleteRating_caretakerDoesNotExist_shouldThrow() {
         assertThrows(NotFoundException.class, () -> caretakerService.deleteRating(
-                -1L,
-                client.getAccountData().getUsername()
+                "invalidEmail",
+                client.getAccountData().getEmail()
         ));
     }
 
     @Test
     void deleteRating_ratingDoesNotExist_shouldThrow() {
         assertThrows(NotFoundException.class, () -> caretakerService.deleteRating(
-                caretaker.getId(),
-                client.getAccountData().getUsername()
+                caretaker.getEmail(),
+                client.getAccountData().getEmail()
         ));
     }
 
@@ -217,7 +217,7 @@ public class CaretakerServiceTest {
     void getRatings_shouldReturnRatings() {
         ratingRepository.saveAndFlush(createMockRating(caretaker, client));
 
-        Page<RatingDTO> ratings = caretakerService.getRatings(Pageable.ofSize(10), caretaker.getId());
+        Page<RatingDTO> ratings = caretakerService.getRatings(Pageable.ofSize(10), caretaker.getEmail());
         assertEquals(1, ratings.getContent().size());
     }
 
@@ -243,7 +243,7 @@ public class CaretakerServiceTest {
         client = PersistenceUtils.addClient(appUserRepository, clientRepository);
 
         clientSameAsCaretaker = Client.builder()
-                .id(caretaker.getId())
+                .email(caretaker.getEmail())
                 .accountData(caretaker.getAccountData())
                 .build();
 

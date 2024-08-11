@@ -21,7 +21,7 @@ public class PersistenceUtils {
         accountData = appUserRepository.saveAllAndFlush(accountData);
 
         for (int i = 0; i < caretakers.size(); i++) {
-            caretakers.get(i).setId(accountData.get(i).getId());
+            caretakers.get(i).setEmail(accountData.get(i).getEmail());
         }
 
         return caretakerRepository.saveAllAndFlush(caretakers);
@@ -37,7 +37,7 @@ public class PersistenceUtils {
         accountData = appUserRepository.saveAllAndFlush(accountData);
 
         for (int i = 0; i < caretakers.size(); i++) {
-            caretakers.get(i).setId(accountData.get(i).getId());
+            caretakers.get(i).setEmail(accountData.get(i).getEmail());
         }
 
         return caretakerRepository.saveAllAndFlush(caretakers);
@@ -45,7 +45,7 @@ public class PersistenceUtils {
 
     public static Caretaker addCaretaker(CaretakerRepository caretakerRepository, AppUserRepository appUserRepository, Caretaker caretaker) {
         AppUser caretakerAccountData = appUserRepository.saveAndFlush(caretaker.getAccountData());
-        caretaker.setId(caretakerAccountData.getId());
+        caretaker.setEmail(caretakerAccountData.getEmail());
         return caretakerRepository.saveAndFlush(caretaker);
     }
 
@@ -56,7 +56,7 @@ public class PersistenceUtils {
 
     public static Client addClient(AppUserRepository appUserRepository, ClientRepository clientRepository, Client client) {
         AppUser clientAccountData = appUserRepository.saveAndFlush(client.getAccountData());
-        client.setId(clientAccountData.getId());
+        client.setEmail(clientAccountData.getEmail());
         return clientRepository.saveAndFlush(client);
     }
 

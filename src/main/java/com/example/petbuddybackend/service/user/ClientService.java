@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.repository.ClientRepository;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,8 +10,7 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
 
-    public Long getClientIdByUsername(String username) {
-        return clientRepository.findClientIdByUsername(username)
-                .orElseThrow(() -> new NotFoundException("Client with username " + username + " does not exist"));
+    public boolean clientExists(String clientEmail) {
+        return clientRepository.existsById(clientEmail);
     }
 }

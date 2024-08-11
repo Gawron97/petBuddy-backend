@@ -15,7 +15,7 @@ import java.util.List;
 public class Client {
 
     @Id
-    private Long id;
+    private String email;
 
     @PrimaryKeyJoinColumn
     @OneToOne(cascade = CascadeType.MERGE, optional = false)

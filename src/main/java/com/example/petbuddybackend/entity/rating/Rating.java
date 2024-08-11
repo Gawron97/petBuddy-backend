@@ -14,14 +14,14 @@ import org.hibernate.annotations.Check;
 @AllArgsConstructor
 @NoArgsConstructor
 @IdClass(RatingKey.class)
-@Check(constraints = "rating >= 1 AND rating <= 5")
+@Check(constraints = "rating >= 1 AND rating <= 5 AND client_email <> caretaker_email")
 public class Rating {
 
     @Id
-    private Long clientId;
+    private String clientEmail;
 
     @Id
-    private Long caretakerId;
+    private String caretakerEmail;
 
     @Column(nullable = false)
     private Integer rating;
@@ -31,12 +31,12 @@ public class Rating {
 
     @MapsId
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "clientId", referencedColumnName = "id", updatable = false)
+    @JoinColumn(name = "clientEmail", referencedColumnName = "email", updatable = false)
     private Client client;
 
 
     @MapsId
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "caretakerId", referencedColumnName = "id", updatable = false)
+    @JoinColumn(name = "caretakerEmail", referencedColumnName = "email", updatable = false)
     private Caretaker caretaker;
 }
