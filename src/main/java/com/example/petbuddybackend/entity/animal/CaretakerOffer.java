@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 @Table(
         uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerEmail", "animalType" }) }
 )
-public class AnimalTakenCareOf {
+public class CaretakerOffer {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "caretakerEmail", nullable = false, updatable = false)
     private Caretaker caretaker;
 

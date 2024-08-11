@@ -2,7 +2,7 @@ package com.example.petbuddybackend.service.mock;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.AnimalTakenCareOf;
+import com.example.petbuddybackend.entity.animal.CaretakerOffer;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -70,7 +70,7 @@ public class MockService {
                 .phoneNumber(faker.phoneNumber().cellPhone())
                 .build();
 
-        List<AnimalTakenCareOf> animals = generateAnimal();
+        List<CaretakerOffer> animals = generateAnimal();
         animals = animals.stream()
                 .map(animal -> {
                     animal.setCaretaker(caretaker);
@@ -86,15 +86,15 @@ public class MockService {
         return voivodeships[faker.random().nextInt(voivodeships.length)];
     }
 
-    public List<AnimalTakenCareOf> generateAnimal() {
+    public List<CaretakerOffer> generateAnimal() {
         AnimalType[] animalTypes = AnimalType.values();
 
         int numberOfTypes = faker.random().nextInt(1, (animalTypes.length + 1) / 2);
-        Set<AnimalTakenCareOf> animals = new HashSet<>(numberOfTypes);
+        Set<CaretakerOffer> animals = new HashSet<>(numberOfTypes);
 
         while (animals.size() < numberOfTypes) {
             animals.add(
-                    AnimalTakenCareOf.builder()
+                    CaretakerOffer.builder()
                             .animalType(animalTypes[faker.random().nextInt(animalTypes.length)])
                             .build()
             );

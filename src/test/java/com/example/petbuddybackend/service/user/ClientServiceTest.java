@@ -5,6 +5,7 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.AppUserRepository;
 import com.example.petbuddybackend.repository.ClientRepository;
 import com.example.petbuddybackend.testutils.MockUtils;
+import com.example.petbuddybackend.testutils.PersistenceUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class ClientServiceTest {
     void checkClientExists_shouldReturnTrue() {
         Client client = MockUtils.createMockClient();
 
-        AppUser accountData = appUserRepository.saveAndFlush(client.getAccountData());
+        AppUser accountData = PersistenceUtils.addAppUser(appUserRepository, client.getAccountData());
         client.setEmail(accountData.getEmail());
         clientRepository.saveAndFlush(client);
 

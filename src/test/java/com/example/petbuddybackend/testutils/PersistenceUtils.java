@@ -64,4 +64,8 @@ public class PersistenceUtils {
         Client client = createMockClient();
         return addClient(appUserRepository, clientRepository, client);
     }
+
+    public static AppUser addAppUser(AppUserRepository appUserRepository, AppUser appUser) {
+        return appUserRepository.saveAndFlush(appUser);
+    }
 }

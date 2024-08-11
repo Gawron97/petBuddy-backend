@@ -34,7 +34,6 @@ public class Rating {
     @JoinColumn(name = "clientEmail", referencedColumnName = "email", updatable = false)
     private Client client;
 
-
     @MapsId
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "caretakerEmail", referencedColumnName = "email", updatable = false)

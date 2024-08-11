@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
-import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;

@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.service.mapper;
 
-import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.Caretaker;
