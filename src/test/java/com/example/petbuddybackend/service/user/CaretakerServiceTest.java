@@ -1,7 +1,8 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
-import com.example.petbuddybackend.dto.rating.RatingDTO;
+import com.example.petbuddybackend.dto.rating.RatingRequest;
+import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
@@ -217,8 +218,26 @@ public class CaretakerServiceTest {
     void getRatings_shouldReturnRatings() {
         ratingRepository.saveAndFlush(createMockRating(caretaker, client));
 
-        Page<RatingDTO> ratings = caretakerService.getRatings(Pageable.ofSize(10), caretaker.getEmail());
+        Page<RatingResponse> ratings = caretakerService.getRatings(Pageable.ofSize(10), caretaker.getEmail());
         assertEquals(1, ratings.getContent().size());
+    }
+
+    @Test
+    void getRating_shouldReturnRating() {
+        Rating rating = createMockRating(caretaker, client);
+        ratingRepository.saveAndFlush(rating);
+
+        Rating foundRating = caretakerService.getRating(caretaker.getEmail(), client.getEmail());
+        assertEquals(rating.getCaretakerEmail(), foundRating.getCaretakerEmail());
+        assertEquals(rating.getClientEmail(), foundRating.getClientEmail());
+    }
+
+    @Test
+    void getRating_ratingDoesNotExist_shouldThrowNotFoundException() {
+        assertThrows(NotFoundException.class, () -> caretakerService.getRating(
+                caretaker.getEmail(),
+                client.getEmail()
+        ));
     }
 
     private static Stream<Arguments> provideRatingParams() {

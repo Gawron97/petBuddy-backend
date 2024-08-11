@@ -99,7 +99,7 @@ public class CaretakerControllerTest {
         mockMvc.perform(delete("/api/caretaker/1/rating")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -112,9 +112,9 @@ public class CaretakerControllerTest {
 
     private static Stream<Arguments> provideRatingData() {
         return Stream.of(
-                Arguments.of(String.format(RATING_BODY, 5, "Great service!"), status().isNoContent()),
-                Arguments.of(String.format(RATING_BODY, 3, ""), status().isNoContent()),
-                Arguments.of(String.format(RATING_BODY, 1, ""), status().isNoContent()),
+                Arguments.of(String.format(RATING_BODY, 5, "Great service!"), status().isOk()),
+                Arguments.of(String.format(RATING_BODY, 3, ""), status().isOk()),
+                Arguments.of(String.format(RATING_BODY, 1, ""), status().isOk()),
                 Arguments.of(String.format(RATING_BODY, 6, "Great service!"), status().isBadRequest()),
                 Arguments.of(String.format(RATING_BODY, 0, "Great service!"), status().isBadRequest()),
                 Arguments.of("{\"comment\": \"comment\"}", status().isBadRequest()),

@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.repository;
 
-import com.example.petbuddybackend.dto.rating.RatingDTO;
+import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
@@ -55,8 +55,8 @@ public class RatingRepositoryTest {
     void testFindAllByCaretakerId_shouldReturnRatingsWithNoNulls() throws IllegalAccessException {
         ratingRepository.saveAndFlush(createMockRating(caretaker, client));
 
-        Page<RatingDTO> ratings = ratingRepository.findAllByCaretakerEmail(caretaker.getEmail(), PageRequest.of(0, 10));
-        RatingDTO ratingDTO = ratings.getContent().get(0);
+        Page<RatingResponse> ratings = ratingRepository.findAllByCaretakerEmail(caretaker.getEmail(), PageRequest.of(0, 10));
+        RatingResponse ratingDTO = ratings.getContent().get(0);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(ratingDTO));
     }

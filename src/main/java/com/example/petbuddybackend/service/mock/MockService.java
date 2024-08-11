@@ -71,7 +71,11 @@ public class MockService {
                 .build();
 
         List<AnimalTakenCareOf> animals = generateAnimal();
-        animals = animals.stream().peek(animal -> animal.setCaretaker(caretaker)).toList();
+        animals = animals.stream()
+                .map(animal -> {
+                    animal.setCaretaker(caretaker);
+                    return animal;
+                }).toList();
         caretaker.setAnimalsTakenCareOf(animals);
 
         return caretaker;

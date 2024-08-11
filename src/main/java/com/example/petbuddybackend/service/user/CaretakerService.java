@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.dto.rating.RatingDTO;
+import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -9,6 +9,7 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.CaretakerRepository;
 import com.example.petbuddybackend.repository.RatingRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
+import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
@@ -26,6 +27,7 @@ public class CaretakerService {
     private final CaretakerRepository caretakerRepository;
     private final RatingRepository ratingRepository;
     private final CaretakerMapper caretakerMapper = CaretakerMapper.INSTANCE;
+    private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
 
     private final ClientService clientService;
 
@@ -38,38 +40,47 @@ public class CaretakerService {
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
-    public Page<RatingDTO> getRatings(Pageable pageable, String caretakerEmail) {
+    public Page<RatingResponse> getRatings(Pageable pageable, String caretakerEmail) {
         return ratingRepository.findAllByCaretakerEmail(caretakerEmail, pageable);
+    }
+
+    public Rating getRating(String caretakerEmail, String clientEmail) {
+        return getRating(new RatingKey(caretakerEmail, clientEmail));
     }
 
     public boolean caretakerExists(String caretakerEmail) {
         return caretakerRepository.existsById(caretakerEmail);
     }
 
-    public void rateCaretaker(String caretakerEmail, String clientEmail, int rating, String comment) {
-        checkCaretakerAndClientExist(caretakerEmail, clientEmail);
+    public RatingResponse rateCaretaker(String caretakerEmail, String clientEmail, int rating, String comment) {
+        assertCaretakerAndClientExist(caretakerEmail, clientEmail);
 
         if(caretakerEmail.equals(clientEmail)) {
             throw new IllegalActionException("User cannot rate himself");
         }
 
-        createOrUpdateRating(caretakerEmail, clientEmail, rating, comment);
+        return ratingMapper.mapToRatingResponse(
+                createOrUpdateRating(caretakerEmail, clientEmail, rating, comment),
+                caretakerEmail,
+                clientEmail
+        );
     }
 
-    public void deleteRating(String caretakerEmail, String clientEmail) {
-        checkCaretakerAndClientExist(caretakerEmail, clientEmail);
-        assertRatingExists(caretakerEmail, clientEmail);
+    public RatingResponse deleteRating(String caretakerEmail, String clientEmail) {
+        assertCaretakerAndClientExist(caretakerEmail, clientEmail);
 
-        ratingRepository.deleteById(new RatingKey(caretakerEmail, clientEmail));
+        RatingKey ratingKey = new RatingKey(caretakerEmail, clientEmail);
+        Rating rating = getRating(ratingKey);
+        ratingRepository.deleteById(ratingKey);
+
+        return ratingMapper.mapToRatingResponse(
+                rating,
+                caretakerEmail,
+                clientEmail
+        );
     }
 
-    private void assertRatingExists(String caretakerEmail, String clientEmail) {
-        if(!ratingRepository.existsById(new RatingKey(caretakerEmail, clientEmail))) {
-            throw new NotFoundException("Rating does not exist");
-        }
-    }
-
-    private void createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
+    private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
         Rating ratingEntity = ratingRepository.findById(new RatingKey(caretakerEmail, clientEmail))
                 .orElse(
                         Rating.builder()
@@ -81,10 +92,10 @@ public class CaretakerService {
         ratingEntity.setRating(rating);
         ratingEntity.setComment(comment);
 
-        ratingRepository.save(ratingEntity);
+        return ratingRepository.save(ratingEntity);
     }
 
-    private void checkCaretakerAndClientExist(String caretakerEmail, String clientEmail) {
+    private void assertCaretakerAndClientExist(String caretakerEmail, String clientEmail) {
         if (!caretakerExists(caretakerEmail)) {
             throw NotFoundException.withFormattedMessage("Caretaker", caretakerEmail);
         }
@@ -92,5 +103,11 @@ public class CaretakerService {
         if (!clientService.clientExists(clientEmail)) {
             throw NotFoundException.withFormattedMessage("Client", clientEmail);
         }
+    }
+
+    private Rating getRating(RatingKey ratingKey) {
+        return ratingRepository.findById(ratingKey).orElseThrow(
+                () -> new NotFoundException("Rating does not exist")
+        );
     }
 }

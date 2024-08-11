@@ -1,7 +1,8 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.paging.PagingParams;
-import com.example.petbuddybackend.dto.rating.RatingDTO;
+import com.example.petbuddybackend.dto.rating.RatingRequest;
+import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.service.user.CaretakerService;
@@ -13,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -45,7 +45,7 @@ public class CaretakerController {
             summary = "Get ratings of caretaker",
             description = "Retrieves a paginated list of ratings for a caretaker."
     )
-    public Page<RatingDTO> getRatings(
+    public Page<RatingResponse> getRatings(
             @ParameterObject @ModelAttribute @Valid PagingParams pagingParams,
             @PathVariable String caretakerEmail
     ) {
@@ -58,13 +58,17 @@ public class CaretakerController {
             summary = "Rate caretaker",
             description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
     )
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void rateCaretaker(
+    public RatingResponse rateCaretaker(
             @PathVariable String caretakerEmail,
-            @RequestBody @Valid RatingDTO ratingDTO,
+            @RequestBody @Valid RatingRequest ratingDTO,
             Principal principal
     ) {
-        caretakerService.rateCaretaker(caretakerEmail, principal.getName(), ratingDTO.rating(), ratingDTO.comment());
+        return caretakerService.rateCaretaker(
+                caretakerEmail,
+                principal.getName(),
+                ratingDTO.rating(),
+                ratingDTO.comment()
+        );
     }
 
     @DeleteMapping("/{caretakerEmail}/rating")
@@ -72,11 +76,10 @@ public class CaretakerController {
             summary = "Delete rating",
             description = "Deletes a rating for a caretaker."
     )
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteRating(
+    public RatingResponse deleteRating(
             @PathVariable String caretakerEmail,
             Principal principal
     ) {
-        caretakerService.deleteRating(caretakerEmail, principal.getName());
+        return caretakerService.deleteRating(caretakerEmail, principal.getName());
     }
 }

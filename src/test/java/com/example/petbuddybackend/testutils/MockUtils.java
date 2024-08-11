@@ -43,6 +43,7 @@ public final class MockUtils {
                 .build();
 
         Caretaker caretaker = Caretaker.builder()
+                .email(email)
                 .accountData(accountData)
                 .address(address)
                 .description("description")
@@ -51,7 +52,10 @@ public final class MockUtils {
                 .build();
 
         animals = animals.stream()
-                .peek(animal -> animal.setCaretaker(caretaker))
+                .map(animal -> {
+                    animal.setCaretaker(caretaker);
+                    return animal;
+                })
                 .toList();
 
         caretaker.setAnimalsTakenCareOf(animals);
@@ -92,7 +96,10 @@ public final class MockUtils {
     }
 
     public static Client createMockClient() {
+        String email = "clientEmail";
+
         return Client.builder()
+                .email(email)
                 .accountData(AppUser.builder()
                         .email("clientEmail")
                         .name("clientName")
