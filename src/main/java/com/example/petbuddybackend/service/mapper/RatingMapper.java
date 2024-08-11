@@ -10,5 +10,5 @@ public interface RatingMapper {
 
     RatingMapper INSTANCE = Mappers.getMapper(RatingMapper.class);
 
-    RatingResponse mapToRatingResponse(Rating rating, String ratedCaretakerEmail, String ratingClientEmail);
+    RatingResponse mapToRatingResponse(Rating rating);
 }

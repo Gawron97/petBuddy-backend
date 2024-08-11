@@ -22,7 +22,7 @@ public class RatingMapperTest {
 
         Rating rating = MockUtils.createMockRating(caretaker, client);
 
-        RatingResponse ratingResponse = mapper.mapToRatingResponse(rating, caretaker.getEmail(), caretaker.getEmail());
+        RatingResponse ratingResponse = mapper.mapToRatingResponse(rating);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(ratingResponse));
     }
 }

@@ -41,7 +41,8 @@ public class CaretakerService {
     }
 
     public Page<RatingResponse> getRatings(Pageable pageable, String caretakerEmail) {
-        return ratingRepository.findAllByCaretakerEmail(caretakerEmail, pageable);
+        return ratingRepository.findAllByCaretakerEmail(caretakerEmail, pageable)
+                .map(ratingMapper::mapToRatingResponse);
     }
 
     public Rating getRating(String caretakerEmail, String clientEmail) {
@@ -59,11 +60,7 @@ public class CaretakerService {
             throw new IllegalActionException("User cannot rate himself");
         }
 
-        return ratingMapper.mapToRatingResponse(
-                createOrUpdateRating(caretakerEmail, clientEmail, rating, comment),
-                caretakerEmail,
-                clientEmail
-        );
+        return ratingMapper.mapToRatingResponse(createOrUpdateRating(caretakerEmail, clientEmail, rating, comment));
     }
 
     public RatingResponse deleteRating(String caretakerEmail, String clientEmail) {
@@ -73,26 +70,26 @@ public class CaretakerService {
         Rating rating = getRating(ratingKey);
         ratingRepository.deleteById(ratingKey);
 
-        return ratingMapper.mapToRatingResponse(
-                rating,
-                caretakerEmail,
-                clientEmail
-        );
+        return ratingMapper.mapToRatingResponse(rating);
     }
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
-        Rating ratingEntity = ratingRepository.findById(new RatingKey(caretakerEmail, clientEmail))
+        Rating ratingEntity = getOrCreateRating(caretakerEmail, clientEmail);
+
+        ratingEntity.setRating(rating);
+        ratingEntity.setComment(comment);
+
+        return ratingRepository.save(ratingEntity);
+    }
+
+    private Rating getOrCreateRating(String caretakerEmail, String clientEmail) {
+        return ratingRepository.findById(new RatingKey(caretakerEmail, clientEmail))
                 .orElse(
                         Rating.builder()
                                 .clientEmail(clientEmail)
                                 .caretakerEmail(caretakerEmail)
                                 .build()
                 );
-
-        ratingEntity.setRating(rating);
-        ratingEntity.setComment(comment);
-
-        return ratingRepository.save(ratingEntity);
     }
 
     private void assertCaretakerAndClientExist(String caretakerEmail, String clientEmail) {

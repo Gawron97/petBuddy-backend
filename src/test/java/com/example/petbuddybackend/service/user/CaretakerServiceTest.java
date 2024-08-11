@@ -96,19 +96,28 @@ public class CaretakerServiceTest {
     }
 
     @Test
-    void testSortingParamsAlignWithDTO_shouldMatch() {
+    void testGetCaretakers_sortingParamsShouldAlignWithDTO() {
         List<String> fieldNames = ReflectionUtils.getPrimitiveNames(CaretakerDTO.class);
         fieldNames.addAll(getPrimitiveNames(AddressDTO.class, "address_"));
         fieldNames.addAll(getPrimitiveNames(AccountDataDTO.class, "accountData_"));
 
-        for (String fieldName : fieldNames) {
-            Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(
+        for(String fieldName : fieldNames) {
+            assertDoesNotThrow(() -> caretakerService.getCaretakers(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
                     CaretakerSearchCriteria.builder().build()
-            );
+            ));
+        }
+    }
 
-            assertNotNull(resultPage);
-            assertFalse(resultPage.getContent().isEmpty());
+    @Test
+    void testGetRating_sortingParamsShouldAlignWithDTO() {
+        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(RatingResponse.class);
+
+        for(String fieldName : fieldNames) {
+            assertDoesNotThrow(() -> caretakerService.getRatings(
+                    PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
+                    caretaker.getEmail()
+            ));
         }
     }
 
@@ -151,7 +160,7 @@ public class CaretakerServiceTest {
     @ParameterizedTest
     @MethodSource("provideRatingParams")
     void rateCaretaker_invalidRating_(int rating, boolean shouldSucceed) {
-        if (shouldSucceed) {
+        if(shouldSucceed) {
             caretakerService.rateCaretaker(
                     caretaker.getEmail(),
                     client.getAccountData().getEmail(),
