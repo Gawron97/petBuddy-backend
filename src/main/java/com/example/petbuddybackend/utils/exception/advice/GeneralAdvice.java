@@ -20,16 +20,9 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class GeneralAdvice {
 
-    @ExceptionHandler(Throwable.class)
-    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiExceptionResponse handleException(Throwable t) {
-        log.error("Unhandled exception", t);
-        return new ApiExceptionResponse(t);
-    }
-
-    @Order(Ordered.HIGHEST_PRECEDENCE)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
@@ -43,21 +36,18 @@ public class GeneralAdvice {
         return new ApiExceptionResponse(e, errors.toString());
     }
 
-    @Order(Ordered.HIGHEST_PRECEDENCE)
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(code = HttpStatus.NOT_FOUND)
     public ApiExceptionResponse handleNotFoundException(NotFoundException e) {
         return new ApiExceptionResponse(e);
     }
 
-    @Order(Ordered.HIGHEST_PRECEDENCE)
     @ExceptionHandler(IllegalActionException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleIllegalActionException(IllegalActionException e) {
         return new ApiExceptionResponse(e);
     }
 
-    @Order(Ordered.HIGHEST_PRECEDENCE)
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handlePropertyReferenceException(PropertyReferenceException e) {
