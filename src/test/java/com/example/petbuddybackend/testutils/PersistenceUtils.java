@@ -3,9 +3,9 @@ package com.example.petbuddybackend.testutils;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.AppUserRepository;
-import com.example.petbuddybackend.repository.CaretakerRepository;
-import com.example.petbuddybackend.repository.ClientRepository;
+import com.example.petbuddybackend.repository.user.AppUserRepository;
+import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.repository.user.ClientRepository;
 
 import java.util.List;
 

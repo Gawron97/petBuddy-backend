@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.repository;
+package com.example.petbuddybackend.repository.user;
 
 import com.example.petbuddybackend.entity.user.Client;
 import org.springframework.data.jpa.repository.JpaRepository;

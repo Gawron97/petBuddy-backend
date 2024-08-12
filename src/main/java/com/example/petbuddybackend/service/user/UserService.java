@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.entity.user.AppUser;
-import com.example.petbuddybackend.repository.AppUserRepository;
+import com.example.petbuddybackend.repository.user.AppUserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;

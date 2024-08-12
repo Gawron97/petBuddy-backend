@@ -3,12 +3,11 @@ package com.example.petbuddybackend.config;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.AppUserRepository;
-import com.example.petbuddybackend.repository.CaretakerRepository;
-import com.example.petbuddybackend.repository.ClientRepository;
-import com.example.petbuddybackend.repository.RatingRepository;
-import com.example.petbuddybackend.service.mock.MockService;
-import jakarta.annotation.PostConstruct;
+import com.example.petbuddybackend.repository.user.AppUserRepository;
+import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.repository.rating.RatingRepository;
+import com.example.petbuddybackend.service.dataGeneration.MockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -32,7 +31,6 @@ public class MockDataCreator {
     private final AppUserRepository appUserRepository;
     private final RatingRepository ratingRepository;
 
-    @PostConstruct
     public void createMockData() {
         if (shouldSkipInit()) {
             return;

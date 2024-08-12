@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.address.Address;
-import com.example.petbuddybackend.entity.animal.CaretakerOffer;
+import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.rating.Rating;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,7 +37,7 @@ public class Caretaker {
     private List<Rating> ratings;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "caretaker", fetch = FetchType.LAZY)
-    private List<CaretakerOffer> animalsTakenCareOf;
+    private List<Offer> offers;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
     private Address address;

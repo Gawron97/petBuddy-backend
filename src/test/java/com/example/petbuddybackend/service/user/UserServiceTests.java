@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.entity.user.AppUser;
-import com.example.petbuddybackend.repository.AppUserRepository;
+import com.example.petbuddybackend.repository.user.AppUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;

@@ -1,8 +1,8 @@
-package com.example.petbuddybackend.service.mock;
+package com.example.petbuddybackend.service.dataGeneration;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.CaretakerOffer;
+import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -70,13 +70,13 @@ public class MockService {
                 .phoneNumber(faker.phoneNumber().cellPhone())
                 .build();
 
-        List<CaretakerOffer> animals = generateAnimal();
+        List<Offer> animals = generateAnimal();
         animals = animals.stream()
                 .map(animal -> {
                     animal.setCaretaker(caretaker);
                     return animal;
                 }).toList();
-        caretaker.setAnimalsTakenCareOf(animals);
+        caretaker.setOffers(animals);
 
         return caretaker;
     }
@@ -86,19 +86,19 @@ public class MockService {
         return voivodeships[faker.random().nextInt(voivodeships.length)];
     }
 
-    public List<CaretakerOffer> generateAnimal() {
+    public List<Offer> generateAnimal() {
         AnimalType[] animalTypes = AnimalType.values();
 
         int numberOfTypes = faker.random().nextInt(1, (animalTypes.length + 1) / 2);
-        Set<CaretakerOffer> animals = new HashSet<>(numberOfTypes);
+        Set<Offer> animals = new HashSet<>(numberOfTypes);
 
-        while (animals.size() < numberOfTypes) {
-            animals.add(
-                    CaretakerOffer.builder()
-                            .animalType(animalTypes[faker.random().nextInt(animalTypes.length)])
-                            .build()
-            );
-        }
+//        while (animals.size() < numberOfTypes) {
+//            animals.add(
+//                    CaretakerOffer.builder()
+//                            .animalType(animalTypes[faker.random().nextInt(animalTypes.length)])
+//                            .build()
+//            );
+//        }
         return animals.stream().toList();
     }
 

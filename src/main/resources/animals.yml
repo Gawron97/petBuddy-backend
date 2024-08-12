@@ -1,0 +1,8 @@
+animals:
+  animals:
+    - animalType: DOG
+    - animalType: CAT
+    - animalType: BIRD
+    - animalType: FISH
+    - animalType: REPTILE
+    - animalType: HORSE

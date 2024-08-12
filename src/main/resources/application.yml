@@ -10,12 +10,18 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     properties:
       dialect: org.hibernate.dialect.PostgreSQL94Dialect
     show-sql: false
   profiles:
     active: dev
+
+  # import data for database
+  config:
+    import:
+      - classpath:animals.yml
+      - classpath:animal-facility-data.yml
 
 keycloak:
   resource-roles-claim: "pet-buddy-client"

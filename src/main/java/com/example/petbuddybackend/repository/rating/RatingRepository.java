@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.repository;
+package com.example.petbuddybackend.repository.rating;
 
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;

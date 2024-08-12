@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.repository;
+package com.example.petbuddybackend.repository.user;
 
 import com.example.petbuddybackend.entity.user.Caretaker;
 import org.springframework.data.domain.Page;
