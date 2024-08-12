@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 @Profile("dev")
 @RequiredArgsConstructor
-public class DataCreator {
+public class DataCreationManager {
 
     private final NecessaryDataCreator necessaryDataCreator;
     private final MockDataCreator mockDataCreator;

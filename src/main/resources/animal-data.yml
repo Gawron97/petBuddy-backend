@@ -1,5 +1,5 @@
-animals:
-  animals:
+animal-data:
+  animalConfigs:
     - animalType: DOG
     - animalType: CAT
     - animalType: BIRD

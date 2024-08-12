@@ -20,7 +20,8 @@ spring:
   # import data for database
   config:
     import:
-      - classpath:animals.yml
+      - classpath:animal-data.yml
+      - classpath:animal-attribute-data.yml
       - classpath:animal-facility-data.yml
 
 keycloak:

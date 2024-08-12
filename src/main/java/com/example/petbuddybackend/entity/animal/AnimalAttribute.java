@@ -1,34 +1,35 @@
 package com.example.petbuddybackend.entity.animal;
 
-import com.example.petbuddybackend.entity.animal.keys.AnimalAttributeKey;
+import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-@IdClass(AnimalAttributeKey.class)
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"animalType", "attributeName", "attributeValue"})
+        }
+)
 public class AnimalAttribute {
 
-    @Id
-    private String animalType;
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; //add unnatural id to easier pass to other tables as foreign key
 
-    @Id
+    @Nonnull
     private String attributeName;
 
-    @MapsId
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "animalType", referencedColumnName = "animalType", updatable = false)
-    private Animal animal;
+    @Nonnull
+    private String attributeValue;
 
-    @OneToMany(mappedBy = "animalAttribute", fetch = FetchType.LAZY)
-    private List<AnimalAttributeValue> animalAttributeValues;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "animalType", nullable = false, updatable = false)
+    private Animal animal;
 
 }

@@ -24,6 +24,8 @@ public class Offer {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String description;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "caretakerEmail", nullable = false, updatable = false)
     private Caretaker caretaker;

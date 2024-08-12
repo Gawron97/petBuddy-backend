@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.entity.offer;
 
-import com.example.petbuddybackend.entity.animal.AnimalAttributeValue;
+import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(
     uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"animalAttributeValueId", "offerConfigurationId"})
+        @UniqueConstraint(columnNames = {"animalAttributeId", "offerConfigurationId"})
     }
 )
 public class OfferOption {
@@ -23,8 +23,8 @@ public class OfferOption {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "animalAttributeValueId", nullable = false, updatable = false)
-    private AnimalAttributeValue animalAttributeValue;
+    @JoinColumn(name = "animalAttributeId", nullable = false, updatable = false)
+    private AnimalAttribute animalAttribute;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "offerConfigurationId", nullable = false, updatable = false)

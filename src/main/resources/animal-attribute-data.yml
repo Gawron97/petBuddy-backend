@@ -1,0 +1,9 @@
+animal-attribute-data:
+  animalAttributeConfigs:
+    - animalType: DOG
+      attributeName: SIZE
+      attributeValue: BIG
+
+    - animalType: DOG
+      attributeName: SIZE
+      attributeValue: SMALL

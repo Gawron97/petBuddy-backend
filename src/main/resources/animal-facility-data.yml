@@ -1,4 +1,5 @@
-animal-facilities:
-  -
-    animalType: DOG
-    facility:
+animal-facility-data:
+  animal-facilities:
+    -
+      animalType: DOG
+      facility:
