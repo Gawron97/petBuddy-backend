@@ -26,7 +26,6 @@ public class UserService {
                     .email(email)
                     .name((String) token.getTokenAttributes().get("given_name"))
                     .surname((String) token.getTokenAttributes().get("family_name"))
-                    .username((String) token.getTokenAttributes().get("preferred_username"))
                     .build();
             userRepository.save(user);
             log.info("User with email: " + email + " created.");

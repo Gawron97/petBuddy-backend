@@ -2,10 +2,12 @@ package com.example.petbuddybackend.testutils;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.AnimalTakenCareOf;
+import com.example.petbuddybackend.entity.animal.CaretakerOffer;
 import com.example.petbuddybackend.entity.animal.AnimalType;
+import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.entity.user.Client;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +35,7 @@ public final class MockUtils {
         return createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa");
     }
 
-    public static Caretaker createMockCaretaker(String name, String surname, String email, List<AnimalTakenCareOf> animals, Address address) {
+    public static Caretaker createMockCaretaker(String name, String surname, String email, List<CaretakerOffer> animals, Address address) {
         AppUser accountData = AppUser.builder()
                 .email(email)
                 .name(name)
@@ -41,15 +43,19 @@ public final class MockUtils {
                 .build();
 
         Caretaker caretaker = Caretaker.builder()
-                .email(accountData.getEmail())
+                .email(email)
                 .accountData(accountData)
                 .address(address)
                 .description("description")
                 .phoneNumber("number")
+                .avgRating(4.5f)
                 .build();
 
         animals = animals.stream()
-                .peek(animal -> animal.setCaretaker(caretaker))
+                .map(animal -> {
+                    animal.setCaretaker(caretaker);
+                    return animal;
+                })
                 .toList();
 
         caretaker.setAnimalsTakenCareOf(animals);
@@ -77,15 +83,39 @@ public final class MockUtils {
         );
     }
 
-    public static AnimalTakenCareOf animalOfType(AnimalType animalType) {
-        return AnimalTakenCareOf.builder()
+    public static CaretakerOffer animalOfType(AnimalType animalType) {
+        return CaretakerOffer.builder()
                 .animalType(animalType)
                 .build();
     }
 
-    public static List<AnimalTakenCareOf> animalsOfTypes(AnimalType... animalTypes) {
+    public static List<CaretakerOffer> animalsOfTypes(AnimalType... animalTypes) {
         return Arrays.stream(animalTypes)
                 .map(MockUtils::animalOfType)
                 .toList();
+    }
+
+    public static Client createMockClient() {
+        String email = "clientEmail";
+
+        return Client.builder()
+                .email(email)
+                .accountData(AppUser.builder()
+                        .email("clientEmail")
+                        .name("clientName")
+                        .surname("clientSurname")
+                        .build())
+                .build();
+    }
+
+    public static Rating createMockRating(Caretaker caretaker, Client client) {
+        return Rating.builder()
+                .caretakerEmail(caretaker.getEmail())
+                .clientEmail(client.getEmail())
+                .caretaker(caretaker)
+                .client(client)
+                .rating(5)
+                .comment("comment")
+                .build();
     }
 }

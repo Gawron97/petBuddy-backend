@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.paging.PagingParams;
+import com.example.petbuddybackend.dto.rating.RatingRequest;
+import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
 import com.example.petbuddybackend.service.user.CaretakerService;
@@ -12,10 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
@@ -36,5 +37,49 @@ public class CaretakerController {
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters);
+    }
+
+    @SecurityRequirements
+    @GetMapping("/{caretakerEmail}/rating")
+    @Operation(
+            summary = "Get ratings of caretaker",
+            description = "Retrieves a paginated list of ratings for a caretaker."
+    )
+    public Page<RatingResponse> getRatings(
+            @ParameterObject @ModelAttribute @Valid PagingParams pagingParams,
+            @PathVariable String caretakerEmail
+    ) {
+        Pageable pageable = PagingUtils.createPageable(pagingParams);
+        return caretakerService.getRatings(pageable, caretakerEmail);
+    }
+
+    @PostMapping("/{caretakerEmail}/rating")
+    @Operation(
+            summary = "Rate caretaker",
+            description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
+    )
+    public RatingResponse rateCaretaker(
+            @PathVariable String caretakerEmail,
+            @RequestBody @Valid RatingRequest ratingDTO,
+            Principal principal
+    ) {
+        return caretakerService.rateCaretaker(
+                caretakerEmail,
+                principal.getName(),
+                ratingDTO.rating(),
+                ratingDTO.comment()
+        );
+    }
+
+    @DeleteMapping("/{caretakerEmail}/rating")
+    @Operation(
+            summary = "Delete rating",
+            description = "Deletes a rating for a caretaker."
+    )
+    public RatingResponse deleteRating(
+            @PathVariable String caretakerEmail,
+            Principal principal
+    ) {
+        return caretakerService.deleteRating(caretakerEmail, principal.getName());
     }
 }
