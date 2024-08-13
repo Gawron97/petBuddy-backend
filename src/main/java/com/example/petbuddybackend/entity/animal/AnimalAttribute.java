@@ -2,12 +2,9 @@ package com.example.petbuddybackend.entity.animal;
 
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -17,6 +14,8 @@ import lombok.NoArgsConstructor;
                 @UniqueConstraint(columnNames = {"animalType", "attributeName", "attributeValue"})
         }
 )
+@EqualsAndHashCode(of = "id")
+@ToString
 public class AnimalAttribute {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

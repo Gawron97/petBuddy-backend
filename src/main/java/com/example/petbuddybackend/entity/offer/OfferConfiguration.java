@@ -2,18 +2,16 @@ package com.example.petbuddybackend.entity.offer;
 
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
+@ToString(of = {"id", "description", "dailyPrice", "offerOptions"})
 public class OfferConfiguration {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +23,7 @@ public class OfferConfiguration {
     private Double dailyPrice;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "offer", nullable = false, updatable = false)
+    @JoinColumn(name = "offer_id", nullable = false, updatable = false)
     private Offer offer;
 
     @OneToMany(mappedBy = "offerConfiguration", fetch = FetchType.EAGER)

@@ -1,17 +1,13 @@
 package com.example.petbuddybackend.entity.offer;
 
 import com.example.petbuddybackend.entity.animal.Animal;
-import com.example.petbuddybackend.entity.facility.AnimalFacility;
+import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -19,6 +15,8 @@ import java.util.List;
 @Table(
         uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerEmail", "animalType" }) }
 )
+@Getter @Setter
+@EqualsAndHashCode(of = {"caretaker", "animal"})
 public class Offer {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,6 +41,6 @@ public class Offer {
             joinColumns = @JoinColumn(name = "offerId"),
             inverseJoinColumns = @JoinColumn(name = "animalFacilityId")
     )
-    private List<AnimalFacility> animalFacilities;
+    private List<AnimalAmenity> animalFacilities;
 
 }

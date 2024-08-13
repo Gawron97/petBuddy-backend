@@ -2,12 +2,9 @@ package com.example.petbuddybackend.entity.offer;
 
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -17,6 +14,7 @@ import lombok.NoArgsConstructor;
         @UniqueConstraint(columnNames = {"animalAttributeId", "offerConfigurationId"})
     }
 )
+@ToString(of = {"id", "animalAttribute"})
 public class OfferOption {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

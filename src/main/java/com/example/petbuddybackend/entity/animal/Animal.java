@@ -1,20 +1,19 @@
 package com.example.petbuddybackend.entity.animal;
 
-import com.example.petbuddybackend.entity.facility.AnimalFacility;
+import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.offer.Offer;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
+@EqualsAndHashCode(of = "animalType")
+@ToString(of = "animalType")
 public class Animal {
 
     @Id
@@ -24,7 +23,7 @@ public class Animal {
     private List<AnimalAttribute> animalAttributes;
 
     @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY)
-    private List<AnimalFacility> animalFacilities;
+    private List<AnimalAmenity> animalFacilities;
 
     @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY)
     private List<Offer> offers;

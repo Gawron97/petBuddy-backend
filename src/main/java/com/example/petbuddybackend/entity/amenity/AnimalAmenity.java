@@ -1,25 +1,22 @@
-package com.example.petbuddybackend.entity.facility;
+package com.example.petbuddybackend.entity.amenity;
 
 import com.example.petbuddybackend.entity.animal.Animal;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Entity
-public class AnimalFacility {
+public class AnimalAmenity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "facility", nullable = false, updatable = false)
-    private Facility facility;
+    @JoinColumn(name = "amenity", nullable = false, updatable = false)
+    private Amenity amenity;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "animalType", nullable = false, updatable = false)

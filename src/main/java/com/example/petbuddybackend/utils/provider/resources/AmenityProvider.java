@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.utils.provider.resources;
 
-import com.example.petbuddybackend.utils.resourceStructure.AnimalConfig;
+import com.example.petbuddybackend.utils.resourceStructure.AmenityConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -9,10 +9,11 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-@ConfigurationProperties(prefix = "animal-data")
-@Getter @Setter
-public class AnimalProvider {
+@ConfigurationProperties(prefix = "amenity-data")
+@Getter
+@Setter
+public class AmenityProvider {
 
-    private List<AnimalConfig> animalConfigs;
+    private List<AmenityConfig> amenityConfigs;
 
 }

@@ -2,8 +2,11 @@ package com.example.petbuddybackend.service.dataGeneration;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.animal.Animal;
+import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.offer.Offer;
-import com.example.petbuddybackend.entity.animal.AnimalType;
+import com.example.petbuddybackend.entity.offer.OfferConfiguration;
+import com.example.petbuddybackend.entity.offer.OfferOption;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -11,11 +14,9 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.github.javafaker.Faker;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Profile("dev | test")
 @Service
@@ -63,43 +64,17 @@ public class MockService {
                 .apartmentNumber(faker.address().secondaryAddress())
                 .build();
 
-        Caretaker caretaker = Caretaker.builder()
+        return Caretaker.builder()
                 .email(user.getEmail())
                 .address(address)
                 .description(faker.lorem().sentence())
                 .phoneNumber(faker.phoneNumber().cellPhone())
                 .build();
-
-        List<Offer> animals = generateAnimal();
-        animals = animals.stream()
-                .map(animal -> {
-                    animal.setCaretaker(caretaker);
-                    return animal;
-                }).toList();
-        caretaker.setOffers(animals);
-
-        return caretaker;
     }
 
     public Voivodeship randomVoivodeship() {
         Voivodeship[] voivodeships = Voivodeship.values();
         return voivodeships[faker.random().nextInt(voivodeships.length)];
-    }
-
-    public List<Offer> generateAnimal() {
-        AnimalType[] animalTypes = AnimalType.values();
-
-        int numberOfTypes = faker.random().nextInt(1, (animalTypes.length + 1) / 2);
-        Set<Offer> animals = new HashSet<>(numberOfTypes);
-
-//        while (animals.size() < numberOfTypes) {
-//            animals.add(
-//                    CaretakerOffer.builder()
-//                            .animalType(animalTypes[faker.random().nextInt(animalTypes.length)])
-//                            .build()
-//            );
-//        }
-        return animals.stream().toList();
     }
 
     public Rating createMockRating(Caretaker caretaker, Client client) {
@@ -141,4 +116,185 @@ public class MockService {
 
         return clients;
     }
+
+    public List<Offer> createMockOffers(List<Caretaker> caretakers, List<Animal> animals, int caretakerOfferCount) {
+        List<Offer> offers = new ArrayList<>();
+
+        for(Caretaker caretaker: caretakers) {
+            offers.addAll(createCaretakerOffers(caretaker, animals, caretakerOfferCount));
+        }
+
+        return offers;
+
+    }
+
+    private List<Offer> createCaretakerOffers(Caretaker caretaker, List<Animal> animals, int caretakerOfferCount) {
+
+        List<Offer> offers = new ArrayList<>();
+
+        List<Animal> uniqueRandomAnimals = getSomeRandomUniqueAnimals(animals, caretakerOfferCount);
+
+        uniqueRandomAnimals.forEach(animal -> offers.add(createCaretakerOffer(caretaker, animal)));
+        caretaker.setOffers(offers);
+        return offers;
+
+    }
+
+    private Offer createCaretakerOffer(Caretaker caretaker, Animal animal) {
+
+        return Offer.builder()
+                .caretaker(caretaker)
+                .animal(animal)
+                .description(faker.lorem().sentence())
+                .build();
+
+    }
+
+    private List<Animal> getSomeRandomUniqueAnimals(List<Animal> animals, int count) {
+        if(count > animals.size()) {
+            return animals;
+        }
+
+        Set<Animal> uniqueAnimals = new HashSet<>();
+        while(uniqueAnimals.size() < count) {
+            uniqueAnimals.add(animals.get(faker.random().nextInt(animals.size())));
+        }
+        return new ArrayList<>(uniqueAnimals);
+
+    }
+
+    public List<OfferConfiguration> createMockOffersConfigurations(List<Offer> offers, int caretakerOfferConfigurationCount) {
+        List<OfferConfiguration> offerConfigurations = new ArrayList<>();
+
+        for(Offer offer: offers) {
+            offerConfigurations.addAll(createMockOfferConfigurations(offer, caretakerOfferConfigurationCount));
+        }
+
+        return offerConfigurations;
+
+    }
+
+    private List<OfferConfiguration> createMockOfferConfigurations(Offer offer, int caretakerOfferConfigurationCount) {
+
+        List<OfferConfiguration> offerConfigurations = new ArrayList<>();
+
+        for(int i = 0; i < caretakerOfferConfigurationCount; i++) {
+            offerConfigurations.add(createMockOfferConfiguration(offer));
+        }
+        offer.setOfferConfigurations(offerConfigurations);
+
+        return offerConfigurations;
+
+    }
+
+    private OfferConfiguration createMockOfferConfiguration(Offer offer) {
+        return OfferConfiguration.builder()
+                .offer(offer)
+                .dailyPrice(faker.number().randomDouble(2, 10, 100))
+                .description(faker.lorem().sentence())
+                .build();
+    }
+
+    public List<OfferOption> createMockOfferConfigurationsOptionsForCaretakers(List<Caretaker> caretakers,
+                                                                               List<AnimalAttribute> animalAttributes,
+                                                                               int optionsInConfigurationCount) {
+        List<OfferOption> offerOptions = new ArrayList<>();
+
+        for (Caretaker caretaker: caretakers) {
+            offerOptions.addAll(createMockOffersConfigurationsOptions(caretaker.getOffers(), animalAttributes, optionsInConfigurationCount));
+        }
+        return offerOptions;
+
+    }
+
+    private List<OfferOption> createMockOffersConfigurationsOptions(List<Offer> offers,
+                                                                    List<AnimalAttribute> animalAttributes,
+                                                                    int optionsInConfigurationCount) {
+        List<OfferOption> offerOptions = new ArrayList<>();
+
+        for (Offer offer: offers) {
+            offerOptions.addAll(createMockOfferConfigurationsOptions(offer, animalAttributes, optionsInConfigurationCount));
+        }
+
+        return offerOptions;
+
+    }
+
+    private List<OfferOption> createMockOfferConfigurationsOptions(Offer offer,
+                                                                   List<AnimalAttribute> animalAttributes,
+                                                                   int optionsInConfigurationCount) {
+        List<OfferOption> offerOptions = new ArrayList<>();
+
+        List<List<AnimalAttribute>> uniqueRandomListOfAnimalAttributes =
+                getSomeRandomUniqueListOfAnimalAttributes(animalAttributes, offer, optionsInConfigurationCount);
+
+        for(int i = 0; i < offer.getOfferConfigurations().size(); i++) {
+            OfferConfiguration offerConfiguration = offer.getOfferConfigurations().get(i);
+            List<AnimalAttribute> uniqueRandomAnimalAttributes = uniqueRandomListOfAnimalAttributes.get(i);
+
+            offerOptions.addAll(createMockOfferConfigurationOptions(offerConfiguration, uniqueRandomAnimalAttributes));
+
+        }
+        return offerOptions;
+
+    }
+
+    private List<OfferOption> createMockOfferConfigurationOptions(OfferConfiguration offerConfiguration,
+                                                                  List<AnimalAttribute> uniqueRandomAnimalAttributes) {
+        List<OfferOption> offerOptions = new ArrayList<>();
+
+        for(AnimalAttribute animalAttribute: uniqueRandomAnimalAttributes) {
+            offerOptions.add(createMockOfferConfigurationOption(offerConfiguration, animalAttribute));
+        }
+        offerConfiguration.setOfferOptions(offerOptions);
+
+        return offerOptions;
+
+    }
+
+    private OfferOption createMockOfferConfigurationOption(OfferConfiguration offerConfiguration, AnimalAttribute animalAttribute) {
+        return OfferOption.builder()
+                .offerConfiguration(offerConfiguration)
+                .animalAttribute(animalAttribute)
+                .build();
+    }
+
+    private List<List<AnimalAttribute>> getSomeRandomUniqueListOfAnimalAttributes(List<AnimalAttribute> animalAttributes,
+                                                                                  Offer offer,
+                                                                                  int optionsInConfigurationCount) {
+
+
+        List<AnimalAttribute> animalAttributesForAnimalType =
+                getAnimalAttributeForAnimalType(offer.getAnimal().getAnimalType(), animalAttributes);
+
+        Set<List<AnimalAttribute>> uniqueListOfAnimalAttributes = new HashSet<>();
+        while(uniqueListOfAnimalAttributes.size() < offer.getOfferConfigurations().size()) {
+            uniqueListOfAnimalAttributes.add(
+                    getSomeRandomUniqueAnimalAttributes(animalAttributesForAnimalType, optionsInConfigurationCount));
+        }
+        return new ArrayList<>(uniqueListOfAnimalAttributes);
+
+    }
+
+    private List<AnimalAttribute> getSomeRandomUniqueAnimalAttributes(List<AnimalAttribute> animalAttributes,
+                                                                      int count) {
+
+        if(count > animalAttributes.size()) {
+            return List.of(animalAttributes.get(faker.random().nextInt(animalAttributes.size())));
+        }
+
+        Set<AnimalAttribute> uniqueAnimalAttributes = new HashSet<>();
+        while(uniqueAnimalAttributes.size() < count) {
+            uniqueAnimalAttributes.add(animalAttributes.get(faker.random().nextInt(animalAttributes.size())));
+        }
+        return uniqueAnimalAttributes.stream().sorted(Comparator.comparingLong(AnimalAttribute::getId)).toList();
+
+    }
+
+    private List<AnimalAttribute> getAnimalAttributeForAnimalType(String animalType, List<AnimalAttribute> animalAttributes) {
+        return animalAttributes.stream()
+                .filter(animalAttribute -> animalAttribute.getAnimal().getAnimalType().equals(animalType))
+                .toList();
+    }
+
 }

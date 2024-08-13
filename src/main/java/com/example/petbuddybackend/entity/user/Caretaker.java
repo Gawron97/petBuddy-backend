@@ -14,6 +14,7 @@ import java.util.List;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(of = "email")
 public class Caretaker {
 
     @Id
@@ -36,7 +37,7 @@ public class Caretaker {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "caretaker", fetch = FetchType.LAZY)
     private List<Rating> ratings;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "caretaker", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "caretaker", fetch = FetchType.LAZY)
     private List<Offer> offers;
 
     @OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)

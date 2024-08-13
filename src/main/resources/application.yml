@@ -22,7 +22,8 @@ spring:
     import:
       - classpath:animal-data.yml
       - classpath:animal-attribute-data.yml
-      - classpath:animal-facility-data.yml
+      - classpath:amenity-data.yml
+      - classpath:animal-amenity-data.yml
 
 keycloak:
   resource-roles-claim: "pet-buddy-client"
