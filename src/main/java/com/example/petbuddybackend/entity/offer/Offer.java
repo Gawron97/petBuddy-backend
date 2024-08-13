@@ -37,10 +37,10 @@ public class Offer {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "offer_animal_facility",
+            name = "offer_animal_amenity",
             joinColumns = @JoinColumn(name = "offerId"),
-            inverseJoinColumns = @JoinColumn(name = "animalFacilityId")
+            inverseJoinColumns = @JoinColumn(name = "animalAmenityId")
     )
-    private List<AnimalAmenity> animalFacilities;
+    private List<AnimalAmenity> animalAmenities;
 
 }

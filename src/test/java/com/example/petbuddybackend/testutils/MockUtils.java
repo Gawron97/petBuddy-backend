@@ -35,14 +35,14 @@ public final class MockUtils {
         return createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa");
     }
 
-    public static Caretaker createMockCaretaker(String name, String surname, String email, List<Offer> animals, Address address) {
+    public static Caretaker createMockCaretaker(String name, String surname, String email, Address address) {
         AppUser accountData = AppUser.builder()
                 .email(email)
                 .name(name)
                 .surname(surname)
                 .build();
 
-        Caretaker caretaker = Caretaker.builder()
+        return Caretaker.builder()
                 .email(email)
                 .accountData(accountData)
                 .address(address)
@@ -50,16 +50,10 @@ public final class MockUtils {
                 .phoneNumber("number")
                 .avgRating(4.5f)
                 .build();
+    }
 
-        animals = animals.stream()
-                .map(animal -> {
-                    animal.setCaretaker(caretaker);
-                    return animal;
-                })
-                .toList();
-
-        caretaker.setAnimalsTakenCareOf(animals);
-        return caretaker;
+    private static Caretaker createMockCaretakersWithComplexOffers() {
+        return null;
     }
 
     public static Caretaker createMockCaretaker() {
@@ -67,33 +61,21 @@ public final class MockUtils {
                 "name",
                 "surname",
                 "email",
-                animalsOfTypes(CAT, DOG),
                 createMockAddress()
         );
     }
 
     public static List<Caretaker> createMockCaretakers() {
         return List.of(
-                MockUtils.createMockCaretaker("John", "Doe", "testmail@mail.com", animalsOfTypes(DOG, CAT, BIRD),
+                MockUtils.createMockCaretaker("John", "Doe", "testmail@mail.com",
                         createMockAddress(Voivodeship.SLASKIE, "Katowice")),
-                MockUtils.createMockCaretaker("Jane", "Doe", "another@mail.com", animalsOfTypes(DOG),
+                MockUtils.createMockCaretaker("Jane", "Doe", "another@mail.com",
                         createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa")),
-                MockUtils.createMockCaretaker("John", "Smith", "onceagain@mail.com", animalsOfTypes(REPTILE),
+                MockUtils.createMockCaretaker("John", "Smith", "onceagain@mail.com",
                         createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa"))
         );
     }
 
-    public static Offer animalOfType(AnimalType animalType) {
-        return Offer.builder()
-                .animalType(animalType)
-                .build();
-    }
-
-    public static List<Offer> animalsOfTypes(AnimalType... animalTypes) {
-        return Arrays.stream(animalTypes)
-                .map(MockUtils::animalOfType)
-                .toList();
-    }
 
     public static Client createMockClient() {
         String email = "clientEmail";

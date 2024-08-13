@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.dataGeneration;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -295,6 +296,47 @@ public class MockService {
         return animalAttributes.stream()
                 .filter(animalAttribute -> animalAttribute.getAnimal().getAnimalType().equals(animalType))
                 .toList();
+    }
+
+    public List<Offer> createMockOffersAmenities(List<Offer> offers, List<AnimalAmenity> animalAmenities,
+                                                 int ANIMAL_AMENITY_IN_OFFER_COUNT) {
+
+        return offers.stream()
+                .map(offer ->
+                        createMockOfferAmenities(offer,
+                                getAnimalAmenitiesForAnimalType(offer.getAnimal().getAnimalType(), animalAmenities),
+                                ANIMAL_AMENITY_IN_OFFER_COUNT))
+                .toList();
+
+    }
+
+    private Offer createMockOfferAmenities(Offer offer, List<AnimalAmenity> animalAmenities, int animalAmenityCount) {
+
+        List<AnimalAmenity> uniqueRandomAnimalAmenities = getSomeRandomUniqueAnimalAmenities(animalAmenities, animalAmenityCount);
+        offer.setAnimalAmenities(uniqueRandomAnimalAmenities);
+        return offer;
+
+    }
+
+    private List<AnimalAmenity> getAnimalAmenitiesForAnimalType(String animalType, List<AnimalAmenity> animalAmenities) {
+        return animalAmenities.stream()
+                .filter(animalAmenity -> animalAmenity.getAnimal().getAnimalType().equals(animalType))
+                .toList();
+    }
+
+    private List<AnimalAmenity> getSomeRandomUniqueAnimalAmenities(List<AnimalAmenity> animalAmenities, int count) {
+        Set<AnimalAmenity> amenities = new HashSet<>();
+
+        if(animalAmenities.size() < count) {
+            return new ArrayList<>(animalAmenities);
+        }
+
+        while(amenities.size() < count) {
+            amenities.add(animalAmenities.get(faker.random().nextInt(animalAmenities.size())));
+        }
+
+        return new ArrayList<>(amenities);
+
     }
 
 }
