@@ -110,7 +110,10 @@ public class MockDataCreator {
     private boolean shouldSkipInit() {
         return caretakerRepository.count() != 0 &&
                 appUserRepository.count() != 0 &&
-                ratingRepository.count() != 0;
+                ratingRepository.count() != 0 &&
+                offerRepository.count() != 0 &&
+                offerConfigurationRepository.count() != 0 &&
+                offerOptionRepository.count() != 0;
 
     }
 }

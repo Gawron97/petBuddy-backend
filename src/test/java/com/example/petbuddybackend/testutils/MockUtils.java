@@ -2,6 +2,7 @@ package com.example.petbuddybackend.testutils;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -52,10 +53,6 @@ public final class MockUtils {
                 .build();
     }
 
-    private static Caretaker createMockCaretakersWithComplexOffers() {
-        return null;
-    }
-
     public static Caretaker createMockCaretaker() {
         return createMockCaretaker(
                 "name",
@@ -99,5 +96,51 @@ public final class MockUtils {
                 .rating(5)
                 .comment("comment")
                 .build();
+    }
+
+    public static List<Offer> createMockOffers(Caretaker caretaker, List<Animal> animals) {
+
+        return animals.stream()
+                .map(animal -> createMockOffer(caretaker, animal))
+                .toList();
+
+    }
+
+    public static Offer createMockOffer(Caretaker caretaker, Animal animal) {
+        return Offer.builder()
+                .caretaker(caretaker)
+                .animal(animal)
+                .build();
+    }
+
+    public static List<Offer> createMockOffers(List<Caretaker> caretakers, List<Animal> animals) {
+
+        Animal cat = animals.stream()
+                .filter(animal -> animal.getAnimalType().equals("CAT"))
+                .findFirst()
+                .orElseThrow();
+
+        Animal dog = animals.stream()
+                .filter(animal -> animal.getAnimalType().equals("DOG"))
+                .findFirst()
+                .orElseThrow();
+
+        Animal bird = animals.stream()
+                .filter(animal -> animal.getAnimalType().equals("BIRD"))
+                .findFirst()
+                .orElseThrow();
+
+        Animal reptile = animals.stream()
+                .filter(animal -> animal.getAnimalType().equals("REPTILE"))
+                .findFirst()
+                .orElseThrow();
+
+        return List.of(
+                createMockOffer(caretakers.get(0), dog),
+                createMockOffer(caretakers.get(0), cat),
+                createMockOffer(caretakers.get(0), bird),
+                createMockOffer(caretakers.get(1), dog),
+                createMockOffer(caretakers.get(1), reptile));
+
     }
 }

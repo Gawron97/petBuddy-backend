@@ -2,7 +2,7 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.Caretaker;

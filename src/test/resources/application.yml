@@ -7,6 +7,13 @@ spring:
   profiles:
     active: test
 
+  config:
+    import:
+      - classpath:animal-data.yml
+      - classpath:animal-attribute-data.yml
+      - classpath:amenity-data.yml
+      - classpath:animal-amenity-data.yml
+
 keycloak:
   resource-roles-claim: "pet-buddy-client"
   claim-name: "preferred_username"

@@ -1,12 +1,17 @@
 package com.example.petbuddybackend.testutils;
 
+import com.example.petbuddybackend.entity.animal.Animal;
+import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 
+import javax.swing.text.Caret;
 import java.util.List;
 
 import static com.example.petbuddybackend.testutils.MockUtils.*;
@@ -52,6 +57,13 @@ public class PersistenceUtils {
     public static Caretaker addCaretaker(CaretakerRepository caretakerRepository, AppUserRepository appUserRepository) {
         Caretaker caretaker = createMockCaretaker();
         return addCaretaker(caretakerRepository, appUserRepository, caretaker);
+    }
+
+    public static void addOffersToCaretakers(List<Caretaker> caretakers, OfferRepository offerRepository,
+                                                        List<Animal> animals) {
+
+        offerRepository.saveAllAndFlush(MockUtils.createMockOffers(caretakers, animals));
+
     }
 
     public static Client addClient(AppUserRepository appUserRepository, ClientRepository clientRepository, Client client) {

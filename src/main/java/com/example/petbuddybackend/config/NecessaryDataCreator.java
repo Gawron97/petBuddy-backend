@@ -16,7 +16,7 @@ import java.util.List;
 
 @Configuration
 @Slf4j
-@Profile("dev")
+@Profile("dev | test")
 @RequiredArgsConstructor
 public class NecessaryDataCreator {
 
@@ -62,7 +62,9 @@ public class NecessaryDataCreator {
 
     private boolean shouldSkipInit() {
         return animalAttributeRepository.count() != 0 &&
-                animalRepository.count() != 0;
+                animalRepository.count() != 0 &&
+                amenityRepository.count() != 0 &&
+                animalAmenityRepository.count() != 0;
 
 
     }

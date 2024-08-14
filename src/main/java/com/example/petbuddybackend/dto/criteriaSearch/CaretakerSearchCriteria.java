@@ -1,7 +1,6 @@
-package com.example.petbuddybackend.dto.user;
+package com.example.petbuddybackend.dto.criteriaSearch;
 
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.AnimalType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
@@ -26,10 +25,9 @@ public record CaretakerSearchCriteria(
         Voivodeship voivodeship,
 
         @Schema(
-                description = "Filters by animal types. Results consists of caretakers that can take care of any animal from the list",
-                examples = {"DOG", "CAT", "BIRD", "SMALL_PET", "FISH", "REPTILE", "HORSE"},
-                type = "array"
+                description = "Offer criteria",
+                type = "class"
         )
-        Set<AnimalType> animalTypes
+        OfferSearchCriteria offerSearchCriteria
 ) {
 }
