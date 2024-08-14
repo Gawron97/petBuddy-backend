@@ -15,7 +15,7 @@ import lombok.*;
         }
 )
 @EqualsAndHashCode(of = "id")
-@ToString
+@ToString(of = {"animal", "attributeName", "attributeValue"})
 public class AnimalAttribute {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
