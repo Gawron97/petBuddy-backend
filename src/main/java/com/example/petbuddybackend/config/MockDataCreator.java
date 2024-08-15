@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.config;
 
+import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -44,7 +45,8 @@ public class MockDataCreator {
 
         List<Client> clients = clientRepository.saveAllAndFlush(mockService.createMockClients(clientAppUsers));
         List<Caretaker> caretakers = caretakerRepository.saveAllAndFlush(mockService.createMockCaretakers(caretakerAppUsers));
-        ratingRepository.saveAllAndFlush(mockService.createMockRatings(caretakers, clients));
+
+        addRatingsToSliceOfCaretakers(caretakers, clients);
 
         log.info("Mock data created successfully!");
     }
@@ -53,6 +55,14 @@ public class MockDataCreator {
         return caretakerRepository.count() != 0 &&
                 appUserRepository.count() != 0 &&
                 ratingRepository.count() != 0;
+    }
 
+    private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers, List<Client> clients) {
+        int caretakersWithRatingsCount = (int)(allCaretakers.size() * 0.7f);
+        List<Caretaker> caretakersWithRatings = caretakersWithRatingsCount == 0 ?
+                allCaretakers :
+                allCaretakers.subList(0, caretakersWithRatingsCount);
+
+        return ratingRepository.saveAllAndFlush(mockService.createMockRatings(caretakersWithRatings, clients));
     }
 }
