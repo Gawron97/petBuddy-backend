@@ -7,6 +7,7 @@ public record OfferConfigurationDTO(
         Long id,
         String description,
         Double dailyPrice,
-        Map<String, List<String>> selectedOptions
+        Map<String, List<String>> selectedOptions //it would be easier to get list of selected options id for
+                                                  // persisting/editing, but map is better structure for presentation
 ) {
 }

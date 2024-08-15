@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @Entity
+@EqualsAndHashCode(of = "id")
 public class AnimalAmenity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

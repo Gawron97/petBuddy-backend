@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.throweable.AnimalAmenityAlreadySelectedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationAlreadyExistsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,14 @@ public class ApiExceptionAdvice {
     }
 
     @ExceptionHandler(OfferConfigurationAlreadyExistsException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleOfferConfigurationAlreadyExistsException(OfferConfigurationAlreadyExistsException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(AnimalAmenityAlreadySelectedInOfferException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleAnimalAmenityAlreadySelectedInOfferException(AnimalAmenityAlreadySelectedInOfferException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 

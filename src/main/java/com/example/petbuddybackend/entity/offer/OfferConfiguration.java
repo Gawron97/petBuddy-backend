@@ -26,7 +26,8 @@ public class OfferConfiguration {
     @JoinColumn(name = "offer_id", nullable = false, updatable = false)
     private Offer offer;
 
-    @OneToMany(mappedBy = "offerConfiguration", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "offerConfiguration", fetch = FetchType.EAGER,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     private List<OfferOption> offerOptions;
 
 }

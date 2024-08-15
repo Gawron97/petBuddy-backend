@@ -32,7 +32,8 @@ public class Offer {
     @JoinColumn(name = "animalType", nullable = false, updatable = false)
     private Animal animal;
 
-    @OneToMany(mappedBy = "offer", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "offer", fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     private List<OfferConfiguration> offerConfigurations;
 
     @ManyToMany(fetch = FetchType.LAZY)
