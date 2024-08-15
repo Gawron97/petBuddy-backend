@@ -7,18 +7,18 @@ import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.offer.Offer;
-import com.example.petbuddybackend.entity.animal.AnimalType;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import org.keycloak.common.util.CollectionUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.example.petbuddybackend.entity.animal.AnimalType.*;
+import java.util.stream.Collectors;
 
 public final class MockUtils {
     
@@ -115,6 +115,7 @@ public final class MockUtils {
         return Offer.builder()
                 .caretaker(caretaker)
                 .animal(animal)
+                .description("description")
                 .build();
     }
 
@@ -149,7 +150,7 @@ public final class MockUtils {
 
     }
 
-    public static Animal createAnimal(String animalType) {
+    public static Animal createMockAnimal(String animalType) {
         return Animal.builder()
                 .animalType(animalType)
                 .build();
@@ -177,6 +178,14 @@ public final class MockUtils {
                 .build();
     }
 
+    public static OfferConfiguration createOfferConfiguration(Offer offer) {
+        return OfferConfiguration.builder()
+                .description("description")
+                .dailyPrice(10.0)
+                .offer(offer)
+                .build();
+    }
+
     public static AnimalAmenity createAnimalAmenity(Animal animal, String amenity) {
         return AnimalAmenity.builder()
                 .animal(animal)
@@ -186,7 +195,7 @@ public final class MockUtils {
 
     public static void createComplexMockOfferForCaretaker(Caretaker caretaker) {
 
-        Animal dog = createAnimal("DOG");
+        Animal dog = createMockAnimal("DOG");
 
         AnimalAttribute dogAttribute = createAnimalAttribute("SIZE", "BIG", dog);
         AnimalAttribute dogAttribute2 = createAnimalAttribute("SEX", "MALE", dog);
@@ -198,16 +207,61 @@ public final class MockUtils {
 
         OfferConfiguration offerConfiguration = createOfferConfiguration(offerOptions);
         List<AnimalAmenity> animalAmenities = Arrays.asList(
-                createAnimalAmenity(dog, "WALKING"),
+                createAnimalAmenity(dog, "toys"),
                 createAnimalAmenity(dog, "FEEDING")
         );
 
         Offer offer = Offer.builder()
                 .animal(dog)
                 .animalAmenities(animalAmenities)
-                .offerConfigurations(List.of(offerConfiguration))
+                .offerConfigurations(Arrays.asList(offerConfiguration))
                 .build();
-        caretaker.setOffers(List.of(offer));
+        caretaker.setOffers(Arrays.asList(offer));
 
     }
+
+    public static List<OfferOption> createOfferOptions(List<AnimalAttribute> animalAttributes,
+                                                       OfferConfiguration offerConfiguration) {
+
+        return animalAttributes.stream()
+                .map(animalAttribute -> createOfferOption(animalAttribute, offerConfiguration))
+                .collect(Collectors.toList());
+
+    }
+
+    public static OfferOption createOfferOption(AnimalAttribute animalAttribute,
+                                                OfferConfiguration offerConfiguration) {
+        return OfferOption.builder()
+                .animalAttribute(animalAttribute)
+                .offerConfiguration(offerConfiguration)
+                .build();
+    }
+
+    public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
+                                                          Animal animal,
+                                                          List<AnimalAttribute> animalAttributes,
+                                                          List<AnimalAmenity> animalAmenities) {
+
+        Offer offer = Offer.builder()
+                .animal(animal)
+                .caretaker(caretaker)
+                .description("description")
+                .build();
+
+        if(CollectionUtil.isNotEmpty(animalAttributes)) {
+            OfferConfiguration offerConfiguration = createOfferConfiguration(offer);
+            List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
+
+            offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
+            offer.setOfferConfigurations(new ArrayList<>(List.of(offerConfiguration)));
+        }
+        if(CollectionUtil.isNotEmpty(animalAmenities)) {
+            offer.setAnimalAmenities(new ArrayList<>(animalAmenities));
+        }
+
+        caretaker.setOffers(new ArrayList<>(List.of(offer)));
+        return offer;
+
+    }
+
 }

@@ -1,8 +1,11 @@
 package com.example.petbuddybackend.dto.offer;
 
+import lombok.Builder;
+
 import java.util.List;
 import java.util.Map;
 
+@Builder
 public record OfferConfigurationDTO(
         Long id,
         String description,
