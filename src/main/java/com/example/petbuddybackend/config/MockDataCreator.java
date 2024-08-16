@@ -4,6 +4,7 @@ import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.offer.Offer;
+import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -72,9 +73,12 @@ public class MockDataCreator {
         caretakerAppUsers = appUserRepository.saveAllAndFlush(mockService.createMockAppUsers(CARETAKER_COUNT));
         clientAppUsers = appUserRepository.saveAllAndFlush(mockService.createMockAppUsers(CLIENT_COUNT));
 
+
         clients = clientRepository.saveAllAndFlush(mockService.createMockClients(clientAppUsers));
         caretakers = caretakerRepository.saveAllAndFlush(mockService.createMockCaretakers(caretakerAppUsers));
-        ratingRepository.saveAllAndFlush(mockService.createMockRatings(caretakers, clients));
+
+        addRatingsToSliceOfCaretakers(caretakers, clients);
+
 
         // caretaker offers
         animals = animalRepository.findAll();
@@ -114,6 +118,14 @@ public class MockDataCreator {
                 offerRepository.count() != 0 &&
                 offerConfigurationRepository.count() != 0 &&
                 offerOptionRepository.count() != 0;
+    }
 
+    private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers, List<Client> clients) {
+        int caretakersWithRatingsCount = (int)(allCaretakers.size() * 0.7f);
+        List<Caretaker> caretakersWithRatings = caretakersWithRatingsCount == 0 ?
+                allCaretakers :
+                allCaretakers.subList(0, caretakersWithRatingsCount);
+
+        return ratingRepository.saveAllAndFlush(mockService.createMockRatings(caretakersWithRatings, clients));
     }
 }
