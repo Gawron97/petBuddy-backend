@@ -26,7 +26,8 @@ public class UserService {
         if(userRepository.findById(email).isEmpty()) {
             log.info("User with email: " + email + " not found. Creating new user.");
             AppUser user = createAppUser(email, token);
-            createCaretaker(user);
+            createCaretaker(user); // refactor needed but need to consult when caretaker profile should be created
+                                   // now I mocked it to make task working
             log.info("User with email: " + email + " created.");
         }
     }
