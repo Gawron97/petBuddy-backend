@@ -186,6 +186,15 @@ public final class MockUtils {
                 .build();
     }
 
+    public static OfferConfiguration createOfferConfiguration(Offer offer, List<AnimalAttribute> animalAttributes) {
+        OfferConfiguration offerConfiguration = createOfferConfiguration(offer);
+        List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
+
+        offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
+        return offerConfiguration;
+    }
+
+
     public static AnimalAmenity createAnimalAmenity(Animal animal, String amenity) {
         return AnimalAmenity.builder()
                 .animal(animal)

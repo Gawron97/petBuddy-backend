@@ -38,7 +38,7 @@ public class OfferController {
     }
 
     @DeleteMapping("/configuration/{configurationId}/delete")
-    public ResponseEntity<OfferConfigurationDTO> deleteConfiguration(@PathVariable Long configurationId) {
+    public ResponseEntity<OfferDTO> deleteConfiguration(@PathVariable Long configurationId) {
         return ResponseEntity.ok(offerService.deleteConfiguration(configurationId));
     }
 

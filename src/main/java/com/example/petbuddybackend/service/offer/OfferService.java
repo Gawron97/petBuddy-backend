@@ -58,12 +58,21 @@ public class OfferService {
 
         if(CollectionUtil.isNotEmpty(offer.offerConfigurations())) {
             List<OfferConfiguration> offerConfigurations = createConfigurationsForOffer(offer.offerConfigurations(), modifiyngOffer);
-            modifiyngOffer.setOfferConfigurations(offerConfigurations);
+            if(CollectionUtil.isNotEmpty(modifiyngOffer.getOfferConfigurations())) {
+                modifiyngOffer.getOfferConfigurations().addAll(offerConfigurations);
+            } else {
+                modifiyngOffer.setOfferConfigurations(offerConfigurations);
+            }
         }
 
         if(CollectionUtil.isNotEmpty(offer.animalAmenities())) {
             List<AnimalAmenity> animalAmenities = createAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
-            modifiyngOffer.setAnimalAmenities(animalAmenities);
+            if(CollectionUtil.isNotEmpty(modifiyngOffer.getAnimalAmenities())) {
+                modifiyngOffer.getAnimalAmenities().addAll(animalAmenities);
+            } else {
+                modifiyngOffer.setAnimalAmenities(animalAmenities);
+            }
+
         }
 
         return offerMapper.mapToOfferDTO(offerRepository.save(modifiyngOffer));
@@ -84,10 +93,7 @@ public class OfferService {
             newAnimalAmenities.add(newAnimalAmenity);
         }
 
-        return Stream.concat(
-                Optional.ofNullable(modifiyngOffer.getAnimalAmenities()).orElse(Collections.emptyList()).stream(),
-                newAnimalAmenities.stream()
-        ).distinct().collect(Collectors.toList());
+        return newAnimalAmenities;
 
     }
 
@@ -128,10 +134,7 @@ public class OfferService {
 
             newOfferConfigurations.add(configuration);
         }
-        return Stream.concat(
-                Optional.ofNullable(offer.getOfferConfigurations()).orElse(Collections.emptyList()).stream(),
-                newOfferConfigurations.stream()
-        ).collect(Collectors.toList());
+        return newOfferConfigurations;
 
     }
 
@@ -230,11 +233,12 @@ public class OfferService {
                 .orElseThrow(() -> new NotFoundException("Animal with type " + animalType + " not found"));
     }
 
-    public OfferConfigurationDTO deleteConfiguration(Long configurationId) {
+    public OfferDTO deleteConfiguration(Long configurationId) {
 
         OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
-        offerConfigurationRepository.delete(offerConfiguration);
-        return offerConfigurationMapper.mapToOfferConfigurationDTO(offerConfiguration);
+        Offer offer = offerConfiguration.getOffer();
+        offer.getOfferConfigurations().remove(offerConfiguration);
+        return offerMapper.mapToOfferDTO(offerRepository.save(offer));
 
     }
 
@@ -269,8 +273,6 @@ public class OfferService {
                 }
             }
         }
-
-        editingConfiguration.setOfferOptions(offerOptions);
     }
 
 }

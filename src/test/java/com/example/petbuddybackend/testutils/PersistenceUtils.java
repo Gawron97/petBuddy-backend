@@ -4,6 +4,7 @@ import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.offer.Offer;
+import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -90,4 +91,11 @@ public class PersistenceUtils {
         return offerRepository.save(offer);
     }
 
+    public static void addOfferConfigurationForOffer(Offer existingOffer, List<AnimalAttribute> animalAttributes, OfferRepository offerRepository) {
+
+        OfferConfiguration offerConfiguration = createOfferConfiguration(existingOffer, animalAttributes);
+        existingOffer.getOfferConfigurations().add(offerConfiguration);
+        offerRepository.save(existingOffer);
+
+    }
 }
