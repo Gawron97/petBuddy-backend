@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.config;
 
+import com.example.petbuddybackend.config.dataGeneration.NecessaryDataCreator;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

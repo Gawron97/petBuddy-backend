@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.config;
+package com.example.petbuddybackend.config.dataGeneration;
 
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;

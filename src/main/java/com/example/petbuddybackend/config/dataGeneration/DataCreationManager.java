@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.config;
+package com.example.petbuddybackend.config.dataGeneration;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
