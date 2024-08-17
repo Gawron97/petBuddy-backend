@@ -6,14 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.CollectionUtils;
 
-import java.util.List;
 
 public final class PagingUtils {
 
-    private PagingUtils() {
-    }
+    private PagingUtils() {}
 
-    public static Pageable createPageable(PagingParams params, Sort.NullHandling nullHandlingStrategy) {
+    public static Pageable createPageable(PagingParams params) {
 
         if(CollectionUtils.isEmpty(params.getSortBy())) {
             return PageRequest.of(
@@ -22,24 +20,13 @@ public final class PagingUtils {
             );
         }
 
-        List<Sort.Order> orders = params.getSortBy().stream()
-                .map(field -> new Sort.Order(
-                        params.getSortDirection(),
-                        field,
-                        nullHandlingStrategy
-                ))
-                .toList();
-
-        Sort sort = Sort.by(orders);
-
         return PageRequest.of(
                 params.getPage(),
                 params.getSize(),
-                sort
+                Sort.by(
+                        params.getSortDirection(),
+                        params.getSortBy().toArray(String[]::new)
+                )
         );
-    }
-
-    public static Pageable createPageable(PagingParams params) {
-        return createPageable(params, Sort.NullHandling.NULLS_LAST);
     }
 }
