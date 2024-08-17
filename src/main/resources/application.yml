@@ -13,6 +13,8 @@ spring:
       ddl-auto: update
     properties:
       dialect: org.hibernate.dialect.PostgreSQL94Dialect
+      hibernate:
+        order_by.default_null_ordering: last
     show-sql: false
   profiles:
     active: dev
