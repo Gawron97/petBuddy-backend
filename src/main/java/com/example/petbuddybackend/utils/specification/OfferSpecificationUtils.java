@@ -25,6 +25,7 @@ public final class OfferSpecificationUtils {
     public static final String OFFER_OPTIONS = "offerOptions";
     public static final String ANIMAL_ATTRIBUTE = "animalAttribute";
     public static final String ID = "id";
+    public static final String PRICE = "dailyPrice";
 
     private OfferSpecificationUtils() {
     }
@@ -75,11 +76,17 @@ public final class OfferSpecificationUtils {
     }
 
     private static Specification<Offer> minPrice(Double minPrice) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(root.get("price"), minPrice);
+        return (root, query, criteriaBuilder) -> {
+            Join<Offer, OfferConfiguration> offerOfferConfigurationJoin = root.join(OFFER_CONFIGURATIONS);
+            return criteriaBuilder.greaterThanOrEqualTo(offerOfferConfigurationJoin.get(PRICE), minPrice);
+        };
     }
 
     private static Specification<Offer> maxPrice(Double maxPrice) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(root.get("price"), maxPrice);
+        return (root, query, criteriaBuilder) -> {
+            Join<Offer, OfferConfiguration> offerOfferConfigurationJoin = root.join(OFFER_CONFIGURATIONS);
+            return criteriaBuilder.lessThanOrEqualTo(offerOfferConfigurationJoin.get(PRICE), maxPrice);
+        };
     }
 
     private static Specification<Offer> animalAttributeIdsIn(Set<Long> animalAttributeIds) {
