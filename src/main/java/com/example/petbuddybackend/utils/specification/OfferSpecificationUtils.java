@@ -9,6 +9,7 @@ import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import org.keycloak.common.util.CollectionUtil;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -44,16 +45,16 @@ public final class OfferSpecificationUtils {
             spec = spec.and(amenitiesIn(filters.amenities()));
         }
 
-        if(filters.minPrice() != null) {
-            spec = spec.and(minPrice(filters.minPrice()));
-        }
-
-        if(filters.maxPrice() != null) {
-            spec = spec.and(maxPrice(filters.maxPrice()));
-        }
+//        if(filters.minPrice() != null) {
+//            spec = spec.and(minPrice(filters.minPrice()));
+//        }
+//
+//        if(filters.maxPrice() != null) {
+//            spec = spec.and(maxPrice(filters.maxPrice()));
+//        }
 
         if(CollectionUtil.isNotEmpty(filters.animalAttributeIds())) {
-            spec = spec.and(animalAttributeIdsIn(filters.animalAttributeIds()));
+            spec = spec.and(animalAttributeIdsIn(filters.animalAttributeIds(), filters.minPrice(), filters.maxPrice()));
         }
 
         return spec;
@@ -89,12 +90,25 @@ public final class OfferSpecificationUtils {
         };
     }
 
-    private static Specification<Offer> animalAttributeIdsIn(Set<Long> animalAttributeIds) {
+    private static Specification<Offer> animalAttributeIdsIn(Set<Long> animalAttributeIds, Double minPrice, Double maxPrice) {
         return (root, query, criteriaBuilder) -> {
             Join<Offer, OfferConfiguration> offerOfferConfigurationJoin = root.join(OFFER_CONFIGURATIONS);
             Join<OfferConfiguration, OfferOption> offerOptionJoin = offerOfferConfigurationJoin.join(OFFER_OPTIONS);
             Join<OfferOption, AnimalAttribute> animalAttributeJoin = offerOptionJoin.join(ANIMAL_ATTRIBUTE);
-            return animalAttributeJoin.get(ID).in(animalAttributeIds);
+
+            Predicate animalAttributePredicate = animalAttributeJoin.get(ID).in(animalAttributeIds);
+
+            Predicate price = criteriaBuilder.conjunction();
+
+            if(minPrice != null) {
+                price = criteriaBuilder.and(price, criteriaBuilder.greaterThanOrEqualTo(offerOfferConfigurationJoin.get(PRICE), minPrice));
+            }
+
+            if(maxPrice != null) {
+                price = criteriaBuilder.and(price, criteriaBuilder.lessThanOrEqualTo(offerOfferConfigurationJoin.get(PRICE), maxPrice));
+            }
+
+            return criteriaBuilder.and(animalAttributePredicate, price);
         };
     }
 
