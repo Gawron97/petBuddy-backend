@@ -6,6 +6,7 @@ import com.example.petbuddybackend.service.offer.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -23,6 +24,7 @@ public class OfferController {
                     " and adding new configurations. It Cannot edit configurations of existing offer."
     )
     @PostMapping("/add")
+    @PreAuthorize("isAuthenticated()")
     public OfferDTO addOffer(@RequestBody OfferDTO offer, Principal principal) {
         return offerService.addOrEditOffer(offer, principal.getName());
     }
@@ -32,12 +34,14 @@ public class OfferController {
             description = "Edits offer configuration by changing configuration data and selected options."
     )
     @PostMapping("/configuration/{configurationId}/edit")
+    @PreAuthorize("isAuthenticated()")
     public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
                                                                    @RequestBody OfferConfigurationDTO configuration) {
         return offerService.editConfiguration(configurationId, configuration);
     }
 
     @DeleteMapping("/configuration/{configurationId}/delete")
+    @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteConfiguration(@PathVariable Long configurationId) {
         return offerService.deleteConfiguration(configurationId);
     }
