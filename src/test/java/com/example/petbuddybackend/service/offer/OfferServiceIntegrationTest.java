@@ -20,7 +20,7 @@ import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationAlreadyExistsException;
+import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationDuplicatedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -327,7 +327,7 @@ public class OfferServiceIntegrationTest {
                                 )
                                 .build(),
                         true , // Expected to be an existing offer
-                        OfferConfigurationAlreadyExistsException.class
+                        OfferConfigurationDuplicatedException.class
                 ),
                 Arguments.of(
                         OfferDTO.builder()
@@ -369,7 +369,7 @@ public class OfferServiceIntegrationTest {
                                         "SIZE", List.of("SMALL")
                                 )))
                                 .build(),
-                        OfferConfigurationAlreadyExistsException.class
+                        OfferConfigurationDuplicatedException.class
                 )
         );
     }

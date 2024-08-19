@@ -13,15 +13,13 @@ import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferConfigurationRepository;
-import com.example.petbuddybackend.repository.offer.OfferOptionRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
-import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.OfferConfigurationMapper;
 import com.example.petbuddybackend.service.mapper.OfferMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
-import com.example.petbuddybackend.utils.exception.throweable.AnimalAmenityAlreadySelectedInOfferException;
+import com.example.petbuddybackend.utils.exception.throweable.AnimalAmenityDuplicatedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationAlreadyExistsException;
+import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationDuplicatedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.common.util.CollectionUtil;
@@ -39,10 +37,8 @@ import java.util.stream.Stream;
 public class OfferService {
 
     private final CaretakerService caretakerService;
-    private final CaretakerRepository caretakerRepository;
     private final OfferRepository offerRepository;
     private final OfferConfigurationRepository offerConfigurationRepository;
-    private final OfferOptionRepository offerOptionRepository;
     private final AnimalRepository animalRepository;
     private final AnimalAttributeRepository animalAttributeRepository;
     private final AnimalAmenityRepository animalAmenityRepository;
@@ -113,7 +109,7 @@ public class OfferService {
 
     private void checkDuplicateForAnimalAmenity(List<AnimalAmenity> oldAnimalAmenities, AnimalAmenity animalAmenity) {
         if(oldAnimalAmenities.stream().anyMatch(oldAnimalAmenity -> oldAnimalAmenity.equals(animalAmenity))) {
-            throw new AnimalAmenityAlreadySelectedInOfferException(MessageFormat.format(
+            throw new AnimalAmenityDuplicatedInOfferException(MessageFormat.format(
                     "Animal amenity with name {0} already exists",
                     animalAmenity.getAmenity().getName()
             ));
@@ -159,7 +155,7 @@ public class OfferService {
                 .toList();
 
         if(animalAttributesLists.stream().anyMatch(animalAttributes -> animalAttributes.equals(newAnimalAttributes))) {
-            throw new OfferConfigurationAlreadyExistsException(MessageFormat.format(
+            throw new OfferConfigurationDuplicatedException(MessageFormat.format(
                             "Offer configuration with animal attributes {0} already exists",
                             newAnimalAttributes.stream()
                                     .map(AnimalAttribute::toString)
