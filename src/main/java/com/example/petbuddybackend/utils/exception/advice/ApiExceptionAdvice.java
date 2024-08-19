@@ -21,13 +21,13 @@ public class ApiExceptionAdvice {
     }
 
     @ExceptionHandler(OfferConfigurationAlreadyExistsException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    @ResponseStatus(code = HttpStatus.CONFLICT)
     public ApiExceptionResponse handleOfferConfigurationAlreadyExistsException(OfferConfigurationAlreadyExistsException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
     @ExceptionHandler(AnimalAmenityAlreadySelectedInOfferException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    @ResponseStatus(code = HttpStatus.CONFLICT)
     public ApiExceptionResponse handleAnimalAmenityAlreadySelectedInOfferException(AnimalAmenityAlreadySelectedInOfferException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }

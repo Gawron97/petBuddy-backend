@@ -83,7 +83,7 @@ public class OfferServiceIntegrationTest {
                         "DOG", "SEX", "MALE").orElseThrow()
         );
         animalAmenitiesInComplexOffer = Arrays.asList(
-                animalAmenityRepository.findByAmenity_AmenityAndAnimal_AnimalType("toys", "DOG").orElseThrow()
+                animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
         );
 
         existingOffer = PersistenceUtils.addComplexOffer(caretakerWithComplexOffer, animalInComplexOffer,

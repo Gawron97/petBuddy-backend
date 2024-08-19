@@ -15,9 +15,7 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import org.keycloak.common.util.CollectionUtil;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class MockUtils {
@@ -198,7 +196,7 @@ public final class MockUtils {
     public static AnimalAmenity createAnimalAmenity(Animal animal, String amenity) {
         return AnimalAmenity.builder()
                 .animal(animal)
-                .amenity(Amenity.builder().amenity(amenity).build())
+                .amenity(Amenity.builder().name(amenity).build())
                 .build();
     }
 
@@ -215,10 +213,10 @@ public final class MockUtils {
         );
 
         OfferConfiguration offerConfiguration = createOfferConfiguration(offerOptions);
-        List<AnimalAmenity> animalAmenities = Arrays.asList(
+        Set<AnimalAmenity> animalAmenities = new HashSet<>(Arrays.asList(
                 createAnimalAmenity(dog, "toys"),
                 createAnimalAmenity(dog, "FEEDING")
-        );
+        ));
 
         Offer offer = Offer.builder()
                 .animal(dog)
@@ -265,7 +263,7 @@ public final class MockUtils {
             offer.setOfferConfigurations(new ArrayList<>(List.of(offerConfiguration)));
         }
         if(CollectionUtil.isNotEmpty(animalAmenities)) {
-            offer.setAnimalAmenities(new ArrayList<>(animalAmenities));
+            offer.setAnimalAmenities(new HashSet<>(animalAmenities));
         }
 
         caretaker.setOffers(new ArrayList<>(List.of(offer)));

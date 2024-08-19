@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,6 +23,7 @@ public class Offer {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 1500)
     private String description;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -42,6 +44,6 @@ public class Offer {
             joinColumns = @JoinColumn(name = "offerId"),
             inverseJoinColumns = @JoinColumn(name = "animalAmenityId")
     )
-    private List<AnimalAmenity> animalAmenities;
+    private Set<AnimalAmenity> animalAmenities;
 
 }

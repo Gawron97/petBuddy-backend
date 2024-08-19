@@ -20,10 +20,14 @@ public final class OfferSpecificationUtils {
     public static final String ANIMAL_TYPE = "animalType";
     public static final String ANIMAl_AMENITIES = "animalAmenities";
     public static final String AMENITY = "amenity";
+    public static final String AMENITY_NAME = "name";
     public static final String OFFER_CONFIGURATIONS = "offerConfigurations";
     public static final String OFFER_OPTIONS = "offerOptions";
     public static final String ANIMAL_ATTRIBUTE = "animalAttribute";
     public static final String ID = "id";
+
+    private OfferSpecificationUtils() {
+    }
 
     public static Specification<Offer> toSpecification(OfferSearchCriteria filters) {
 
@@ -66,7 +70,7 @@ public final class OfferSpecificationUtils {
         return (root, query, criteriaBuilder) -> {
             Join<Offer, AnimalAmenity> animalAmenityJoin = root.join(ANIMAl_AMENITIES);
             Join<AnimalAmenity, Amenity> amenityJoin = animalAmenityJoin.join(AMENITY);
-            return amenityJoin.get(AMENITY).in(amenities);
+            return amenityJoin.get(AMENITY_NAME).in(amenities);
         };
     }
 

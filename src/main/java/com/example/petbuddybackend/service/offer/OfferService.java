@@ -18,6 +18,7 @@ import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.OfferConfigurationMapper;
 import com.example.petbuddybackend.service.mapper.OfferMapper;
+import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.exception.throweable.AnimalAmenityAlreadySelectedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationAlreadyExistsException;
@@ -37,6 +38,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class OfferService {
 
+    private final CaretakerService caretakerService;
     private final CaretakerRepository caretakerRepository;
     private final OfferRepository offerRepository;
     private final OfferConfigurationRepository offerConfigurationRepository;
@@ -48,13 +50,23 @@ public class OfferService {
     private final OfferConfigurationMapper offerConfigurationMapper = OfferConfigurationMapper.INSTANCE;
 
     public OfferDTO addOrEditOffer(OfferDTO offer, String caretakerEmail) {
-        Caretaker caretaker = getCaretaker(caretakerEmail);
+        Caretaker caretaker = caretakerService.getCaretaker(caretakerEmail);
 
         Offer modifiyngOffer = getOrCreateCaretakerOffer(caretakerEmail, offer.animal().animalType(),
                 caretaker, offer.description());
+
         if(StringUtils.hasText(offer.description())) {
             modifiyngOffer.setDescription(offer.description());
         }
+
+        setOfferConfigurations(offer, modifiyngOffer);
+        setOfferAnimalAmenities(offer, modifiyngOffer);
+
+        return offerMapper.mapToOfferDTO(offerRepository.save(modifiyngOffer));
+
+    }
+
+    private void setOfferConfigurations(OfferDTO offer, Offer modifiyngOffer) {
 
         if(CollectionUtil.isNotEmpty(offer.offerConfigurations())) {
             List<OfferConfiguration> offerConfigurations = createConfigurationsForOffer(offer.offerConfigurations(), modifiyngOffer);
@@ -65,8 +77,12 @@ public class OfferService {
             }
         }
 
+    }
+
+    private void setOfferAnimalAmenities(OfferDTO offer, Offer modifiyngOffer) {
+
         if(CollectionUtil.isNotEmpty(offer.animalAmenities())) {
-            List<AnimalAmenity> animalAmenities = createAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
+            Set<AnimalAmenity> animalAmenities = createAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
             if(CollectionUtil.isNotEmpty(modifiyngOffer.getAnimalAmenities())) {
                 modifiyngOffer.getAnimalAmenities().addAll(animalAmenities);
             } else {
@@ -75,25 +91,23 @@ public class OfferService {
 
         }
 
-        return offerMapper.mapToOfferDTO(offerRepository.save(modifiyngOffer));
-
     }
 
-    private List<AnimalAmenity> createAnimalAmenitiesForOffer(List<String> animalAmenities, Offer modifiyngOffer) {
+    private Set<AnimalAmenity> createAnimalAmenitiesForOffer(List<String> animalAmenities, Offer modifiyngOffer) {
 
         List<AnimalAmenity> newAnimalAmenities = new ArrayList<>();
         for(String animalAmenity : animalAmenities) {
             AnimalAmenity newAnimalAmenity = getAnimalAmenity(animalAmenity, modifiyngOffer.getAnimal().getAnimalType());
             checkDuplicateForAnimalAmenity(
                     Stream.concat(
-                            Optional.ofNullable(modifiyngOffer.getAnimalAmenities()).orElse(Collections.emptyList()).stream(),
+                            Optional.ofNullable(modifiyngOffer.getAnimalAmenities()).orElse(Collections.emptySet()).stream(),
                             newAnimalAmenities.stream()
                     ).toList(), newAnimalAmenity
             );
             newAnimalAmenities.add(newAnimalAmenity);
         }
 
-        return newAnimalAmenities;
+        return new HashSet<>(newAnimalAmenities);
 
     }
 
@@ -101,26 +115,16 @@ public class OfferService {
         if(oldAnimalAmenities.stream().anyMatch(oldAnimalAmenity -> oldAnimalAmenity.equals(animalAmenity))) {
             throw new AnimalAmenityAlreadySelectedInOfferException(MessageFormat.format(
                     "Animal amenity with name {0} already exists",
-                    animalAmenity.getAmenity().getAmenity()
+                    animalAmenity.getAmenity().getName()
             ));
         }
     }
 
     private AnimalAmenity getAnimalAmenity(String amenityName, String animalType) {
-        return animalAmenityRepository.findByAmenity_AmenityAndAnimal_AnimalType(amenityName, animalType)
+        return animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType(amenityName, animalType)
                 .orElseThrow(() -> new NotFoundException("Animal amenity with name " + amenityName + " and animal type "
                         + animalType + " not found"));
     }
-
-//    private Offer persistOfferWithConfigurations(Offer offer) {
-//        Offer savedOffer = offerRepository.save(offer);
-//        offerConfigurationRepository.saveAll(offer.getOfferConfigurations());
-//        offerOptionRepository.saveAll(offer.getOfferConfigurations().stream()
-//                .map(OfferConfiguration::getOfferOptions)
-//                .flatMap(List::stream)
-//                .toList());
-//        return savedOffer;
-//    }
 
     private List<OfferConfiguration> createConfigurationsForOffer(List<OfferConfigurationDTO> offerConfigurations,
                                                                   Offer offer) {
@@ -205,11 +209,6 @@ public class OfferService {
     private AnimalAttribute getAnimalAttribute(String animalType, String attributeName, String attributeValue) {
         return animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(animalType, attributeName, attributeValue)
                 .orElseThrow(() -> new NotFoundException("Animal attribute with name " + attributeName + " and value " + attributeValue + " not found"));
-    }
-
-    private Caretaker getCaretaker(String caretakerEmail) {
-        return caretakerRepository.findById(caretakerEmail)
-                .orElseThrow(() -> new NotFoundException("Caretaker with email " + caretakerEmail + " not found"));
     }
 
     private Offer getOrCreateCaretakerOffer(String caretakerEmail, String animalType, Caretaker caretaker,

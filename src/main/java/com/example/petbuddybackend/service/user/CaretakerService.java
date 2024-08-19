@@ -40,6 +40,11 @@ public class CaretakerService {
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
+    public Caretaker getCaretaker(String caretakerEmail) {
+        return caretakerRepository.findById(caretakerEmail)
+                .orElseThrow(() -> new NotFoundException("Caretaker with email " + caretakerEmail + " not found"));
+    }
+
     public Page<RatingResponse> getRatings(Pageable pageable, String caretakerEmail) {
         return ratingRepository.findAllByCaretakerEmail(caretakerEmail, pageable)
                 .map(ratingMapper::mapToRatingResponse);

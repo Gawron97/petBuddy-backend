@@ -88,13 +88,13 @@ public class NecessaryDataService {
 
     private Amenity createAmenity(AmenityConfig amenityConfig) {
         return Amenity.builder()
-                .amenity(amenityConfig.amenity())
+                .name(amenityConfig.amenity())
                 .build();
     }
 
     private Amenity getAmenity(String amenity, List<Amenity> amenities) {
         return amenities.stream()
-                .filter(possibleAmenity -> possibleAmenity.getAmenity().equals(amenity))
+                .filter(possibleAmenity -> possibleAmenity.getName().equals(amenity))
                 .findFirst()
                 .orElseThrow(() ->
                         new IllegalArgumentException(MessageFormat.format("Amenity {0} not found", amenity)));

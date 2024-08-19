@@ -312,7 +312,7 @@ public class MockService {
 
     private Offer createMockOfferAmenities(Offer offer, List<AnimalAmenity> animalAmenities, int animalAmenityCount) {
 
-        List<AnimalAmenity> uniqueRandomAnimalAmenities = getSomeRandomUniqueAnimalAmenities(animalAmenities, animalAmenityCount);
+        Set<AnimalAmenity> uniqueRandomAnimalAmenities = getSomeRandomUniqueAnimalAmenities(animalAmenities, animalAmenityCount);
         offer.setAnimalAmenities(uniqueRandomAnimalAmenities);
         return offer;
 
@@ -324,18 +324,18 @@ public class MockService {
                 .toList();
     }
 
-    private List<AnimalAmenity> getSomeRandomUniqueAnimalAmenities(List<AnimalAmenity> animalAmenities, int count) {
+    private Set<AnimalAmenity> getSomeRandomUniqueAnimalAmenities(List<AnimalAmenity> animalAmenities, int count) {
         Set<AnimalAmenity> amenities = new HashSet<>();
 
         if(animalAmenities.size() < count) {
-            return new ArrayList<>(animalAmenities);
+            return new HashSet<>(animalAmenities);
         }
 
         while(amenities.size() < count) {
             amenities.add(animalAmenities.get(faker.random().nextInt(animalAmenities.size())));
         }
 
-        return new ArrayList<>(amenities);
+        return new HashSet<>(amenities);
 
     }
 

@@ -17,9 +17,10 @@ public class OfferConfiguration {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 1500)
     private String description;
 
-    @Nonnull
+    @Column(nullable = false)
     private Double dailyPrice;
 
     @ManyToOne(fetch = FetchType.EAGER)

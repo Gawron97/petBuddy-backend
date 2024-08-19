@@ -17,12 +17,13 @@ import java.util.List;
 public class Animal {
 
     @Id
+    @Column(length = 60)
     private String animalType;
 
     @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY)
     private List<AnimalAttribute> animalAttributes;
 
-    @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<AnimalAmenity> animalFacilities;
 
     @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY)

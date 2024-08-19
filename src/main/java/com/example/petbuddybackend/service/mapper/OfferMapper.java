@@ -11,6 +11,7 @@ import org.mapstruct.factory.Mappers;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Mapper(uses = {AnimalMapper.class, OfferConfigurationMapper.class})
 public interface OfferMapper {
@@ -21,9 +22,9 @@ public interface OfferMapper {
     OfferDTO mapToOfferDTO(Offer offer);
 
     @Named("mapAnimalAmenitiesToListOfString")
-    default List<String> mapAnimalAmenitiesToListOfString(List<AnimalAmenity> animalAmenities) {
+    default List<String> mapAnimalAmenitiesToListOfString(Set<AnimalAmenity> animalAmenities) {
         if(CollectionUtil.isNotEmpty(animalAmenities)) {
-            return animalAmenities.stream().map(animalAmenity -> animalAmenity.getAmenity().getAmenity()).toList();
+            return animalAmenities.stream().map(animalAmenity -> animalAmenity.getAmenity().getName()).toList();
         }
         return Collections.emptyList();
     }

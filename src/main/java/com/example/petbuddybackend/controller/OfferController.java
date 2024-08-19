@@ -23,8 +23,8 @@ public class OfferController {
                     " and adding new configurations. It Cannot edit configurations of existing offer."
     )
     @PostMapping("/add")
-    public ResponseEntity<?> addOffer(@RequestBody OfferDTO offer, Principal principal) {
-        return ResponseEntity.ok(offerService.addOrEditOffer(offer, principal.getName()));
+    public OfferDTO addOffer(@RequestBody OfferDTO offer, Principal principal) {
+        return offerService.addOrEditOffer(offer, principal.getName());
     }
 
     @Operation(
@@ -32,14 +32,14 @@ public class OfferController {
             description = "Edits offer configuration by changing configuration data and selected options."
     )
     @PostMapping("/configuration/{configurationId}/edit")
-    public ResponseEntity<OfferConfigurationDTO> editConfiguration(@PathVariable Long configurationId,
+    public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
                                                                    @RequestBody OfferConfigurationDTO configuration) {
-        return ResponseEntity.ok(offerService.editConfiguration(configurationId, configuration));
+        return offerService.editConfiguration(configurationId, configuration);
     }
 
     @DeleteMapping("/configuration/{configurationId}/delete")
-    public ResponseEntity<OfferDTO> deleteConfiguration(@PathVariable Long configurationId) {
-        return ResponseEntity.ok(offerService.deleteConfiguration(configurationId));
+    public OfferDTO deleteConfiguration(@PathVariable Long configurationId) {
+        return offerService.deleteConfiguration(configurationId);
     }
 
 }

@@ -1,9 +1,6 @@
 package com.example.petbuddybackend.entity.amenity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
@@ -16,9 +13,10 @@ import java.util.List;
 public class Amenity {
 
     @Id
-    private String amenity;
+    @Column(length = 60)
+    private String name;
 
-    @OneToMany(mappedBy = "amenity", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "amenity", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<AnimalAmenity> animalAmenities;
 
 }

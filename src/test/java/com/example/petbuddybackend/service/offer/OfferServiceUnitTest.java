@@ -9,6 +9,7 @@ import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.OfferMapper;
+import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.testutils.MockUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,14 +27,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class OfferServiceUnitTest {
 
-    @Mock
-    private CaretakerRepository caretakerRepository;
 
     @Mock
     private OfferRepository offerRepository;
 
     @Mock
     private AnimalRepository animalRepository;
+
+    @Mock
+    private CaretakerService caretakerService;
 
     @InjectMocks
     private OfferService offerService;
@@ -60,10 +62,10 @@ public class OfferServiceUnitTest {
                 .animal(AnimalDTO.builder().animalType("DOG").build())
                 .build();
 
-        when(caretakerRepository.findById(caretaker.getEmail())).thenReturn(Optional.of(caretaker));
         when(offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(
                 caretaker.getEmail(), offerToCreate.animal().animalType())).thenReturn(Optional.empty());
         when(animalRepository.findById("DOG")).thenReturn(Optional.of(animalInExistingOffer));
+        when(caretakerService.getCaretaker(caretaker.getEmail())).thenReturn(caretaker);
 
         // When
         offerService.addOrEditOffer(offerToCreate, caretaker.getEmail());

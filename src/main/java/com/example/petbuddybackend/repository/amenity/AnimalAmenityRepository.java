@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface AnimalAmenityRepository extends JpaRepository<AnimalAmenity, Long> {
 
-    Optional<AnimalAmenity> findByAmenity_AmenityAndAnimal_AnimalType(String amenity, String animalType);
+    Optional<AnimalAmenity> findByAmenity_NameAndAnimal_AnimalType(String name, String animalType);
 
 }

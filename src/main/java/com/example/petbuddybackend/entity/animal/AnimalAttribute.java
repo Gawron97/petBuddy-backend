@@ -2,6 +2,7 @@ package com.example.petbuddybackend.entity.animal;
 
 import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter @Setter
@@ -21,10 +22,10 @@ public class AnimalAttribute {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; //add unnatural id to easier pass to other tables as foreign key
 
-    @Nonnull
+    @Column(length = 30, nullable = false)
     private String attributeName;
 
-    @Nonnull
+    @Column(length = 60, nullable = false)
     private String attributeValue;
 
     @ManyToOne(fetch = FetchType.EAGER)
