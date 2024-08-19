@@ -1,12 +1,21 @@
 package com.example.petbuddybackend.testutils;
 
+import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
+import com.example.petbuddybackend.entity.animal.Animal;
+import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.offer.Offer;
+import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.AppUserRepository;
-import com.example.petbuddybackend.repository.CaretakerRepository;
-import com.example.petbuddybackend.repository.ClientRepository;
+import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.offer.OfferRepository;
+import com.example.petbuddybackend.repository.user.AppUserRepository;
+import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.repository.user.ClientRepository;
+import org.mockito.Mock;
 
+import javax.swing.text.Caret;
 import java.util.List;
 
 import static com.example.petbuddybackend.testutils.MockUtils.*;
@@ -54,6 +63,13 @@ public class PersistenceUtils {
         return addCaretaker(caretakerRepository, appUserRepository, caretaker);
     }
 
+    public static void addOffersToCaretakers(List<Caretaker> caretakers, OfferRepository offerRepository,
+                                                        List<Animal> animals) {
+
+        offerRepository.saveAllAndFlush(MockUtils.createMockOffers(caretakers, animals));
+
+    }
+
     public static Client addClient(AppUserRepository appUserRepository, ClientRepository clientRepository, Client client) {
         AppUser clientAccountData = appUserRepository.saveAndFlush(client.getAccountData());
         client.setEmail(clientAccountData.getEmail());
@@ -67,5 +83,19 @@ public class PersistenceUtils {
 
     public static AppUser addAppUser(AppUserRepository appUserRepository, AppUser appUser) {
         return appUserRepository.saveAndFlush(appUser);
+    }
+
+    public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
+                                        List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
+        Offer offer = MockUtils.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, animalAmenities);
+        return offerRepository.save(offer);
+    }
+
+    public static void addOfferConfigurationForOffer(Offer existingOffer, List<AnimalAttribute> animalAttributes, OfferRepository offerRepository) {
+
+        OfferConfiguration offerConfiguration = createOfferConfiguration(existingOffer, animalAttributes);
+        existingOffer.getOfferConfigurations().add(offerConfiguration);
+        offerRepository.save(existingOffer);
+
     }
 }

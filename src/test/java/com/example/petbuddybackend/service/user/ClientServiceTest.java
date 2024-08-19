@@ -2,8 +2,8 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.AppUserRepository;
-import com.example.petbuddybackend.repository.ClientRepository;
+import com.example.petbuddybackend.repository.user.AppUserRepository;
+import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import org.junit.jupiter.api.AfterEach;

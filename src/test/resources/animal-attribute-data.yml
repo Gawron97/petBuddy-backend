@@ -1,0 +1,97 @@
+animal-attribute-data:
+  animalAttributeConfigs:
+    - animalType: DOG
+      attributeName: SIZE
+      attributeValue: BIG
+
+    - animalType: DOG
+      attributeName: SIZE
+      attributeValue: SMALL
+
+    - animalType: DOG
+      attributeName: SEX
+      attributeValue: MALE
+
+    - animalType: DOG
+      attributeName: SEX
+      attributeValue: SHE
+
+    - animalType: CAT
+      attributeName: SIZE
+      attributeValue: BIG
+
+    - animalType: CAT
+      attributeName: SIZE
+      attributeValue: SMALL
+
+    - animalType: CAT
+      attributeName: SEX
+      attributeValue: MALE
+
+    - animalType: CAT
+      attributeName: SEX
+      attributeValue: SHE
+
+    - animalType: BIRD
+      attributeName: SIZE
+      attributeValue: BIG
+
+    - animalType: BIRD
+      attributeName: SIZE
+      attributeValue: SMALL
+
+    - animalType: BIRD
+      attributeName: SEX
+      attributeValue: MALE
+
+    - animalType: BIRD
+      attributeName: SEX
+      attributeValue: SHE
+
+    - animalType: FISH
+      attributeName: AQUARIUM
+      attributeValue: YES
+
+    - animalType: FISH
+      attributeName: AQUARIUM
+      attributeValue: NO
+
+    - animalType: FISH
+      attributeName: SEX
+      attributeValue: MALE
+
+    - animalType: FISH
+      attributeName: SEX
+      attributeValue: SHE
+
+    - animalType: REPTILE
+      attributeName: DANGEROUS
+      attributeValue: YES
+
+    - animalType: REPTILE
+      attributeName: DANGEROUS
+      attributeValue: NO
+
+    - animalType: REPTILE
+      attributeName: SEX
+      attributeValue: MALE
+
+    - animalType: REPTILE
+      attributeName: SEX
+      attributeValue: SHE
+
+    - animalType: HORSE
+      attributeName: SIZE
+      attributeValue: BIG
+
+    - animalType: HORSE
+      attributeName: SIZE
+      attributeValue: SMALL
+
+    - animalType: HORSE
+      attributeName: SEX
+      attributeValue: MALE
+
+    - animalType: HORSE
+      attributeName: SEX
+      attributeValue: SHE

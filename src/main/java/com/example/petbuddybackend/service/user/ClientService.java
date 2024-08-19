@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.repository.ClientRepository;
+import com.example.petbuddybackend.repository.user.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

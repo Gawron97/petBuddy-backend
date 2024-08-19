@@ -1,8 +1,9 @@
 package com.example.petbuddybackend.dto.animal;
 
-import com.example.petbuddybackend.entity.animal.AnimalType;
+import lombok.Builder;
 
+@Builder
 public record AnimalDTO(
-        Long id,
-        AnimalType animalType) {
+        String animalType
+) {
 }

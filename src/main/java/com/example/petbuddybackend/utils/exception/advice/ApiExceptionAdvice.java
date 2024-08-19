@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.throweable.AnimalAmenityDuplicatedInOfferException;
+import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationDuplicatedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,4 +19,17 @@ public class ApiExceptionAdvice {
         log.error("Unhandled exception", t);
         return new ApiExceptionResponse(t);
     }
+
+    @ExceptionHandler(OfferConfigurationDuplicatedException.class)
+    @ResponseStatus(code = HttpStatus.CONFLICT)
+    public ApiExceptionResponse handleOfferConfigurationAlreadyExistsException(OfferConfigurationDuplicatedException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(AnimalAmenityDuplicatedInOfferException.class)
+    @ResponseStatus(code = HttpStatus.CONFLICT)
+    public ApiExceptionResponse handleAnimalAmenityAlreadySelectedInOfferException(AnimalAmenityDuplicatedInOfferException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
 }

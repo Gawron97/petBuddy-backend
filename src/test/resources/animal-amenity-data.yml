@@ -1,0 +1,10 @@
+animal-amenity-data:
+  animalAmenityConfigs:
+    - animalType: CAT
+      amenity: scratching post
+    - animalType: CAT
+      amenity: toys
+    - animalType: DOG
+      amenity: toys
+    - animalType: DOG
+      amenity: garden

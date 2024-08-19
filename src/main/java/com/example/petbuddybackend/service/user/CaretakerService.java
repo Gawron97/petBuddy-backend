@@ -2,12 +2,12 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import com.example.petbuddybackend.repository.CaretakerRepository;
-import com.example.petbuddybackend.repository.RatingRepository;
+import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
@@ -38,6 +38,11 @@ public class CaretakerService {
         return caretakerRepository
                 .findAll(spec, pageable)
                 .map(caretakerMapper::mapToCaretakerDTO);
+    }
+
+    public Caretaker getCaretaker(String caretakerEmail) {
+        return caretakerRepository.findById(caretakerEmail)
+                .orElseThrow(() -> new NotFoundException("Caretaker with email " + caretakerEmail + " not found"));
     }
 
     public Page<RatingResponse> getRatings(Pageable pageable, String caretakerEmail) {

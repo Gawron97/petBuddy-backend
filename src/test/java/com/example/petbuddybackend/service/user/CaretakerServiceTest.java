@@ -1,19 +1,26 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.config.TestDataConfiguration;
 import com.example.petbuddybackend.dto.address.AddressDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.AppUserRepository;
-import com.example.petbuddybackend.repository.CaretakerRepository;
-import com.example.petbuddybackend.repository.ClientRepository;
-import com.example.petbuddybackend.repository.RatingRepository;
+import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
+import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
+import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.offer.OfferRepository;
+import com.example.petbuddybackend.repository.user.AppUserRepository;
+import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
@@ -34,24 +41,37 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.example.petbuddybackend.entity.animal.AnimalType.CAT;
-import static com.example.petbuddybackend.entity.animal.AnimalType.DOG;
 import static com.example.petbuddybackend.testutils.MockUtils.*;
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
 import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest
+@ContextConfiguration(classes = TestDataConfiguration.class)
 public class CaretakerServiceTest {
 
     @MockBean
     private JwtDecoder jwtDecoder;
+
+    @Autowired
+    private OfferRepository offerRepository;
+
+    @Autowired
+    private AnimalRepository animalRepository;
+
+    @Autowired
+    private AnimalAttributeRepository animalAttributeRepository;
+
+    @Autowired
+    private AnimalAmenityRepository animalAmenityRepository;
 
     @Autowired
     private CaretakerRepository caretakerRepository;
@@ -81,6 +101,7 @@ public class CaretakerServiceTest {
 
     @AfterEach
     void cleanUp() {
+        offerRepository.deleteAll();
         appUserRepository.deleteAll();
     }
 
@@ -90,9 +111,31 @@ public class CaretakerServiceTest {
             CaretakerSearchCriteria filters,
             int expectedSize
     ) {
+
+        Caretaker caretakerWithComplexOffer = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
+        PersistenceUtils.addComplexOffer(
+                caretakerWithComplexOffer,
+                animalRepository.findById("DOG").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
+                                "DOG", "SIZE", "BIG").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
+                                "DOG", "SEX", "MALE").orElseThrow()
+                ),
+                Arrays.asList(
+                        animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
+                ),
+                offerRepository);
+
         Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters);
 
         assertEquals(expectedSize, resultPage.getContent().size());
+
+        Offer offerToDelete = offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerWithComplexOffer.getEmail(), "DOG").orElseThrow();
+        offerRepository.delete(offerToDelete);
+        caretakerWithComplexOffer.setOffers(null);
+        caretakerRepository.delete(caretakerWithComplexOffer);
+
     }
 
     @Test
@@ -263,6 +306,7 @@ public class CaretakerServiceTest {
 
     private void initCaretakers() {
         List<Caretaker> caretakers = PersistenceUtils.addCaretakers(caretakerRepository, appUserRepository);
+        PersistenceUtils.addOffersToCaretakers(caretakers, offerRepository, animalRepository.findAll());
         this.caretaker = caretakers.get(0);
     }
 
@@ -279,17 +323,42 @@ public class CaretakerServiceTest {
 
     private static Stream<Arguments> provideSpecificationParams() {
         return Stream.of(
-                Arguments.of(CaretakerSearchCriteria.builder().animalTypes(Set.of(DOG)).build(), 2),
-                Arguments.of(CaretakerSearchCriteria.builder().animalTypes(Set.of(CAT)).build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().animalTypes(Set.of(DOG, CAT)).build(), 2),
+                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
+                        OfferSearchCriteria.builder()
+                                .animalTypes(Set.of("DOG"))
+                                .build()
+                ).build(), 3),
+                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
+                        OfferSearchCriteria.builder()
+                                .animalTypes(Set.of("CAT"))
+                                .build()
+                ).build(), 1),
+                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
+                        OfferSearchCriteria.builder()
+                                .animalTypes(Set.of("DOG", "CAT"))
+                                .build()
+                ).build(), 3),
+                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
+                        OfferSearchCriteria.builder()
+                                .animalTypes(Set.of("DOG", "CAT"))
+                                .amenities(Set.of("toys"))
+                                .build()
+                ).build(), 1),
+                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
+                        OfferSearchCriteria.builder()
+                                .animalTypes(Set.of("DOG", "CAT"))
+                                .minPrice(10.0)
+                                .maxPrice(10.0)
+                                .build()
+                ).build(), 1),
                 Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("doe").build(), 2),
                 Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("testmail").build(), 1),
                 Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("john   doe").build(), 1),
                 Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("doe  john   ").build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().personalDataLike(" ").build(), 3),
-                Arguments.of(CaretakerSearchCriteria.builder().build(), 3),
+                Arguments.of(CaretakerSearchCriteria.builder().personalDataLike(" ").build(), 4),
+                Arguments.of(CaretakerSearchCriteria.builder().build(), 4),
                 Arguments.of(CaretakerSearchCriteria.builder().voivodeship(Voivodeship.SLASKIE).build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().cityLike("war").build(), 2)
+                Arguments.of(CaretakerSearchCriteria.builder().cityLike("war").build(), 3)
         );
     }
 }

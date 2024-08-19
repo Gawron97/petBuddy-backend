@@ -1,13 +1,18 @@
 package com.example.petbuddybackend.utils.specification;
 
-import com.example.petbuddybackend.dto.user.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.AnimalType;
+import com.example.petbuddybackend.entity.animal.Animal;
+import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -23,8 +28,8 @@ public final class CaretakerSpecificationUtils {
     public static final String NAME = "name";
     public static final String SURNAME = "surname";
     public static final String EMAIL = "email";
-    public static final String ANIMALS_TAKEN_CARE_OF = "animalsTakenCareOf";
-    public static final String ANIMAL_TYPE = "animalType";
+    public static final String OFFERS = "offers";
+    public static final String CARETAKER = "caretaker";
 
 
     private CaretakerSpecificationUtils() {
@@ -47,8 +52,8 @@ public final class CaretakerSpecificationUtils {
             spec = spec.and(voivodeshipEquals(filters.voivodeship()));
         }
 
-        if (!CollectionUtils.isEmpty(filters.animalTypes())) {
-            spec = spec.and(animalTypesIn(filters.animalTypes()));
+        if(!ObjectUtils.isEmpty(filters.offerSearchCriteria())) {
+            spec = spec.and(offerSearchCriteria(filters.offerSearchCriteria()));
         }
 
         return spec;
@@ -86,10 +91,23 @@ public final class CaretakerSpecificationUtils {
                 criteriaBuilder.equal(root.get(ADDRESS).get(VOIVODESHIP), voivodeship);
     }
 
-    private static Specification<Caretaker> animalTypesIn(Set<AnimalType> animalTypes) {
+    private static Specification<Caretaker> offerSearchCriteria(OfferSearchCriteria filters) {
+        Specification<Offer> offerSpec = OfferSpecificationUtils.toSpecification(filters);
+
         return (root, query, criteriaBuilder) -> {
-            Join<Object, Object> animalsJoin = root.join(ANIMALS_TAKEN_CARE_OF);
-            return animalsJoin.get(ANIMAL_TYPE).in(animalTypes);
+            Subquery<Offer> offerSubquery = query.subquery(Offer.class);
+            Root<Offer> offerRoot = offerSubquery.from(Offer.class);
+
+            offerSubquery.select(offerRoot);
+            offerSubquery.where(
+                    criteriaBuilder.and(
+                            criteriaBuilder.equal(offerRoot.get(CARETAKER), root),
+                            offerSpec.toPredicate(offerRoot, query, criteriaBuilder)
+                    )
+            );
+            return criteriaBuilder.exists(offerSubquery);
         };
+
     }
+
 }
