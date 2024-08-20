@@ -1,13 +1,17 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.address.AddressDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
+import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
+import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
@@ -30,6 +34,7 @@ public class CaretakerService {
     private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
 
     private final ClientService clientService;
+    private final UserService userService;
 
     @Transactional
     public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters) {
@@ -112,4 +117,42 @@ public class CaretakerService {
                 () -> new NotFoundException("Rating does not exist")
         );
     }
+
+    public CaretakerDTO addOrEditCaretaker(CreateCaretakerDTO caretaker, String email) {
+
+        AppUser appUser = userService.getAppUser(email);
+        Caretaker caretakerToSave = getOrCreateCaretaker(caretaker, appUser);
+        return caretakerMapper.mapToCaretakerDTO(caretakerRepository.save(caretakerToSave));
+
+    }
+
+    private Caretaker getOrCreateCaretaker(CreateCaretakerDTO caretaker, AppUser appUser) {
+
+        return caretakerRepository.findById(appUser.getEmail())
+                .orElse(createCaretaker(caretaker, appUser));
+
+    }
+
+    private Caretaker createCaretaker(CreateCaretakerDTO caretaker, AppUser appUser) {
+        return Caretaker.builder()
+                .email(appUser.getEmail())
+                .phoneNumber(caretaker.phoneNumber())
+                .description(caretaker.description())
+                .accountData(appUser)
+                .address(createAddress(caretaker.address()))
+                .build();
+    }
+
+    private Address createAddress(AddressDTO address) {
+        return Address.builder()
+                .city(address.city())
+                .zipCode(address.zipCode())
+                .voivodeship(address.voivodeship())
+                .street(address.street())
+                .buildingNumber(address.buildingNumber())
+                .apartmentNumber(address.apartmentNumber())
+                .build();
+    }
+
+
 }

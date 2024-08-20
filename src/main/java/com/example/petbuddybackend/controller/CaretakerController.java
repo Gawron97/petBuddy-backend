@@ -5,6 +5,7 @@ import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -37,6 +39,20 @@ public class CaretakerController {
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters);
+    }
+
+    @SecurityRequirements
+    @PostMapping("/add-or-edit")
+    @Operation(
+            summary = "Add or edit caretaker profile",
+            description = "Add caretaker profile if it does not exists, also can edit caretaker if it exists by changing caretaker data."
+    )
+    @PreAuthorize("isAuthenticated()")
+    public CaretakerDTO addOrEditCaretaker(
+            @RequestBody @Valid CreateCaretakerDTO caretakerDTO,
+            Principal principal
+    ) {
+        return caretakerService.addOrEditCaretaker(caretakerDTO, principal.getName());
     }
 
     @SecurityRequirements

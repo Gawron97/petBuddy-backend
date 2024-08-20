@@ -6,27 +6,24 @@ import com.example.petbuddybackend.service.offer.OfferService;
 import com.example.petbuddybackend.service.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,12 +31,6 @@ public class OfferControllerTest {
 
     @MockBean
     private OfferService offerService;
-
-    @MockBean
-    private UserService userService;
-
-    @InjectMocks
-    private OfferController offerController;
 
     @Autowired
     private MockMvc mockMvc;
@@ -65,7 +56,7 @@ public class OfferControllerTest {
         when(offerService.addOrEditOffer(any(OfferDTO.class), anyString())).thenReturn(offerDTO);
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/add")
+        mockMvc.perform(post("/api/caretaker/offer/add-or-edit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"description\": \"Test Offer\"}"))
                 .andExpect(status().isOk())
