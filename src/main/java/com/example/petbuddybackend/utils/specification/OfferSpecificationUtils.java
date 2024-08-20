@@ -45,14 +45,6 @@ public final class OfferSpecificationUtils {
             spec = spec.and(amenitiesIn(filters.amenities()));
         }
 
-//        if(filters.minPrice() != null) {
-//            spec = spec.and(minPrice(filters.minPrice()));
-//        }
-//
-//        if(filters.maxPrice() != null) {
-//            spec = spec.and(maxPrice(filters.maxPrice()));
-//        }
-
         if(CollectionUtil.isNotEmpty(filters.animalAttributeIds())) {
             spec = spec.and(animalAttributeIdsIn(filters.animalAttributeIds(), filters.minPrice(), filters.maxPrice()));
         }
@@ -73,20 +65,6 @@ public final class OfferSpecificationUtils {
             Join<Offer, AnimalAmenity> animalAmenityJoin = root.join(ANIMAl_AMENITIES);
             Join<AnimalAmenity, Amenity> amenityJoin = animalAmenityJoin.join(AMENITY);
             return amenityJoin.get(AMENITY_NAME).in(amenities);
-        };
-    }
-
-    private static Specification<Offer> minPrice(Double minPrice) {
-        return (root, query, criteriaBuilder) -> {
-            Join<Offer, OfferConfiguration> offerOfferConfigurationJoin = root.join(OFFER_CONFIGURATIONS);
-            return criteriaBuilder.greaterThanOrEqualTo(offerOfferConfigurationJoin.get(PRICE), minPrice);
-        };
-    }
-
-    private static Specification<Offer> maxPrice(Double maxPrice) {
-        return (root, query, criteriaBuilder) -> {
-            Join<Offer, OfferConfiguration> offerOfferConfigurationJoin = root.join(OFFER_CONFIGURATIONS);
-            return criteriaBuilder.lessThanOrEqualTo(offerOfferConfigurationJoin.get(PRICE), maxPrice);
         };
     }
 
