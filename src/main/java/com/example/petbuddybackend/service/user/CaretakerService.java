@@ -121,38 +121,43 @@ public class CaretakerService {
     public CaretakerDTO addOrEditCaretaker(CreateCaretakerDTO caretaker, String email) {
 
         AppUser appUser = userService.getAppUser(email);
-        Caretaker caretakerToSave = getOrCreateCaretaker(caretaker, appUser);
+        Caretaker caretakerToSave = getOrCreateCaretaker(appUser);
+        updateCaretakerData(caretakerToSave, caretaker);
         return caretakerMapper.mapToCaretakerDTO(caretakerRepository.save(caretakerToSave));
 
     }
 
-    private Caretaker getOrCreateCaretaker(CreateCaretakerDTO caretaker, AppUser appUser) {
-
+    private Caretaker getOrCreateCaretaker(AppUser appUser) {
         return caretakerRepository.findById(appUser.getEmail())
-                .orElse(createCaretaker(caretaker, appUser));
-
+                .orElse(createCaretaker(appUser));
     }
 
-    private Caretaker createCaretaker(CreateCaretakerDTO caretaker, AppUser appUser) {
+    private Caretaker createCaretaker(AppUser appUser) {
         return Caretaker.builder()
                 .email(appUser.getEmail())
-                .phoneNumber(caretaker.phoneNumber())
-                .description(caretaker.description())
                 .accountData(appUser)
-                .address(createAddress(caretaker.address()))
+                .address(createAddress())
                 .build();
     }
 
-    private Address createAddress(AddressDTO address) {
+    private Address createAddress() {
         return Address.builder()
-                .city(address.city())
-                .zipCode(address.zipCode())
-                .voivodeship(address.voivodeship())
-                .street(address.street())
-                .buildingNumber(address.buildingNumber())
-                .apartmentNumber(address.apartmentNumber())
                 .build();
     }
 
+    private void updateCaretakerData(Caretaker caretakerToUpdate, CreateCaretakerDTO caretaker) {
+        caretakerToUpdate.setPhoneNumber(caretaker.phoneNumber());
+        caretakerToUpdate.setDescription(caretaker.description());
+        updateCaretakerAddressData(caretakerToUpdate.getAddress(), caretaker.address());
+    }
+
+    private void updateCaretakerAddressData(Address addressToUpdate, AddressDTO address) {
+        addressToUpdate.setCity(address.city());
+        addressToUpdate.setZipCode(address.zipCode());
+        addressToUpdate.setVoivodeship(address.voivodeship());
+        addressToUpdate.setStreet(address.street());
+        addressToUpdate.setBuildingNumber(address.buildingNumber());
+        addressToUpdate.setApartmentNumber(address.apartmentNumber());
+    }
 
 }

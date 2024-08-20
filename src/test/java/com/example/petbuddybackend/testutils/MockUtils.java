@@ -271,4 +271,13 @@ public final class MockUtils {
 
     }
 
+    public static AppUser createMockAppUser() {
+
+        return AppUser.builder()
+                .name("Imie")
+                .surname("Nazwisko")
+                .email("email")
+                .build();
+
+    }
 }

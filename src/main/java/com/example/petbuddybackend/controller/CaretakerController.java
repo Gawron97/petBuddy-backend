@@ -41,7 +41,6 @@ public class CaretakerController {
         return caretakerService.getCaretakers(pageable, filters);
     }
 
-    @SecurityRequirements
     @PostMapping("/add-or-edit")
     @Operation(
             summary = "Add or edit caretaker profile",
@@ -74,6 +73,7 @@ public class CaretakerController {
             summary = "Rate caretaker",
             description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
     )
+    @PreAuthorize("isAuthenticated()")
     public RatingResponse rateCaretaker(
             @PathVariable String caretakerEmail,
             @RequestBody @Valid RatingRequest ratingDTO,
@@ -92,6 +92,7 @@ public class CaretakerController {
             summary = "Delete rating",
             description = "Deletes a rating for a caretaker."
     )
+    @PreAuthorize("isAuthenticated()")
     public RatingResponse deleteRating(
             @PathVariable String caretakerEmail,
             Principal principal
