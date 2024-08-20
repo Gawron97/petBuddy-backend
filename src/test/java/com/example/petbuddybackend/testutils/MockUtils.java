@@ -176,16 +176,16 @@ public final class MockUtils {
                 .build();
     }
 
-    public static OfferConfiguration createOfferConfiguration(Offer offer) {
+    public static OfferConfiguration createOfferConfiguration(Offer offer, Double price) {
         return OfferConfiguration.builder()
                 .description("description")
-                .dailyPrice(10.0)
+                .dailyPrice(price)
                 .offer(offer)
                 .build();
     }
 
     public static OfferConfiguration createOfferConfiguration(Offer offer, List<AnimalAttribute> animalAttributes) {
-        OfferConfiguration offerConfiguration = createOfferConfiguration(offer);
+        OfferConfiguration offerConfiguration = createOfferConfiguration(offer, 10.0);
         List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
 
         offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
@@ -247,6 +247,7 @@ public final class MockUtils {
     public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
                                                           Animal animal,
                                                           List<AnimalAttribute> animalAttributes,
+                                                          Double price,
                                                           List<AnimalAmenity> animalAmenities) {
 
         Offer offer = Offer.builder()
@@ -256,17 +257,61 @@ public final class MockUtils {
                 .build();
 
         if(CollectionUtil.isNotEmpty(animalAttributes)) {
-            OfferConfiguration offerConfiguration = createOfferConfiguration(offer);
+            OfferConfiguration offerConfiguration = createOfferConfiguration(offer, price);
             List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
 
             offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
-            offer.setOfferConfigurations(new ArrayList<>(List.of(offerConfiguration)));
+            if(CollectionUtil.isNotEmpty(offer.getOfferConfigurations())) {
+                offer.getOfferConfigurations().add(offerConfiguration);
+            } else {
+                offer.setOfferConfigurations(new ArrayList<>(List.of(offerConfiguration)));
+            }
+
         }
         if(CollectionUtil.isNotEmpty(animalAmenities)) {
-            offer.setAnimalAmenities(new HashSet<>(animalAmenities));
+            if(CollectionUtil.isNotEmpty(offer.getAnimalAmenities())) {
+                offer.getAnimalAmenities().addAll(animalAmenities);
+            } else {
+                offer.setAnimalAmenities(new HashSet<>(animalAmenities));
+            }
         }
 
         caretaker.setOffers(new ArrayList<>(List.of(offer)));
+
+        return offer;
+
+    }
+
+    public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
+                                                           Animal animal,
+                                                           List<AnimalAttribute> animalAttributes,
+                                                           Double price,
+                                                           List<AnimalAmenity> animalAmenities,
+                                                           Offer offer) {
+
+
+        if(CollectionUtil.isNotEmpty(animalAttributes)) {
+            OfferConfiguration offerConfiguration = createOfferConfiguration(offer, price);
+            List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
+
+            offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
+            if(CollectionUtil.isNotEmpty(offer.getOfferConfigurations())) {
+                offer.getOfferConfigurations().add(offerConfiguration);
+            } else {
+                offer.setOfferConfigurations(new ArrayList<>(List.of(offerConfiguration)));
+            }
+
+        }
+        if(CollectionUtil.isNotEmpty(animalAmenities)) {
+            if(CollectionUtil.isNotEmpty(offer.getAnimalAmenities())) {
+                offer.getAnimalAmenities().addAll(animalAmenities);
+            } else {
+                offer.setAnimalAmenities(new HashSet<>(animalAmenities));
+            }
+        }
+
+        caretaker.setOffers(new ArrayList<>(List.of(offer)));
+
         return offer;
 
     }
