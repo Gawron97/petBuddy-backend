@@ -87,7 +87,7 @@ public class OfferServiceIntegrationTest {
         );
 
         existingOffer = PersistenceUtils.addComplexOffer(caretakerWithComplexOffer, animalInComplexOffer,
-                animalAttributesInComplexOffer, animalAmenitiesInComplexOffer, offerRepository);
+                animalAttributesInComplexOffer, 10.0, animalAmenitiesInComplexOffer, offerRepository);
 
     }
 
