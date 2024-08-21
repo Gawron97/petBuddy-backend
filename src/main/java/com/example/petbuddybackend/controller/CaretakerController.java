@@ -5,6 +5,8 @@ import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -39,6 +42,32 @@ public class CaretakerController {
         return caretakerService.getCaretakers(pageable, filters);
     }
 
+    @PostMapping("/add")
+    @Operation(
+            summary = "Add caretaker profile",
+            description = "Add caretaker profile if it does not exists"
+    )
+    @PreAuthorize("isAuthenticated()")
+    public CaretakerDTO addCaretaker(
+            @RequestBody @Valid CreateCaretakerDTO caretakerDTO,
+            Principal principal
+    ) {
+        return caretakerService.addCaretaker(caretakerDTO, principal.getName());
+    }
+
+    @PatchMapping("/edit")
+    @Operation(
+            summary = "Edit caretaker profile",
+            description = "Edit caretaker profile if it does exists"
+    )
+    @PreAuthorize("isAuthenticated()")
+    public CaretakerDTO editCaretaker(
+            @RequestBody @Valid UpdateCaretakerDTO caretakerDTO,
+            Principal principal
+    ) {
+        return caretakerService.editCaretaker(caretakerDTO, principal.getName());
+    }
+
     @SecurityRequirements
     @GetMapping("/{caretakerEmail}/rating")
     @Operation(
@@ -58,6 +87,7 @@ public class CaretakerController {
             summary = "Rate caretaker",
             description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
     )
+    @PreAuthorize("isAuthenticated()")
     public RatingResponse rateCaretaker(
             @PathVariable String caretakerEmail,
             @RequestBody @Valid RatingRequest ratingDTO,
@@ -76,6 +106,7 @@ public class CaretakerController {
             summary = "Delete rating",
             description = "Deletes a rating for a caretaker."
     )
+    @PreAuthorize("isAuthenticated()")
     public RatingResponse deleteRating(
             @PathVariable String caretakerEmail,
             Principal principal

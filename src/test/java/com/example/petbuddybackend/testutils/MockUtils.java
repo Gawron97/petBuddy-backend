@@ -245,10 +245,10 @@ public final class MockUtils {
     }
 
     public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
-                                                          Animal animal,
-                                                          List<AnimalAttribute> animalAttributes,
-                                                          Double price,
-                                                          List<AnimalAmenity> animalAmenities) {
+                                                           Animal animal,
+                                                           List<AnimalAttribute> animalAttributes,
+                                                           Double price,
+                                                           List<AnimalAmenity> animalAmenities) {
 
         Offer offer = Offer.builder()
                 .animal(animal)
@@ -316,4 +316,13 @@ public final class MockUtils {
 
     }
 
+    public static AppUser createMockAppUser() {
+
+        return AppUser.builder()
+                .name("Imie")
+                .surname("Nazwisko")
+                .email("email")
+                .build();
+
+    }
 }

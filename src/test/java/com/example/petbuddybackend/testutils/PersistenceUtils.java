@@ -8,19 +8,21 @@ import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
-import org.mockito.Mock;
 
-import javax.swing.text.Caret;
 import java.util.List;
 
 import static com.example.petbuddybackend.testutils.MockUtils.*;
 
 public class PersistenceUtils {
+
+    public static AppUser addAppUser(AppUserRepository appUserRepository) {
+        AppUser appUser = MockUtils.createMockAppUser();
+        return appUserRepository.save(appUser);
+    }
 
     public static List<Caretaker> addCaretakers(CaretakerRepository caretakerRepository, AppUserRepository appUserRepository, List<Caretaker> caretakers) {
         List<AppUser> accountData = caretakers.stream()

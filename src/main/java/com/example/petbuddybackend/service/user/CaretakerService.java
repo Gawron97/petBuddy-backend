@@ -1,13 +1,19 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.address.AddressDTO;
+import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
+import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
+import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
+import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
@@ -30,6 +36,7 @@ public class CaretakerService {
     private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
 
     private final ClientService clientService;
+    private final UserService userService;
 
     @Transactional
     public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters) {
@@ -112,4 +119,33 @@ public class CaretakerService {
                 () -> new NotFoundException("Rating does not exist")
         );
     }
+
+    private void assertCaretakerNotExists(String caretakerEmail) {
+        if (caretakerExists(caretakerEmail)) {
+            throw new IllegalActionException("Caretaker with email " + caretakerEmail + " already exists");
+        }
+    }
+
+    public CaretakerDTO addCaretaker(CreateCaretakerDTO caretaker, String email) {
+        assertCaretakerNotExists(email);
+        AppUser appUser = userService.getAppUser(email);
+        Caretaker caretakerToSave = caretakerMapper.mapToCaretaker(caretaker);
+        setAccountData(caretakerToSave, appUser);
+        return caretakerMapper.mapToCaretakerDTO(caretakerRepository.save(caretakerToSave));
+    }
+
+    private void setAccountData(Caretaker caretaker, AppUser appUser) {
+        caretaker.setEmail(appUser.getEmail());
+        caretaker.setAccountData(appUser);
+    }
+
+    public CaretakerDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
+
+        AppUser appUser = userService.getAppUser(email);
+        Caretaker caretakerToSave = getCaretaker(appUser.getEmail());
+        caretakerMapper.updateCaretakerFromDTO(caretaker, caretakerToSave);
+        return caretakerMapper.mapToCaretakerDTO(caretakerRepository.save(caretakerToSave));
+
+    }
+
 }

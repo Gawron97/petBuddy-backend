@@ -1,9 +1,8 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.entity.user.AppUser;
-import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
-import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final AppUserRepository userRepository;
-    private final CaretakerRepository caretakerRepository;
 
     @Transactional
     public void createUserIfNotExist(JwtAuthenticationToken token) {
@@ -26,8 +24,6 @@ public class UserService {
         if(userRepository.findById(email).isEmpty()) {
             log.info("User with email: " + email + " not found. Creating new user.");
             AppUser user = createAppUser(email, token);
-            createCaretaker(user); // refactor needed but need to consult when caretaker profile should be created
-                                   // now I mocked it to make task working
             log.info("User with email: " + email + " created.");
         }
     }
@@ -41,12 +37,9 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    private void createCaretaker(AppUser appUser) {
-        Caretaker caretaker = Caretaker.builder()
-                .email(appUser.getEmail())
-                .accountData(appUser)
-                .build();
-        caretakerRepository.save(caretaker);
+    public AppUser getAppUser(String email) {
+        return userRepository.findById(email)
+                .orElseThrow(() -> new NotFoundException("User with email " + email + " not found"));
     }
 
 }

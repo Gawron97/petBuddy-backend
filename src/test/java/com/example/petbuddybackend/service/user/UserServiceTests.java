@@ -2,7 +2,6 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
-import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -19,9 +18,6 @@ public class UserServiceTests {
 
     @Mock
     private AppUserRepository userRepository;
-
-    @Mock
-    private CaretakerRepository caretakerRepository;
 
     @InjectMocks
     private UserService userService;
@@ -60,7 +56,6 @@ public class UserServiceTests {
         JwtAuthenticationToken token = createJwtToken(email, firstname, lastname, username);
 
         when(userRepository.findById(email)).thenReturn(Optional.empty());
-        when(userRepository.save(any(AppUser.class))).thenReturn(new AppUser());
 
         //when
         userService.createUserIfNotExist(token);

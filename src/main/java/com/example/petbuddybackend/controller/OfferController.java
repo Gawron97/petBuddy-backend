@@ -5,7 +5,6 @@ import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.service.offer.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,9 +22,9 @@ public class OfferController {
             description = "Add offer if it does not exists, also can edit offer if it exists by changing offer data" +
                     " and adding new configurations. It Cannot edit configurations of existing offer."
     )
-    @PostMapping("/add")
+    @PostMapping("/add-or-edit")
     @PreAuthorize("isAuthenticated()")
-    public OfferDTO addOffer(@RequestBody OfferDTO offer, Principal principal) {
+    public OfferDTO addOrEditOffer(@RequestBody OfferDTO offer, Principal principal) {
         return offerService.addOrEditOffer(offer, principal.getName());
     }
 
