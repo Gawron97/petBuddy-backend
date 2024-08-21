@@ -3,6 +3,7 @@ package com.example.petbuddybackend.utils.exception.advice;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
 import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.NotParticipateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.DateTimeException;
+import java.time.zone.ZoneRulesException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -39,18 +42,36 @@ public class GeneralAdvice {
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(code = HttpStatus.NOT_FOUND)
     public ApiExceptionResponse handleNotFoundException(NotFoundException e) {
-        return new ApiExceptionResponse(e);
+        return new ApiExceptionResponse(e, e.getMessage());
     }
 
     @ExceptionHandler(IllegalActionException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleIllegalActionException(IllegalActionException e) {
-        return new ApiExceptionResponse(e);
+        return new ApiExceptionResponse(e, e.getMessage());
     }
 
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handlePropertyReferenceException(PropertyReferenceException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(NotParticipateException.class)
+    @ResponseStatus(code = HttpStatus.FORBIDDEN)
+    public ApiExceptionResponse handleNotParticipantException(NotParticipateException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(ZoneRulesException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleZoneRulesException(ZoneRulesException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(DateTimeException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleDateTimeException(DateTimeException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 }

@@ -5,6 +5,8 @@ import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.chat.ChatMessage;
+import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
@@ -29,7 +31,7 @@ public class MockService {
     public List<AppUser> createMockAppUsers(int count) {
         List<AppUser> caretakers = new ArrayList<>(count);
 
-        for (int i = 0; i < count; i++) {
+        for(int i = 0; i < count; i++) {
             caretakers.add(createAppUser());
         }
 
@@ -47,7 +49,7 @@ public class MockService {
     public List<Caretaker> createMockCaretakers(List<AppUser> users) {
         List<Caretaker> caretakers = new ArrayList<>();
 
-        for (AppUser user : users) {
+        for(AppUser user : users) {
             caretakers.add(createCaretaker(user));
         }
 
@@ -67,6 +69,7 @@ public class MockService {
 
         return Caretaker.builder()
                 .email(user.getEmail())
+                .accountData(user)
                 .address(address)
                 .description(faker.lorem().sentence())
                 .phoneNumber(faker.phoneNumber().cellPhone())
@@ -111,7 +114,7 @@ public class MockService {
     public List<Client> createMockClients(List<AppUser> users) {
         List<Client> clients = new ArrayList<>();
 
-        for (AppUser user : users) {
+        for(AppUser user : users) {
             clients.add(createClient(user));
         }
 
@@ -121,7 +124,7 @@ public class MockService {
     public List<Offer> createMockOffers(List<Caretaker> caretakers, List<Animal> animals, int caretakerOfferCount) {
         List<Offer> offers = new ArrayList<>();
 
-        for(Caretaker caretaker: caretakers) {
+        for(Caretaker caretaker : caretakers) {
             offers.addAll(createCaretakerOffers(caretaker, animals, caretakerOfferCount));
         }
 
@@ -167,7 +170,7 @@ public class MockService {
     public List<OfferConfiguration> createMockOffersConfigurations(List<Offer> offers, int caretakerOfferConfigurationCount) {
         List<OfferConfiguration> offerConfigurations = new ArrayList<>();
 
-        for(Offer offer: offers) {
+        for(Offer offer : offers) {
             offerConfigurations.addAll(createMockOfferConfigurations(offer, caretakerOfferConfigurationCount));
         }
 
@@ -201,7 +204,7 @@ public class MockService {
                                                                                int optionsInConfigurationCount) {
         List<OfferOption> offerOptions = new ArrayList<>();
 
-        for (Caretaker caretaker: caretakers) {
+        for(Caretaker caretaker : caretakers) {
             offerOptions.addAll(createMockOffersConfigurationsOptions(caretaker.getOffers(), animalAttributes, optionsInConfigurationCount));
         }
         return offerOptions;
@@ -213,7 +216,7 @@ public class MockService {
                                                                     int optionsInConfigurationCount) {
         List<OfferOption> offerOptions = new ArrayList<>();
 
-        for (Offer offer: offers) {
+        for(Offer offer : offers) {
             offerOptions.addAll(createMockOfferConfigurationsOptions(offer, animalAttributes, optionsInConfigurationCount));
         }
 
@@ -244,7 +247,7 @@ public class MockService {
                                                                   List<AnimalAttribute> uniqueRandomAnimalAttributes) {
         List<OfferOption> offerOptions = new ArrayList<>();
 
-        for(AnimalAttribute animalAttribute: uniqueRandomAnimalAttributes) {
+        for(AnimalAttribute animalAttribute : uniqueRandomAnimalAttributes) {
             offerOptions.add(createMockOfferConfigurationOption(offerConfiguration, animalAttribute));
         }
         offerConfiguration.setOfferOptions(offerOptions);
@@ -336,7 +339,28 @@ public class MockService {
         }
 
         return new HashSet<>(amenities);
-
     }
 
+    public List<ChatMessage> generateMessages(int count, Client client, Caretaker caretaker, ChatRoom chatRoom) {
+        count = count < 1 ? 2 : count;
+        List<ChatMessage> messages = new ArrayList<>(count);
+
+        for(int i = 0; i < count / 2; i++) {
+            messages.add(ChatMessage.builder()
+                    .sender(client.getAccountData())
+                    .content(faker.lorem().sentence())
+                    .chatRoom(chatRoom)
+                    .build());
+        }
+
+        for(int i = 0; i < count / 2; i++) {
+            messages.add(ChatMessage.builder()
+                    .sender(caretaker.getAccountData())
+                    .content(faker.lorem().sentence())
+                    .chatRoom(chatRoom)
+                    .build());
+        }
+
+        return messages;
+    }
 }

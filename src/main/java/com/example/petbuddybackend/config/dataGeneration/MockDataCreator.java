@@ -3,6 +3,8 @@ package com.example.petbuddybackend.config.dataGeneration;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.chat.ChatMessage;
+import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -11,6 +13,8 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
+import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.repository.offer.OfferConfigurationRepository;
 import com.example.petbuddybackend.repository.offer.OfferOptionRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
@@ -52,6 +56,8 @@ public class MockDataCreator {
     private final OfferConfigurationRepository offerConfigurationRepository;
     private final OfferOptionRepository offerOptionRepository;
     private final AnimalAmenityRepository animalAmenityRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     List<AppUser> caretakerAppUsers;
     List<AppUser> clientAppUsers;
@@ -98,10 +104,12 @@ public class MockDataCreator {
         animalAmenities = animalAmenityRepository.findAll();
         offerRepository.saveAllAndFlush(mockService.createMockOffersAmenities(offers, animalAmenities, ANIMAL_AMENITY_IN_OFFER_COUNT));
 
+        // chat
+        Client client = createKnownClient();
+        createChat(client, caretakers.get(0));
+
         log.info("Mock data created successfully!");
-
         cleanCache();
-
     }
 
     private void cleanCache() {
@@ -117,7 +125,10 @@ public class MockDataCreator {
                 ratingRepository.count() != 0 &&
                 offerRepository.count() != 0 &&
                 offerConfigurationRepository.count() != 0 &&
-                offerOptionRepository.count() != 0;
+                offerOptionRepository.count() != 0 &&
+                animalAmenityRepository.count() != 0 &&
+                chatRoomRepository.count() != 0 &&
+                chatMessageRepository.count() != 0;
     }
 
     private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers, List<Client> clients) {
@@ -127,5 +138,34 @@ public class MockDataCreator {
                 allCaretakers.subList(0, caretakersWithRatingsCount);
 
         return ratingRepository.saveAllAndFlush(mockService.createMockRatings(caretakersWithRatings, clients));
+    }
+
+    private Client createKnownClient() {
+        AppUser user = AppUser.builder()
+                .email("user@backend.com")
+                .name("MyName")
+                .surname("MySurname")
+                .build();
+
+        appUserRepository.save(user);
+
+        Client client = Client.builder()
+                .accountData(user)
+                .email(user.getEmail())
+                .build();
+
+        return clientRepository.save(client);
+    }
+
+    private void createChat(Client client, Caretaker caretaker) {
+        ChatRoom chatRoom = ChatRoom.builder()
+                .client(client)
+                .caretaker(caretaker)
+                .build();
+
+        chatRoom = chatRoomRepository.save(chatRoom);
+        List<ChatMessage> messages = mockService.generateMessages(10, client, caretaker, chatRoom);
+
+        chatMessageRepository.saveAllAndFlush(messages);
     }
 }

@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.utils.exception;
 
-import com.example.petbuddybackend.utils.time.TimeFormat;
+import com.example.petbuddybackend.utils.time.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Value;
 
@@ -12,7 +12,7 @@ public class ApiExceptionResponse {
     String type;
     String message;
 
-    @JsonFormat(pattern = TimeFormat.DATE_TIME_FORMAT)
+    @JsonFormat(pattern = TimeUtils.DATE_TIME_FORMAT)
     LocalDateTime timestamp;
 
     public ApiExceptionResponse(Throwable e, String message) {

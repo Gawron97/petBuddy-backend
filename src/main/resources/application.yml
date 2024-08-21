@@ -46,3 +46,6 @@ springdoc:
     path: "/api-docs"
   swagger-ui:
     path: "/swagger-ui.html"
+
+timezone:
+  header-name: "Accept-Timezone"
