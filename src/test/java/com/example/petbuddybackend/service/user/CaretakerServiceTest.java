@@ -2,12 +2,14 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.config.TestDataConfiguration;
 import com.example.petbuddybackend.dto.address.AddressDTO;
+import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -367,7 +369,7 @@ public class CaretakerServiceTest {
 
     @Test
     @Transactional
-    void addOrEditCaretaker_whenUserExistsButCaretakerProfileNot_shouldCreateCaretakerProperly() {
+    void addCaretaker_whenUserExistsButCaretakerProfileNot_shouldCreateCaretakerProperly() {
 
         //Given
         AppUser appUser = PersistenceUtils.addAppUser(appUserRepository);
@@ -388,7 +390,7 @@ public class CaretakerServiceTest {
                 .build();
 
         //When
-        CaretakerDTO result = caretakerService.addOrEditCaretaker(caretakerToCreate, appUser.getEmail());
+        CaretakerDTO result = caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail());
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then
@@ -407,7 +409,7 @@ public class CaretakerServiceTest {
 
     @Test
     @Transactional
-    void addOrEditCaretaker_whenUserNotExists_shouldThrowException() {
+    void addCaretaker_whenUserNotExists_shouldThrowException() {
 
         //Given
         CreateCaretakerDTO caretakerToCreate = CreateCaretakerDTO.builder()
@@ -426,13 +428,74 @@ public class CaretakerServiceTest {
                 .build();
 
         //When Then
-        assertThrows(NotFoundException.class, () -> caretakerService.addOrEditCaretaker(caretakerToCreate, "Not existing email"));
+        assertThrows(NotFoundException.class, () -> caretakerService.addCaretaker(caretakerToCreate, "Not existing email"));
 
     }
 
     @Test
     @Transactional
-    void addOrEditCaretaker_whenCaretakerProfileExistsWithOffers_shouldEditProfileDataAndRemainRestData() {
+    void editCaretaker_whenCaretakerProfileExistsWithOffers_shouldEditOnlyProvidedProfileDataAndRemainRestData() {
+
+        //Given
+        Caretaker caretakerWithComplexOffer = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
+        caretakerWithComplexOffer.setPhoneNumber("123456789");
+        PersistenceUtils.addComplexOffer(
+                caretakerWithComplexOffer,
+                animalRepository.findById("DOG").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
+                                "DOG", "SIZE", "BIG").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
+                                "DOG", "SEX", "MALE").orElseThrow()
+                ),
+                Arrays.asList(
+                        animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
+                ),
+                offerRepository);
+
+        UpdateCaretakerDTO caretakerToCreate = UpdateCaretakerDTO.builder()
+                .description("description")
+                .address(
+                        UpdateAddressDTO.builder()
+                                .city("city")
+                                .voivodeship(Voivodeship.DOLNOSLASKIE)
+                                .street("street")
+                                .buildingNumber("33HHD")
+                                .apartmentNumber("150SD")
+                                .build()
+                )
+                .build();
+
+        String oldPhoneNumber = caretakerWithComplexOffer.getPhoneNumber();
+        String oldZipCode = caretakerWithComplexOffer.getAddress().getZipCode();
+
+        //When
+        CaretakerDTO result = caretakerService.editCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
+        Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
+
+        //Then
+        assertNotNull(caretaker);
+        assertEquals(oldPhoneNumber, caretaker.getPhoneNumber());
+        assertEquals(caretakerToCreate.description(), caretaker.getDescription());
+        assertEquals(caretakerToCreate.address().city(), caretaker.getAddress().getCity());
+        assertEquals(oldZipCode, caretaker.getAddress().getZipCode());
+        assertEquals(caretakerToCreate.address().voivodeship(), caretaker.getAddress().getVoivodeship());
+        assertEquals(caretakerToCreate.address().street(), caretaker.getAddress().getStreet());
+        assertEquals(caretakerToCreate.address().buildingNumber(), caretaker.getAddress().getBuildingNumber());
+        assertEquals(caretakerToCreate.address().apartmentNumber(), caretaker.getAddress().getApartmentNumber());
+        assertEquals(1, caretaker.getOffers().size());
+        assertEquals(1, caretaker.getOffers().get(0).getAnimalAmenities().size());
+
+        Offer offerToDelete = offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerWithComplexOffer.getEmail(), "DOG").orElseThrow();
+        offerRepository.delete(offerToDelete);
+        caretakerWithComplexOffer.setOffers(null);
+        caretakerRepository.delete(caretakerWithComplexOffer);
+
+    }
+
+    @Test
+    @Transactional
+    void editCaretaker_whenCaretakerProfileExistsWithOffers_shouldEditProfileDataAndRemainRestData() {
 
         //Given
         Caretaker caretakerWithComplexOffer = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
@@ -450,11 +513,11 @@ public class CaretakerServiceTest {
                 ),
                 offerRepository);
 
-        CreateCaretakerDTO caretakerToCreate = CreateCaretakerDTO.builder()
+        UpdateCaretakerDTO caretakerToCreate = UpdateCaretakerDTO.builder()
                 .phoneNumber("123456789")
                 .description("description")
                 .address(
-                        AddressDTO.builder()
+                        UpdateAddressDTO.builder()
                                 .city("city")
                                 .zipCode("zipCode")
                                 .voivodeship(Voivodeship.DOLNOSLASKIE)
@@ -466,7 +529,7 @@ public class CaretakerServiceTest {
                 .build();
 
         //When
-        CaretakerDTO result = caretakerService.addOrEditCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
+        CaretakerDTO result = caretakerService.editCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then

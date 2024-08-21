@@ -6,6 +6,7 @@ import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,17 +42,30 @@ public class CaretakerController {
         return caretakerService.getCaretakers(pageable, filters);
     }
 
-    @PostMapping("/add-or-edit")
+    @PostMapping("/add")
     @Operation(
-            summary = "Add or edit caretaker profile",
-            description = "Add caretaker profile if it does not exists, also can edit caretaker if it exists by changing caretaker data."
+            summary = "Add caretaker profile",
+            description = "Add caretaker profile if it does not exists"
     )
     @PreAuthorize("isAuthenticated()")
-    public CaretakerDTO addOrEditCaretaker(
+    public CaretakerDTO addCaretaker(
             @RequestBody @Valid CreateCaretakerDTO caretakerDTO,
             Principal principal
     ) {
-        return caretakerService.addOrEditCaretaker(caretakerDTO, principal.getName());
+        return caretakerService.addCaretaker(caretakerDTO, principal.getName());
+    }
+
+    @PatchMapping("/edit")
+    @Operation(
+            summary = "Edit caretaker profile",
+            description = "Edit caretaker profile if it does exists"
+    )
+    @PreAuthorize("isAuthenticated()")
+    public CaretakerDTO editCaretaker(
+            @RequestBody @Valid UpdateCaretakerDTO caretakerDTO,
+            Principal principal
+    ) {
+        return caretakerService.editCaretaker(caretakerDTO, principal.getName());
     }
 
     @SecurityRequirements

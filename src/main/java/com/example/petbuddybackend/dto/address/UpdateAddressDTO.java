@@ -5,13 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
-public record AddressDTO(
-    Long id,
-    @NotNull String city,
-    @NotNull String zipCode,
-    @NotNull Voivodeship voivodeship,
-    @NotNull String street,
-    @NotNull String buildingNumber,
+public record UpdateAddressDTO(
+    String city,
+    String zipCode,
+    Voivodeship voivodeship,
+    String street,
+    String buildingNumber,
     String apartmentNumber
 ) {
 }

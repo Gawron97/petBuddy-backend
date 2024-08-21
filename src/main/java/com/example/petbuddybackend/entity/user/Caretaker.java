@@ -20,7 +20,7 @@ public class Caretaker {
     @Id
     private String email;
 
-    @Column(nullable = true, length = 14) // change nullable temporary
+    @Column(nullable = false, length = 14)
     private String phoneNumber;
 
     @Column(length = 1500)
@@ -40,6 +40,6 @@ public class Caretaker {
     @OneToMany(mappedBy = "caretaker", fetch = FetchType.LAZY)
     private List<Offer> offers;
 
-    @OneToOne(cascade = CascadeType.ALL, optional = true, fetch = FetchType.LAZY) // change nullable temporary
+    @OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
     private Address address;
 }

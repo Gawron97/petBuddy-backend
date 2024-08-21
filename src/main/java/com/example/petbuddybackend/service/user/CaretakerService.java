@@ -1,10 +1,12 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
+import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
@@ -118,46 +120,32 @@ public class CaretakerService {
         );
     }
 
-    public CaretakerDTO addOrEditCaretaker(CreateCaretakerDTO caretaker, String email) {
+    private void assertCaretakerNotExists(String caretakerEmail) {
+        if (caretakerExists(caretakerEmail)) {
+            throw new IllegalActionException("Caretaker with email " + caretakerEmail + " already exists");
+        }
+    }
+
+    public CaretakerDTO addCaretaker(CreateCaretakerDTO caretaker, String email) {
+        assertCaretakerNotExists(email);
+        AppUser appUser = userService.getAppUser(email);
+        Caretaker caretakerToSave = caretakerMapper.mapToCaretaker(caretaker);
+        setAccountData(caretakerToSave, appUser);
+        return caretakerMapper.mapToCaretakerDTO(caretakerRepository.save(caretakerToSave));
+    }
+
+    private void setAccountData(Caretaker caretaker, AppUser appUser) {
+        caretaker.setEmail(appUser.getEmail());
+        caretaker.setAccountData(appUser);
+    }
+
+    public CaretakerDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
 
         AppUser appUser = userService.getAppUser(email);
-        Caretaker caretakerToSave = getOrCreateCaretaker(appUser);
-        updateCaretakerData(caretakerToSave, caretaker);
+        Caretaker caretakerToSave = getCaretaker(appUser.getEmail());
+        caretakerMapper.updateCaretakerFromDTO(caretaker, caretakerToSave);
         return caretakerMapper.mapToCaretakerDTO(caretakerRepository.save(caretakerToSave));
 
-    }
-
-    private Caretaker getOrCreateCaretaker(AppUser appUser) {
-        return caretakerRepository.findById(appUser.getEmail())
-                .orElse(createCaretaker(appUser));
-    }
-
-    private Caretaker createCaretaker(AppUser appUser) {
-        return Caretaker.builder()
-                .email(appUser.getEmail())
-                .accountData(appUser)
-                .address(createAddress())
-                .build();
-    }
-
-    private Address createAddress() {
-        return Address.builder()
-                .build();
-    }
-
-    private void updateCaretakerData(Caretaker caretakerToUpdate, CreateCaretakerDTO caretaker) {
-        caretakerToUpdate.setPhoneNumber(caretaker.phoneNumber());
-        caretakerToUpdate.setDescription(caretaker.description());
-        updateCaretakerAddressData(caretakerToUpdate.getAddress(), caretaker.address());
-    }
-
-    private void updateCaretakerAddressData(Address addressToUpdate, AddressDTO address) {
-        addressToUpdate.setCity(address.city());
-        addressToUpdate.setZipCode(address.zipCode());
-        addressToUpdate.setVoivodeship(address.voivodeship());
-        addressToUpdate.setStreet(address.street());
-        addressToUpdate.setBuildingNumber(address.buildingNumber());
-        addressToUpdate.setApartmentNumber(address.apartmentNumber());
     }
 
 }
