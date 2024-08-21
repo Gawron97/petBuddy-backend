@@ -282,6 +282,40 @@ public final class MockUtils {
 
     }
 
+    public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
+                                                           Animal animal,
+                                                           List<AnimalAttribute> animalAttributes,
+                                                           Double price,
+                                                           List<AnimalAmenity> animalAmenities,
+                                                           Offer offer) {
+
+
+        if(CollectionUtil.isNotEmpty(animalAttributes)) {
+            OfferConfiguration offerConfiguration = createOfferConfiguration(offer, price);
+            List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
+
+            offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
+            if(CollectionUtil.isNotEmpty(offer.getOfferConfigurations())) {
+                offer.getOfferConfigurations().add(offerConfiguration);
+            } else {
+                offer.setOfferConfigurations(new ArrayList<>(List.of(offerConfiguration)));
+            }
+
+        }
+        if(CollectionUtil.isNotEmpty(animalAmenities)) {
+            if(CollectionUtil.isNotEmpty(offer.getAnimalAmenities())) {
+                offer.getAnimalAmenities().addAll(animalAmenities);
+            } else {
+                offer.setAnimalAmenities(new HashSet<>(animalAmenities));
+            }
+        }
+
+        caretaker.setOffers(new ArrayList<>(List.of(offer)));
+
+        return offer;
+
+    }
+
     public static AppUser createMockAppUser() {
 
         return AppUser.builder()

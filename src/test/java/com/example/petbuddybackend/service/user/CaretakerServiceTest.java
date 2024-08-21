@@ -132,6 +132,18 @@ public class CaretakerServiceTest {
                 ),
                 offerRepository);
 
+        PersistenceUtils.addComplexOffer(
+                caretakerWithComplexOffer,
+                animalRepository.findById("DOG").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
+                                "DOG", "SIZE", "SMALL").orElseThrow()
+                ),
+                90.0,
+                List.of(),
+                offerRepository,
+                caretakerWithComplexOffer.getOffers().get(0));
+
         Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters);
 
         assertEquals(expectedSize, resultPage.getContent().size());
@@ -355,7 +367,23 @@ public class CaretakerServiceTest {
                                 .minPrice(10.0)
                                 .maxPrice(10.0)
                                 .build()
+                ).build(), 3),
+                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
+                        OfferSearchCriteria.builder()
+                                .animalTypes(Set.of("DOG"))
+                                .animalAttributeIds(Set.of(1L))
+                                .minPrice(10.0)
+                                .maxPrice(10.0)
+                                .build()
                 ).build(), 1),
+                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
+                        OfferSearchCriteria.builder()
+                                .animalTypes(Set.of("DOG"))
+                                .animalAttributeIds(Set.of(1L))
+                                .minPrice(80.0)
+                                .maxPrice(100.0)
+                                .build()
+                ).build(), 0),
                 Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("doe").build(), 2),
                 Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("testmail").build(), 1),
                 Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("john   doe").build(), 1),
