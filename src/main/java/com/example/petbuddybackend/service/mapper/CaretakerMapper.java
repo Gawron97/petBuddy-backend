@@ -11,6 +11,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.springframework.util.StringUtils;
 
 @Mapper(uses = {OfferMapper.class, AddressMapper.class})
 public interface CaretakerMapper {
@@ -28,10 +29,10 @@ public interface CaretakerMapper {
     Caretaker mapToCaretaker(CreateCaretakerDTO caretakerDTO);
 
     default void updateCaretakerFromDTO(UpdateCaretakerDTO caretakerDTO, @MappingTarget Caretaker caretaker) {
-        if (caretakerDTO.phoneNumber() != null) {
+        if (StringUtils.hasText(caretakerDTO.phoneNumber())) {
             caretaker.setPhoneNumber(caretakerDTO.phoneNumber());
         }
-        if (caretakerDTO.description() != null) {
+        if (StringUtils.hasText(caretakerDTO.description())) {
             caretaker.setDescription(caretakerDTO.description());
         }
         if (caretakerDTO.address() != null) {

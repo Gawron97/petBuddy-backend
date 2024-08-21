@@ -6,9 +6,11 @@ import com.example.petbuddybackend.entity.address.Address;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
+import org.springframework.util.StringUtils;
 
-@Mapper
+@Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface AddressMapper {
 
     AddressMapper INSTANCE = Mappers.getMapper(AddressMapper.class);
@@ -17,22 +19,22 @@ public interface AddressMapper {
     Address mapToAddress(AddressDTO addressDTO);
 
     default void updateAddressFromDTO(UpdateAddressDTO addressDTO, @MappingTarget Address address) {
-        if(addressDTO.city() != null) {
+        if(StringUtils.hasText(addressDTO.city())) {
             address.setCity(addressDTO.city());
         }
-        if(addressDTO.zipCode() != null) {
+        if(StringUtils.hasText(addressDTO.zipCode())) {
             address.setZipCode(addressDTO.zipCode());
         }
         if(addressDTO.voivodeship() != null) {
             address.setVoivodeship(addressDTO.voivodeship());
         }
-        if(addressDTO.street() != null) {
+        if(StringUtils.hasText(addressDTO.street())) {
             address.setStreet(addressDTO.street());
         }
-        if(addressDTO.buildingNumber() != null) {
+        if(StringUtils.hasText(addressDTO.buildingNumber())) {
             address.setBuildingNumber(addressDTO.buildingNumber());
         }
-        if(addressDTO.apartmentNumber() != null) {
+        if(StringUtils.hasText(addressDTO.apartmentNumber())) {
             address.setApartmentNumber(addressDTO.apartmentNumber());
         }
     }

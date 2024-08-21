@@ -3,11 +3,11 @@ package com.example.petbuddybackend.service.user;
 import com.example.petbuddybackend.config.TestDataConfiguration;
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.entity.address.Voivodeship;
@@ -21,10 +21,10 @@ import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
+import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
-import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.example.petbuddybackend.testutils.MockUtils.*;
+import static com.example.petbuddybackend.testutils.MockUtils.createMockRating;
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -484,6 +484,7 @@ public class CaretakerServiceTest {
                 offerRepository);
 
         UpdateCaretakerDTO caretakerToCreate = UpdateCaretakerDTO.builder()
+                .phoneNumber("")
                 .description("description")
                 .address(
                         UpdateAddressDTO.builder()

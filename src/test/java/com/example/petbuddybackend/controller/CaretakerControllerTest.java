@@ -2,6 +2,8 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +28,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,6 +40,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CaretakerControllerTest {
 
     private static final String RATING_BODY = "{\"rating\": %d, \"comment\": \"%s\"}";
+
+    private static final String CREATE_CARETAKER_BODY = """
+            {
+                "phoneNumber": "%s",
+                "description": "%s",
+                "address": {
+                    "city": "%s",
+                    "zipCode": "%s",
+                    "voivodeship": "%s",
+                    "street": "%s",
+                    "buildingNumber": "%s",
+                    "apartmentNumber": "%s"
+                }
+            }
+            """;
+
+    private static final String UPDATE_CARETAKER_BODY = """
+            {
+                "phoneNumber": "%s",
+                "description": "%s",
+                "address": {
+                    "city": "%s",
+                    "zipCode": "%s",
+                    "voivodeship": "%s",
+                    "street": "%s",
+                    "buildingNumber": "%s",
+                    "apartmentNumber": "%s"
+                }
+            }
+            """;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -120,5 +153,67 @@ public class CaretakerControllerTest {
                 Arguments.of("{\"comment\": \"comment\"}", status().isBadRequest()),
                 Arguments.of("{\"rating\": 4}", status().isBadRequest())
         );
+    }
+
+    @Test
+    @WithMockUser
+    void addCaretaker_ShouldReturnCreatedCaretaker() throws Exception {
+        // Given
+
+        CaretakerDTO caretakerDTO = CaretakerDTO.builder()
+                .phoneNumber("123456789")
+                .description("Test description")
+                .build();
+
+        when(caretakerService.addCaretaker(any(CreateCaretakerDTO.class), anyString())).thenReturn(caretakerDTO);
+
+        // When and Then
+        mockMvc.perform(post("/api/caretaker/add")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format(CREATE_CARETAKER_BODY,
+                                "123456789",
+                                "Test description",
+                                "City",
+                                "00-000",
+                                "MAZOWIECKIE",
+                                "Street",
+                                "10",
+                                "20")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phoneNumber").value("123456789"))
+                .andExpect(jsonPath("$.description").value("Test description"));
+
+        verify(caretakerService, times(1)).addCaretaker(any(CreateCaretakerDTO.class), anyString());
+    }
+
+    @Test
+    @WithMockUser
+    void editCaretaker_ShouldReturnUpdatedCaretaker() throws Exception {
+        // Given
+
+        CaretakerDTO caretakerDTO = CaretakerDTO.builder()
+                .phoneNumber("987654321")
+                .description("Updated description")
+                .build();
+
+        when(caretakerService.editCaretaker(any(UpdateCaretakerDTO.class), anyString())).thenReturn(caretakerDTO);
+
+        // When and Then
+        mockMvc.perform(patch("/api/caretaker/edit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format(UPDATE_CARETAKER_BODY,
+                                "987654321",
+                                "Updated description",
+                                "New City",
+                                "11-111",
+                                "PODLASKIE",
+                                "New Street",
+                                "11",
+                                "21")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.phoneNumber").value("987654321"))
+                .andExpect(jsonPath("$.description").value("Updated description"));
+
+        verify(caretakerService, times(1)).editCaretaker(any(UpdateCaretakerDTO.class), anyString());
     }
 }
