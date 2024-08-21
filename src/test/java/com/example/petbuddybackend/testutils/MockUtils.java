@@ -6,6 +6,8 @@ import com.example.petbuddybackend.entity.amenity.Amenity;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.chat.ChatMessage;
+import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
@@ -15,6 +17,7 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import org.keycloak.common.util.CollectionUtil;
 
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -324,5 +327,32 @@ public final class MockUtils {
                 .email("email")
                 .build();
 
+    }
+
+    public static List<ChatMessage> createMockChatMessages(Client client, Caretaker caretaker) {
+        AppUser clientAppUser = client.getAccountData();
+        AppUser caretakerAppUser = caretaker.getAccountData();
+
+        ChatMessage clientMessage = createMockChatMessage(clientAppUser);
+        ChatMessage caretakerMessage = createMockChatMessage(caretakerAppUser);
+
+        return List.of(clientMessage, caretakerMessage);
+    }
+
+    public static ChatMessage createMockChatMessage(AppUser sender) {
+        return ChatMessage.builder()
+                .content(UUID.randomUUID().toString())
+                .createdAt(ZonedDateTime.now())
+                .sender(sender)
+                .build();
+    }
+
+    public static ChatRoom createMockChatRoom(Client client, Caretaker caretaker) {
+        ChatRoom chatRoom = ChatRoom.builder()
+                .client(client)
+                .caretaker(caretaker)
+                .build();
+
+        return chatRoom;
     }
 }

@@ -1,13 +1,10 @@
 package com.example.petbuddybackend.service.mapper;
 
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

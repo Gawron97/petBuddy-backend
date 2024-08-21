@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -32,6 +33,7 @@ public class ChatController {
                     "Retrieves a paginated list of chat messages for a chat room. " +
                     "The page is sorted by message timestamp in descending order (from newest to oldest)."
     )
+    @PreAuthorize("isAuthenticated()")
     public Page<ChatMessageDTO> getChatMessages(
             Principal principal,
             @PathVariable Long chatId,

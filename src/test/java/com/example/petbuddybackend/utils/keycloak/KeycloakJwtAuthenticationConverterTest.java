@@ -5,10 +5,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,9 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class KeycloakJwtAuthenticationConverterTest {
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
 
     private static String RESOURCE_ROLES_CLAIM = "pet-buddy-client";
 

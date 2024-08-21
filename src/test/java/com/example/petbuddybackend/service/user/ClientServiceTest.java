@@ -10,16 +10,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 public class ClientServiceTest {
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
 
     @Autowired
     private AppUserRepository appUserRepository;

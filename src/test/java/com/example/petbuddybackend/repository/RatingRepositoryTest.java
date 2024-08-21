@@ -14,19 +14,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import static com.example.petbuddybackend.testutils.MockUtils.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 public class RatingRepositoryTest {
-
-    @MockBean
-    private JwtDecoder jwtDecoder;
 
     @Autowired
     private RatingRepository ratingRepository;
