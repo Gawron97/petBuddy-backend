@@ -126,6 +126,7 @@ public class CaretakerServiceTest {
                         animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
                                 "DOG", "SEX", "MALE").orElseThrow()
                 ),
+                10.0,
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
@@ -448,6 +449,7 @@ public class CaretakerServiceTest {
                         animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
                                 "DOG", "SEX", "MALE").orElseThrow()
                 ),
+                10.0,
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
@@ -508,6 +510,7 @@ public class CaretakerServiceTest {
                         animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
                                 "DOG", "SEX", "MALE").orElseThrow()
                 ),
+                10.0,
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),

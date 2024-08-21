@@ -88,8 +88,8 @@ public class PersistenceUtils {
     }
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
-                                        List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
-        Offer offer = createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, animalAmenities);
+                                        Double price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
+        Offer offer = MockUtils.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
         return offerRepository.save(offer);
     }
 
