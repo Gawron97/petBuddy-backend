@@ -467,7 +467,6 @@ public class CaretakerServiceTest {
 
         //Given
         Caretaker caretakerWithComplexOffer = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
-        caretakerWithComplexOffer.setPhoneNumber("123456789");
         PersistenceUtils.addComplexOffer(
                 caretakerWithComplexOffer,
                 animalRepository.findById("DOG").orElseThrow(),
