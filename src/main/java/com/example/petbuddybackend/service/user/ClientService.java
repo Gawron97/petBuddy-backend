@@ -30,7 +30,7 @@ public class ClientService {
             log.info("Creating client with email: " + email);
             Client client = createClient(token);
             clientRepository.save(client);
-            log.info("Client created: " + client);
+            log.info("Client with email created: " + client.getEmail());
         }
     }
 
