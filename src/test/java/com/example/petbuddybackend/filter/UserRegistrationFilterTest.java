@@ -1,5 +1,7 @@
 package com.example.petbuddybackend.filter;
 
+import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.service.user.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +20,7 @@ import static org.mockito.Mockito.*;
 public class UserRegistrationFilterTest {
 
     @Mock
-    private UserService userService;
+    private ClientService clientService;
 
     @InjectMocks
     private UserRegistrationFilter userRegistrationFilter;
@@ -38,7 +40,7 @@ public class UserRegistrationFilterTest {
         userRegistrationFilter.doFilterInternal(request, response, filterChain);
 
         ArgumentCaptor<JwtAuthenticationToken> tokenCaptor = ArgumentCaptor.forClass(JwtAuthenticationToken.class);
-        verify(userService).createUserIfNotExist(tokenCaptor.capture());
+        verify(clientService).createClientIfNotExist(tokenCaptor.capture());
         verify(filterChain).doFilter(request, response);
     }
 }

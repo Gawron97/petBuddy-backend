@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.filter;
 
+import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.service.user.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,14 +21,14 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class UserRegistrationFilter extends OncePerRequestFilter {
 
-    private final UserService userService;
+    private final ClientService clientService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         if(request.getUserPrincipal() instanceof JwtAuthenticationToken token) {
             log.info("Request by user with email: " + token.getTokenAttributes().get("email"));
-            userService.createUserIfNotExist(token);
+            clientService.createClientIfNotExist(token);
         }
 
         filterChain.doFilter(request, response);

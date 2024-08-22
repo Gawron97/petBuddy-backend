@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import java.util.Map;
 import java.util.Optional;
 
+import static com.example.petbuddybackend.testutils.MockUtils.createJwtToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -30,21 +31,6 @@ public class UserServiceTests {
         MockitoAnnotations.openMocks(this);
     }
 
-    private JwtAuthenticationToken createJwtToken(String email, String firstname, String lastname, String username) {
-        return new JwtAuthenticationToken(mock(Jwt.class), null, null) {
-            @Override
-            public Map<String, Object> getTokenAttributes() {
-                return Map.of(
-                        "email", email,
-                        "given_name", firstname,
-                        "family_name", lastname,
-                        "preferred_username", username
-                );
-            }
-        };
-
-    }
-
     @Test
     void givenUserDoesNotExist_whenCreateUserIfNotExist_thenUserIsCreated() {
         // given
@@ -58,7 +44,7 @@ public class UserServiceTests {
         when(userRepository.findById(email)).thenReturn(Optional.empty());
 
         //when
-        userService.createUserIfNotExist(token);
+        userService.createUserIfNotExistOrGet(token);
 
         //then
         verify(userRepository).save(userCaptor.capture());
@@ -81,7 +67,7 @@ public class UserServiceTests {
         when(userRepository.findById(email)).thenReturn(Optional.of(new AppUser()));
 
         //when
-        userService.createUserIfNotExist(token);
+        userService.createUserIfNotExistOrGet(token);
 
         //then
         verify(userRepository, never()).save(any(AppUser.class));
