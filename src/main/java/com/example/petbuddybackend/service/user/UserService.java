@@ -17,7 +17,7 @@ public class UserService {
     private final AppUserRepository userRepository;
 
     @Transactional
-    public void createUserIfNotExist(JwtAuthenticationToken token) {
+    public AppUser createUserIfNotExistOrGet(JwtAuthenticationToken token) {
 
         String email = (String) token.getTokenAttributes().get("email");
 
@@ -25,7 +25,9 @@ public class UserService {
             log.info("User with email: " + email + " not found. Creating new user.");
             AppUser user = createAppUser(email, token);
             log.info("User with email: " + email + " created.");
+            return user;
         }
+        return getAppUser(email);
     }
 
     private AppUser createAppUser(String email, JwtAuthenticationToken token) {

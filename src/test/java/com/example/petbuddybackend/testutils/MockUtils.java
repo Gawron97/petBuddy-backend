@@ -16,10 +16,14 @@ import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import org.keycloak.common.util.CollectionUtil;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.mock;
 
 public final class MockUtils {
     
@@ -355,4 +359,20 @@ public final class MockUtils {
 
         return chatRoom;
     }
+
+    public static JwtAuthenticationToken createJwtToken(String email, String firstname, String lastname, String username) {
+        return new JwtAuthenticationToken(mock(Jwt.class), null, null) {
+            @Override
+            public Map<String, Object> getTokenAttributes() {
+                return Map.of(
+                        "email", email,
+                        "given_name", firstname,
+                        "family_name", lastname,
+                        "preferred_username", username
+                );
+            }
+        };
+
+    }
+
 }
