@@ -2,8 +2,6 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
-import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -28,7 +25,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -42,14 +38,10 @@ public class CaretakerControllerTest {
     private static final String RATING_BODY = "{\"rating\": %d, \"comment\": \"%s\"}";
 
     @MockBean
-    private JwtDecoder jwtDecoder;
-
-    @MockBean
     private CaretakerService caretakerService;
 
     @Autowired
     private MockMvc mockMvc;
-
 
 
     @BeforeEach
@@ -68,8 +60,10 @@ public class CaretakerControllerTest {
                 .build();
 
         List<CaretakerDTO> caretakerDTOs = List.of(caretakerDTO1, caretakerDTO2);
-        Page<CaretakerDTO> page =
-                new PageImpl<>(caretakerDTOs, PageRequest.of(0, 10), caretakerDTOs.size());
+        Page<CaretakerDTO> page = new PageImpl<>(
+                caretakerDTOs,
+                PageRequest.of(0, 10), caretakerDTOs.size()
+        );
 
         when(caretakerService.getCaretakers(any(), any())).thenReturn(page);
 

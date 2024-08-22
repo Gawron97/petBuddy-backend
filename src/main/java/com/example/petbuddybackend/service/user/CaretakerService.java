@@ -38,7 +38,7 @@ public class CaretakerService {
     private final ClientService clientService;
     private final UserService userService;
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters);
 

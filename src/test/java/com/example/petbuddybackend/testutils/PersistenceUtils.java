@@ -3,11 +3,15 @@ package com.example.petbuddybackend.testutils;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.chat.ChatMessage;
+import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
+import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
@@ -105,6 +109,22 @@ public class PersistenceUtils {
         OfferConfiguration offerConfiguration = createOfferConfiguration(existingOffer, animalAttributes);
         existingOffer.getOfferConfigurations().add(offerConfiguration);
         offerRepository.save(existingOffer);
+    }
 
+    public static ChatRoom addChatRoom(
+            ChatRoom chatRoom,
+            List<ChatMessage> chatMessages,
+            ChatRoomRepository chatRoomRepository,
+            ChatMessageRepository chatMessageRepository
+    ) {
+        chatRoom = chatRoomRepository.saveAndFlush(chatRoom);
+
+        for (ChatMessage chatMessage : chatMessages) {
+            chatMessage.setChatRoom(chatRoom);
+        }
+
+        chatMessageRepository.saveAllAndFlush(chatMessages);
+        chatRoom.setMessages(chatMessages);
+        return chatRoom;
     }
 }

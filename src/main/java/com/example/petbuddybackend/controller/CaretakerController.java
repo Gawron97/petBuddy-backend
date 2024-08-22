@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.paging.PagingParams;
+import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
@@ -35,10 +35,10 @@ public class CaretakerController {
             description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters."
     )
     public Page<CaretakerDTO> getCaretakers(
-            @ParameterObject @ModelAttribute @Valid PagingParams pagingParams,
+            @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute CaretakerSearchCriteria filters
     ) {
-        Pageable pageable = PagingUtils.createPageable(pagingParams);
+        Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters);
     }
 
@@ -75,10 +75,10 @@ public class CaretakerController {
             description = "Retrieves a paginated list of ratings for a caretaker."
     )
     public Page<RatingResponse> getRatings(
-            @ParameterObject @ModelAttribute @Valid PagingParams pagingParams,
+            @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @PathVariable String caretakerEmail
     ) {
-        Pageable pageable = PagingUtils.createPageable(pagingParams);
+        Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return caretakerService.getRatings(pageable, caretakerEmail);
     }
 
