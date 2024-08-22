@@ -12,8 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static com.example.petbuddybackend.testutils.MockUtils.createJwtToken;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class ClientServiceTest {
@@ -29,6 +33,9 @@ public class ClientServiceTest {
 
     @Autowired
     private ClientService clientService;
+
+    @Autowired
+    private UserService userService;
 
 
     @AfterEach
@@ -54,4 +61,40 @@ public class ClientServiceTest {
         boolean clientExists = clientService.clientExists("invalidEmail");
         assertNotNull(clientExists);
     }
+
+    @Test
+    @Transactional
+    void createClientIfNotExist_WhenClientDoesNotExist_ThenShouldCreateClient() {
+        //Given
+
+        JwtAuthenticationToken token = createJwtToken("test@mail", "firstname", "lastname", "test@mail");
+
+        //When
+        clientService.createClientIfNotExist(token);
+
+        //Then
+        Client createdClient = clientRepository.findById("test@mail").orElse(null);
+        assertNotNull(createdClient);
+        assertEquals("test@mail", createdClient.getEmail());
+        assertEquals("firstname", createdClient.getAccountData().getName());
+        assertEquals("lastname", createdClient.getAccountData().getSurname());
+
+    }
+
+    @Test
+    @Transactional
+    void createClientIfNotExists_WhenClientExists_ThenShouldNotCreateClient() {
+        //Given
+        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+
+        JwtAuthenticationToken token = createJwtToken(client.getEmail(), client.getAccountData().getName(),
+                client.getAccountData().getSurname(), client.getEmail());
+
+        //When
+        clientService.createClientIfNotExist(token);
+
+        //Then
+        assertEquals(1, clientRepository.count());
+    }
+
 }
