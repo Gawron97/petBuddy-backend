@@ -18,7 +18,7 @@ import java.util.Set;
 @Entity
 @Getter @Setter
 @Table(
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerEmail", "clientEmail", "from", "to" }) }
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerEmail", "clientEmail", "careStart", "careEnd" }) }
 )
 @Check(constraints = "client_email <> caretaker_email")
 public class Care {
@@ -34,9 +34,9 @@ public class Care {
     @Enumerated(EnumType.STRING)
     private CareStatus clientStatus;
 
-    private LocalDate from;
+    private LocalDate careStart;
 
-    private LocalDate to;
+    private LocalDate careEnd;
 
     private String description;
 

@@ -5,6 +5,8 @@ import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.care.Care;
+import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -19,7 +21,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.*;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Profile("dev | test")
 @Service
@@ -363,4 +367,61 @@ public class MockService {
 
         return messages;
     }
+
+    public List<Care> createMockCares(List<Client> clients, List<Caretaker> caretakers, List<Animal> animals,
+                                      List<AnimalAttribute> animalAttributes, int count) {
+
+        List<Care> cares = new ArrayList<>();
+        for(int i = 0; i < count; i++) {
+            Client client = clients.get(faker.random().nextInt(clients.size()));
+            Caretaker caretaker = caretakers.get(faker.random().nextInt(caretakers.size()));
+            Animal animal = animals.get(faker.random().nextInt(animals.size()));
+            List<AnimalAttribute> availableAnimalAttributes = getAnimalAttributeForAnimalType(animal.getAnimalType(), animalAttributes);
+            Set<AnimalAttribute> animalAttributesForCare =
+                    new HashSet<>(getSomeRandomUniqueAnimalAttributes(availableAnimalAttributes, faker.random().nextInt(availableAnimalAttributes.size())));
+            cares.add(createMockCare(client, caretaker, animal, animalAttributesForCare));
+        }
+        return cares;
+    }
+
+    private Care createMockCare(Client client, Caretaker caretaker, Animal animal, Set<AnimalAttribute> animalAttributesForCare) {
+
+        ZonedDateTime submittedAt = getRandomDateBetween(
+                LocalDate.of(2017, 1, 1),
+                LocalDate.of(2023, 1, 1)
+        ).atZone(ZoneId.systemDefault());
+
+        LocalDate careStart = getRandomDateBetween(
+                submittedAt.toLocalDate(),
+                LocalDate.of(2023, 1, 10)
+        ).toLocalDate();
+
+        LocalDate careEnd = getRandomDateBetween(
+                careStart,
+                LocalDate.of(2023, 1, 20)
+        ).toLocalDate();
+
+        return Care.builder()
+                .submittedAt(submittedAt)
+                .careStart(careStart)
+                .careEnd(careEnd)
+                .caretakerStatus(CareStatus.values()[faker.random().nextInt(CareStatus.values().length)])
+                .clientStatus(CareStatus.values()[faker.random().nextInt(CareStatus.values().length)])
+                .description(faker.lorem().sentence())
+                .dailyPrice(faker.number().randomDouble(2, 10, 100))
+                .animal(animal)
+                .animalAttributes(animalAttributesForCare)
+                .caretaker(caretaker)
+                .client(client)
+                .build();
+
+    }
+
+    private LocalDateTime getRandomDateBetween(LocalDate minDate, LocalDate maxDate) {
+        long minDay = minDate.toEpochDay();
+        long maxDay = maxDate.toEpochDay();
+        long randomDay = ThreadLocalRandom.current().nextLong(minDay + 1, maxDay);
+        return LocalDate.ofEpochDay(randomDay).atTime(faker.random().nextInt(0, 23), faker.random().nextInt(0, 59));
+    }
+
 }

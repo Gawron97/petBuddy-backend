@@ -10,6 +10,7 @@ import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.repository.CareRepository;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
@@ -44,6 +45,7 @@ public class MockDataCreator {
     private static final int CARETAKER_OFFER_CONFIGURATION_COUNT = 2;
     private static final int OPTIONS_IN_CONFIGURATION_COUNT = 2;
     private static final int ANIMAL_AMENITY_IN_OFFER_COUNT = 2;
+    private static final int CARE_COUNT = 30;
 
     private final MockService mockService;
     private final CaretakerRepository caretakerRepository;
@@ -58,6 +60,7 @@ public class MockDataCreator {
     private final AnimalAmenityRepository animalAmenityRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final CareRepository careRepository;
 
     List<AppUser> caretakerAppUsers;
     List<AppUser> clientAppUsers;
@@ -99,7 +102,7 @@ public class MockDataCreator {
         offerOptionRepository.saveAllAndFlush(
                 mockService.createMockOfferConfigurationsOptionsForCaretakers(caretakers, animalAttributes, OPTIONS_IN_CONFIGURATION_COUNT));
 
-        //offers amenities
+        // offers amenities
         offers = offerRepository.findAll();
         animalAmenities = animalAmenityRepository.findAll();
         offerRepository.saveAllAndFlush(mockService.createMockOffersAmenities(offers, animalAmenities, ANIMAL_AMENITY_IN_OFFER_COUNT));
@@ -107,6 +110,10 @@ public class MockDataCreator {
         // chat
         Client client = createKnownClient();
         createChat(client, caretakers.get(0));
+
+        // cares
+        careRepository.saveAllAndFlush(mockService.createMockCares(clients, caretakers, animals, animalAttributes, CARE_COUNT));
+
 
         log.info("Mock data created successfully!");
         cleanCache();
@@ -117,6 +124,10 @@ public class MockDataCreator {
         clientAppUsers.clear();
         clients.clear();
         caretakers.clear();
+        animals.clear();
+        animalAttributes.clear();
+        offers.clear();
+        animalAmenities.clear();
     }
 
     private boolean shouldSkipInit() {
@@ -128,7 +139,8 @@ public class MockDataCreator {
                 offerOptionRepository.count() != 0 &&
                 animalAmenityRepository.count() != 0 &&
                 chatRoomRepository.count() != 0 &&
-                chatMessageRepository.count() != 0;
+                chatMessageRepository.count() != 0 &&
+                careRepository.count() != 0;
     }
 
     private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers, List<Client> clients) {
