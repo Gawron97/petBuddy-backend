@@ -26,6 +26,8 @@ logging:
 server:
   port: 8081
 
-timezone:
-  header-name: "Accept-Timezone"
+
+header-name:
+  timezone: "Accept-Timezone"
+  role: "Accept-Role"
 

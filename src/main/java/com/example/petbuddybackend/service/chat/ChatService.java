@@ -1,6 +1,11 @@
 package com.example.petbuddybackend.service.chat;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
+import com.example.petbuddybackend.dto.chat.ChatMessageSent;
+import com.example.petbuddybackend.entity.chat.ChatMessage;
+import com.example.petbuddybackend.entity.chat.ChatRoom;
+import com.example.petbuddybackend.entity.user.AppUser;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
@@ -17,6 +22,9 @@ import java.time.ZonedDateTime;
 @Service
 @RequiredArgsConstructor
 public class ChatService {
+
+    private static final String CHAT = "Chat";
+    private static final String PARTICIPATE_EXCEPTION_MESSAGE = "User with email: %s is not in chat of id %s";
 
     private final ChatRoomRepository chatRepository;
     private final ChatMessageRepository chatMessageRepository;
@@ -36,21 +44,66 @@ public class ChatService {
                 .map(message -> convertTimeZone(message, timeZone));
     }
 
+    public ChatMessageDTO saveMessage(Long chatId, String principalEmail, ChatMessageSent chatMessage, Role role) {
+        ChatRoom chatRoom = getChatRoomById(chatId);
+        checkUserParticipatesInChat(chatRoom, principalEmail, role);
+
+        AppUser sender = role == Role.CLIENT ?
+                chatRoom.getClient().getAccountData():
+                chatRoom.getCaretaker().getAccountData();
+
+        return chatMapper.mapToChatMessageDTO(saveMessage(chatRoom, sender, chatMessage.content()));
+    }
+
+    public ChatMessageDTO saveMessage(Long chatId, String principalEmail, ChatMessageSent chatMessage, Role role, ZoneId timeZone) {
+        return convertTimeZone(
+                saveMessage(chatId, principalEmail, chatMessage, role),
+                timeZone
+        );
+    }
+
+    public ChatRoom getChatRoomById(Long chatId) {
+        return chatRepository.findById(chatId)
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(chatId.toString(), CHAT));
+    }
+
+    private ChatMessage saveMessage(ChatRoom chatRoom, AppUser sender, String content) {
+        ChatMessage chatMessage = ChatMessage.builder()
+                .sender(sender)
+                .content(content)
+                .chatRoom(chatRoom)
+                .build();
+
+        return chatMessageRepository.save(chatMessage);
+    }
+
     private void checkChatExistsById(Long chatId) {
         if(!chatRepository.existsById(chatId)) {
-            throw new NotFoundException("Chat with id: " + chatId + " not found");
+            throw NotFoundException.withFormattedMessage(chatId.toString(), CHAT);
         }
     }
 
     private void checkUserParticipatesInChat(Long chatId, String email) {
         if(!isUserInChat(chatId, email)) {
-            throw new NotParticipateException("User with email: " + email + " is not in chat of id " + chatId);
+            throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatId));
         }
     }
 
-    private boolean isUserInChat(Long chatId, String principal) {
-        return chatRepository.existsByIdAndClient_Email(chatId, principal) ||
-                chatRepository.existsByIdAndCaretaker_Email(chatId, principal);
+    private void checkUserParticipatesInChat(ChatRoom chatRoom, String email, Role role) {
+        if(!isUserInChat(chatRoom, email, role)) {
+            throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatRoom.getId()));
+        }
+    }
+
+    private boolean isUserInChat(Long chatId, String email) {
+        return chatRepository.existsByIdAndClient_Email(chatId, email) ||
+                chatRepository.existsByIdAndCaretaker_Email(chatId, email);
+    }
+
+    private boolean isUserInChat(ChatRoom chatRoom, String email, Role role) {
+        return role == Role.CLIENT ?
+                chatRoom.getClient().getEmail().equals(email) :
+                chatRoom.getCaretaker().getEmail().equals(email);
     }
 
     private ChatMessageDTO convertTimeZone(ChatMessageDTO message, ZoneId timeZone) {
