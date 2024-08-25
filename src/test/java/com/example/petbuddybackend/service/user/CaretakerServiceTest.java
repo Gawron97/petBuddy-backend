@@ -46,6 +46,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -121,7 +122,7 @@ public class CaretakerServiceTest {
                         animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
                                 "DOG", "SEX", "MALE").orElseThrow()
                 ),
-                10.0,
+                BigDecimal.valueOf(10.0),
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
@@ -134,7 +135,7 @@ public class CaretakerServiceTest {
                         animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
                                 "DOG", "SIZE", "SMALL").orElseThrow()
                 ),
-                90.0,
+                BigDecimal.valueOf(90.0),
                 List.of(),
                 offerRepository,
                 caretakerWithComplexOffer.getOffers().get(0));
@@ -471,7 +472,7 @@ public class CaretakerServiceTest {
                         animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
                                 "DOG", "SEX", "MALE").orElseThrow()
                 ),
-                10.0,
+                BigDecimal.valueOf(10.0),
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
@@ -533,7 +534,7 @@ public class CaretakerServiceTest {
                         animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
                                 "DOG", "SEX", "MALE").orElseThrow()
                 ),
-                10.0,
+                BigDecimal.valueOf(10.0),
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),

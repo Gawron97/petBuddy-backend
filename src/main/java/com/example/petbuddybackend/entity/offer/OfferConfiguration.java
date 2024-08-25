@@ -1,9 +1,9 @@
 package com.example.petbuddybackend.entity.offer;
 
-import jakarta.annotation.Nonnull;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter @Setter
@@ -21,7 +21,7 @@ public class OfferConfiguration {
     private String description;
 
     @Column(nullable = false)
-    private Double dailyPrice;
+    private BigDecimal dailyPrice;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "offer_id", nullable = false, updatable = false)

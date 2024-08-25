@@ -4,9 +4,9 @@ public enum CareStatus {
 
     PENDING,
     ACCEPTED,
-    REJECTED,
+    AWAITING_PAYMENT,
+    PAID,
     CANCELLED,
-    OUTDATED,
-    PAID
+    OUTDATED
 
 }

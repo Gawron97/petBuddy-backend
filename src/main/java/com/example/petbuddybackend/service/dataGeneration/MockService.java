@@ -19,9 +19,10 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.github.javafaker.Faker;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -198,7 +199,7 @@ public class MockService {
     private OfferConfiguration createMockOfferConfiguration(Offer offer) {
         return OfferConfiguration.builder()
                 .offer(offer)
-                .dailyPrice(faker.number().randomDouble(2, 10, 100))
+                .dailyPrice(BigDecimal.valueOf(faker.number().randomDouble(2, 10, 100)))
                 .description(faker.lorem().sentence())
                 .build();
     }
@@ -386,29 +387,23 @@ public class MockService {
 
     private Care createMockCare(Client client, Caretaker caretaker, Animal animal, Set<AnimalAttribute> animalAttributesForCare) {
 
-        ZonedDateTime submittedAt = getRandomDateBetween(
-                LocalDate.of(2017, 1, 1),
-                LocalDate.of(2023, 1, 1)
-        ).atZone(ZoneId.systemDefault());
-
         LocalDate careStart = getRandomDateBetween(
-                submittedAt.toLocalDate(),
-                LocalDate.of(2023, 1, 10)
+                LocalDate.now(),
+                LocalDate.now().plusDays(10)
         ).toLocalDate();
 
         LocalDate careEnd = getRandomDateBetween(
                 careStart,
-                LocalDate.of(2023, 1, 20)
+                LocalDate.ofEpochDay(careStart.toEpochDay() + 10)
         ).toLocalDate();
 
         return Care.builder()
-                .submittedAt(submittedAt)
                 .careStart(careStart)
                 .careEnd(careEnd)
                 .caretakerStatus(CareStatus.values()[faker.random().nextInt(CareStatus.values().length)])
                 .clientStatus(CareStatus.values()[faker.random().nextInt(CareStatus.values().length)])
                 .description(faker.lorem().sentence())
-                .dailyPrice(faker.number().randomDouble(2, 10, 100))
+                .dailyPrice(BigDecimal.valueOf(faker.number().randomDouble(2, 10, 100)))
                 .animal(animal)
                 .animalAttributes(animalAttributesForCare)
                 .caretaker(caretaker)

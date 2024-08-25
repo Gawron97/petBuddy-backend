@@ -17,6 +17,7 @@ import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static com.example.petbuddybackend.testutils.MockUtils.*;
@@ -92,13 +93,13 @@ public class PersistenceUtils {
     }
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
-                                        Double price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
+                                        BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
         Offer offer = MockUtils.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
         return offerRepository.save(offer);
     }
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
-                                        Double price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository,
+                                        BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository,
                                         Offer offer) {
         Offer offerToSave = MockUtils.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities, offer);
         return offerRepository.save(offerToSave);

@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Check;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Set;
@@ -17,30 +18,34 @@ import java.util.Set;
 @Builder
 @Entity
 @Getter @Setter
-@Table(
-        uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerEmail", "clientEmail", "careStart", "careEnd" }) }
-)
 @Check(constraints = "client_email <> caretaker_email")
 public class Care {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, updatable = false)
     private ZonedDateTime submittedAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CareStatus caretakerStatus;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private CareStatus clientStatus;
 
+    @Column(nullable = false)
     private LocalDate careStart;
 
+    @Column(nullable = false)
     private LocalDate careEnd;
 
+    @Column(length = 1500)
     private String description;
 
-    private Double dailyPrice;
+    @Column(nullable = false)
+    private BigDecimal dailyPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "animalType", nullable = false, updatable = false)
@@ -61,5 +66,10 @@ public class Care {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clientEmail", nullable = false, updatable = false)
     private Client client;
+
+    @PrePersist
+    public void prePersist() {
+        submittedAt = ZonedDateTime.now();
+    }
 
 }
