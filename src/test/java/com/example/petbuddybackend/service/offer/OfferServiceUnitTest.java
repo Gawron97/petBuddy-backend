@@ -7,8 +7,6 @@ import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
-import com.example.petbuddybackend.repository.user.CaretakerRepository;
-import com.example.petbuddybackend.service.mapper.OfferMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.testutils.MockUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,7 +63,7 @@ public class OfferServiceUnitTest {
         when(offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(
                 caretaker.getEmail(), offerToCreate.animal().animalType())).thenReturn(Optional.empty());
         when(animalRepository.findById("DOG")).thenReturn(Optional.of(animalInExistingOffer));
-        when(caretakerService.getCaretaker(caretaker.getEmail())).thenReturn(caretaker);
+        when(caretakerService.getCaretakerByEmail(caretaker.getEmail())).thenReturn(caretaker);
 
         // When
         offerService.addOrEditOffer(offerToCreate, caretaker.getEmail());

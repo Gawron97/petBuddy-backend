@@ -22,6 +22,11 @@ public class ClientService {
         return clientRepository.existsById(clientEmail);
     }
 
+    public Client getClientByEmail(String clientEmail) {
+        return clientRepository.findById(clientEmail)
+                .orElseThrow(() -> new RuntimeException("Client with email: " + clientEmail + " not found"));
+    }
+
     @Transactional
     public void createClientIfNotExist(JwtAuthenticationToken token) {
         String email = (String) token.getTokenAttributes().get("email");
@@ -44,5 +49,4 @@ public class ClientService {
                 .build();
 
     }
-
 }

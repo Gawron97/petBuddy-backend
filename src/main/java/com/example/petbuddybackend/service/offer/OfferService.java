@@ -46,7 +46,7 @@ public class OfferService {
     private final OfferConfigurationMapper offerConfigurationMapper = OfferConfigurationMapper.INSTANCE;
 
     public OfferDTO addOrEditOffer(OfferDTO offer, String caretakerEmail) {
-        Caretaker caretaker = caretakerService.getCaretaker(caretakerEmail);
+        Caretaker caretaker = caretakerService.getCaretakerByEmail(caretakerEmail);
 
         Offer modifiyngOffer = getOrCreateCaretakerOffer(caretakerEmail, offer.animal().animalType(),
                 caretaker, offer.description());

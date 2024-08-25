@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
+import com.example.petbuddybackend.service.chat.ResourceAlreadyExists;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
 import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
@@ -9,8 +10,10 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -73,5 +76,23 @@ public class GeneralAdvice {
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleDateTimeException(DateTimeException e) {
         return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(ResourceAlreadyExists.class)
+    @ResponseStatus(code = HttpStatus.CONFLICT)
+    public ApiExceptionResponse handleResourceAlreadyExists(ResourceAlreadyExists e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleMissingRequestHeaderException(MissingRequestHeaderException e) {
+        return new ApiExceptionResponse(e, "Required header missing");
     }
 }

@@ -5,10 +5,14 @@ import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.AppUser;
+import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
+import com.example.petbuddybackend.service.user.CaretakerService;
+import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.NotParticipateException;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +29,12 @@ public class ChatService {
 
     private static final String CHAT = "Chat";
     private static final String PARTICIPATE_EXCEPTION_MESSAGE = "User with email: %s is not in chat of id %s";
+    public static final String CHAT_PARTICIPANTS_ALREADY_EXIST_MESSAGE = "Chat between client: \"%s\" and caretaker \"%s\" already exists";
 
+    private final ClientService clientService;
+    private final CaretakerService caretakerService;
     private final ChatRoomRepository chatRepository;
     private final ChatMessageRepository chatMessageRepository;
-
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
 
     public Page<ChatMessageDTO> getChatMessages(Long chatId, String principalEmail, Pageable pageable) {
@@ -67,6 +73,58 @@ public class ChatService {
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(chatId.toString(), CHAT));
     }
 
+    public ChatMessageDTO createChatRoomWithMessage(
+            String messageReceiverEmail,
+            String principalEmail,
+            Role principalRole,
+            ChatMessageSent message
+    ) {
+        checkChatNotExistsByParticipants(messageReceiverEmail, principalEmail, principalRole);
+
+        return principalRole == Role.CLIENT ?
+                createChatRoomWithMessageForClientSender(principalEmail, messageReceiverEmail, message) :
+                createChatRoomWithMessageForCaretakerSender(principalEmail, messageReceiverEmail, message);
+    }
+
+    public ChatMessageDTO createChatRoomWithMessage(
+            String messageReceiverEmail,
+            String principalEmail,
+            Role principalRole,
+            ChatMessageSent message,
+            ZoneId timeZone
+    ) {
+        return convertTimeZone(
+                createChatRoomWithMessage(messageReceiverEmail, principalEmail, principalRole, message),
+                timeZone
+        );
+    }
+
+    private ChatMessageDTO createChatRoomWithMessageForClientSender(
+            String clientSenderEmail,
+            String caretakerReceiverEmail,
+            ChatMessageSent message
+    ) {
+        Client clientSender = clientService.getClientByEmail(clientSenderEmail);
+        Caretaker caretakerReceiver = caretakerService.getCaretakerByEmail(caretakerReceiverEmail);
+        ChatRoom chatRoom = saveChatRoom(clientSender, caretakerReceiver);
+        ChatMessage chatMessage = saveMessage(chatRoom, clientSender.getAccountData(), message.content());
+
+        return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage));
+    }
+
+    private ChatMessageDTO createChatRoomWithMessageForCaretakerSender(
+            String caretakerSenderEmail,
+            String clientReceiverEmail,
+            ChatMessageSent message
+    ) {
+        Client clientReceiver = clientService.getClientByEmail(clientReceiverEmail);
+        Caretaker caretakerSender = caretakerService.getCaretakerByEmail(caretakerSenderEmail);
+        ChatRoom chatRoom = saveChatRoom(clientReceiver, caretakerSender);
+        ChatMessage chatMessage = saveMessage(chatRoom, caretakerSender.getAccountData(), message.content());
+
+        return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage));
+    }
+
     private ChatMessage saveMessage(ChatRoom chatRoom, AppUser sender, String content) {
         ChatMessage chatMessage = ChatMessage.builder()
                 .sender(sender)
@@ -77,9 +135,32 @@ public class ChatService {
         return chatMessageRepository.save(chatMessage);
     }
 
+    private ChatRoom saveChatRoom(Client client, Caretaker caretaker) {
+        ChatRoom chatRoom = ChatRoom.builder()
+                .client(client)
+                .caretaker(caretaker)
+                .build();
+
+        return chatRepository.save(chatRoom);
+    }
+
     private void checkChatExistsById(Long chatId) {
         if(!chatRepository.existsById(chatId)) {
             throw NotFoundException.withFormattedMessage(chatId.toString(), CHAT);
+        }
+    }
+
+    private void checkChatNotExistsByParticipants(String principalEmail, String otherParticipantEmail, Role principalRole) {
+        if(principalRole == Role.CLIENT) {
+            checkChatNotExistsByParticipants(otherParticipantEmail, principalEmail);
+        } else {
+            checkChatNotExistsByParticipants(principalEmail, otherParticipantEmail);
+        }
+    }
+
+    private void checkChatNotExistsByParticipants(String clientEmail, String caretakerEmail) {
+        if(chatRepository.existsByClient_EmailAndCaretaker_Email(clientEmail, caretakerEmail)) {
+            throw new ResourceAlreadyExists(String.format(CHAT_PARTICIPANTS_ALREADY_EXIST_MESSAGE, clientEmail, caretakerEmail));
         }
     }
 

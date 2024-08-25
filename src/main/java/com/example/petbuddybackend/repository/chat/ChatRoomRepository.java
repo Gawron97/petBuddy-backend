@@ -8,4 +8,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     boolean existsByIdAndCaretaker_Email(Long chatRoomId, String email);
 
     boolean existsByIdAndClient_Email(Long chatRoomId, String email);
+
+    boolean existsByClient_EmailAndCaretaker_Email(String clientEmail, String caretakerEmail);
 }
