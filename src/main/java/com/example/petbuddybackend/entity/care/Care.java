@@ -70,6 +70,21 @@ public class Care {
     @PrePersist
     public void prePersist() {
         submittedAt = ZonedDateTime.now();
+        assertAnimalAttributesMatchWithAnimalType();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        assertAnimalAttributesMatchWithAnimalType();
+    }
+
+    private void assertAnimalAttributesMatchWithAnimalType() {
+        if(animalAttributes.stream()
+                .anyMatch(animalAttribute ->
+                        !animalAttribute.getAnimal().getAnimalType().equals(animal.getAnimalType()))) {
+
+            throw new IllegalArgumentException("Animal attributes must match with animal type");
+        }
     }
 
 }
