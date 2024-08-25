@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.entity.offer;
 
-import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
+import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,5 +45,32 @@ public class Offer {
             inverseJoinColumns = @JoinColumn(name = "animalAmenityId")
     )
     private Set<AnimalAmenity> animalAmenities;
+
+    @PrePersist
+    public void prePersist() {
+        assertAnimalAttributesMatchWithAnimalType();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        assertAnimalAttributesMatchWithAnimalType();
+    }
+
+    private void assertAnimalAttributesMatchWithAnimalType() {
+
+        if(offerConfigurations != null) {
+            offerConfigurations.stream()
+                    .filter(offerConfiguration -> offerConfiguration.getOfferOptions() != null &&
+                            !offerConfiguration.getOfferOptions().isEmpty())
+                    .flatMap(offerConfiguration -> offerConfiguration.getOfferOptions().stream())
+                    .filter(offerOption ->
+                            !offerOption.getAnimalAttribute().getAnimal().getAnimalType().equals(animal.getAnimalType()))
+                    .findAny()
+                    .ifPresent(offerOption -> {
+                        throw new IllegalArgumentException("Animal attribute does not match with animal type");
+                    });
+        }
+
+    }
 
 }

@@ -19,6 +19,7 @@ import org.keycloak.common.util.CollectionUtil;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -178,12 +179,12 @@ public final class MockUtils {
     public static OfferConfiguration createOfferConfiguration(List<OfferOption> offerOptions) {
         return OfferConfiguration.builder()
                 .description("description")
-                .dailyPrice(10.0)
+                .dailyPrice(BigDecimal.valueOf(10.0))
                 .offerOptions(offerOptions)
                 .build();
     }
 
-    public static OfferConfiguration createOfferConfiguration(Offer offer, Double price) {
+    public static OfferConfiguration createOfferConfiguration(Offer offer, BigDecimal price) {
         return OfferConfiguration.builder()
                 .description("description")
                 .dailyPrice(price)
@@ -192,7 +193,7 @@ public final class MockUtils {
     }
 
     public static OfferConfiguration createOfferConfiguration(Offer offer, List<AnimalAttribute> animalAttributes) {
-        OfferConfiguration offerConfiguration = createOfferConfiguration(offer, 10.0);
+        OfferConfiguration offerConfiguration = createOfferConfiguration(offer, BigDecimal.valueOf(10.0));
         List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
 
         offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
@@ -254,7 +255,7 @@ public final class MockUtils {
     public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
                                                            Animal animal,
                                                            List<AnimalAttribute> animalAttributes,
-                                                           Double price,
+                                                           BigDecimal price,
                                                            List<AnimalAmenity> animalAmenities) {
 
         Offer offer = Offer.builder()
@@ -292,7 +293,7 @@ public final class MockUtils {
     public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
                                                            Animal animal,
                                                            List<AnimalAttribute> animalAttributes,
-                                                           Double price,
+                                                           BigDecimal price,
                                                            List<AnimalAmenity> animalAmenities,
                                                            Offer offer) {
 

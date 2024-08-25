@@ -32,6 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -87,7 +88,7 @@ public class OfferServiceIntegrationTest {
         );
 
         existingOffer = PersistenceUtils.addComplexOffer(caretakerWithComplexOffer, animalInComplexOffer,
-                animalAttributesInComplexOffer, 10.0, animalAmenitiesInComplexOffer, offerRepository);
+                animalAttributesInComplexOffer, BigDecimal.valueOf(10.0), animalAmenitiesInComplexOffer, offerRepository);
 
     }
 
@@ -141,7 +142,7 @@ public class OfferServiceIntegrationTest {
                                         new ArrayList<>(List.of(
                                                 OfferConfigurationDTO.builder()
                                                         .description("First Description")
-                                                        .dailyPrice(20.0)
+                                                        .dailyPrice(BigDecimal.valueOf(20.0))
                                                         .selectedOptions(new HashMap<>(Map.of("SIZE", new ArrayList<>(List.of("BIG")))))
                                                         .build()
                                         ))
@@ -159,7 +160,7 @@ public class OfferServiceIntegrationTest {
                                         new ArrayList<>(List.of(
                                                 OfferConfigurationDTO.builder()
                                                         .description("Second Description")
-                                                        .dailyPrice(30.0)
+                                                        .dailyPrice(BigDecimal.valueOf(30.0))
                                                         .selectedOptions(new HashMap<>(Map.of("SIZE", new ArrayList<>(List.of("SMALL")))))
                                                         .build()
                                         ))
@@ -177,7 +178,7 @@ public class OfferServiceIntegrationTest {
                                         new ArrayList<>(List.of(
                                                 OfferConfigurationDTO.builder()
                                                         .description("Second Description")
-                                                        .dailyPrice(30.0)
+                                                        .dailyPrice(BigDecimal.valueOf(30.0))
                                                         .selectedOptions(new HashMap<>(Map.of("SIZE", new ArrayList<>(List.of("SMALL")))))
                                                         .build()
                                         ))
@@ -207,7 +208,7 @@ public class OfferServiceIntegrationTest {
     @Transactional
     void editConfiguration_ShouldEditConfigurationWithProperData(
             int configurationIndex, OfferConfigurationDTO configurationToEdit, String expectedDescription,
-            double expectedDailyPrice, Map<String, List<String>> expectedSelectedOptions) {
+            BigDecimal expectedDailyPrice, Map<String, List<String>> expectedSelectedOptions) {
 
         Long configurationId = existingOffer.getOfferConfigurations().get(configurationIndex).getId();
         PersistenceUtils.addOfferConfigurationForOffer(existingOffer,
@@ -243,28 +244,28 @@ public class OfferServiceIntegrationTest {
                         0, // ID of the configuration to edit
                         OfferConfigurationDTO.builder()
                                 .description("Updated Description")
-                                .dailyPrice(25.0)
+                                .dailyPrice(BigDecimal.valueOf(25.0))
                                 .selectedOptions(new HashMap<>(Map.of(
                                         "SIZE", List.of("BIG"),
                                         "SEX", List.of("MALE")
                                 )))
                                 .build(),
                         "Updated Description", // Expected Description
-                        25.0, // Expected Daily Price
+                        BigDecimal.valueOf(25.0), // Expected Daily Price
                         Map.of("SIZE", List.of("BIG"), "SEX", List.of("MALE")) // Expected Selected Options
                 ),
                 Arguments.of(
                         0, // ID of the configuration to edit
                         OfferConfigurationDTO.builder()
                                 .description("Another Update")
-                                .dailyPrice(30.0)
+                                .dailyPrice(BigDecimal.valueOf(30.0))
                                 .selectedOptions(new HashMap<>(Map.of(
                                         "SIZE", List.of("SMALL"),
                                         "SEX", List.of("MALE", "SHE")
                                 )))
                                 .build(),
                         "Another Update", // Expected Description
-                        30.0, // Expected Daily Price
+                        BigDecimal.valueOf(30.0), // Expected Daily Price
                         Map.of(
                                 "SIZE", List.of("SMALL"),
                                 "SEX", List.of("MALE", "SHE")
@@ -299,7 +300,7 @@ public class OfferServiceIntegrationTest {
                                         new ArrayList<>(List.of(
                                                 OfferConfigurationDTO.builder()
                                                         .description("First Description")
-                                                        .dailyPrice(20.0)
+                                                        .dailyPrice(BigDecimal.valueOf(20.0))
                                                         .selectedOptions(new HashMap<>(Map.of("SIZE", new ArrayList<>(List.of("BIG")))))
                                                         .build()
                                         ))
@@ -316,7 +317,7 @@ public class OfferServiceIntegrationTest {
                                         new ArrayList<>(List.of(
                                                 OfferConfigurationDTO.builder()
                                                         .description("Second Description")
-                                                        .dailyPrice(30.0)
+                                                        .dailyPrice(BigDecimal.valueOf(30.0))
                                                         .selectedOptions(new HashMap<>(
                                                                 Map.of(
                                                                         "SIZE", new ArrayList<>(List.of("BIG")),
@@ -364,7 +365,7 @@ public class OfferServiceIntegrationTest {
                         0, // ID of the configuration to edit
                         OfferConfigurationDTO.builder()
                                 .description("Updated Description")
-                                .dailyPrice(25.0)
+                                .dailyPrice(BigDecimal.valueOf(25.0))
                                 .selectedOptions(new HashMap<>(Map.of(
                                         "SIZE", List.of("SMALL")
                                 )))
