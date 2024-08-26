@@ -26,4 +26,24 @@ public class CareController {
         return careService.updateCare(careId, updateCare, principal.getName());
     }
 
+    @PostMapping("/{careId}/caretaker-accept")
+    public CareDTO acceptCareByCaretaker(@PathVariable Long careId, Principal principal) {
+        return careService.acceptCareByCaretaker(careId, principal.getName());
+    }
+
+    @PostMapping("/{careId}/client-accept")
+    public CareDTO acceptCareByClient(@PathVariable Long careId, Principal principal) {
+        return careService.acceptCareByClient(careId, principal.getName());
+    }
+
+    @PostMapping("/{careId}/caretaker-reject")
+    public CareDTO rejectCareByCaretaker(@PathVariable Long careId, Principal principal) {
+        return careService.rejectCareByCaretaker(careId, principal.getName());
+    }
+
+    @PostMapping("/{careId}/client-cancel")
+    public CareDTO cancelCareByClient(@PathVariable Long careId, Principal principal) {
+        return careService.cancelCareByClient(careId, principal.getName());
+    }
+
 }
