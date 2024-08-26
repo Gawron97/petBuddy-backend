@@ -3,6 +3,7 @@ package com.example.petbuddybackend.testutils;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -10,6 +11,7 @@ import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.repository.CareRepository;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
@@ -127,5 +129,11 @@ public class PersistenceUtils {
         chatMessageRepository.saveAllAndFlush(chatMessages);
         chatRoom.setMessages(chatMessages);
         return chatRoom;
+    }
+
+    public static Care addCare(CareRepository careRepository, Caretaker caretaker,
+                               Client client, Animal animal) {
+        Care care = createMockCare(caretaker, client, animal);
+        return careRepository.saveAndFlush(care);
     }
 }

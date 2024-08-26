@@ -6,6 +6,8 @@ import com.example.petbuddybackend.entity.amenity.Amenity;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.care.Care;
+import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -20,6 +22,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -373,6 +376,23 @@ public final class MockUtils {
                 );
             }
         };
+
+    }
+
+    public static Care createMockCare(Caretaker caretaker, Client client, Animal animal) {
+
+        return Care.builder()
+                .caretakerStatus(CareStatus.PENDING)
+                .clientStatus(CareStatus.ACCEPTED)
+                .careStart(LocalDate.now().plusDays(2))
+                .careEnd(LocalDate.now().plusDays(7))
+                .description("Test care description")
+                .dailyPrice(new BigDecimal("50.00"))
+                .animal(animal)
+                .animalAttributes(new HashSet<>())
+                .caretaker(caretaker)
+                .client(client)
+                .build();
 
     }
 

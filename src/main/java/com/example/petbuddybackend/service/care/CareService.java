@@ -29,7 +29,7 @@ public class CareService {
     private final AnimalService animalService;
     private final CaretakerService caretakerService;
     private final ClientService clientService;
-    private final CareMapper careMapper;
+    private final CareMapper careMapper = CareMapper.INSTANCE;
 
     public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail) {
 
