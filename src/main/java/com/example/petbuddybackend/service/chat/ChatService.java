@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.chat;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
+import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -99,6 +100,17 @@ public class ChatService {
         );
     }
 
+    public Page<ChatRoomDTO> getChatRooms(String principalEmail, Role role, Pageable pageable) {
+        return role == Role.CLIENT ?
+                chatRepository.findByClientEmailSortByLastMessageDesc(principalEmail, pageable) :
+                chatRepository.findByCaretakerEmailSortByLastMessageDesc(principalEmail, pageable);
+    }
+
+    public Page<ChatRoomDTO> getChatRooms(String principalEmail, Role role, Pageable pageable, ZoneId timeZone) {
+        return getChatRooms(principalEmail, role, pageable)
+                .map(room -> convertTimeZone(room, timeZone));
+    }
+
     private ChatMessageDTO createChatRoomWithMessageForClientSender(
             String clientSenderEmail,
             String caretakerReceiverEmail,
@@ -193,5 +205,13 @@ public class ChatService {
 
         message.setCreatedAt(zonedDateTime);
         return message;
+    }
+
+    private ChatRoomDTO convertTimeZone(ChatRoomDTO chatRoom, ZoneId timeZone) {
+        ZonedDateTime zonedDateTime = chatRoom.getLastMessageCreatedAt()
+                .withZoneSameInstant(timeZone);
+
+        chatRoom.setLastMessageCreatedAt(zonedDateTime);
+        return chatRoom;
     }
 }

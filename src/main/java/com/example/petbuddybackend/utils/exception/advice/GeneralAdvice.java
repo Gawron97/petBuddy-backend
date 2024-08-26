@@ -11,6 +11,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -94,5 +95,11 @@ public class GeneralAdvice {
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMissingRequestHeaderException(MissingRequestHeaderException e) {
         return new ApiExceptionResponse(e, "Required header missing");
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
     }
 }
