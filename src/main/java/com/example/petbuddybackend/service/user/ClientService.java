@@ -3,6 +3,7 @@ package com.example.petbuddybackend.service.user;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -43,6 +44,11 @@ public class ClientService {
                 .accountData(appUser)
                 .build();
 
+    }
+
+    public Client getClient(String clientEmail) {
+        return clientRepository.findById(clientEmail)
+                .orElseThrow(() -> new NotFoundException("Client with email " + clientEmail + " not found"));
     }
 
 }

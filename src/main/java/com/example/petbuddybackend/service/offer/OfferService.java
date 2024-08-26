@@ -3,7 +3,6 @@ package com.example.petbuddybackend.service.offer;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
-import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
@@ -14,6 +13,7 @@ import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferConfigurationRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
+import com.example.petbuddybackend.service.animal.AnimalService;
 import com.example.petbuddybackend.service.mapper.OfferConfigurationMapper;
 import com.example.petbuddybackend.service.mapper.OfferMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
@@ -42,6 +42,7 @@ public class OfferService {
     private final AnimalRepository animalRepository;
     private final AnimalAttributeRepository animalAttributeRepository;
     private final AnimalAmenityRepository animalAmenityRepository;
+    private final AnimalService animalService;
     private final OfferMapper offerMapper = OfferMapper.INSTANCE;
     private final OfferConfigurationMapper offerConfigurationMapper = OfferConfigurationMapper.INSTANCE;
 
@@ -93,7 +94,7 @@ public class OfferService {
 
         List<AnimalAmenity> newAnimalAmenities = new ArrayList<>();
         for(String animalAmenity : animalAmenities) {
-            AnimalAmenity newAnimalAmenity = getAnimalAmenity(animalAmenity, modifiyngOffer.getAnimal().getAnimalType());
+            AnimalAmenity newAnimalAmenity = animalService.getAnimalAmenity(animalAmenity, modifiyngOffer.getAnimal().getAnimalType());
             checkDuplicateForAnimalAmenity(
                     Stream.concat(
                             Optional.ofNullable(modifiyngOffer.getAnimalAmenities()).orElse(Collections.emptySet()).stream(),
@@ -114,12 +115,6 @@ public class OfferService {
                     animalAmenity.getAmenity().getName()
             ));
         }
-    }
-
-    private AnimalAmenity getAnimalAmenity(String amenityName, String animalType) {
-        return animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType(amenityName, animalType)
-                .orElseThrow(() -> new NotFoundException("Animal amenity with name " + amenityName + " and animal type "
-                        + animalType + " not found"));
     }
 
     private List<OfferConfiguration> createConfigurationsForOffer(List<OfferConfigurationDTO> offerConfigurations,
@@ -186,7 +181,7 @@ public class OfferService {
         for(Map.Entry<String, List<String>> entry : selectedOptions.entrySet()) {
             String attributeName = entry.getKey();
             for(String attributeValue : entry.getValue()) {
-                AnimalAttribute animalAttribute = getAnimalAttribute(offerConfiguration.getOffer().getAnimal().getAnimalType(),
+                AnimalAttribute animalAttribute = animalService.getAnimalAttribute(offerConfiguration.getOffer().getAnimal().getAnimalType(),
                         attributeName, attributeValue);
                 offerOptions.add(createOfferOption(animalAttribute, offerConfiguration));
             }
@@ -202,17 +197,12 @@ public class OfferService {
                 .build();
     }
 
-    private AnimalAttribute getAnimalAttribute(String animalType, String attributeName, String attributeValue) {
-        return animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(animalType, attributeName, attributeValue)
-                .orElseThrow(() -> new NotFoundException("Animal attribute with name " + attributeName + " and value " + attributeValue + " not found"));
-    }
-
     private Offer getOrCreateCaretakerOffer(String caretakerEmail, String animalType, Caretaker caretaker,
                                             String description) {
         return offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerEmail, animalType)
                 .orElse(Offer.builder()
                         .caretaker(caretaker)
-                        .animal(getAnimal(animalType))
+                        .animal(animalService.getAnimal(animalType))
                         .description(description)
                         .build());
 
@@ -221,11 +211,6 @@ public class OfferService {
     private OfferConfiguration getOfferConfiguration(Long id) {
         return offerConfigurationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Offer configuration with id " + id + " not found"));
-    }
-
-    private Animal getAnimal(String animalType) {
-        return animalRepository.findById(animalType)
-                .orElseThrow(() -> new NotFoundException("Animal with type " + animalType + " not found"));
     }
 
     public OfferDTO deleteConfiguration(Long configurationId) {
@@ -261,7 +246,7 @@ public class OfferService {
         for(Map.Entry<String, List<String>> entry : configuration.selectedOptions().entrySet()) {
             String attributeName = entry.getKey();
             for(String attributeValue : entry.getValue()) {
-                AnimalAttribute animalAttribute = getAnimalAttribute(editingConfiguration.getOffer().getAnimal().getAnimalType(),
+                AnimalAttribute animalAttribute = animalService.getAnimalAttribute(editingConfiguration.getOffer().getAnimal().getAnimalType(),
                         attributeName, attributeValue);
                 if(offerOptions.stream().noneMatch(offerOption -> offerOption.getAnimalAttribute().equals(animalAttribute))) {
                     offerOptions.add(createOfferOption(animalAttribute, editingConfiguration));
