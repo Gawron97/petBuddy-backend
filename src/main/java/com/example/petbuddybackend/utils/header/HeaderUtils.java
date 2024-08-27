@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-// TODO: test
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class HeaderUtils {
 
@@ -75,6 +74,6 @@ public final class HeaderUtils {
             return (Map<String, Object>) nativeHeaders;
         }
 
-        throw new RuntimeException("Headers are not of type Map");
+        throw new IllegalArgumentException("Headers are not of type Map");
     }
 }
