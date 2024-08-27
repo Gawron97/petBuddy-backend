@@ -15,18 +15,19 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
     boolean existsByClient_EmailAndCaretaker_Email(String clientEmail, String caretakerEmail);
 
-    @Query(value = """
+    @Query("""
         SELECT new com.example.petbuddybackend.dto.chat.ChatRoomDTO(
                cr.id,
                cr.client.email,
                cr.client.accountData.name,
                cr.client.accountData.surname,
                cm.createdAt,
-               cm.content
+               cm.content,
+               cm.sender.email
         )
         FROM ChatRoom cr
         JOIN ChatMessage cm ON cm.chatRoom.id = cr.id
-        WHERE cr.client.email = :email
+        WHERE cr.caretaker.email = :email
         AND cm.createdAt = (
             SELECT MAX(cm2.createdAt)
             FROM ChatMessage cm2
@@ -35,14 +36,15 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
         """)
     Page<ChatRoomDTO> findByCaretakerEmailSortByLastMessageDesc(String email, Pageable pageable);
 
-    @Query(value = """
+    @Query("""
         SELECT new com.example.petbuddybackend.dto.chat.ChatRoomDTO(
                cr.id,
                cr.caretaker.email,
                cr.caretaker.accountData.name,
                cr.caretaker.accountData.surname,
                cm.createdAt,
-               cm.content
+               cm.content,
+               cm.sender.email
         )
         FROM ChatRoom cr
         JOIN ChatMessage cm ON cm.chatRoom.id = cr.id

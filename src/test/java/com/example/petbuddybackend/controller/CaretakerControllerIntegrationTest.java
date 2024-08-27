@@ -148,7 +148,7 @@ public class CaretakerControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void editCaretaker_WhenCaretakerExists_ShouldUpdateOnlyProvidedFields() throws Exception {
         // Given
         Caretaker caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);

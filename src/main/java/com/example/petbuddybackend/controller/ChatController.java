@@ -62,13 +62,13 @@ public class ChatController {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
 
         return acceptTimeZone.isPresent() ?
-                chatService.getChatRooms(
+                chatService.getChatRoomsByParticipantEmail(
                         principal.getName(),
                         acceptRole,
                         pageable,
                         TimeUtils.getOrSystemDefault(acceptTimeZone.get())
                 ) :
-                chatService.getChatRooms(
+                chatService.getChatRoomsByParticipantEmail(
                         principal.getName(),
                         acceptRole,
                         pageable

@@ -1,10 +1,13 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
-import com.example.petbuddybackend.service.chat.ResourceAlreadyExists;
+import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidWebSocketHeaderException;
+import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
+import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
-import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.NotParticipateException;
+import com.example.petbuddybackend.utils.exception.throweable.chat.InvalidMessageReceiverException;
+import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -79,9 +82,9 @@ public class GeneralAdvice {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
-    @ExceptionHandler(ResourceAlreadyExists.class)
+    @ExceptionHandler(ChatAlreadyExistsException.class)
     @ResponseStatus(code = HttpStatus.CONFLICT)
-    public ApiExceptionResponse handleResourceAlreadyExists(ResourceAlreadyExists e) {
+    public ApiExceptionResponse handleResourceAlreadyExists(ChatAlreadyExistsException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
@@ -100,6 +103,24 @@ public class GeneralAdvice {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidMessageReceiverException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleInvalidMessageReceiverException(InvalidMessageReceiverException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(MissingWebSocketHeaderException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleMissingWebSocketHeaderException(MissingWebSocketHeaderException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidWebSocketHeaderException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleInvalidWebSocketHeaderException(InvalidWebSocketHeaderException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 }

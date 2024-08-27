@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.exception.throweable;
+package com.example.petbuddybackend.utils.exception.throweable.general;
 
 public class NotFoundException extends RuntimeException {
 

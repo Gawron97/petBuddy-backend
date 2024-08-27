@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.testutils;
 
+import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.amenity.Amenity;
@@ -64,13 +65,17 @@ public final class MockUtils {
                 .build();
     }
 
-    public static Caretaker createMockCaretaker() {
+    public static Caretaker createMockCaretaker(String email) {
         return createMockCaretaker(
                 "name",
                 "surname",
-                "email",
+                email,
                 createMockAddress()
         );
+    }
+
+    public static Caretaker createMockCaretaker() {
+        return createMockCaretaker("caretakerEmail");
     }
 
     public static List<Caretaker> createMockCaretakers() {
@@ -84,18 +89,19 @@ public final class MockUtils {
         );
     }
 
-
-    public static Client createMockClient() {
-        String email = "clientEmail";
-
+    public static Client createMockClient(String newClientEmail) {
         return Client.builder()
-                .email(email)
+                .email(newClientEmail)
                 .accountData(AppUser.builder()
-                        .email("clientEmail")
+                        .email(newClientEmail)
                         .name("clientName")
                         .surname("clientSurname")
                         .build())
                 .build();
+    }
+
+    public static Client createMockClient() {
+        return createMockClient("clientEmail");
     }
 
     public static Rating createMockRating(Caretaker caretaker, Client client) {
@@ -375,5 +381,4 @@ public final class MockUtils {
         };
 
     }
-
 }

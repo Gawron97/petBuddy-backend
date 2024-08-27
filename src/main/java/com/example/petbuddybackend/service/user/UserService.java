@@ -2,7 +2,7 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
