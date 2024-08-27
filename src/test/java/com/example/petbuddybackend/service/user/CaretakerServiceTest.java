@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.config.TestDataConfiguration;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;

@@ -5,7 +5,6 @@ import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
-import com.example.petbuddybackend.utils.time.TimeUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,12 +13,16 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
 public class ChatWebSocketController {
+
+    @Value("${header-name.timezone}")
+    private String TIMEZONE_HEADER_NAME;
 
     @Value("${header-name.role}")
     private String ROLE_HEADER_NAME;
@@ -37,10 +40,11 @@ public class ChatWebSocketController {
     ) {
         String username = principal.getName();
         Role acceptRole = HeaderUtils.getHeaderSingleValue(headers, ROLE_HEADER_NAME, Role.class);
-        Optional<String> acceptTimeZone = Optional.of("Europe/Warsaw"); // support will be added in next PR
+        Optional<String> acceptTimeZone = HeaderUtils.getOptionalHeaderSingleValue(headers, TIMEZONE_HEADER_NAME, String.class);
 
+        // Full support for time zones will added in next PR
         return acceptTimeZone.isPresent() ?
-                chatService.createMessage(chatId, username, message, acceptRole, TimeUtils.getOrSystemDefault(acceptTimeZone.get())) :
+                chatService.createMessage(chatId, username, message, acceptRole, ZoneId.of("Europe/Warsaw")) :
                 chatService.createMessage(chatId, username, message, acceptRole);
     }
 }

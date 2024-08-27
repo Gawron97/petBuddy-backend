@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.service.offer;
 
 
-import com.example.petbuddybackend.config.TestDataConfiguration;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.animal.AnimalDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;

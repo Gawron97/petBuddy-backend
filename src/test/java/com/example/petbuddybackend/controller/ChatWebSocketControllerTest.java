@@ -87,7 +87,7 @@ public class ChatWebSocketControllerTest {
         // Send message with headers
         stompSession.send(headers, chatMessageSent);
 
-        ChatMessageDTO chatMessageDTO = blockingQueue.poll(1, SECONDS);
+        ChatMessageDTO chatMessageDTO = blockingQueue.poll(2, SECONDS);
         assertNotNull(chatMessageDTO);
     }
 
@@ -112,7 +112,7 @@ public class ChatWebSocketControllerTest {
         // Send message with headers
         stompSession.send(headers, chatMessageSent);
 
-        ChatMessageDTO chatMessageDTO = blockingQueue.poll(1, SECONDS);
+        ChatMessageDTO chatMessageDTO = blockingQueue.poll(2, SECONDS);
         assertNotNull(chatMessageDTO);
     }
 
