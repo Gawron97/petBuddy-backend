@@ -33,49 +33,6 @@ public class ChatController {
 
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping
-    @Operation(
-            summary = "Get all chat rooms",
-            description = """
-                          ## Endpoint description
-                          Retrieves a list of all chat rooms for the current user. The returned page is sorted by
-                          the last message timestamp in descending order (from newest to oldest). The chatRoomId can be 
-                          used to connect to the websocket endpoint and send messages to the chat room.
-                          
-                          **Role header** determines the sender's role in the chat room. If the principal is, for example, 
-                          a Caretaker, the receiver is assumed to be a Client.
-                          
-                          ## Connecting to websocket endpoint
-                          - To connect to websocket endpoint, use the following path: `/ws`
-                          - To subscribe to chat room, use the following path: `/topic/messages/{chatId}`
-                          - To send a message to chat room, use the following path: `/app/chat/{chatId}`
-                          
-                          Same payload and headers apply to websocket endpoint as to `/api/chat/{messageReceiverEmail}` endpoint.
-                          """
-    )
-    public Page<ChatRoomDTO> getChatRooms(
-            Principal principal,
-            @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole,
-            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) Optional<String> acceptTimeZone,
-            @Valid @ParameterObject PagingParams pagingParams
-    ) {
-        Pageable pageable = PagingUtils.createPageable(pagingParams);
-
-        return acceptTimeZone.isPresent() ?
-                chatService.getChatRoomsByParticipantEmail(
-                        principal.getName(),
-                        acceptRole,
-                        pageable,
-                        TimeUtils.getOrSystemDefault(acceptTimeZone.get())
-                ) :
-                chatService.getChatRoomsByParticipantEmail(
-                        principal.getName(),
-                        acceptRole,
-                        pageable
-                );
-    }
-
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{chatId}/messages")
     @Operation(
             summary = "Get page of chat messages",
@@ -129,7 +86,8 @@ public class ChatController {
                     - To subscribe to chat room, use the following path: `/topic/messages/{chatId}`
                     - To send a message to chat room, use the following path: `/app/chat/{chatId}`
                     
-                    Same payload and headers apply to websocket endpoint as to this endpoint.
+                    Same payload and headers apply to websocket endpoint as to this endpoint,
+                    except the time zone related header as it will be added in the future PR.
                     """
     )
     @ApiResponses(value = {
@@ -157,6 +115,50 @@ public class ChatController {
                         principal.getName(),
                         acceptRole,
                         message
+                );
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping
+    @Operation(
+            summary = "Get all chat rooms",
+            description = """
+                          ## Endpoint description
+                          Retrieves a list of all chat rooms for the current user. The returned page is sorted by
+                          the last message timestamp in descending order (from newest to oldest). The chatRoomId can be 
+                          used to connect to the websocket endpoint and send messages to the chat room.
+                          
+                          **Role header** determines the sender's role in the chat room. If the principal is, for example, 
+                          a Caretaker, the receiver is assumed to be a Client.
+                          
+                          ## Connecting to websocket endpoint
+                          - To connect to websocket endpoint, use the following path: `/ws`
+                          - To subscribe to chat room, use the following path: `/topic/messages/{chatId}`
+                          - To send a message to chat room, use the following path: `/app/chat/{chatId}`
+                          
+                          Same payload and headers apply to websocket endpoint as to `/api/chat/{messageReceiverEmail}` endpoint,
+                          except the time zone related header as it will be added in the future PR.
+                          """
+    )
+    public Page<ChatRoomDTO> getChatRooms(
+            Principal principal,
+            @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole,
+            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) Optional<String> acceptTimeZone,
+            @Valid @ParameterObject PagingParams pagingParams
+    ) {
+        Pageable pageable = PagingUtils.createPageable(pagingParams);
+
+        return acceptTimeZone.isPresent() ?
+                chatService.getChatRoomsByParticipantEmail(
+                        principal.getName(),
+                        acceptRole,
+                        pageable,
+                        TimeUtils.getOrSystemDefault(acceptTimeZone.get())
+                ) :
+                chatService.getChatRoomsByParticipantEmail(
+                        principal.getName(),
+                        acceptRole,
+                        pageable
                 );
     }
 }

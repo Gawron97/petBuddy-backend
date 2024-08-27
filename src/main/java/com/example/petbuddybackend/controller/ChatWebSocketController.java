@@ -21,9 +21,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ChatWebSocketController {
 
-    @Value("${header-name.timezone}")
-    private String TIMEZONE_HEADER_NAME;
-
     @Value("${header-name.role}")
     private String ROLE_HEADER_NAME;
 
@@ -40,7 +37,7 @@ public class ChatWebSocketController {
     ) {
         String username = principal.getName();
         Role acceptRole = HeaderUtils.getHeaderSingleValue(headers, ROLE_HEADER_NAME, Role.class);
-        Optional<String> acceptTimeZone = HeaderUtils.getOptionalHeaderSingleValue(headers, TIMEZONE_HEADER_NAME, String.class);
+        Optional<String> acceptTimeZone = Optional.of("Europe/Warsaw"); // support will be added in next PR
 
         return acceptTimeZone.isPresent() ?
                 chatService.createMessage(chatId, username, message, acceptRole, TimeUtils.getOrSystemDefault(acceptTimeZone.get())) :
