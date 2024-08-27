@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.security.Principal;
 import java.util.Map;
@@ -42,8 +39,8 @@ public class ChatWebSocketController {
             Principal principal
     ) {
         String username = principal.getName();
-        Role acceptRole = HeaderUtils.getHeader(headers, TIMEZONE_HEADER_NAME, Role.class);
-        Optional<String> acceptTimeZone = HeaderUtils.getOptionalHeader(headers, ROLE_HEADER_NAME, String.class);
+        Role acceptRole = HeaderUtils.getHeaderSingleValue(headers, ROLE_HEADER_NAME, Role.class);
+        Optional<String> acceptTimeZone = HeaderUtils.getOptionalHeaderSingleValue(headers, TIMEZONE_HEADER_NAME, String.class);
 
         return acceptTimeZone.isPresent() ?
                 chatService.createMessage(chatId, username, message, acceptRole, TimeUtils.getOrSystemDefault(acceptTimeZone.get())) :

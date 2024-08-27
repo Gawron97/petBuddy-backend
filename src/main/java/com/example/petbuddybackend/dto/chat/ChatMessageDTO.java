@@ -2,6 +2,8 @@ package com.example.petbuddybackend.dto.chat;
 
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.Digits;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

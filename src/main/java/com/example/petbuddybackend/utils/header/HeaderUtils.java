@@ -5,6 +5,7 @@ import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingW
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -12,38 +13,68 @@ import java.util.Optional;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class HeaderUtils {
 
-    public static boolean headerExists(Map<String, Object> headers, String headerName) {
-        return headers.containsKey(headerName);
+    public static final String NATIVE_HEADERS = "nativeHeaders";
+
+    /**
+     * Extract first value of header from headers map
+     * */
+    public static <T> T getHeaderSingleValue(Map<String, Object> headers, String headerName, Class<T> type) {
+        Map<String, Object> nativeHeaders = extractNativeHeaders(headers);
+        checkHeaderExists(nativeHeaders, headerName);
+        return extractSingleHeaderValue(nativeHeaders, headerName, type);
     }
 
-    public static <T> T getHeader(Map<String, Object> headers, String headerName, Class<T> type) {
-        checkHeaderExists(headers, headerName);
-        Object header = headers.get(headerName);
-
-        if (type.isInstance(header)) {
-            return type.cast(header);
-        }
-
-        throw new InvalidWebSocketHeaderException("Header " + headerName + " is not of type " + type.getSimpleName());
-    }
-
-    public static <T> Optional<T> getOptionalHeader(Map<String, Object> headers, String headerName, Class<T> type) {
-        Object header = headers.get(headerName);
-
-        if(header == null) {
+    /**
+     * Extract first value of header from headers map
+     * */
+    public static <T> Optional<T> getOptionalHeaderSingleValue(Map<String, Object> headers, String headerName, Class<T> type) {
+        Map<String, Object> nativeHeaders = extractNativeHeaders(headers);
+        if(!nativeHeaders.containsKey(headerName)) {
             return Optional.empty();
         }
+        return Optional.of(extractSingleHeaderValue(nativeHeaders, headerName, type));
+    }
 
-        if (type.isInstance(header)) {
-            return Optional.of(type.cast(header));
+    private static <T> T extractSingleHeaderValue(Map<String, Object> nativeHeaders, String headerName, Class<T> type) {
+        Object header = nativeHeaders.get(headerName);
+
+        if(header instanceof List<?> headerList) {
+            if(headerList.isEmpty()) {
+                throw new InvalidWebSocketHeaderException("Header " + headerName + " has no value");
+            }
+
+            if(headerList.size() > 1) {
+                throw new InvalidWebSocketHeaderException("Header " + headerName + " has more than one value");
+            }
+
+            Object headerListObj = headerList.get(0);
+
+            if(type.isEnum()) {
+                return type.cast(Enum.valueOf((Class<Enum>) type, headerListObj.toString()));
+            }
+
+            if (type.isInstance(headerListObj)) {
+                return type.cast(headerListObj);
+            }
         }
 
         throw new InvalidWebSocketHeaderException("Header " + headerName + " is not of type " + type.getSimpleName());
     }
 
-    private static void checkHeaderExists(Map<String, Object> headers, String headerName) {
-        if(!headerExists(headers, headerName)) {
+    private static void checkHeaderExists(Map<String, Object> nativeHeaders, String headerName) {
+        if(!nativeHeaders.containsKey(headerName)) {
             throw new MissingWebSocketHeaderException(headerName);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> extractNativeHeaders(Map<String, Object> headers) {
+        Object nativeHeaders = headers.get(NATIVE_HEADERS);
+
+        if(nativeHeaders instanceof Map<?,?>) {
+            return (Map<String, Object>) nativeHeaders;
+        }
+
+        throw new RuntimeException("Headers are not of type Map");
     }
 }
