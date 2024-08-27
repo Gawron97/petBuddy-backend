@@ -14,7 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Profile("!test")
+@Profile("dev | prod")
 @Configuration
 @Slf4j
 @Order(Ordered.LOWEST_PRECEDENCE)

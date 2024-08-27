@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.config.security;
+package com.example.petbuddybackend.testconfig;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,9 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.io.IOException;
 import java.util.Collections;
 
-@Profile("test")
+@Profile("test-security-inject-user")
 @Configuration
-public class NoSecurityConfig {
+public class NoSecurityInjectUserConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -30,7 +30,7 @@ public class NoSecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .anyRequest()
-                                    .permitAll()
+                                .permitAll()
                 )
                 .addFilterBefore(new TestAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -50,8 +50,7 @@ public class NoSecurityConfig {
         }
 
         @Override
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-                throws IOException, ServletException {
+        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
             SecurityContextHolder.getContext().setAuthentication(testAuthentication);
             chain.doFilter(request, response);
         }
