@@ -25,7 +25,7 @@ public interface ChatMapper {
     ChatMessageDTO mapTimeZone(ChatMessageDTO chatMessage, @Context ZoneId zoneId);
 
     @Mapping(target = "lastMessageCreatedAt", source = "lastMessageCreatedAt", qualifiedByName = "mapToZonedDateTime")
-    ChatRoomDTO mapTimeZone(ChatRoomDTO chatMessage, @Context ZoneId zoneId);
+    ChatRoomDTO mapTimeZone(ChatRoomDTO chatRoom, @Context ZoneId zoneId);
 
     @Named("mapToZonedDateTime")
     default ZonedDateTime mapToZonedDateTime(ZonedDateTime date, @Context ZoneId zoneId) {
