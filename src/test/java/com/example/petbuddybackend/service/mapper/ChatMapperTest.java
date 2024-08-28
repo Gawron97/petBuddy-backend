@@ -5,12 +5,14 @@ import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
+import com.example.petbuddybackend.testutils.mock.MockChatProvider;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+// TODO make tests
 public class ChatMapperTest {
 
     private final ChatMapper mapper = ChatMapper.INSTANCE;
@@ -18,15 +20,19 @@ public class ChatMapperTest {
 
     @Test
     void mapToChatMessageDTO_shouldNotLeaveNullFields() throws IllegalAccessException {
-        ChatMessage chatMessage = MockUtils.createMockChatMessage(MockUtils.createMockAppUser());
-        Client client = MockUtils.createMockClient();
-        Caretaker caretaker = MockUtils.createMockCaretaker();
-        ChatRoom chatRoom = MockUtils.createMockChatRoom(client, caretaker);
+        ChatMessage chatMessage = MockChatProvider.createMockChatMessage(MockUserProvider.createMockAppUser());
+        Client client = MockUserProvider.createMockClient();
+        Caretaker caretaker = MockUserProvider.createMockCaretaker();
+        ChatRoom chatRoom = MockChatProvider.createMockChatRoom(client, caretaker);
         chatRoom.setId(1L);
         chatMessage.setId(2L);
         chatMessage.setChatRoom(chatRoom);
 
         ChatMessageDTO mappedChatMessage = mapper.mapToChatMessageDTO(chatMessage);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(mappedChatMessage));
+    }
+
+    @Test
+    void mapTimeZoneFromChatMessageDTO_shouldChangeTimeZone() {
     }
 }

@@ -1,9 +1,7 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
-import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
-import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,23 +85,6 @@ public class ChatControllerTest {
 
     @Test
     @WithMockUser
-    void getChatRooms_shouldSucceed() throws Exception {
-        when(chatService.getChatRoomsByParticipantEmail(any(), any(), any()))
-                .thenReturn(expectedChatRoomPage);
-
-        mockMvc.perform(get("/api/chat")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .header(ROLE_HEADER_NAME, Role.CARETAKER.name())
-                        .contentType(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(1))
-                .andExpect(jsonPath("$.content[0].id").value("1"));
-    }
-
-    @Test
-    @WithMockUser
     void getChatRooms_includeTimeZone_shouldSucceed() throws Exception {
         when(chatService.getChatRoomsByParticipantEmail(any(), any(), any(), any()))
                 .thenReturn(expectedChatRoomPage);
@@ -122,23 +103,6 @@ public class ChatControllerTest {
 
     @Test
     @WithMockUser
-    void getChatMessages_shouldSucceed() throws Exception {
-        when(chatService.getChatMessages(any(), any(), any()))
-                .thenReturn(expectedMessagePage);
-
-        mockMvc.perform(get("/api/chat/1/messages")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .contentType(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.content[0].senderEmail").value("sender1"))
-                .andExpect(jsonPath("$.content[1].senderEmail").value("sender2"));
-    }
-
-    @Test
-    @WithMockUser
     void getChatMessages_includeTimeZone_shouldSucceed() throws Exception {
         when(chatService.getChatMessages(any(), any(), any(), any())).thenReturn(expectedMessagePage);
 
@@ -152,23 +116,6 @@ public class ChatControllerTest {
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.content[0].senderEmail").value("sender1"))
                 .andExpect(jsonPath("$.content[1].senderEmail").value("sender2"));
-    }
-
-    @Test
-    @WithMockUser
-    void createChatRoomWithMessage_shouldSucceed() throws Exception {
-        when(chatService.createChatRoomWithMessage(any(), any(), any(), any()))
-                .thenReturn(expectedMessage);
-
-        mockMvc.perform(post("/api/chat/caretaker@example.com")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .content("{ \"content\": \"message\" }")
-                        .header(ROLE_HEADER_NAME, Role.CARETAKER.name())
-                        .contentType(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value("1"));
     }
 
     @Test

@@ -8,7 +8,9 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.service.user.CaretakerService;
-import com.example.petbuddybackend.testutils.MockUtils;
+import com.example.petbuddybackend.testutils.mock.MockAnimalProvider;
+import com.example.petbuddybackend.testutils.mock.MockOfferProvider;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,9 +47,9 @@ public class OfferServiceUnitTest {
     @BeforeEach
     void setUp() {
 
-        caretaker = MockUtils.createMockCaretaker();
-        animalInExistingOffer = MockUtils.createMockAnimal("DOG");
-        existingOffer = MockUtils.createMockOffer(caretaker, animalInExistingOffer);
+        caretaker = MockUserProvider.createMockCaretaker();
+        animalInExistingOffer = MockAnimalProvider.createMockAnimal("DOG");
+        existingOffer = MockOfferProvider.createMockOffer(caretaker, animalInExistingOffer);
 
     }
 

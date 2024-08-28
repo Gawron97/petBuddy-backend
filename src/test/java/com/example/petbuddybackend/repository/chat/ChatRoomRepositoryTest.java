@@ -8,9 +8,10 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
-import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
+import com.example.petbuddybackend.testutils.mock.MockChatProvider;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,18 +52,18 @@ public class ChatRoomRepositoryTest {
         Caretaker caretaker = PersistenceUtils.addCaretaker(
                 caretakerRepository,
                 appUserRepository,
-                MockUtils.createMockCaretaker()
+                MockUserProvider.createMockCaretaker()
         );
 
         Client client = PersistenceUtils.addClient(
                 appUserRepository,
                 clientRepository,
-                MockUtils.createMockClient()
+                MockUserProvider.createMockClient()
         );
 
         chatRoom = PersistenceUtils.addChatRoom(
-                MockUtils.createMockChatRoom(client, caretaker),
-                MockUtils.createMockChatMessages(client, caretaker),
+                MockChatProvider.createMockChatRoom(client, caretaker),
+                MockChatProvider.createMockChatMessages(client, caretaker),
                 chatRepository,
                 chatMessageRepository
         );

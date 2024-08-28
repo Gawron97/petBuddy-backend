@@ -13,10 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.simp.stomp.StompFrameHandler;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import org.springframework.messaging.simp.stomp.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -31,7 +28,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -70,8 +67,11 @@ public class ChatWebSocketControllerTest {
     @Test
     @SneakyThrows
     void testSendChatMessage_shouldSucceed() {
-        when(chatService.createMessage(any(), any(), any(), any()))
+        when(chatService.createMessageConvertTimeZone(any(), any(), any(), any(), any()))
                 .thenReturn(new ChatMessageDTO());
+
+        when(chatService.isUserInChat(any(), any()))
+                .thenReturn(true);
 
         ChatMessageSent chatMessageSent = new ChatMessageSent("hello");
         StompSession stompSession = connectToWebSocket();
@@ -93,27 +93,22 @@ public class ChatWebSocketControllerTest {
 
     @Test
     @SneakyThrows
-    void testSendChatMessage_includesTimeZone_shouldSucceed() {
-        when(chatService.createMessage(any(), any(), any(), any(), any()))
-                .thenReturn(new ChatMessageDTO());
+    void testSubscribeToChatRoom_userIsNotTheParticipant_shouldThrow() {
+        when(chatService.isUserInChat(any(), any()))
+                .thenReturn(false);
 
-        ChatMessageSent chatMessageSent = new ChatMessageSent("hello");
         StompSession stompSession = connectToWebSocket();
-
-        // Subscribe to the chat room topic
         stompSession.subscribe(SUBSCRIBE_TO_CHAT_PATTERN, new ChatMessageFrameHandler());
 
-        // Prepare headers
         StompHeaders headers = new StompHeaders();
         headers.setDestination(SEND_MESSAGE_ENDPOINT);
-        headers.add(HEADER_NAME_TIMEZONE, "Europe/Warsaw");
         headers.add(HEADER_NAME_ROLE, Role.CLIENT.name());
 
-        // Send message with headers
-        stompSession.send(headers, chatMessageSent);
+        Thread.sleep(100);
 
-        ChatMessageDTO chatMessageDTO = blockingQueue.poll(2, SECONDS);
-        assertNotNull(chatMessageDTO);
+        assertThrows(IllegalStateException.class,
+                () -> stompSession.send(headers, new ChatMessageSent("content"))
+        );
     }
 
     private List<Transport> createTransportClient() {

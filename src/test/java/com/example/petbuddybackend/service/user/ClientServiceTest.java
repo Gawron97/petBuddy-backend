@@ -4,8 +4,8 @@ import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
-import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.example.petbuddybackend.testutils.MockUtils.createJwtToken;
+import static com.example.petbuddybackend.testutils.mock.GeneralMockProvider.createJwtToken;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -40,7 +40,7 @@ public class ClientServiceTest {
 
     @Test
     void checkClientExists_shouldReturnTrue() {
-        Client client = MockUtils.createMockClient();
+        Client client = MockUserProvider.createMockClient();
 
         AppUser accountData = PersistenceUtils.addAppUser(appUserRepository, client.getAccountData());
         client.setEmail(accountData.getEmail());

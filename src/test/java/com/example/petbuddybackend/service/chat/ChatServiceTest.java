@@ -12,8 +12,9 @@ import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
-import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
+import com.example.petbuddybackend.testutils.mock.MockChatProvider;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.InvalidMessageReceiverException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
@@ -68,18 +69,18 @@ public class ChatServiceTest {
         caretaker = PersistenceUtils.addCaretaker(
                 caretakerRepository,
                 appUserRepository,
-                MockUtils.createMockCaretaker()
+                MockUserProvider.createMockCaretaker()
         );
 
         client = PersistenceUtils.addClient(
                 appUserRepository,
                 clientRepository,
-                MockUtils.createMockClient()
+                MockUserProvider.createMockClient()
         );
 
         chatRoom = PersistenceUtils.addChatRoom(
-                MockUtils.createMockChatRoom(client, caretaker),
-                MockUtils.createMockChatMessages(client, caretaker),
+                MockChatProvider.createMockChatRoom(client, caretaker),
+                MockChatProvider.createMockChatMessages(client, caretaker),
                 chatRepository,
                 chatMessageRepository
         );
@@ -87,20 +88,20 @@ public class ChatServiceTest {
         otherCaretaker = PersistenceUtils.addCaretaker(
                 caretakerRepository,
                 appUserRepository,
-                MockUtils.createMockCaretaker("newCaretakerEmail")
+                MockUserProvider.createMockCaretaker("newCaretakerEmail")
         );
 
         // Add user that is both a client and a caretaker
         otherClientWithCaretakerAccount = PersistenceUtils.addClient(
                 appUserRepository,
                 clientRepository,
-                MockUtils.createMockClient("newClientEmail")
+                MockUserProvider.createMockClient("newClientEmail")
         );
 
         PersistenceUtils.addCaretaker(
                 caretakerRepository,
                 appUserRepository,
-                MockUtils.createMockCaretaker("newClientEmail")
+                MockUserProvider.createMockCaretaker("newClientEmail")
         );
     }
 
@@ -244,7 +245,7 @@ public class ChatServiceTest {
     @ParameterizedTest
     @MethodSource("provideTimeZones")
     void testCreateMessageWithZone_shouldSucceed(String timeZone) {
-        ChatMessageDTO msg = chatService.createMessage(
+        ChatMessageDTO msg = chatService.createMessageConvertTimeZone(
                 chatRoom.getId(),
                 caretaker.getEmail(),
                 new ChatMessageSent("message content"),

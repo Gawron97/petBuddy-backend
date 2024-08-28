@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +50,7 @@ public class ChatService {
 
     public Page<ChatMessageDTO> getChatMessages(Long chatId, String principalEmail, Pageable pageable, ZoneId timeZone) {
         return getChatMessages(chatId, principalEmail, pageable)
-                .map(message -> convertTimeZone(message, timeZone));
+                .map(message -> chatMapper.mapTimeZone(message, timeZone));
     }
 
     public ChatRoom getChatRoomById(Long chatId) {
@@ -67,7 +66,7 @@ public class ChatService {
 
     public Page<ChatRoomDTO> getChatRoomsByParticipantEmail(String principalEmail, Role role, Pageable pageable, ZoneId timeZone) {
         return getChatRoomsByParticipantEmail(principalEmail, role, pageable)
-                .map(room -> convertTimeZone(room, timeZone));
+                .map(room -> chatMapper.mapTimeZone(room, timeZone));
     }
 
     @Transactional
@@ -79,15 +78,17 @@ public class ChatService {
                 chatRoom.getClient().getAccountData() :
                 chatRoom.getCaretaker().getAccountData();
 
-        return chatMapper.mapToChatMessageDTO(createMessage(chatRoom, sender, chatMessage.getContent()));
+        return chatMapper.mapToChatMessageDTO(createMessageConvertTimeZone(chatRoom, sender, chatMessage.getContent()));
     }
-
     @Transactional
-    public ChatMessageDTO createMessage(Long chatId, String principalEmail, ChatMessageSent chatMessage, Role role, ZoneId timeZone) {
-        return convertTimeZone(
-                createMessage(chatId, principalEmail, chatMessage, role),
-                timeZone
-        );
+    public ChatMessageDTO createMessageConvertTimeZone(
+            Long chatId,
+            String principalEmail,
+            ChatMessageSent chatMessage,
+            Role role,
+            ZoneId timeZone
+    ) {
+        return chatMapper.mapTimeZone(createMessage(chatId, principalEmail, chatMessage, role), timeZone);
     }
 
     public ChatMessageDTO createChatRoomWithMessage(
@@ -111,10 +112,21 @@ public class ChatService {
             ChatMessageSent message,
             ZoneId timeZone
     ) {
-        return convertTimeZone(
+        return chatMapper.mapTimeZone(
                 createChatRoomWithMessage(messageReceiverEmail, principalEmail, principalRole, message),
                 timeZone
         );
+    }
+
+    public boolean isUserInChat(Long chatId, String email) {
+        return chatRepository.existsByIdAndClient_Email(chatId, email) ||
+                chatRepository.existsByIdAndCaretaker_Email(chatId, email);
+    }
+
+    public boolean isUserInChat(ChatRoom chatRoom, String email, Role role) {
+        return role == Role.CLIENT ?
+                chatRoom.getClient().getEmail().equals(email) :
+                chatRoom.getCaretaker().getEmail().equals(email);
     }
 
     private ChatMessageDTO createChatRoomWithMessageForClientSender(
@@ -124,8 +136,8 @@ public class ChatService {
     ) {
         Client clientSender = clientService.getClientByEmail(clientSenderEmail);
         Caretaker caretakerReceiver = caretakerService.getCaretakerByEmail(caretakerReceiverEmail);
-        ChatRoom chatRoom = saveChatRoom(clientSender, caretakerReceiver);
-        ChatMessage chatMessage = createMessage(chatRoom, clientSender.getAccountData(), message.getContent());
+        ChatRoom chatRoom = createChatRoom(clientSender, caretakerReceiver);
+        ChatMessage chatMessage = createMessageConvertTimeZone(chatRoom, clientSender.getAccountData(), message.getContent());
 
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage));
     }
@@ -137,13 +149,13 @@ public class ChatService {
     ) {
         Client clientReceiver = clientService.getClientByEmail(clientReceiverEmail);
         Caretaker caretakerSender = caretakerService.getCaretakerByEmail(caretakerSenderEmail);
-        ChatRoom chatRoom = saveChatRoom(clientReceiver, caretakerSender);
-        ChatMessage chatMessage = createMessage(chatRoom, caretakerSender.getAccountData(), message.getContent());
+        ChatRoom chatRoom = createChatRoom(clientReceiver, caretakerSender);
+        ChatMessage chatMessage = createMessageConvertTimeZone(chatRoom, caretakerSender.getAccountData(), message.getContent());
 
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage));
     }
 
-    private ChatMessage createMessage(ChatRoom chatRoom, AppUser sender, String content) {
+    private ChatMessage createMessageConvertTimeZone(ChatRoom chatRoom, AppUser sender, String content) {
         ChatMessage chatMessage = ChatMessage.builder()
                 .sender(sender)
                 .content(content)
@@ -153,7 +165,7 @@ public class ChatService {
         return chatMessageRepository.save(chatMessage);
     }
 
-    private ChatRoom saveChatRoom(Client client, Caretaker caretaker) {
+    private ChatRoom createChatRoom(Client client, Caretaker caretaker) {
         ChatRoom chatRoom = ChatRoom.builder()
                 .client(client)
                 .caretaker(caretaker)
@@ -198,32 +210,5 @@ public class ChatService {
         if(senderEmail.equals(receiverEmail)) {
             throw new InvalidMessageReceiverException("Unable to send message to yourself");
         }
-    }
-
-    private boolean isUserInChat(Long chatId, String email) {
-        return chatRepository.existsByIdAndClient_Email(chatId, email) ||
-                chatRepository.existsByIdAndCaretaker_Email(chatId, email);
-    }
-
-    private boolean isUserInChat(ChatRoom chatRoom, String email, Role role) {
-        return role == Role.CLIENT ?
-                chatRoom.getClient().getEmail().equals(email) :
-                chatRoom.getCaretaker().getEmail().equals(email);
-    }
-
-    private ChatMessageDTO convertTimeZone(ChatMessageDTO message, ZoneId timeZone) {
-        ZonedDateTime zonedDateTime = message.getCreatedAt()
-                .withZoneSameInstant(timeZone);
-
-        message.setCreatedAt(zonedDateTime);
-        return message;
-    }
-
-    private ChatRoomDTO convertTimeZone(ChatRoomDTO chatRoom, ZoneId timeZone) {
-        ZonedDateTime zonedDateTime = chatRoom.getLastMessageCreatedAt()
-                .withZoneSameInstant(timeZone);
-
-        chatRoom.setLastMessageCreatedAt(zonedDateTime);
-        return chatRoom;
     }
 }
