@@ -22,7 +22,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,23 +47,16 @@ public class ChatController {
     public Page<ChatMessageDTO> getChatMessages(
             Principal principal,
             @PathVariable Long chatId,
-            @Valid @ParameterObject PagingParams pagingParams,
-            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) Optional<String>  acceptTimeZone
+            @Valid @ModelAttribute @ParameterObject PagingParams pagingParams,
+            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-
-        return acceptTimeZone.isPresent() ?
-                chatService.getChatMessages(
-                        chatId,
-                        principal.getName(),
-                        pageable,
-                        TimeUtils.getOrSystemDefault(acceptTimeZone.get())
-                ) :
-                chatService.getChatMessages(
-                        chatId,
-                        principal.getName(),
-                        pageable
-                );
+        return chatService.getChatMessages(
+                chatId,
+                principal.getName(),
+                pageable,
+                TimeUtils.getOrSystemDefault(acceptTimeZone)
+        );
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -99,23 +91,16 @@ public class ChatController {
             @PathVariable String messageReceiverEmail,
             Principal principal,
             @RequestBody @Valid ChatMessageSent message,
-            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) Optional<String> acceptTimeZone,
+            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone,
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole
     ) {
-        return acceptTimeZone.isPresent() ?
-                chatService.createChatRoomWithMessage(
-                        messageReceiverEmail,
-                        principal.getName(),
-                        acceptRole,
-                        message,
-                        TimeUtils.getOrSystemDefault(acceptTimeZone.get())
-                ) :
-                chatService.createChatRoomWithMessage(
-                        messageReceiverEmail,
-                        principal.getName(),
-                        acceptRole,
-                        message
-                );
+        return chatService.createChatRoomWithMessage(
+                messageReceiverEmail,
+                principal.getName(),
+                acceptRole,
+                message,
+                TimeUtils.getOrSystemDefault(acceptTimeZone)
+        );
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -142,23 +127,16 @@ public class ChatController {
     )
     public Page<ChatRoomDTO> getChatRooms(
             Principal principal,
+            @Valid @ModelAttribute @ParameterObject PagingParams pagingParams,
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole,
-            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) Optional<String> acceptTimeZone,
-            @Valid @ParameterObject PagingParams pagingParams
+            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-
-        return acceptTimeZone.isPresent() ?
-                chatService.getChatRoomsByParticipantEmail(
-                        principal.getName(),
-                        acceptRole,
-                        pageable,
-                        TimeUtils.getOrSystemDefault(acceptTimeZone.get())
-                ) :
-                chatService.getChatRoomsByParticipantEmail(
-                        principal.getName(),
-                        acceptRole,
-                        pageable
-                );
+        return chatService.getChatRoomsByParticipantEmail(
+                principal.getName(),
+                acceptRole,
+                pageable,
+                TimeUtils.getOrSystemDefault(acceptTimeZone)
+        );
     }
 }

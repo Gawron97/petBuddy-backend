@@ -164,7 +164,7 @@ public class ChatService {
 
     private void checkChatExistsById(Long chatId) {
         if(!chatRepository.existsById(chatId)) {
-            throw NotFoundException.withFormattedMessage(chatId.toString(), CHAT);
+            throw NotFoundException.withFormattedMessage(CHAT, chatId.toString());
         }
     }
 

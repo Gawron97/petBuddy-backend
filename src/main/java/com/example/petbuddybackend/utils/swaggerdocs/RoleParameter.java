@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 @Parameter(
-        description = "Role of the principal user. Determines the sender's role in the chat room.",
+        description = "Role of the principal user. Determines the user's selected profile.",
         schema = @Schema(implementation = Role.class)
 )
 public @interface RoleParameter {
