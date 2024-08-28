@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.*;
-import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
@@ -32,7 +31,6 @@ public class ChatWebSocketController {
     @PreAuthorize("isAuthenticated()")
     @MessageMapping("/chat/{chatId}")
     @SendTo("/topic/messages/{chatId}")
-    @SendToUser
     public ChatMessageDTO sendChatMessage(
             @DestinationVariable Long chatId,
             @Valid @Payload ChatMessageSent message,
