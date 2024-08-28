@@ -8,9 +8,6 @@ import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
-import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
-import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferConfigurationRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.service.animal.AnimalService;
@@ -39,9 +36,6 @@ public class OfferService {
     private final CaretakerService caretakerService;
     private final OfferRepository offerRepository;
     private final OfferConfigurationRepository offerConfigurationRepository;
-    private final AnimalRepository animalRepository;
-    private final AnimalAttributeRepository animalAttributeRepository;
-    private final AnimalAmenityRepository animalAmenityRepository;
     private final AnimalService animalService;
     private final OfferMapper offerMapper = OfferMapper.INSTANCE;
     private final OfferConfigurationMapper offerConfigurationMapper = OfferConfigurationMapper.INSTANCE;
@@ -111,7 +105,7 @@ public class OfferService {
     private void checkDuplicateForAnimalAmenity(List<AnimalAmenity> oldAnimalAmenities, AnimalAmenity animalAmenity) {
         if(oldAnimalAmenities.stream().anyMatch(oldAnimalAmenity -> oldAnimalAmenity.equals(animalAmenity))) {
             throw new AnimalAmenityDuplicatedInOfferException(MessageFormat.format(
-                    "Animal amenity with name {0} already exists",
+                    "Animal amenity with name {0} already exists in offer",
                     animalAmenity.getAmenity().getName()
             ));
         }
