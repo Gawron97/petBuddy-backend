@@ -8,6 +8,7 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import org.junit.jupiter.api.Test;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,7 +39,7 @@ public class CareMapperTest {
         care.setId(1L);
         care.setSubmittedAt(ZonedDateTime.now());
 
-        CareDTO careDTO = mapper.mapToCareDTO(care);
+        CareDTO careDTO = mapper.mapToCareDTO(care, ZoneId.systemDefault());
 
         assertTrue(fieldsNotNullRecursive(careDTO));
     }

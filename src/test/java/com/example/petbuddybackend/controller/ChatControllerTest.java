@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class ChatControllerTest {
 
-    @Value("${timezone.header-name}")
+    @Value("${header-name.timezone}")
     private String TIMEZONE_HEADER_NAME;
 
     @MockBean

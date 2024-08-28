@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -34,6 +35,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ContextConfiguration(classes = TestDataConfiguration.class)
 public class CareControllerIntegrationTest {
+
+    @Value("${header-name.timezone}")
+    private String TIMEZONE_HEADER_NAME;
 
     @Autowired
     private MockMvc mockMvc;
@@ -107,8 +111,8 @@ public class CareControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.ACCEPTED.name()))
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.PENDING.name()))
-//                .andExpect(jsonPath("$.careStart").value(LocalDate.now().plusDays(2)))
-//                .andExpect(jsonPath("$.careEnd").value(LocalDate.now().plusDays(7)))
+                .andExpect(jsonPath("$.careStart").value(LocalDate.now().plusDays(2).toString()))
+                .andExpect(jsonPath("$.careEnd").value(LocalDate.now().plusDays(7).toString()))
                 .andExpect(jsonPath("$.description").value("Test care description"))
                 .andExpect(jsonPath("$.dailyPrice").value(50.00))
                 .andExpect(jsonPath("$.animalType").value("DOG"))
@@ -122,6 +126,7 @@ public class CareControllerIntegrationTest {
         // When and Then
         mockMvc.perform(post("/api/care/reservation")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
                         .content(String.format(CREATE_CARE_BODY,
                                 LocalDate.now().plusDays(2),
                                 LocalDate.now().plusDays(7),
@@ -179,6 +184,7 @@ public class CareControllerIntegrationTest {
         Long careId = careRepository.findAll().get(0).getId();
         mockMvc.perform(patch("/api/care/" + careId + "/update")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
                         .content(String.format(UPDATE_CARE_BODY,
                                 LocalDate.now().plusDays(3),
                                 LocalDate.now().plusDays(8),
@@ -187,8 +193,8 @@ public class CareControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.PENDING.name()))
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.PENDING.name()))
-//                .andExpect(jsonPath("$.careStart").value(LocalDate.now().plusDays(2)))
-//                .andExpect(jsonPath("$.careEnd").value(LocalDate.now().plusDays(7)))
+                .andExpect(jsonPath("$.careStart").value(LocalDate.now().plusDays(3).toString()))
+                .andExpect(jsonPath("$.careEnd").value(LocalDate.now().plusDays(8).toString()))
                 .andExpect(jsonPath("$.description").value("Test care description"))
                 .andExpect(jsonPath("$.dailyPrice").value(60.00))
                 .andExpect(jsonPath("$.animalType").value("DOG"))
@@ -275,7 +281,8 @@ public class CareControllerIntegrationTest {
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-accept"))
+        mockMvc.perform(post("/api/care/" + careId + "/caretaker-accept")
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.AWAITING_PAYMENT.name()))
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.AWAITING_PAYMENT.name()));
@@ -355,7 +362,8 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-accept"))
+        mockMvc.perform(post("/api/care/" + careId + "/client-accept")
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -392,7 +400,8 @@ public class CareControllerIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-reject"))
+        mockMvc.perform(post("/api/care/" + careId + "/caretaker-reject")
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.CANCELLED.name()));
     }
@@ -453,7 +462,8 @@ public class CareControllerIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-cancel"))
+        mockMvc.perform(post("/api/care/" + careId + "/client-cancel")
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw"))
                 .andExpect(status().isBadRequest());
     }
 

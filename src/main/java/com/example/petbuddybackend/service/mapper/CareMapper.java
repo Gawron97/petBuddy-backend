@@ -4,12 +4,11 @@ import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +23,8 @@ public interface CareMapper {
     @Mapping(target = "animalType", source = "animal.animalType")
     @Mapping(target = "caretakerEmail", source = "caretaker.email")
     @Mapping(target = "clientEmail", source = "client.email")
-    CareDTO mapToCareDTO(Care care);
+    @Mapping(target = "submittedAt", source = "submittedAt", qualifiedByName = "mapToZonedDateTime")
+    CareDTO mapToCareDTO(Care care, @Context ZoneId zoneId);
 
     @Named("mapSelectedOptions")
     default Map<String, List<String>> mapSelectedOptions(Set<AnimalAttribute> animalAttributes) {
@@ -36,6 +36,11 @@ public interface CareMapper {
                                 Collectors.toList()
                         )
                 ));
+    }
+
+    @Named("mapToZonedDateTime")
+    default ZonedDateTime mapToZonedDateTime(ZonedDateTime date, @Context ZoneId zoneId) {
+        return date.withZoneSameInstant(zoneId);
     }
 
     void updateCareFromDTO(UpdateCareDTO careDTO, @MappingTarget Care care);

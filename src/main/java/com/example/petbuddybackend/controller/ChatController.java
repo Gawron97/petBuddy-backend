@@ -42,7 +42,7 @@ public class ChatController {
                     description = "The time zone to adjust the message timestamps to. If not provided, server's default timezone will be used.",
                     schema = @Schema(type = "string", example = "Europe/Warsaw, CET, +00:02, ...")
             )
-            @RequestHeader(value = "${timezone.header-name}", required = false) String acceptTimeZone
+            @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
 

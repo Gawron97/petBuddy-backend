@@ -27,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.stream.Stream;
 
@@ -85,7 +86,7 @@ public class CareServiceIntegrationTest {
                 .build();
 
         // When
-        CareDTO result = careService.makeReservation(createCareDTO, client.getEmail());
+        CareDTO result = careService.makeReservation(createCareDTO, client.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care care = careRepository.findById(result.id()).orElseThrow();
@@ -108,7 +109,7 @@ public class CareServiceIntegrationTest {
                                                            Class expectedExceptionClass) {
 
         // When Then
-       assertThrows(expectedExceptionClass, () -> careService.makeReservation(createCare, userEmail));
+       assertThrows(expectedExceptionClass, () -> careService.makeReservation(createCare, userEmail, ZoneId.systemDefault()));
 
     }
 
@@ -173,7 +174,7 @@ public class CareServiceIntegrationTest {
                 .build();
 
         // When
-        CareDTO result = careService.updateCare(care.getId(), updateCareDTO, caretaker.getEmail());
+        CareDTO result = careService.updateCare(care.getId(), updateCareDTO, caretaker.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care updatedCare = careRepository.findById(result.id()).orElseThrow();
@@ -193,7 +194,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When Then
-        assertThrows(expectedExceptionClass, () -> careService.updateCare(care.getId(), updateCare, userEmail));
+        assertThrows(expectedExceptionClass, () -> careService.updateCare(care.getId(), updateCare, userEmail, ZoneId.systemDefault()));
 
     }
 
@@ -246,7 +247,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail()));
+                () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -266,7 +267,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail()));
+                () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -277,7 +278,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail());
+        CareDTO result = careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
@@ -295,7 +296,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByCaretaker(care.getId(), client.getEmail()));
+                () -> careService.acceptCareByCaretaker(care.getId(), client.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -309,7 +310,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail()));
+                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -323,7 +324,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail()));
+                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -337,7 +338,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail()));
+                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -350,7 +351,7 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When
-        CareDTO result = careService.acceptCareByClient(care.getId(), client.getEmail());
+        CareDTO result = careService.acceptCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
@@ -367,7 +368,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByClient(care.getId(), caretaker.getEmail()));
+                () -> careService.acceptCareByClient(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -381,7 +382,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByClient(care.getId(), client.getEmail()));
+                () -> careService.acceptCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -395,7 +396,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByClient(care.getId(), client.getEmail()));
+                () -> careService.acceptCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -406,7 +407,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail());
+        CareDTO result = careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care rejectedCare = careRepository.findById(result.id()).orElseThrow();
@@ -423,7 +424,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.rejectCareByCaretaker(care.getId(), client.getEmail()));
+                () -> careService.rejectCareByCaretaker(care.getId(), client.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -437,7 +438,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail()));
+                () -> careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -451,7 +452,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail()));
+                () -> careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -462,7 +463,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.cancelCareByClient(care.getId(), client.getEmail());
+        CareDTO result = careService.cancelCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care cancelledCare = careRepository.findById(result.id()).orElseThrow();
@@ -479,7 +480,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.cancelCareByClient(care.getId(), caretaker.getEmail()));
+                () -> careService.cancelCareByClient(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -493,7 +494,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.cancelCareByClient(care.getId(), client.getEmail()));
+                () -> careService.cancelCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault()));
 
     }
 
@@ -507,7 +508,7 @@ public class CareServiceIntegrationTest {
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> careService.cancelCareByClient(care.getId(), client.getEmail()));
+                () -> careService.cancelCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault()));
 
     }
 
