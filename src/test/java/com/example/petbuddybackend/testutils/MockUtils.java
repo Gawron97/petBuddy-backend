@@ -87,6 +87,18 @@ public final class MockUtils {
         );
     }
 
+    public static Client createMockClient(String name, String surname, String email) {
+        AppUser accountData = AppUser.builder()
+                .email(email)
+                .name(name)
+                .surname(surname)
+                .build();
+
+        return Client.builder()
+                .email(email)
+                .accountData(accountData)
+                .build();
+    }
 
     public static Client createMockClient() {
         String email = "clientEmail";
