@@ -11,7 +11,7 @@ import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.CareRepository;
+import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;

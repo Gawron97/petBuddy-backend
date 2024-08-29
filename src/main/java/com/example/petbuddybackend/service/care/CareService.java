@@ -6,7 +6,7 @@ import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
-import com.example.petbuddybackend.repository.CareRepository;
+import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.service.animal.AnimalService;
 import com.example.petbuddybackend.service.mapper.CareMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;

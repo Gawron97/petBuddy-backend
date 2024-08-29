@@ -10,7 +10,7 @@ import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.CareRepository;
+import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
