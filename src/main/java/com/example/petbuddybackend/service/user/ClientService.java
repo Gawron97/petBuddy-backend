@@ -3,6 +3,7 @@ package com.example.petbuddybackend.service.user;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -15,11 +16,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class ClientService {
 
+    private static final String CLIENT = "Client";
+
     private final ClientRepository clientRepository;
     private final UserService userService;
 
     public boolean clientExists(String clientEmail) {
         return clientRepository.existsById(clientEmail);
+    }
+
+    public Client getClientByEmail(String clientEmail) {
+        return clientRepository.findById(clientEmail)
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(clientEmail, CLIENT));
     }
 
     @Transactional
@@ -44,5 +52,4 @@ public class ClientService {
                 .build();
 
     }
-
 }

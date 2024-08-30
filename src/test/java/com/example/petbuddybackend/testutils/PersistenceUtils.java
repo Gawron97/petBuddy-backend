@@ -16,16 +16,16 @@ import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.testutils.mock.MockOfferProvider;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-import static com.example.petbuddybackend.testutils.MockUtils.*;
-
 public class PersistenceUtils {
 
     public static AppUser addAppUser(AppUserRepository appUserRepository) {
-        AppUser appUser = MockUtils.createMockAppUser();
+        AppUser appUser = MockUserProvider.createMockAppUser();
         return appUserRepository.save(appUser);
     }
 
@@ -44,7 +44,7 @@ public class PersistenceUtils {
     }
 
     public static List<Caretaker> addCaretakers(CaretakerRepository caretakerRepository, AppUserRepository appUserRepository) {
-        List<Caretaker> caretakers = createMockCaretakers();
+        List<Caretaker> caretakers = MockUserProvider.createMockCaretakers();
 
         List<AppUser> accountData = caretakers.stream()
                 .map(Caretaker::getAccountData)
@@ -66,14 +66,14 @@ public class PersistenceUtils {
     }
 
     public static Caretaker addCaretaker(CaretakerRepository caretakerRepository, AppUserRepository appUserRepository) {
-        Caretaker caretaker = createMockCaretaker();
+        Caretaker caretaker = MockUserProvider.createMockCaretaker();
         return addCaretaker(caretakerRepository, appUserRepository, caretaker);
     }
 
     public static void addOffersToCaretakers(List<Caretaker> caretakers, OfferRepository offerRepository,
                                                         List<Animal> animals) {
 
-        offerRepository.saveAllAndFlush(MockUtils.createMockOffers(caretakers, animals));
+        offerRepository.saveAllAndFlush(MockOfferProvider.createMockOffers(caretakers, animals));
 
     }
 
@@ -84,7 +84,7 @@ public class PersistenceUtils {
     }
 
     public static Client addClient(AppUserRepository appUserRepository, ClientRepository clientRepository) {
-        Client client = createMockClient();
+        Client client = MockUserProvider.createMockClient();
         return addClient(appUserRepository, clientRepository, client);
     }
 
@@ -94,20 +94,20 @@ public class PersistenceUtils {
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
                                         BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
-        Offer offer = MockUtils.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
+        Offer offer = MockOfferProvider.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
         return offerRepository.save(offer);
     }
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
                                         BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository,
                                         Offer offer) {
-        Offer offerToSave = MockUtils.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities, offer);
+        Offer offerToSave = MockOfferProvider.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities, offer);
         return offerRepository.save(offerToSave);
     }
 
     public static void addOfferConfigurationForOffer(Offer existingOffer, List<AnimalAttribute> animalAttributes, OfferRepository offerRepository) {
 
-        OfferConfiguration offerConfiguration = createOfferConfiguration(existingOffer, animalAttributes);
+        OfferConfiguration offerConfiguration = MockOfferProvider.createOfferConfiguration(existingOffer, animalAttributes);
         existingOffer.getOfferConfigurations().add(offerConfiguration);
         offerRepository.save(existingOffer);
     }

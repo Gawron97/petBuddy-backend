@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
-@Profile("!test")
+@Profile("dev | prod")
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity

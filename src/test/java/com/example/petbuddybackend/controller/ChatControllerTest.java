@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
+import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,11 +18,13 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,8 +32,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class ChatControllerTest {
 
-    @Value("${timezone.header-name}")
+    @Value("${header-name.timezone}")
     private String TIMEZONE_HEADER_NAME;
+
+    @Value("${header-name.role}")
+    private String ROLE_HEADER_NAME;
 
     @MockBean
     private ChatService chatService;
@@ -37,49 +44,67 @@ public class ChatControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private Page<ChatMessageDTO> expectedPage;
+    private Page<ChatMessageDTO> expectedMessagePage;
+    private Page<ChatRoomDTO> expectedChatRoomPage;
+    private ChatMessageDTO expectedMessage;
 
     @BeforeEach
     void setUp() {
-        ChatMessageDTO chatMessageDTO1 = ChatMessageDTO.builder()
+        expectedMessage = ChatMessageDTO.builder()
+                .id(1L)
                 .chatId(1L)
                 .senderEmail("sender1")
                 .build();
 
         ChatMessageDTO chatMessageDTO2 = ChatMessageDTO.builder()
-                .chatId(1L)
+                .id(2L)
+                .chatId(2L)
                 .senderEmail("sender2")
                 .build();
 
-        List<ChatMessageDTO> chatMessageDTOs = List.of(chatMessageDTO1, chatMessageDTO2);
-        expectedPage = new PageImpl<>(
+        List<ChatMessageDTO> chatMessageDTOs = List.of(expectedMessage, chatMessageDTO2);
+        expectedMessagePage = new PageImpl<>(
                 chatMessageDTOs,
                 PageRequest.of(0, 10), chatMessageDTOs.size()
+        );
+
+        ChatRoomDTO chatRoomDTO1 = ChatRoomDTO.builder()
+                .id(1L)
+                .chatterEmail("chatter1")
+                .chatterName("name1")
+                .chatterSurname("surname1")
+                .lastMessage("lastMessage1")
+                .lastMessageCreatedAt(ZonedDateTime.now())
+                .build();
+
+        expectedChatRoomPage = new PageImpl<>(
+                List.of(chatRoomDTO1),
+                PageRequest.of(0, 10), 1
         );
     }
 
     @Test
     @WithMockUser
-    void getChatMessages_shouldSucceed() throws Exception {
+    void getChatRooms_includeTimeZone_shouldSucceed() throws Exception {
+        when(chatService.getChatRoomsByParticipantEmail(any(), any(), any(), any()))
+                .thenReturn(expectedChatRoomPage);
 
-        when(chatService.getChatMessages(any(), any(), any())).thenReturn(expectedPage);
-
-        mockMvc.perform(get("/api/chat/1/messages")
+        mockMvc.perform(get("/api/chat")
                         .param("page", "0")
                         .param("size", "10")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER.name())
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.content[0].senderEmail").value("sender1"))
-                .andExpect(jsonPath("$.content[1].senderEmail").value("sender2"));
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value("1"));
     }
 
     @Test
     @WithMockUser
     void getChatMessages_includeTimeZone_shouldSucceed() throws Exception {
-
-        when(chatService.getChatMessages(any(), any(), any(), any())).thenReturn(expectedPage);
+        when(chatService.getChatMessages(any(), any(), any(), any())).thenReturn(expectedMessagePage);
 
         mockMvc.perform(get("/api/chat/1/messages")
                         .param("page", "0")
@@ -91,5 +116,23 @@ public class ChatControllerTest {
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.content[0].senderEmail").value("sender1"))
                 .andExpect(jsonPath("$.content[1].senderEmail").value("sender2"));
+    }
+
+    @Test
+    @WithMockUser
+    void createChatRoomWithMessage_includesTimeZone_shouldSucceed() throws Exception {
+        when(chatService.createChatRoomWithMessage(any(), any(), any(), any(), any()))
+                .thenReturn(expectedMessage);
+
+        mockMvc.perform(post("/api/chat/caretaker@example.com")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .content("{ \"content\": \"message\" }")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER.name())
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"));
     }
 }

@@ -17,9 +17,9 @@ import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.service.mapper.OfferConfigurationMapper;
 import com.example.petbuddybackend.service.mapper.OfferMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
-import com.example.petbuddybackend.utils.exception.throweable.AnimalAmenityDuplicatedInOfferException;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationDuplicatedException;
+import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.common.util.CollectionUtil;
@@ -46,7 +46,7 @@ public class OfferService {
     private final OfferConfigurationMapper offerConfigurationMapper = OfferConfigurationMapper.INSTANCE;
 
     public OfferDTO addOrEditOffer(OfferDTO offer, String caretakerEmail) {
-        Caretaker caretaker = caretakerService.getCaretaker(caretakerEmail);
+        Caretaker caretaker = caretakerService.getCaretakerByEmail(caretakerEmail);
 
         Offer modifiyngOffer = getOrCreateCaretakerOffer(caretakerEmail, offer.animal().animalType(),
                 caretaker, offer.description());
