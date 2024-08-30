@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
     boolean existsByIdAndCaretaker_Email(Long chatRoomId, String email);
@@ -28,10 +29,14 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
         FROM ChatRoom cr
         JOIN ChatMessage cm ON cm.chatRoom.id = cr.id
         WHERE cr.caretaker.email = :email
-        AND cm.createdAt = (
-            SELECT MAX(cm2.createdAt)
+        AND cm.id = (
+            SELECT MIN(cm2.id)
             FROM ChatMessage cm2
-            WHERE cm2.chatRoom.id = cr.id
+            WHERE cm2.createdAt = (
+                SELECT MAX(cm3.createdAt)
+                FROM ChatMessage cm3
+                WHERE cm3.chatRoom.id = cr.id
+            )
         )
         """)
     Page<ChatRoomDTO> findByCaretakerEmailSortByLastMessageDesc(String email, Pageable pageable);
@@ -49,10 +54,14 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
         FROM ChatRoom cr
         JOIN ChatMessage cm ON cm.chatRoom.id = cr.id
         WHERE cr.client.email = :email
-        AND cm.createdAt = (
-            SELECT MAX(cm2.createdAt)
+        AND cm.id = (
+            SELECT MIN(cm2.id)
             FROM ChatMessage cm2
-            WHERE cm2.chatRoom.id = cr.id
+            WHERE cm2.createdAt = (
+                SELECT MAX(cm3.createdAt)
+                FROM ChatMessage cm3
+                WHERE cm3.chatRoom.id = cr.id
+            )
         )
         """)
     Page<ChatRoomDTO> findByClientEmailSortByLastMessageDesc(String email, Pageable pageable);

@@ -33,6 +33,8 @@ public class ChatMessage {
 
     @PrePersist
     public void prePersist() {
-        createdAt = ZonedDateTime.now();
+        if (createdAt == null) {
+            createdAt = ZonedDateTime.now();
+        }
     }
 }
