@@ -6,7 +6,7 @@ import com.example.petbuddybackend.repository.amenity.AmenityRepository;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
-import com.example.petbuddybackend.service.dataGeneration.NecessaryDataService;
+import com.example.petbuddybackend.service.datageneration.NecessaryDataService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;

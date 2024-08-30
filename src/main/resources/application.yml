@@ -10,7 +10,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
     properties:
       dialect: org.hibernate.dialect.PostgreSQL94Dialect
       hibernate:

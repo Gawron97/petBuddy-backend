@@ -23,7 +23,7 @@ import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
-import com.example.petbuddybackend.service.dataGeneration.MockService;
+import com.example.petbuddybackend.service.datageneration.MockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
