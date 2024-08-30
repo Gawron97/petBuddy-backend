@@ -5,13 +5,11 @@ import com.example.petbuddybackend.repository.user.AppUserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import java.util.Map;
 import java.util.Optional;
 
-import static com.example.petbuddybackend.testutils.MockUtils.createJwtToken;
+import static com.example.petbuddybackend.testutils.mock.GeneralMockProvider.createJwtToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 

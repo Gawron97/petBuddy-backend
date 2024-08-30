@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.scheduled;
+package com.example.petbuddybackend.scheduled;
 
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class CareScheduled {
         List<Care> cares = careRepository.findAllByCaretakerStatusNotInOrClientStatusNotIn(
                 List.of(CareStatus.CANCELLED, CareStatus.OUTDATED, CareStatus.PAID),
                 List.of(CareStatus.CANCELLED, CareStatus.OUTDATED, CareStatus.PAID));
-        log.info("Terminating cares from potential: ", cares.size());
+        log.info(MessageFormat.format("Terminating cares from potential: {0}", cares.size()));
         cares.forEach(care -> {
             if(care.getCareStart().isAfter(LocalDate.now()) || care.getCareStart().isEqual(LocalDate.now())) {
                 care.setCaretakerStatus(CareStatus.OUTDATED);

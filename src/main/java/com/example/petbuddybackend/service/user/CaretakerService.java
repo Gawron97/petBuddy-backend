@@ -1,13 +1,10 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.dto.address.AddressDTO;
-import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
-import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -16,8 +13,8 @@ import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
-import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -47,7 +44,7 @@ public class CaretakerService {
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
-    public Caretaker getCaretaker(String caretakerEmail) {
+    public Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
                 .orElseThrow(() -> new NotFoundException("Caretaker with email " + caretakerEmail + " not found"));
     }
@@ -142,7 +139,7 @@ public class CaretakerService {
     public CaretakerDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
 
         AppUser appUser = userService.getAppUser(email);
-        Caretaker caretakerToSave = getCaretaker(appUser.getEmail());
+        Caretaker caretakerToSave = getCaretakerByEmail(appUser.getEmail());
         caretakerMapper.updateCaretakerFromDTO(caretaker, caretakerToSave);
         return caretakerMapper.mapToCaretakerDTO(caretakerRepository.save(caretakerToSave));
 

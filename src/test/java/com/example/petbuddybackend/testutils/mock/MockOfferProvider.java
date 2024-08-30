@@ -1,136 +1,21 @@
-package com.example.petbuddybackend.testutils;
+package com.example.petbuddybackend.testutils.mock;
 
-import com.example.petbuddybackend.entity.address.Address;
-import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.amenity.Amenity;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
-import com.example.petbuddybackend.entity.care.Care;
-import com.example.petbuddybackend.entity.care.CareStatus;
-import com.example.petbuddybackend.entity.chat.ChatMessage;
-import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
-import com.example.petbuddybackend.entity.rating.Rating;
-import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import com.example.petbuddybackend.entity.user.Client;
+import lombok.NoArgsConstructor;
 import org.keycloak.common.util.CollectionUtil;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.mockito.Mockito.mock;
-
-public final class MockUtils {
-    
-    private MockUtils() {
-    }
-
-
-    public static Address createMockAddress(Voivodeship voivodeship, String city) {
-        return Address.builder()
-                .city(city)
-                .voivodeship(voivodeship)
-                .street("street")
-                .zipCode("12-123")
-                .buildingNumber("5A")
-                .apartmentNumber("10")
-                .build();
-    }
-
-    public static Address createMockAddress() {
-        return createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa");
-    }
-
-    public static Caretaker createMockCaretaker(String name, String surname, String email, Address address) {
-        AppUser accountData = AppUser.builder()
-                .email(email)
-                .name(name)
-                .surname(surname)
-                .build();
-
-        return Caretaker.builder()
-                .email(email)
-                .accountData(accountData)
-                .address(address)
-                .description("description")
-                .phoneNumber("number")
-                .avgRating(4.5f)
-                .build();
-    }
-
-    public static Caretaker createMockCaretaker() {
-        return createMockCaretaker(
-                "name",
-                "surname",
-                "email",
-                createMockAddress()
-        );
-    }
-
-    public static List<Caretaker> createMockCaretakers() {
-        return List.of(
-                MockUtils.createMockCaretaker("John", "Doe", "testmail@mail.com",
-                        createMockAddress(Voivodeship.SLASKIE, "Katowice")),
-                MockUtils.createMockCaretaker("Jane", "Doe", "another@mail.com",
-                        createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa")),
-                MockUtils.createMockCaretaker("John", "Smith", "onceagain@mail.com",
-                        createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa"))
-        );
-    }
-
-    public static Client createMockClient(String name, String surname, String email) {
-        AppUser accountData = AppUser.builder()
-                .email(email)
-                .name(name)
-                .surname(surname)
-                .build();
-
-        return Client.builder()
-                .email(email)
-                .accountData(accountData)
-                .build();
-    }
-
-    public static Client createMockClient() {
-        String email = "clientEmail";
-
-        return Client.builder()
-                .email(email)
-                .accountData(AppUser.builder()
-                        .email("clientEmail")
-                        .name("clientName")
-                        .surname("clientSurname")
-                        .build())
-                .build();
-    }
-
-    public static Rating createMockRating(Caretaker caretaker, Client client) {
-        return Rating.builder()
-                .caretakerEmail(caretaker.getEmail())
-                .clientEmail(client.getEmail())
-                .caretaker(caretaker)
-                .client(client)
-                .rating(5)
-                .comment("comment")
-                .build();
-    }
-
-    public static List<Offer> createMockOffers(Caretaker caretaker, List<Animal> animals) {
-
-        return animals.stream()
-                .map(animal -> createMockOffer(caretaker, animal))
-                .toList();
-
-    }
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
+public final class MockOfferProvider {
 
     public static Offer createMockOffer(Caretaker caretaker, Animal animal) {
         return Offer.builder()
@@ -171,18 +56,11 @@ public final class MockUtils {
 
     }
 
-    public static Animal createMockAnimal(String animalType) {
-        return Animal.builder()
-                .animalType(animalType)
-                .build();
-    }
+    public static List<Offer> createMockOffers(Caretaker caretaker, List<Animal> animals) {
+        return animals.stream()
+                .map(animal -> createMockOffer(caretaker, animal))
+                .toList();
 
-    public static AnimalAttribute createAnimalAttribute(String attributeName, String attributeValue, Animal animal) {
-        return AnimalAttribute.builder()
-                .animal(animal)
-                .attributeName(attributeName)
-                .attributeValue(attributeValue)
-                .build();
     }
 
     public static OfferOption createOfferOption(AnimalAttribute animalAttribute) {
@@ -215,20 +93,11 @@ public final class MockUtils {
         return offerConfiguration;
     }
 
-
-    public static AnimalAmenity createAnimalAmenity(Animal animal, String amenity) {
-        return AnimalAmenity.builder()
-                .animal(animal)
-                .amenity(Amenity.builder().name(amenity).build())
-                .build();
-    }
-
     public static void createComplexMockOfferForCaretaker(Caretaker caretaker) {
+        Animal dog = MockAnimalProvider.createMockAnimal("DOG");
 
-        Animal dog = createMockAnimal("DOG");
-
-        AnimalAttribute dogAttribute = createAnimalAttribute("SIZE", "BIG", dog);
-        AnimalAttribute dogAttribute2 = createAnimalAttribute("SEX", "MALE", dog);
+        AnimalAttribute dogAttribute = MockAnimalProvider.createAnimalAttribute("SIZE", "BIG", dog);
+        AnimalAttribute dogAttribute2 = MockAnimalProvider.createAnimalAttribute("SEX", "MALE", dog);
 
         List<OfferOption> offerOptions = List.of(
                 createOfferOption(dogAttribute),
@@ -237,8 +106,8 @@ public final class MockUtils {
 
         OfferConfiguration offerConfiguration = createOfferConfiguration(offerOptions);
         Set<AnimalAmenity> animalAmenities = new HashSet<>(Arrays.asList(
-                createAnimalAmenity(dog, "toys"),
-                createAnimalAmenity(dog, "FEEDING")
+                MockAnimalProvider.createAnimalAmenity(dog, "toys"),
+                MockAnimalProvider.createAnimalAmenity(dog, "FEEDING")
         ));
 
         Offer offer = Offer.builder()
@@ -336,76 +205,5 @@ public final class MockUtils {
         caretaker.setOffers(new ArrayList<>(List.of(offer)));
 
         return offer;
-
     }
-
-    public static AppUser createMockAppUser() {
-
-        return AppUser.builder()
-                .name("Imie")
-                .surname("Nazwisko")
-                .email("email")
-                .build();
-
-    }
-
-    public static List<ChatMessage> createMockChatMessages(Client client, Caretaker caretaker) {
-        AppUser clientAppUser = client.getAccountData();
-        AppUser caretakerAppUser = caretaker.getAccountData();
-
-        ChatMessage clientMessage = createMockChatMessage(clientAppUser);
-        ChatMessage caretakerMessage = createMockChatMessage(caretakerAppUser);
-
-        return List.of(clientMessage, caretakerMessage);
-    }
-
-    public static ChatMessage createMockChatMessage(AppUser sender) {
-        return ChatMessage.builder()
-                .content(UUID.randomUUID().toString())
-                .createdAt(ZonedDateTime.now())
-                .sender(sender)
-                .build();
-    }
-
-    public static ChatRoom createMockChatRoom(Client client, Caretaker caretaker) {
-        ChatRoom chatRoom = ChatRoom.builder()
-                .client(client)
-                .caretaker(caretaker)
-                .build();
-
-        return chatRoom;
-    }
-
-    public static JwtAuthenticationToken createJwtToken(String email, String firstname, String lastname, String username) {
-        return new JwtAuthenticationToken(mock(Jwt.class), null, null) {
-            @Override
-            public Map<String, Object> getTokenAttributes() {
-                return Map.of(
-                        "email", email,
-                        "given_name", firstname,
-                        "family_name", lastname,
-                        "preferred_username", username
-                );
-            }
-        };
-
-    }
-
-    public static Care createMockCare(Caretaker caretaker, Client client, Animal animal) {
-
-        return Care.builder()
-                .caretakerStatus(CareStatus.PENDING)
-                .clientStatus(CareStatus.ACCEPTED)
-                .careStart(LocalDate.now().plusDays(2))
-                .careEnd(LocalDate.now().plusDays(7))
-                .description("Test care description")
-                .dailyPrice(new BigDecimal("50.00"))
-                .animal(animal)
-                .animalAttributes(new HashSet<>())
-                .caretaker(caretaker)
-                .client(client)
-                .build();
-
-    }
-
 }

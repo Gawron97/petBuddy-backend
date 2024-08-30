@@ -4,8 +4,9 @@ import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
+import com.example.petbuddybackend.testutils.mock.MockRatingProvider;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -17,10 +18,10 @@ public class RatingMapperTest {
 
     @Test
     void mapToCaretakerDTO_shouldNotLeaveNullFields() throws IllegalAccessException {
-        Client client = MockUtils.createMockClient();
-        Caretaker caretaker = MockUtils.createMockCaretaker();
+        Client client = MockUserProvider.createMockClient();
+        Caretaker caretaker = MockUserProvider.createMockCaretaker();
 
-        Rating rating = MockUtils.createMockRating(caretaker, client);
+        Rating rating = MockRatingProvider.createMockRating(caretaker, client);
 
         RatingResponse ratingResponse = mapper.mapToRatingResponse(rating);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(ratingResponse));

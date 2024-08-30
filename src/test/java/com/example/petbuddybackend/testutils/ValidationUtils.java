@@ -1,5 +1,7 @@
 package com.example.petbuddybackend.testutils;
 
+import lombok.SneakyThrows;
+
 import java.lang.reflect.Field;
 import java.util.Set;
 
@@ -7,7 +9,8 @@ public final class ValidationUtils {
 
     private ValidationUtils() {}
 
-    public static boolean fieldsNotNullRecursive(Object obj, Set<String> fieldsToSkip) throws IllegalAccessException {
+    @SneakyThrows
+    public static boolean fieldsNotNullRecursive(Object obj, Set<String> fieldsToSkip) {
         boolean allNotNull = true;
         Field[] fields = obj.getClass().getDeclaredFields();
 
@@ -24,7 +27,7 @@ public final class ValidationUtils {
         return allNotNull;
     }
 
-    public static boolean fieldsNotNullRecursive(Object obj) throws IllegalAccessException {
+    public static boolean fieldsNotNullRecursive(Object obj) {
         return fieldsNotNullRecursive(obj, Set.of());
     }
 }

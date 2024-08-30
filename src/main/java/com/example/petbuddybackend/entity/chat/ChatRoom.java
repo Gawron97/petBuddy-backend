@@ -13,6 +13,7 @@ import java.util.List;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = {"id"})
 @Table(
         uniqueConstraints = {@UniqueConstraint(columnNames = {"clientEmail", "caretakerEmail"})}
 )

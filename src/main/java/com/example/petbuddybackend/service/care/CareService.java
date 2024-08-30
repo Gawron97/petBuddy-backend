@@ -11,8 +11,8 @@ import com.example.petbuddybackend.service.animal.AnimalService;
 import com.example.petbuddybackend.service.mapper.CareMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
-import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.common.util.CollectionUtil;
 import org.springframework.stereotype.Service;
@@ -60,8 +60,8 @@ public class CareService {
                 .dailyPrice(createCare.dailyPrice())
                 .animal(animalService.getAnimal(createCare.animalType()))
                 .animalAttributes(animalAttributes)
-                .caretaker(caretakerService.getCaretaker(createCare.caretakerEmail()))
-                .client(clientService.getClient(createCare.clientEmail()))
+                .caretaker(caretakerService.getCaretakerByEmail(createCare.caretakerEmail()))
+                .client(clientService.getClientByEmail(createCare.clientEmail()))
                 .build();
 
     }

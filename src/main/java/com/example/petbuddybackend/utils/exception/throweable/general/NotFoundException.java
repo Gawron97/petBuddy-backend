@@ -1,8 +1,8 @@
-package com.example.petbuddybackend.utils.exception.throweable;
+package com.example.petbuddybackend.utils.exception.throweable.general;
 
 public class NotFoundException extends RuntimeException {
 
-    private static final String TYPED_RESOURCE_NOT_FOUND_MESSAGE = "\"%s\" of name \"%s\" not found";
+    private static final String TYPED_RESOURCE_NOT_FOUND_MESSAGE = "\"%s\" :: \"%s\" not found";
 
     public NotFoundException() {
         super("Resource not found");

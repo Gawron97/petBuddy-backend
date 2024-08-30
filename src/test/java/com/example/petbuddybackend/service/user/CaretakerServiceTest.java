@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.config.TestDataConfiguration;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
@@ -28,8 +28,9 @@ import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
-import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
+import com.example.petbuddybackend.testutils.mock.MockRatingProvider;
+import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.example.petbuddybackend.testutils.MockUtils.createMockRating;
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -196,7 +196,7 @@ public class CaretakerServiceTest {
     @Test
     @Transactional
     void rateCaretaker_ratingExists_shouldUpdateRating() {
-        ratingRepository.save(createMockRating(caretaker, client));
+        ratingRepository.save(MockRatingProvider.createMockRating(caretaker, client));
 
         caretakerService.rateCaretaker(
                 caretaker.getEmail(),
@@ -256,7 +256,7 @@ public class CaretakerServiceTest {
 
     @Test
     void deleteRating_shouldSucceed() {
-        ratingRepository.saveAndFlush(createMockRating(caretaker, client));
+        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(caretaker, client));
 
         caretakerService.deleteRating(caretaker.getEmail(), client.getAccountData().getEmail());
         assertEquals(0, ratingRepository.count());
@@ -280,7 +280,7 @@ public class CaretakerServiceTest {
 
     @Test
     void getRatings_shouldReturnRatings() {
-        ratingRepository.saveAndFlush(createMockRating(caretaker, client));
+        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(caretaker, client));
 
         Page<RatingResponse> ratings = caretakerService.getRatings(Pageable.ofSize(10), caretaker.getEmail());
         assertEquals(1, ratings.getContent().size());
@@ -288,7 +288,7 @@ public class CaretakerServiceTest {
 
     @Test
     void getRating_shouldReturnRating() {
-        Rating rating = createMockRating(caretaker, client);
+        Rating rating = MockRatingProvider.createMockRating(caretaker, client);
         ratingRepository.saveAndFlush(rating);
 
         Rating foundRating = caretakerService.getRating(caretaker.getEmail(), client.getEmail());

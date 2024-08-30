@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.config.security;
+package com.example.petbuddybackend.testconfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

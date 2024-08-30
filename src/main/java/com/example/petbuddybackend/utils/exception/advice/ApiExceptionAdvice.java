@@ -1,8 +1,8 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
-import com.example.petbuddybackend.utils.exception.throweable.AnimalAmenityDuplicatedInOfferException;
-import com.example.petbuddybackend.utils.exception.throweable.OfferConfigurationDuplicatedException;
+import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
+import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;

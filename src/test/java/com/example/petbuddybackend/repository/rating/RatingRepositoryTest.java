@@ -1,14 +1,14 @@
-package com.example.petbuddybackend.repository;
+package com.example.petbuddybackend.repository.rating;
 
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
+import com.example.petbuddybackend.testutils.mock.MockRatingProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
-import static com.example.petbuddybackend.testutils.MockUtils.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
@@ -52,7 +51,7 @@ public class RatingRepositoryTest {
 
     @Test
     void testFindAllByCaretakerEmail_shouldReturnRatingsWithNoNulls() throws IllegalAccessException {
-        ratingRepository.saveAndFlush(createMockRating(caretaker, client));
+        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(caretaker, client));
 
         Page<Rating> ratings = ratingRepository.findAllByCaretakerEmail(caretaker.getEmail(), PageRequest.of(0, 10));
         Rating rating = ratings.getContent().get(0);

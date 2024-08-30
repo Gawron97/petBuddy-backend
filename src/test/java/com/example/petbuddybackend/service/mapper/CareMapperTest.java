@@ -13,8 +13,10 @@ import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.example.petbuddybackend.testutils.MockUtils.*;
 import static com.example.petbuddybackend.testutils.ValidationUtils.fieldsNotNullRecursive;
+import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CareMapperTest {

@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.exception.throweable;
+package com.example.petbuddybackend.utils.exception.throweable.offer;
 
 public class AnimalAmenityDuplicatedInOfferException extends RuntimeException {
 

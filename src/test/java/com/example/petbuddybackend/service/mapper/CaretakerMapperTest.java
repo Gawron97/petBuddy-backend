@@ -2,8 +2,9 @@ package com.example.petbuddybackend.service.mapper;
 
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import com.example.petbuddybackend.testutils.MockUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
+import com.example.petbuddybackend.testutils.mock.MockOfferProvider;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,8 +16,8 @@ public class CaretakerMapperTest {
 
     @Test
     void mapToCaretakerDTO_shouldNotLeaveNullFields() throws IllegalAccessException {
-        Caretaker caretaker = MockUtils.createMockCaretaker();
-        MockUtils.createComplexMockOfferForCaretaker(caretaker);
+        Caretaker caretaker = MockUserProvider.createMockCaretaker();
+        MockOfferProvider.createComplexMockOfferForCaretaker(caretaker);
 
         setIds(caretaker);
 

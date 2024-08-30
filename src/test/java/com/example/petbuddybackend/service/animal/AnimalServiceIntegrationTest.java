@@ -1,9 +1,8 @@
 package com.example.petbuddybackend.service.animal;
 
-import com.example.petbuddybackend.config.TestDataConfiguration;
-import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
-import com.example.petbuddybackend.utils.exception.throweable.NotFoundException;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

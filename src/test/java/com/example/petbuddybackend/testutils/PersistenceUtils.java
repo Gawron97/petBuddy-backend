@@ -22,12 +22,14 @@ import com.example.petbuddybackend.repository.user.ClientRepository;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static com.example.petbuddybackend.testutils.MockUtils.*;
+import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
+import static com.example.petbuddybackend.testutils.mock.MockOfferProvider.*;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 
 public class PersistenceUtils {
 
     public static AppUser addAppUser(AppUserRepository appUserRepository) {
-        AppUser appUser = MockUtils.createMockAppUser();
+        AppUser appUser = createMockAppUser();
         return appUserRepository.save(appUser);
     }
 
@@ -75,7 +77,7 @@ public class PersistenceUtils {
     public static void addOffersToCaretakers(List<Caretaker> caretakers, OfferRepository offerRepository,
                                                         List<Animal> animals) {
 
-        offerRepository.saveAllAndFlush(MockUtils.createMockOffers(caretakers, animals));
+        offerRepository.saveAllAndFlush(createMockOffers(caretakers, animals));
 
     }
 
@@ -96,14 +98,14 @@ public class PersistenceUtils {
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
                                         BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
-        Offer offer = MockUtils.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
+        Offer offer = createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
         return offerRepository.save(offer);
     }
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
                                         BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository,
                                         Offer offer) {
-        Offer offerToSave = MockUtils.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities, offer);
+        Offer offerToSave = createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities, offer);
         return offerRepository.save(offerToSave);
     }
 

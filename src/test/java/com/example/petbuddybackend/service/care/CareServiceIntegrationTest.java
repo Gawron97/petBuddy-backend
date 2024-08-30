@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.care;
 
-import com.example.petbuddybackend.config.TestDataConfiguration;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
@@ -14,7 +14,7 @@ import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
-import com.example.petbuddybackend.utils.exception.throweable.IllegalActionException;
+import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -123,7 +123,7 @@ public class CareServiceIntegrationTest {
                         .dailyPrice(new BigDecimal("10.00"))
                         .animalType("DOG")
                         .animalAttributeIds(new ArrayList<>())
-                        .caretakerEmail("email")
+                        .caretakerEmail("caretakerEmail")
                         .clientEmail("clientEmail")
                         .build(),
                         "wrongEmail",
@@ -137,10 +137,10 @@ public class CareServiceIntegrationTest {
                                 .dailyPrice(new BigDecimal("10.00"))
                                 .animalType("DOG")
                                 .animalAttributeIds(new ArrayList<>())
-                                .caretakerEmail("email")
+                                .caretakerEmail("caretakerEmail")
                                 .clientEmail("clientEmail")
                                 .build(),
-                        "email",
+                        "caretakerEmail",
                         IllegalActionException.class
                 ),
                 Arguments.of(
@@ -151,7 +151,7 @@ public class CareServiceIntegrationTest {
                                 .dailyPrice(new BigDecimal("10.00"))
                                 .animalType("DOG")
                                 .animalAttributeIds(new ArrayList<>())
-                                .caretakerEmail("email")
+                                .caretakerEmail("caretakerEmail")
                                 .clientEmail("clientEmail")
                                 .build(),
                         "clientEmail",

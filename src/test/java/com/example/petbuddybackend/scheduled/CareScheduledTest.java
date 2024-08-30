@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.scheduled;
+package com.example.petbuddybackend.scheduled;
 
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -12,7 +12,9 @@ import org.mockito.MockitoAnnotations;
 import java.time.LocalDate;
 import java.util.List;
 
-import static com.example.petbuddybackend.testutils.MockUtils.*;
+import static com.example.petbuddybackend.testutils.mock.MockAnimalProvider.createMockAnimal;
+import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 

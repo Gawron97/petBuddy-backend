@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.config.TestDataConfiguration;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -106,7 +106,7 @@ public class CareControllerIntegrationTest {
                                 new BigDecimal("50.00"),
                                 "DOG",
                                 "",
-                                "email",
+                                "caretakerEmail",
                                 "clientEmail")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.ACCEPTED.name()))
@@ -116,7 +116,7 @@ public class CareControllerIntegrationTest {
                 .andExpect(jsonPath("$.description").value("Test care description"))
                 .andExpect(jsonPath("$.dailyPrice").value(50.00))
                 .andExpect(jsonPath("$.animalType").value("DOG"))
-                .andExpect(jsonPath("$.caretakerEmail").value("email"))
+                .andExpect(jsonPath("$.caretakerEmail").value("caretakerEmail"))
                 .andExpect(jsonPath("$.clientEmail").value("clientEmail"));
     }
 
@@ -134,7 +134,7 @@ public class CareControllerIntegrationTest {
                                 new BigDecimal("50.00"),
                                 "DOG",
                                 "",
-                                "email",
+                                "caretakerEmail",
                                 "clientEmail")))
                 .andExpect(status().isBadRequest());
     }
@@ -170,13 +170,13 @@ public class CareControllerIntegrationTest {
                                 new BigDecimal("50.00"),
                                 "DOG",
                                 "",
-                                "email",
+                                "caretakerEmail",
                                 "clientEmail")))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void updateCare_ShouldUpdateCareProperly() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -198,7 +198,7 @@ public class CareControllerIntegrationTest {
                 .andExpect(jsonPath("$.description").value("Test care description"))
                 .andExpect(jsonPath("$.dailyPrice").value(60.00))
                 .andExpect(jsonPath("$.animalType").value("DOG"))
-                .andExpect(jsonPath("$.caretakerEmail").value("email"))
+                .andExpect(jsonPath("$.caretakerEmail").value("caretakerEmail"))
                 .andExpect(jsonPath("$.clientEmail").value("clientEmail"));
     }
 
@@ -220,7 +220,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void updateCare_WhenCareIsCancelled_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -239,7 +239,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void updateCare_WhenCareIsAcceptedByCaretaker_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -258,7 +258,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void updateCare_WhenEndDateIsBeforeStartDate_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -275,7 +275,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void acceptCareByCaretaker_ShouldReturnAcceptedCare() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -300,7 +300,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void acceptCareByCaretaker_WhenCareIsTerminated_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -313,7 +313,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void acceptCareByCaretaker_WhenCaretakerStatusIsNotPending_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -326,7 +326,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void acceptCareByCaretaker_WhenClientStatusIsNotAccepted_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -394,7 +394,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void rejectCareByCaretaker_ShouldReturnRejectedCare() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -418,7 +418,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void rejectCareByCaretaker_WhenCareIsTerminated_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -431,7 +431,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "email")
+    @WithMockUser(username = "caretakerEmail")
     void rejectCareByCaretaker_WhenCaretakerStatusIsNotPending_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());

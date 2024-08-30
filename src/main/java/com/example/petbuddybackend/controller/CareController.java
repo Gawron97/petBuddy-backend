@@ -4,6 +4,7 @@ import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.service.care.CareService;
+import com.example.petbuddybackend.utils.annotations.swaggerdocs.TimeZoneParameter;
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,7 +37,7 @@ public class CareController {
     })
     @PreAuthorize("isAuthenticated()")
     public CareDTO makeReservation(@RequestBody @Valid CreateCareDTO createCare,
-                                   @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
+                                   @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
                                    Principal principal) {
         return careService.makeReservation(createCare, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
@@ -57,7 +58,7 @@ public class CareController {
     @PreAuthorize("isAuthenticated()")
     public CareDTO updateCare(@PathVariable Long careId,
                               @RequestBody @Valid UpdateCareDTO updateCare,
-                              @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
+                              @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
                               Principal principal) {
         return careService.updateCare(careId, updateCare, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
@@ -77,7 +78,7 @@ public class CareController {
     })
     @PreAuthorize("isAuthenticated()")
     public CareDTO acceptCareByCaretaker(@PathVariable Long careId,
-                                         @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
+                                         @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
                                          Principal principal) {
         return careService.acceptCareByCaretaker(careId, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
@@ -96,7 +97,7 @@ public class CareController {
     })
     @PreAuthorize("isAuthenticated()")
     public CareDTO acceptCareByClient(@PathVariable Long careId,
-                                      @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
+                                      @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
                                       Principal principal) {
         return careService.acceptCareByClient(careId, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
@@ -115,7 +116,7 @@ public class CareController {
     })
     @PreAuthorize("isAuthenticated()")
     public CareDTO rejectCareByCaretaker(@PathVariable Long careId,
-                                         @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
+                                         @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
                                          Principal principal) {
         return careService.rejectCareByCaretaker(careId, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
@@ -134,7 +135,7 @@ public class CareController {
     })
     @PreAuthorize("isAuthenticated()")
     public CareDTO cancelCareByClient(@PathVariable Long careId,
-                                      @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
+                                      @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
                                       Principal principal) {
         return careService.cancelCareByClient(careId, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
