@@ -3,6 +3,7 @@ package com.example.petbuddybackend.testutils;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -10,22 +11,25 @@ import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
-import com.example.petbuddybackend.testutils.mock.MockOfferProvider;
-import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
+import static com.example.petbuddybackend.testutils.mock.MockOfferProvider.*;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
+
 public class PersistenceUtils {
 
     public static AppUser addAppUser(AppUserRepository appUserRepository) {
-        AppUser appUser = MockUserProvider.createMockAppUser();
+        AppUser appUser = createMockAppUser();
         return appUserRepository.save(appUser);
     }
 
@@ -44,7 +48,7 @@ public class PersistenceUtils {
     }
 
     public static List<Caretaker> addCaretakers(CaretakerRepository caretakerRepository, AppUserRepository appUserRepository) {
-        List<Caretaker> caretakers = MockUserProvider.createMockCaretakers();
+        List<Caretaker> caretakers = createMockCaretakers();
 
         List<AppUser> accountData = caretakers.stream()
                 .map(Caretaker::getAccountData)
@@ -66,14 +70,14 @@ public class PersistenceUtils {
     }
 
     public static Caretaker addCaretaker(CaretakerRepository caretakerRepository, AppUserRepository appUserRepository) {
-        Caretaker caretaker = MockUserProvider.createMockCaretaker();
+        Caretaker caretaker = createMockCaretaker();
         return addCaretaker(caretakerRepository, appUserRepository, caretaker);
     }
 
     public static void addOffersToCaretakers(List<Caretaker> caretakers, OfferRepository offerRepository,
                                                         List<Animal> animals) {
 
-        offerRepository.saveAllAndFlush(MockOfferProvider.createMockOffers(caretakers, animals));
+        offerRepository.saveAllAndFlush(createMockOffers(caretakers, animals));
 
     }
 
@@ -84,7 +88,7 @@ public class PersistenceUtils {
     }
 
     public static Client addClient(AppUserRepository appUserRepository, ClientRepository clientRepository) {
-        Client client = MockUserProvider.createMockClient();
+        Client client = createMockClient();
         return addClient(appUserRepository, clientRepository, client);
     }
 
@@ -94,20 +98,20 @@ public class PersistenceUtils {
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
                                         BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
-        Offer offer = MockOfferProvider.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
+        Offer offer = createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
         return offerRepository.save(offer);
     }
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
                                         BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository,
                                         Offer offer) {
-        Offer offerToSave = MockOfferProvider.createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities, offer);
+        Offer offerToSave = createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities, offer);
         return offerRepository.save(offerToSave);
     }
 
     public static void addOfferConfigurationForOffer(Offer existingOffer, List<AnimalAttribute> animalAttributes, OfferRepository offerRepository) {
 
-        OfferConfiguration offerConfiguration = MockOfferProvider.createOfferConfiguration(existingOffer, animalAttributes);
+        OfferConfiguration offerConfiguration = createOfferConfiguration(existingOffer, animalAttributes);
         existingOffer.getOfferConfigurations().add(offerConfiguration);
         offerRepository.save(existingOffer);
     }
@@ -127,5 +131,11 @@ public class PersistenceUtils {
         chatMessageRepository.saveAllAndFlush(chatMessages);
         chatRoom.setMessages(chatMessages);
         return chatRoom;
+    }
+
+    public static Care addCare(CareRepository careRepository, Caretaker caretaker,
+                               Client client, Animal animal) {
+        Care care = createMockCare(caretaker, client, animal);
+        return careRepository.saveAndFlush(care);
     }
 }

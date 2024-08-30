@@ -32,6 +32,6 @@ public class ChatRoom {
     @JoinColumn(name = "caretakerEmail", referencedColumnName = "email")
     private Caretaker caretaker;
 
-    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ChatMessage> messages;
 }

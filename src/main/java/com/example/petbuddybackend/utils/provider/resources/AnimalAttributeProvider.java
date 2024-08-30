@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.utils.provider.resources;
 
-import com.example.petbuddybackend.utils.resourceStructure.AnimalAttributeConfig;
+import com.example.petbuddybackend.utils.resourcestructure.AnimalAttributeConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

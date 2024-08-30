@@ -1,8 +1,8 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
-import com.example.petbuddybackend.utils.swaggerdocs.RoleParameter;
-import com.example.petbuddybackend.utils.swaggerdocs.TimeZoneParameter;
+import com.example.petbuddybackend.utils.annotations.swaggerdocs.RoleParameter;
+import com.example.petbuddybackend.utils.annotations.swaggerdocs.TimeZoneParameter;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.paging.PagingParams;

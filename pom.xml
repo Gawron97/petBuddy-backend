@@ -138,12 +138,13 @@
                             <exclude>com/example/petbuddybackend/dto/**</exclude>
                             <exclude>com/example/petbuddybackend/entity/**</exclude>
                             <exclude>com/example/petbuddybackend/utils/exception/**</exclude>
+                            <exclude>com/example/petbuddybackend/utils/annotations/**</exclude>
                             <exclude>com/example/petbuddybackend/PetBuddyBackendApplication.class</exclude>
-                            <exclude>com/example/petbuddybackend/config/dataGeneration/**</exclude>
+                            <exclude>com/example/petbuddybackend/config/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/config/security/NoSecurityConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/config/security/SecurityConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/controller/TestController.class</exclude>
-                            <exclude>com/example/petbuddybackend/service/dataGeneration/**</exclude>
+                            <exclude>com/example/petbuddybackend/service/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/filter/ExceptionHandlerFilter.class</exclude>
                             <exclude>com/example/petbuddybackend/filter/CORSFilter.class</exclude>
                         </excludes>

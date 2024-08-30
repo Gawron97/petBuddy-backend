@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.swaggerdocs;
+package com.example.petbuddybackend.utils.annotations.swaggerdocs;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;

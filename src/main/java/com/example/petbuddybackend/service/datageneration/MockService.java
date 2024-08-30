@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.service.dataGeneration;
+package com.example.petbuddybackend.service.datageneration;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;

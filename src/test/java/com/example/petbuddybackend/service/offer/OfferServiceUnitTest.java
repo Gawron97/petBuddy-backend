@@ -5,12 +5,9 @@ import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
+import com.example.petbuddybackend.service.animal.AnimalService;
 import com.example.petbuddybackend.service.user.CaretakerService;
-import com.example.petbuddybackend.testutils.mock.MockAnimalProvider;
-import com.example.petbuddybackend.testutils.mock.MockOfferProvider;
-import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
+import static com.example.petbuddybackend.testutils.mock.MockAnimalProvider.createMockAnimal;
+import static com.example.petbuddybackend.testutils.mock.MockOfferProvider.createMockOffer;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -32,7 +32,7 @@ public class OfferServiceUnitTest {
     private OfferRepository offerRepository;
 
     @Mock
-    private AnimalRepository animalRepository;
+    private AnimalService animalService;
 
     @Mock
     private CaretakerService caretakerService;
@@ -47,9 +47,9 @@ public class OfferServiceUnitTest {
     @BeforeEach
     void setUp() {
 
-        caretaker = MockUserProvider.createMockCaretaker();
-        animalInExistingOffer = MockAnimalProvider.createMockAnimal("DOG");
-        existingOffer = MockOfferProvider.createMockOffer(caretaker, animalInExistingOffer);
+        caretaker = createMockCaretaker();
+        animalInExistingOffer = createMockAnimal("DOG");
+        existingOffer = createMockOffer(caretaker, animalInExistingOffer);
 
     }
 
@@ -64,7 +64,7 @@ public class OfferServiceUnitTest {
 
         when(offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(
                 caretaker.getEmail(), offerToCreate.animal().animalType())).thenReturn(Optional.empty());
-        when(animalRepository.findById("DOG")).thenReturn(Optional.of(animalInExistingOffer));
+        when(animalService.getAnimal("DOG")).thenReturn(animalInExistingOffer);
         when(caretakerService.getCaretakerByEmail(caretaker.getEmail())).thenReturn(caretaker);
 
         // When

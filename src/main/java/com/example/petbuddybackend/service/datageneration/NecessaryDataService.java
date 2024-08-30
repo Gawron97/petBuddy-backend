@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.service.dataGeneration;
+package com.example.petbuddybackend.service.datageneration;
 
 import com.example.petbuddybackend.entity.amenity.Amenity;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
@@ -8,9 +8,9 @@ import com.example.petbuddybackend.utils.provider.resources.AmenityProvider;
 import com.example.petbuddybackend.utils.provider.resources.AnimalAmenityProvider;
 import com.example.petbuddybackend.utils.provider.resources.AnimalAttributeProvider;
 import com.example.petbuddybackend.utils.provider.resources.AnimalProvider;
-import com.example.petbuddybackend.utils.resourceStructure.AmenityConfig;
-import com.example.petbuddybackend.utils.resourceStructure.AnimalAttributeConfig;
-import com.example.petbuddybackend.utils.resourceStructure.AnimalConfig;
+import com.example.petbuddybackend.utils.resourcestructure.AmenityConfig;
+import com.example.petbuddybackend.utils.resourcestructure.AnimalAttributeConfig;
+import com.example.petbuddybackend.utils.resourcestructure.AnimalConfig;
 import com.github.javafaker.Faker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
