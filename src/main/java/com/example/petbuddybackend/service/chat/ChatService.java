@@ -74,14 +74,17 @@ public class ChatService {
             Role role,
             ZoneId timeZone
     ) {
-        ChatRoom chatRoom = getChatRoomById(chatId);
-        checkUserParticipatesInChat(chatRoom, principalEmail, role);
+        return chatMapper.mapToChatMessageDTO(createMessage(chatId, principalEmail, role, chatMessage), timeZone);
+    }
 
-        AppUser sender = role == Role.CLIENT ?
-                chatRoom.getClient().getAccountData() :
-                chatRoom.getCaretaker().getAccountData();
-
-        return chatMapper.mapToChatMessageDTO(createMessage(chatRoom, sender, chatMessage.getContent()), timeZone);
+    @Transactional
+    public ChatMessageDTO createMessage(
+            Long chatId,
+            String principalEmail,
+            ChatMessageSent chatMessage,
+            Role role
+    ) {
+        return chatMapper.mapToChatMessageDTO(createMessage(chatId, principalEmail, role, chatMessage));
     }
 
     public ChatMessageDTO createChatRoomWithMessage(
@@ -136,6 +139,17 @@ public class ChatService {
         ChatMessage chatMessage = createMessage(chatRoom, caretakerSender.getAccountData(), message.getContent());
 
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
+    }
+
+    private ChatMessage createMessage(Long chatId, String principalEmail, Role principalRole, ChatMessageSent chatMessage) {
+        ChatRoom chatRoom = getChatRoomById(chatId);
+        checkUserParticipatesInChat(chatRoom, principalEmail, principalRole);
+
+        AppUser sender = principalRole == Role.CLIENT ?
+                chatRoom.getClient().getAccountData() :
+                chatRoom.getCaretaker().getAccountData();
+
+        return createMessage(chatRoom, sender, chatMessage.getContent());
     }
 
     private ChatMessage createMessage(ChatRoom chatRoom, AppUser sender, String content) {

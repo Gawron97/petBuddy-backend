@@ -38,11 +38,17 @@ public class ChatMapperTest {
     }
 
     @Test
-    void mapToChatMessageDTO_shouldNotLeaveNullFields() {
+    void mapToChatMessageDTO_includesTimeZone_shouldNotLeaveNullFields() {
         ChatMessageDTO mappedChatMessage = mapper.mapToChatMessageDTO(chatMessage, warsawZone);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(mappedChatMessage));
         assertEquals(tokyoZone, chatMessage.getCreatedAt().getZone());
         assertEquals(warsawZone, mappedChatMessage.getCreatedAt().getZone());
+    }
+
+    @Test
+    void mapToChatMessageDTO_shouldNotLeaveNullFields() {
+        ChatMessageDTO mappedChatMessage = mapper.mapToChatMessageDTO(chatMessage);
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(mappedChatMessage));
     }
 
     @Test
