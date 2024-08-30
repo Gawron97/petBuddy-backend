@@ -41,7 +41,7 @@ public class ChatWebSocketController {
         Role acceptRole = HeaderUtils.getHeaderSingleValue(headers, ROLE_HEADER_NAME, Role.class);
 
         // Full support for time zones will added in next PR
-        return chatService.createMessageConvertTimeZone(
+        return chatService.createMessage(
                 chatId,
                 username,
                 message,

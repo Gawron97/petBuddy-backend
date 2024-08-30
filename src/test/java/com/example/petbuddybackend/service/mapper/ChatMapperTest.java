@@ -22,6 +22,8 @@ public class ChatMapperTest {
     private final ChatMapper mapper = ChatMapper.INSTANCE;
 
     private ChatMessage chatMessage;
+    private ZoneId tokyoZone = ZoneId.of("Asia/Tokyo");
+    private ZoneId warsawZone = ZoneId.of("Europe/Warsaw");
 
     @BeforeEach
     void setUp() {
@@ -32,19 +34,19 @@ public class ChatMapperTest {
         chatRoom.setId(1L);
         chatMessage.setId(2L);
         chatMessage.setChatRoom(chatRoom);
+        chatMessage.setCreatedAt(ZonedDateTime.now().withZoneSameInstant(tokyoZone));
     }
 
     @Test
     void mapToChatMessageDTO_shouldNotLeaveNullFields() {
-        ChatMessageDTO mappedChatMessage = mapper.mapToChatMessageDTO(chatMessage);
+        ChatMessageDTO mappedChatMessage = mapper.mapToChatMessageDTO(chatMessage, warsawZone);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(mappedChatMessage));
+        assertEquals(tokyoZone, chatMessage.getCreatedAt().getZone());
+        assertEquals(warsawZone, mappedChatMessage.getCreatedAt().getZone());
     }
 
     @Test
     void mapTimeZoneFromChatMessageDTO_shouldChangeTimeZone() {
-        ZoneId tokyoZone = ZoneId.of("Asia/Tokyo");
-        ZoneId warsawZone = ZoneId.of("Europe/Warsaw");
-
         ChatMessageDTO messageDTO = ChatMessageDTO.builder()
                 .createdAt(ZonedDateTime.now().withZoneSameInstant(tokyoZone))
                 .build();
@@ -57,9 +59,6 @@ public class ChatMapperTest {
 
     @Test
     void mapTimeZoneFromChatRoomDTO_shouldChangeTimeZone() {
-        ZoneId tokyoZone = ZoneId.of("Asia/Tokyo");
-        ZoneId warsawZone = ZoneId.of("Europe/Warsaw");
-
         ChatRoomDTO chatRoomDTO = ChatRoomDTO.builder()
                 .lastMessageCreatedAt(ZonedDateTime.now().withZoneSameInstant(tokyoZone))
                 .build();

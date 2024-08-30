@@ -115,8 +115,18 @@ public class ChatServiceTest {
     void testGetChatMessages_shouldSucceed() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessages(chatRoom.getId(), client.getEmail(), pageable);
-        Page<ChatMessageDTO> caretakerChatMessages = chatService.getChatMessages(chatRoom.getId(), caretaker.getEmail(), pageable);
+        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessages(
+                chatRoom.getId(),
+                client.getEmail(),
+                pageable,
+                ZoneId.of("Europe/Warsaw")
+        );
+        Page<ChatMessageDTO> caretakerChatMessages = chatService.getChatMessages(
+                chatRoom.getId(),
+                caretaker.getEmail(),
+                pageable,
+                ZoneId.of("Europe/Warsaw")
+        );
 
         assertEquals(clientChatMessages, caretakerChatMessages);
         assertEquals(2, clientChatMessages.getContent().size());
@@ -139,7 +149,7 @@ public class ChatServiceTest {
     void testGetChatMessages_chatDoesNotExist_shouldThrowNotFoundException() {
         assertThrows(
                 NotFoundException.class,
-                () -> chatService.getChatMessages(-1L, "", null)
+                () -> chatService.getChatMessages(-1L, "", null, ZoneId.of("Europe/Warsaw"))
         );
     }
 
@@ -147,7 +157,7 @@ public class ChatServiceTest {
     void testGetChatMessages_userDoesNotParticipateChat_shouldThrowNotParticipateException() {
         assertThrows(
                 NotParticipateException.class,
-                () -> chatService.getChatMessages(chatRoom.getId(), "notAParticipant", null)
+                () -> chatService.getChatMessages(chatRoom.getId(), "notAParticipant", null, ZoneId.of("Europe/Warsaw"))
         );
     }
 
@@ -169,10 +179,18 @@ public class ChatServiceTest {
     void testGetChatRoomsByParticipantEmail_shouldSucceed() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatRoomDTO> clientChatRooms =
-                chatService.getChatRoomsByParticipantEmail(client.getEmail(), Role.CLIENT, pageable);
-        Page<ChatRoomDTO> caretakerChatRooms =
-                chatService.getChatRoomsByParticipantEmail(caretaker.getEmail(), Role.CARETAKER, pageable);
+        Page<ChatRoomDTO> clientChatRooms = chatService.getChatRoomsByParticipantEmail(
+                client.getEmail(),
+                Role.CLIENT,
+                pageable,
+                ZoneId.of("Europe/Warsaw")
+        );
+        Page<ChatRoomDTO> caretakerChatRooms = chatService.getChatRoomsByParticipantEmail(
+                caretaker.getEmail(),
+                Role.CARETAKER,
+                pageable,
+                ZoneId.of("Europe/Warsaw")
+        );
 
         ChatRoomDTO clientChatRoom = clientChatRooms.getContent().get(0);
         ChatRoomDTO caretakerChatRoom = caretakerChatRooms.getContent().get(0);
@@ -216,7 +234,8 @@ public class ChatServiceTest {
                 chatRoom.getId(),
                 client.getEmail(),
                 new ChatMessageSent("message content"),
-                Role.CLIENT
+                Role.CLIENT,
+                ZoneId.of("Europe/Warsaw")
         );
 
         assertEquals(msgCount + 1, chatMessageRepository.count());
@@ -233,7 +252,8 @@ public class ChatServiceTest {
                 chatRoom.getId(),
                 caretaker.getEmail(),
                 new ChatMessageSent("message content"),
-                Role.CARETAKER
+                Role.CARETAKER,
+                ZoneId.of("Europe/Warsaw")
         );
 
         assertEquals(msgCount + 1, chatMessageRepository.count());
@@ -245,7 +265,7 @@ public class ChatServiceTest {
     @ParameterizedTest
     @MethodSource("provideTimeZones")
     void testCreateMessageWithZone_shouldSucceed(String timeZone) {
-        ChatMessageDTO msg = chatService.createMessageConvertTimeZone(
+        ChatMessageDTO msg = chatService.createMessage(
                 chatRoom.getId(),
                 caretaker.getEmail(),
                 new ChatMessageSent("message content"),
@@ -264,7 +284,8 @@ public class ChatServiceTest {
                         -1L,
                         caretaker.getEmail(),
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        Role.CARETAKER,
+                        ZoneId.of("Europe/Warsaw")
                 )
         );
     }
@@ -277,7 +298,8 @@ public class ChatServiceTest {
                         chatRoom.getId(),
                         "notAParticipant",
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        Role.CARETAKER,
+                        ZoneId.of("Europe/Warsaw")
                 )
         );
     }
@@ -290,7 +312,8 @@ public class ChatServiceTest {
                         chatRoom.getId(),
                         client.getEmail(),
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        Role.CARETAKER,
+                        ZoneId.of("Europe/Warsaw")
                 )
         );
 
@@ -300,7 +323,8 @@ public class ChatServiceTest {
                         chatRoom.getId(),
                         caretaker.getEmail(),
                         new ChatMessageSent("message content"),
-                        Role.CLIENT
+                        Role.CLIENT,
+                        ZoneId.of("Europe/Warsaw")
                 )
         );
     }
@@ -313,7 +337,8 @@ public class ChatServiceTest {
             otherCaretaker.getEmail(),
             otherClientWithCaretakerAccount.getEmail(),
             Role.CLIENT,
-            new ChatMessageSent("message content")
+            new ChatMessageSent("message content"),
+            ZoneId.of("Europe/Warsaw")
         );
 
         assertEquals("message content", msg.getContent());
@@ -329,7 +354,8 @@ public class ChatServiceTest {
                 otherClientWithCaretakerAccount.getEmail(),
                 otherCaretaker.getEmail(),
                 Role.CARETAKER,
-                new ChatMessageSent("message content")
+                new ChatMessageSent("message content"),
+                ZoneId.of("Europe/Warsaw")
         );
 
         assertEquals("message content", msg.getContent());
@@ -359,7 +385,8 @@ public class ChatServiceTest {
                         otherClientWithCaretakerAccount.getEmail(),
                         otherClientWithCaretakerAccount.getEmail(),
                         Role.CARETAKER,
-                        new ChatMessageSent("message content")
+                        new ChatMessageSent("message content"),
+                        ZoneId.of("Europe/Warsaw")
                 )
         );
     }
@@ -372,7 +399,8 @@ public class ChatServiceTest {
                         caretaker.getEmail(),
                         client.getEmail(),
                         Role.CLIENT,
-                        new ChatMessageSent("message content")
+                        new ChatMessageSent("message content"),
+                        ZoneId.of("Europe/Warsaw")
                 )
         );
 
@@ -382,7 +410,8 @@ public class ChatServiceTest {
                         client.getEmail(),
                         caretaker.getEmail(),
                         Role.CARETAKER,
-                        new ChatMessageSent("message content")
+                        new ChatMessageSent("message content"),
+                        ZoneId.of("Europe/Warsaw")
                 )
         );
     }

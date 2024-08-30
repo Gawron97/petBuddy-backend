@@ -19,7 +19,8 @@ public interface ChatMapper {
 
     @Mapping(target = "senderEmail", source = "sender.email")
     @Mapping(target = "chatId", source = "chatRoom.id")
-    ChatMessageDTO mapToChatMessageDTO(ChatMessage chatMessage);
+    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "mapToZonedDateTime")
+    ChatMessageDTO mapToChatMessageDTO(ChatMessage chatMessage, @Context ZoneId zoneId);
 
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "mapToZonedDateTime")
     ChatMessageDTO mapTimeZone(ChatMessageDTO chatMessage, @Context ZoneId zoneId);

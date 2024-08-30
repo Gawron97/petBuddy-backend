@@ -67,7 +67,7 @@ public class ChatWebSocketControllerTest {
     @Test
     @SneakyThrows
     void testSendChatMessage_shouldSucceed() {
-        when(chatService.createMessageConvertTimeZone(any(), any(), any(), any(), any()))
+        when(chatService.createMessage(any(), any(), any(), any(), any()))
                 .thenReturn(new ChatMessageDTO());
 
         when(chatService.isUserInChat(any(), any()))
