@@ -25,9 +25,13 @@ public final class MockChatProvider {
     }
 
     public static ChatMessage createMockChatMessage(AppUser sender) {
+        return createMockChatMessage(sender, ZonedDateTime.now());
+    }
+
+    public static ChatMessage createMockChatMessage(AppUser sender, ZonedDateTime createdAt) {
         return ChatMessage.builder()
                 .content(UUID.randomUUID().toString())
-                .createdAt(ZonedDateTime.now())
+                .createdAt(createdAt)
                 .sender(sender)
                 .build();
     }
