@@ -53,4 +53,6 @@ header-name:
 
 url:
   chat:
-    subscription-pattern: "/topic/messages/%d/%s"
+    topic:
+      base: "/topic/messages"
+      pattern: "/topic/messages/%d/%s"

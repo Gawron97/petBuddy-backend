@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,7 +43,7 @@ public class ChatWebSocketControllerTest {
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
     private static final String SEND_MESSAGE_ENDPOINT = "/app/chat/1";
 
-    @Value("${url.chat.subscription-pattern}")
+    @Value("${url.chat.topic.pattern}")
     private String SUBSCRIPTION_URL_PATTERN;
 
     @Value("${header-name.timezone}")

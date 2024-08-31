@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.testutils.mock;
 
+import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -40,6 +41,15 @@ public final class MockChatProvider {
         return ChatRoom.builder()
                 .client(client)
                 .caretaker(caretaker)
+                .build();
+    }
+
+    public static ChatMessageDTO createMockChatMessageDTO() {
+        return ChatMessageDTO.builder()
+                .id(1L)
+                .createdAt(ZonedDateTime.now())
+                .senderEmail("email")
+                .content("message content")
                 .build();
     }
 }

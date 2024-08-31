@@ -6,29 +6,28 @@ import com.example.petbuddybackend.utils.header.HeaderUtils;
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Service;
 
-import java.time.ZoneId;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
-@Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 @RequiredArgsConstructor
 public class ChatSessionService {
 
-    @Value("${url.chat.subscription-pattern}")
+    @Value("${url.chat.topic.pattern}")
     private String SUBSCRIPTION_URL_PATTERN;
+
+    @Value("${url.chat.topic.base}")
+    private String SUBSCRIPTION_URL_BASE;
 
     @Value("${header-name.timezone}")
     private String TIMEZONE_HEADER_NAME;
 
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final ChatSessionManager chatSessionManager = new ChatSessionManager();
+    private final ChatSessionManager chatSessionManager;
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
 
     public void sendMessages(Long chatId, ChatMessageDTO messageDTO) {
@@ -46,7 +45,8 @@ public class ChatSessionService {
     }
 
     public void subscribeIfAbsent(Long chatId, String username, String timeZone) {
-        chatSessionManager.createIfAbsent(chatId,
+        chatSessionManager.computeIfAbsent(
+                chatId,
                 () -> new ChatUserMetadata(username, TimeUtils.getOrSystemDefault(timeZone))
         );
     }
@@ -56,7 +56,7 @@ public class ChatSessionService {
         String destination = accessor.getDestination();
         String timeZone = accessor.getFirstNativeHeader(TIMEZONE_HEADER_NAME);
 
-        if(destination != null && destination.startsWith("/topic/messages/")) {
+        if(destination != null && destination.startsWith(SUBSCRIPTION_URL_BASE)) {
             String[] parts = destination.split("/");
             if (parts.length > 3) {
                 Long chatId = Long.parseLong(parts[3]);
@@ -73,7 +73,7 @@ public class ChatSessionService {
         String username = accessor.getUser().getName();
         String destination = accessor.getDestination();
 
-        if (destination != null && destination.startsWith("/topic/messages/")) {
+        if (destination != null && destination.startsWith(SUBSCRIPTION_URL_BASE)) {
             String[] parts = destination.split("/");
             if (parts.length > 3) {
                 Long chatId = Long.parseLong(parts[3]);

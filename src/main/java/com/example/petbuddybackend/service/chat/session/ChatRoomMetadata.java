@@ -1,63 +1,88 @@
 package com.example.petbuddybackend.service.chat.session;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 class ChatRoomMetadata implements Iterable<ChatUserMetadata> {
+
+    private static final String USER_NOT_FOUND_IN_CHAT_ROOM_MESSAGE = "User not found in chat room";
+    private static final String CHAT_ROOM_IS_FULL_MESSAGE = "Chat room is full";
+    private static final String NO_MORE_ELEMENTS_IN_CHAT_ROOM_MESSAGE = "No more elements in chat room";
 
     private ChatUserMetadata firstUserMeta;
     private ChatUserMetadata secondUserMeta;
-
-    public ChatRoomMetadata(ChatUserMetadata first, ChatUserMetadata second) {
-        this.firstUserMeta = first;
-        this.secondUserMeta = second;
-    }
 
     public ChatRoomMetadata(ChatUserMetadata first) {
         this.firstUserMeta = first;
     }
 
+    public void add(ChatUserMetadata metadata) {
+        if(firstUserMeta == null) {
+            firstUserMeta = metadata;
+        } else if(secondUserMeta == null) {
+            secondUserMeta = metadata;
+        } else {
+            throw new IllegalStateException(CHAT_ROOM_IS_FULL_MESSAGE);
+        }
+    }
+
     public ChatUserMetadata get(String username) {
-        if (firstUserMeta.getUsername().equals(username)) {
+        if(firstUserMeta != null && firstUserMeta.getUsername().equals(username)) {
             return firstUserMeta;
-        } else if (secondUserMeta.getUsername().equals(username)) {
+        }
+
+        if(secondUserMeta != null && secondUserMeta.getUsername().equals(username)) {
             return secondUserMeta;
         }
 
-        throw new IllegalArgumentException("User not found in chat room");
-    }
-
-    public boolean isFull() {
-        return firstUserMeta != null && secondUserMeta != null;
+        throw new IllegalArgumentException(USER_NOT_FOUND_IN_CHAT_ROOM_MESSAGE);
     }
 
     public boolean contains(String username) {
-        return firstUserMeta.getUsername().equals(username) || secondUserMeta.getUsername().equals(username);
+        if(firstUserMeta != null && firstUserMeta.getUsername().equals(username)) {
+            return true;
+        }
+
+        return secondUserMeta != null && secondUserMeta.getUsername().equals(username);
     }
 
-    public void add(ChatUserMetadata metadata) {
-        if (firstUserMeta == null) {
-            firstUserMeta = metadata;
-        } else if (secondUserMeta == null) {
-            secondUserMeta = metadata;
+    public int size() {
+        if(firstUserMeta == null) {
+            return 0;
+        } else if(secondUserMeta == null) {
+            return 1;
         } else {
-            throw new IllegalStateException("Chat room is full");
+            return 2;
         }
     }
 
+    public boolean isFull() {
+        return size() == 2;
+    }
+
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
     public ChatUserMetadata remove(String username) {
-        if (firstUserMeta.getUsername().equals(username)) {
+        if (firstUserMeta != null && firstUserMeta.getUsername().equals(username)) {
             ChatUserMetadata metadata = firstUserMeta;
             firstUserMeta = secondUserMeta;
+            secondUserMeta = null;
             return metadata;
-        } else if (secondUserMeta.getUsername().equals(username)) {
+        } else if(secondUserMeta != null && secondUserMeta.getUsername().equals(username)) {
             ChatUserMetadata metadata = secondUserMeta;
             secondUserMeta = null;
             return metadata;
         } else {
-            throw new IllegalArgumentException("User not found in chat room");
+            throw new IllegalArgumentException(USER_NOT_FOUND_IN_CHAT_ROOM_MESSAGE);
         }
     }
 
@@ -79,15 +104,17 @@ class ChatRoomMetadata implements Iterable<ChatUserMetadata> {
 
             @Override
             public ChatUserMetadata next() {
-                if(index == 0) {
-                    index++;
-                    return firstUserMeta;
-                } else if(index == 1) {
-                    index++;
-                    return secondUserMeta;
+                if(!hasNext()) {
+                    throw new NoSuchElementException(NO_MORE_ELEMENTS_IN_CHAT_ROOM_MESSAGE);
+                } else {
+                    if(index == 0) {
+                        index++;
+                        return firstUserMeta;
+                    } else {
+                        index++;
+                        return secondUserMeta;
+                    }
                 }
-
-                throw new IndexOutOfBoundsException("No more elements in chat room");
             }
         };
     }

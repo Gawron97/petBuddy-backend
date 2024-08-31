@@ -10,13 +10,4 @@ import java.time.ZoneId;
 class ChatUserMetadata {
     private String username;
     private ZoneId zoneId;
-
-    public ZoneId updateZoneId(ZoneId zoneId) {
-        if(zoneId == null) {
-            return this.zoneId;
-        }
-
-        this.zoneId = zoneId;
-        return this.zoneId;
-    }
 }
