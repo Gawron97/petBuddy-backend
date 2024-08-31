@@ -36,7 +36,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
                 SELECT MAX(cm3.createdAt)
                 FROM ChatMessage cm3
                 WHERE cm3.chatRoom.id = cr.id
-            )
+            ) AND cm2.chatRoom.id = cr.id
         )
         """)
     Page<ChatRoomDTO> findByCaretakerEmailSortByLastMessageDesc(String email, Pageable pageable);
@@ -61,8 +61,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
                 SELECT MAX(cm3.createdAt)
                 FROM ChatMessage cm3
                 WHERE cm3.chatRoom.id = cr.id
-            )
-        )
+            ) AND cm2.chatRoom.id = cr.id
+        ) 
         """)
     Page<ChatRoomDTO> findByClientEmailSortByLastMessageDesc(String email, Pageable pageable);
 }

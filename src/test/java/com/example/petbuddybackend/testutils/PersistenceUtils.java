@@ -18,8 +18,11 @@ import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.testutils.mock.MockChatProvider;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
@@ -137,5 +140,74 @@ public class PersistenceUtils {
                                Client client, Animal animal) {
         Care care = createMockCare(caretaker, client, animal);
         return careRepository.saveAndFlush(care);
+    }
+
+    public static ChatRoom createChatRoomWithMessages(
+            AppUserRepository appUserRepository,
+            ClientRepository clientRepository,
+            CaretakerRepository caretakerRepository,
+            ChatRoomRepository chatRepository,
+            ChatMessageRepository chatMessageRepository,
+            String clientEmail,
+            String caretakerEmail,
+            ZonedDateTime createdAt
+    ) {
+        Caretaker caretaker = PersistenceUtils.addCaretaker(
+                caretakerRepository,
+                appUserRepository,
+                MockUserProvider.createMockCaretaker(caretakerEmail)
+        );
+
+        Client client = PersistenceUtils.addClient(
+                appUserRepository,
+                clientRepository,
+                MockUserProvider.createMockClient(clientEmail)
+        );
+
+        List<ChatMessage> messages = List.of(
+                MockChatProvider.createMockChatMessage(client.getAccountData(), createdAt),
+                MockChatProvider.createMockChatMessage(caretaker.getAccountData(), createdAt)
+        );
+
+        return PersistenceUtils.addChatRoom(
+                MockChatProvider.createMockChatRoom(client, caretaker),
+                messages,
+                chatRepository,
+                chatMessageRepository
+        );
+    }
+
+    public static ChatRoom createChatRoomWithMessages(
+            AppUserRepository appUserRepository,
+            ClientRepository clientRepository,
+            CaretakerRepository caretakerRepository,
+            ChatRoomRepository chatRepository,
+            ChatMessageRepository chatMessageRepository,
+            String clientEmail,
+            String caretakerEmail
+    ) {
+        Caretaker caretaker = PersistenceUtils.addCaretaker(
+                caretakerRepository,
+                appUserRepository,
+                MockUserProvider.createMockCaretaker(caretakerEmail)
+        );
+
+        Client client = PersistenceUtils.addClient(
+                appUserRepository,
+                clientRepository,
+                MockUserProvider.createMockClient(clientEmail)
+        );
+
+        List<ChatMessage> messages = List.of(
+                MockChatProvider.createMockChatMessage(client.getAccountData(), ZonedDateTime.now().minusDays(2)),
+                MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now().minusDays(1))
+        );
+
+        return PersistenceUtils.addChatRoom(
+                MockChatProvider.createMockChatRoom(client, caretaker),
+                messages,
+                chatRepository,
+                chatMessageRepository
+        );
     }
 }

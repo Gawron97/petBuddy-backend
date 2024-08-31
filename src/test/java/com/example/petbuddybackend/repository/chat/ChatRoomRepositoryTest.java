@@ -3,15 +3,11 @@ package com.example.petbuddybackend.repository.chat;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
-import com.example.petbuddybackend.entity.user.Caretaker;
-import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
-import com.example.petbuddybackend.testutils.mock.MockChatProvider;
-import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,16 +44,44 @@ public class ChatRoomRepositoryTest {
     @Autowired
     private CaretakerRepository caretakerRepository;
 
+    private ChatRoom chatRoomSameCreatedAtFst;
+    private ChatRoom chatRoomSameCreatedAtSnd;
+    private ChatRoom chatRoomDifferentCreatedAt;
     @Autowired
     private ChatRoomRepository chatRoomRepository;
 
-    private ChatRoom chatRoomSameCreatedAt;
-    private ChatRoom chatRoomDifferentCreatedAt;
-
     @BeforeEach
     void setUp() {
-        chatRoomSameCreatedAt = createChatRoomWithSameCreatedAtMessages();
-        chatRoomDifferentCreatedAt = createChatRoomWithDifferentCreatedAtMessages();
+        ZonedDateTime sameDateTime = ZonedDateTime.now().minusDays(1);
+        chatRoomDifferentCreatedAt = PersistenceUtils.createChatRoomWithMessages(
+                appUserRepository,
+                clientRepository,
+                caretakerRepository,
+                chatRoomRepository,
+                chatMessageRepository,
+                "clientDifferentCreatedAt",
+                "caretakerDifferentCreatedAt"
+        );
+        chatRoomSameCreatedAtFst = PersistenceUtils.createChatRoomWithMessages(
+                appUserRepository,
+                clientRepository,
+                caretakerRepository,
+                chatRoomRepository,
+                chatMessageRepository,
+                "clientSameCreatedAtFst",
+                "caretakerSameCreatedAtFst",
+                sameDateTime
+        );
+        chatRoomSameCreatedAtSnd = PersistenceUtils.createChatRoomWithMessages(
+                appUserRepository,
+                clientRepository,
+                caretakerRepository,
+                chatRoomRepository,
+                chatMessageRepository,
+                "clientSameCreatedAtSnd",
+                "caretakerSameCreatedAtSnd",
+                sameDateTime
+        );
     }
 
     @AfterEach
@@ -69,7 +93,7 @@ public class ChatRoomRepositoryTest {
     }
 
     @Test
-    void testFindByCaretakerEmailSortByLastMessageDesc_messagesWithDifferentCreatedAT_shouldReturnChatRoomDTOs() {
+    void testFindByCaretakerEmail_messagesWithDifferentCreatedAT_shouldReturnChatRoomDTOs() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<ChatRoomDTO> chatRooms =
                 chatRepository.findByCaretakerEmailSortByLastMessageDesc(chatRoomDifferentCreatedAt.getCaretaker().getEmail(), pageable);
@@ -88,7 +112,7 @@ public class ChatRoomRepositoryTest {
 
     @Test
     @Transactional
-    void testFindByClientEmailSortByLastMessageDesc_messagesWithDifferentCreatedAT_shouldReturnChatRoomDTOs() {
+    void testFindByClientEmail_messagesWithDifferentCreatedAT_shouldReturnChatRoomDTOs() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<ChatRoomDTO> chatRooms =
                 chatRepository.findByClientEmailSortByLastMessageDesc(chatRoomDifferentCreatedAt.getClient().getEmail(), pageable);
@@ -106,94 +130,59 @@ public class ChatRoomRepositoryTest {
     }
 
     @Test
-    void testFindByCaretakerEmailSortByLastMessageDesc_messagesWithSameCreatedAT_shouldReturnChatRoomDTOs() {
+    void testFindByCaretakerEmail_messagesWithSameCreatedAT_shouldReturnChatRoomDTOs() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<ChatRoomDTO> chatRooms =
-                chatRepository.findByCaretakerEmailSortByLastMessageDesc(chatRoomSameCreatedAt.getCaretaker().getEmail(), pageable);
+                chatRepository.findByCaretakerEmailSortByLastMessageDesc(chatRoomSameCreatedAtFst.getCaretaker().getEmail(), pageable);
 
         // Chat rooms have same created at messages so the latest message should be the message with the lowest id
         ChatRoomDTO returnedChatRoom = chatRooms.getContent().get(0);
-        ChatMessage messageThatShouldBeLatest = chatRoomSameCreatedAt.getMessages().stream()
+        ChatMessage messageThatShouldBeLatest = chatRoomSameCreatedAtFst.getMessages().stream()
                 .min(Comparator.comparing(ChatMessage::getId))
                 .get();
 
-        assertTrue(allMessagesHaveSameCreatedAt(chatRoomSameCreatedAt.getMessages()));
+        assertTrue(allMessagesHaveSameCreatedAt(chatRoomSameCreatedAtFst.getMessages()));
         assertEquals(1, chatRooms.getTotalElements());
         assertTrue(ValidationUtils.fieldsNotNullRecursive(chatRooms.getContent().get(0)));
         assertEquals(messageThatShouldBeLatest.getContent(), returnedChatRoom.getLastMessage());
     }
 
     @Test
-    @Transactional
-    void testFindByClientEmailSortByLastMessageDesc_messagesWithSameCreatedAT_shouldReturnChatRoomDTOs() {
+    void testFindByClientEmail_messagesWithSameCreatedAT_shouldReturnChatRoomDTOs() {
         Pageable pageable = PageRequest.of(0, 10);
         Page<ChatRoomDTO> chatRooms =
-                chatRepository.findByClientEmailSortByLastMessageDesc(chatRoomSameCreatedAt.getClient().getEmail(), pageable);
+                chatRepository.findByClientEmailSortByLastMessageDesc(chatRoomSameCreatedAtFst.getClient().getEmail(), pageable);
 
         // Chat rooms have same created at messages so the latest message should be the message with the lowest id
         ChatRoomDTO returnedChatRoom = chatRooms.getContent().get(0);
-        ChatMessage messageThatShouldBeLatest = chatRoomSameCreatedAt.getMessages().stream()
+        ChatMessage messageThatShouldBeLatest = chatRoomSameCreatedAtFst.getMessages().stream()
                 .min(Comparator.comparing(ChatMessage::getId))
                 .get();
 
-        assertTrue(allMessagesHaveSameCreatedAt(chatRoomSameCreatedAt.getMessages()));
+        assertTrue(allMessagesHaveSameCreatedAt(chatRoomSameCreatedAtFst.getMessages()));
         assertEquals(1, chatRooms.getTotalElements());
         assertTrue(ValidationUtils.fieldsNotNullRecursive(chatRooms.getContent().get(0)));
         assertEquals(messageThatShouldBeLatest.getContent(), returnedChatRoom.getLastMessage());
     }
 
-    private ChatRoom createChatRoomWithSameCreatedAtMessages() {
-        Caretaker caretaker = PersistenceUtils.addCaretaker(
-                caretakerRepository,
-                appUserRepository,
-                MockUserProvider.createMockCaretaker("caretakerSameCreatedAt")
-        );
+    @Test
+    void testFindByCaretakerEmail_differentChatRoomsWithSameMessageCreatedAt_shouldReturnCorrectChatRoomWithMessage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ChatRoomDTO> chatRooms =
+                chatRepository.findByCaretakerEmailSortByLastMessageDesc(chatRoomSameCreatedAtSnd.getCaretaker().getEmail(), pageable);
 
-        Client client = PersistenceUtils.addClient(
-                appUserRepository,
-                clientRepository,
-                MockUserProvider.createMockClient("clientSameCreatedAt")
-        );
-
-        ZonedDateTime createdAt = ZonedDateTime.now();
-
-        List<ChatMessage> messages = List.of(
-                MockChatProvider.createMockChatMessage(client.getAccountData(), createdAt),
-                MockChatProvider.createMockChatMessage(caretaker.getAccountData(), createdAt)
-        );
-
-        return PersistenceUtils.addChatRoom(
-                MockChatProvider.createMockChatRoom(client, caretaker),
-                messages,
-                chatRepository,
-                chatMessageRepository
-        );
+        assertEquals(1, chatRooms.getTotalElements());
+        assertEquals(chatRoomSameCreatedAtSnd.getClient().getEmail(), chatRooms.getContent().get(0).getLastMessageSendBy());
     }
 
-    private ChatRoom createChatRoomWithDifferentCreatedAtMessages() {
-        Caretaker caretaker = PersistenceUtils.addCaretaker(
-                caretakerRepository,
-                appUserRepository,
-                MockUserProvider.createMockCaretaker("caretakerDifferentCreatedAt")
-        );
+    @Test
+    void testFindByClientEmail_differentChatRoomsWithSameMessageCreatedAt_shouldReturnCorrectChatRoomWithMessage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<ChatRoomDTO> chatRooms =
+                chatRepository.findByClientEmailSortByLastMessageDesc(chatRoomSameCreatedAtSnd.getClient().getEmail(), pageable);
 
-        Client client = PersistenceUtils.addClient(
-                appUserRepository,
-                clientRepository,
-                MockUserProvider.createMockClient("clientDifferentCreatedAt")
-        );
-
-        List<ChatMessage> messages = List.of(
-                MockChatProvider.createMockChatMessage(client.getAccountData(), ZonedDateTime.now()),
-                MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now().minusDays(1))
-        );
-
-        return PersistenceUtils.addChatRoom(
-                MockChatProvider.createMockChatRoom(client, caretaker),
-                messages,
-                chatRepository,
-                chatMessageRepository
-        );
+        assertEquals(1, chatRooms.getTotalElements());
+        assertEquals(chatRoomSameCreatedAtSnd.getClient().getEmail(), chatRooms.getContent().get(0).getLastMessageSendBy());
     }
 
     private boolean allMessagesHaveSameCreatedAt(List<ChatMessage> messages) {
