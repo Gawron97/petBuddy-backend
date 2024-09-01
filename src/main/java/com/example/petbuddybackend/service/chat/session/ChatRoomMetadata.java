@@ -1,14 +1,13 @@
 package com.example.petbuddybackend.service.chat.session;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Semaphore;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 class ChatRoomMetadata implements Iterable<ChatUserMetadata> {
 
@@ -18,9 +17,16 @@ class ChatRoomMetadata implements Iterable<ChatUserMetadata> {
 
     private ChatUserMetadata firstUserMeta;
     private ChatUserMetadata secondUserMeta;
+    private Semaphore semaphore;
 
     public ChatRoomMetadata(ChatUserMetadata first) {
         this.firstUserMeta = first;
+        this.semaphore = new Semaphore(1);
+    }
+
+    public ChatRoomMetadata(ChatUserMetadata firstUserMeta, ChatUserMetadata secondUserMeta) {
+        this(firstUserMeta);
+        this.secondUserMeta = secondUserMeta;
     }
 
     public void add(ChatUserMetadata metadata) {
