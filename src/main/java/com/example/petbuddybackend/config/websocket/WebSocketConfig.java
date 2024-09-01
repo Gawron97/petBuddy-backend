@@ -1,13 +1,23 @@
 package com.example.petbuddybackend.config.websocket;
 
 
+import com.example.petbuddybackend.utils.serializers.ZonedDateTimeDeserializer;
+import com.example.petbuddybackend.utils.serializers.ZonedDateTimeSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.time.ZonedDateTime;
+import java.util.List;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -32,5 +42,23 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(subscriptionInterceptor);
+    }
+
+    @Override
+    public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
+        messageConverters.add(jacksonMessageConverter());
+        return WebSocketMessageBrokerConfigurer.super.configureMessageConverters(messageConverters);
+    }
+
+    @Bean
+    public MappingJackson2MessageConverter jacksonMessageConverter() {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+        module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
+
+        objectMapper.registerModule(module);
+        return new MappingJackson2MessageConverter(objectMapper);
     }
 }

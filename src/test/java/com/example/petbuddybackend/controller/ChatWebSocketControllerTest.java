@@ -9,6 +9,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -58,6 +59,9 @@ public class ChatWebSocketControllerTest {
     @MockBean
     private ChatService chatService;
 
+    @Autowired
+    private MappingJackson2MessageConverter messageConverter;
+
     private WebSocketStompClient stompClient;
     private BlockingQueue<ChatMessageDTO> blockingQueue;
 
@@ -66,7 +70,7 @@ public class ChatWebSocketControllerTest {
     public void setup() throws ExecutionException, InterruptedException, TimeoutException {
         blockingQueue = new LinkedBlockingDeque<>();
         stompClient = new WebSocketStompClient(new SockJsClient(createTransportClient()));
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        stompClient.setMessageConverter(messageConverter);
     }
 
     @Test
