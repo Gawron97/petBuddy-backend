@@ -45,9 +45,9 @@ public class ChatSessionService {
     }
 
     public void subscribeIfAbsent(Long chatId, String username, String timeZone) {
-        chatSessionManager.computeIfAbsent(
+        chatSessionManager.putIfAbsent(
                 chatId,
-                () -> new ChatUserMetadata(username, TimeUtils.getOrSystemDefault(timeZone))
+                new ChatUserMetadata(username, TimeUtils.getOrSystemDefault(timeZone))
         );
     }
 
@@ -66,7 +66,7 @@ public class ChatSessionService {
     }
 
     public void unsubscribeIfPresent(Long chatId, String username) {
-        chatSessionManager.removeIfPresent(chatId, username);
+        chatSessionManager.remove(chatId, username);
     }
 
     public void unsubscribeIfPresent(StompHeaderAccessor accessor) {

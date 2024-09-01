@@ -101,12 +101,9 @@ public class ChatSessionServiceTest {
         chatSessionService.subscribeIfAbsent(chatId, username, timeZone);
 
         // Assert
-        verify(chatSessionManager).computeIfAbsent(
+        verify(chatSessionManager).putIfAbsent(
                 eq(chatId),
-                argThat(supplier -> {
-                    ChatUserMetadata metadata = supplier.get();
-                    return username.equals(metadata.getUsername()) && expectedZoneId.equals(metadata.getZoneId());
-                })
+                argThat(meta -> username.equals(meta.getUsername()) && expectedZoneId.equals(meta.getZoneId()))
         );
     }
 
@@ -126,7 +123,7 @@ public class ChatSessionServiceTest {
         chatSessionService.subscribeIfAbsent(stompHeaderAccessor);
 
         // Assert
-        verify(chatSessionManager, times(1)).computeIfAbsent(
+        verify(chatSessionManager, times(1)).putIfAbsent(
                 eq(chatId),
                 any()
         );
@@ -145,7 +142,7 @@ public class ChatSessionServiceTest {
         chatSessionService.unsubscribeIfPresent(chatId, username);
 
         // then
-        verify(chatSessionManager).removeIfPresent(chatId, username);
+        verify(chatSessionManager).remove(chatId, username);
     }
 
     @Test
@@ -164,7 +161,7 @@ public class ChatSessionServiceTest {
         // then
         verify(stompHeaderAccessor).getUser();
         verify(stompHeaderAccessor).getDestination();
-        verify(chatSessionManager).removeIfPresent(chatId, username);
+        verify(chatSessionManager).remove(chatId, username);
     }
 
     private ChatRoomMetadata createChatUserMeta(String firstUsername, String secondUsername) {

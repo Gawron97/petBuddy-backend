@@ -35,7 +35,7 @@ public class ChatSessionManagerTest {
         Long chatId = 1L;
         ChatUserMetadata userMetadata = new ChatUserMetadata("username", ZoneId.of("UTC"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata);
+        chatSessionManager.putIfAbsent(chatId, userMetadata);
         assertEquals(1, chatSessionManager.size());
         assertThrows(IllegalArgumentException.class, () -> chatSessionManager.get(chatId, "user1"));
     }
@@ -45,7 +45,7 @@ public class ChatSessionManagerTest {
         Long chatId = 1L;
         ChatUserMetadata userMetadata = new ChatUserMetadata("username", ZoneId.of("UTC"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata);
+        chatSessionManager.putIfAbsent(chatId, userMetadata);
         ChatUserMetadata returnedUserMetadata = chatSessionManager.get(chatId, "username");
 
         assertEquals(1, chatSessionManager.size());
@@ -57,7 +57,7 @@ public class ChatSessionManagerTest {
         Long chatId = 1L;
         ChatUserMetadata userMetadata = new ChatUserMetadata("username", ZoneId.of("UTC"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata);
+        chatSessionManager.putIfAbsent(chatId, userMetadata);
         ChatRoomMetadata metadata = chatSessionManager.get(chatId);
 
         assertEquals(1, chatSessionManager.size());
@@ -66,11 +66,11 @@ public class ChatSessionManagerTest {
     }
 
     @Test
-    void computeIfAbsent_shouldCreateNewChatRoomWhenNotPresent() {
+    void putIfAbsent_shouldCreateNewChatRoomWhenNotPresent() {
         Long chatId = 1L;
         ChatUserMetadata userMetadata = new ChatUserMetadata("username", ZoneId.of("UTC"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata);
+        chatSessionManager.putIfAbsent(chatId, userMetadata);
         ChatRoomMetadata metadata = chatSessionManager.get(chatId);
         assertEquals(1, chatSessionManager.size());
         assertEquals(1, metadata.size());
@@ -78,13 +78,13 @@ public class ChatSessionManagerTest {
     }
 
     @Test
-    void computeIfAbsent_userAlreadyExists_shouldSkip() {
+    void putIfAbsent_userAlreadyExists_shouldSkip() {
         Long chatId = 1L;
         ChatUserMetadata userMetadata1 = new ChatUserMetadata("username", ZoneId.of("UTC"));
         ChatUserMetadata userMetadata2 = new ChatUserMetadata("username", ZoneId.of("Europe/Warsaw"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata1);
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata2);
+        chatSessionManager.putIfAbsent(chatId, userMetadata1);
+        chatSessionManager.putIfAbsent(chatId, userMetadata2);
 
         ChatRoomMetadata metadata = chatSessionManager.get(chatId);
         ChatUserMetadata returnedUserMetadata = metadata.get("username");
@@ -96,13 +96,13 @@ public class ChatSessionManagerTest {
     }
 
     @Test
-    void computeIfAbsent_userNotExistsInExistingChatRoom_shouldBeAdded() {
+    void putIfAbsent_userNotExistsInExistingChatRoom_shouldBeAdded() {
         Long chatId = 1L;
         ChatUserMetadata userMetadata1 = new ChatUserMetadata("username1", ZoneId.of("UTC"));
         ChatUserMetadata userMetadata2 = new ChatUserMetadata("username2", ZoneId.of("Europe/Warsaw"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata1);
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata2);
+        chatSessionManager.putIfAbsent(chatId, userMetadata1);
+        chatSessionManager.putIfAbsent(chatId, userMetadata2);
 
         ChatRoomMetadata metadata = chatSessionManager.get(chatId);
 
@@ -113,23 +113,15 @@ public class ChatSessionManagerTest {
     }
     
     @Test
-    void computeIfAbsent_chatRoomIsFull_shouldSkip() {
+    void putIfAbsent_chatRoomIsFull_shouldThrowIllegalArgumentException() {
         Long chatId = 1L;
         ChatUserMetadata userMetadata1 = new ChatUserMetadata("username1", ZoneId.of("UTC"));
         ChatUserMetadata userMetadata2 = new ChatUserMetadata("username2", ZoneId.of("Europe/Warsaw"));
         ChatUserMetadata userMetadata3 = new ChatUserMetadata("username3", ZoneId.of("Europe/Warsaw"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata1);
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata2);
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata3);
-
-        ChatRoomMetadata metadata = chatSessionManager.get(chatId);
-
-        assertEquals(1, chatSessionManager.size());
-        assertEquals(2, metadata.size());
-        assertEquals(userMetadata1, metadata.get("username1"));
-        assertEquals(userMetadata2, metadata.get("username2"));
-        assertThrows(IllegalArgumentException.class, () -> metadata.get("username3"));
+        chatSessionManager.putIfAbsent(chatId, userMetadata1);
+        chatSessionManager.putIfAbsent(chatId, userMetadata2);
+        assertThrows(IllegalStateException.class, () -> chatSessionManager.putIfAbsent(chatId, userMetadata3));
     }
 
     @Test
@@ -137,7 +129,7 @@ public class ChatSessionManagerTest {
         Long chatId = 1L;
         String username = "user1";
 
-        Optional<ChatUserMetadata> result = chatSessionManager.removeIfPresent(chatId, username);
+        Optional<ChatUserMetadata> result = chatSessionManager.remove(chatId, username);
 
         assertEquals(0, chatSessionManager.size());
         assertTrue(result.isEmpty());
@@ -149,8 +141,8 @@ public class ChatSessionManagerTest {
         String username = "username";
         ChatUserMetadata userMetadata = new ChatUserMetadata(username, ZoneId.of("UTC"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata);
-        Optional<ChatUserMetadata> result = chatSessionManager.removeIfPresent(chatId, "user1");
+        chatSessionManager.putIfAbsent(chatId, userMetadata);
+        Optional<ChatUserMetadata> result = chatSessionManager.remove(chatId, "user1");
 
         assertEquals(1, chatSessionManager.size());
         assertTrue(result.isEmpty());
@@ -163,8 +155,8 @@ public class ChatSessionManagerTest {
         String otherUsername = "otherUsername";
         ChatUserMetadata userMetadata1 = new ChatUserMetadata(username, ZoneId.of("UTC"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata1);
-        Optional<ChatUserMetadata> result = chatSessionManager.removeIfPresent(chatId, otherUsername);
+        chatSessionManager.putIfAbsent(chatId, userMetadata1);
+        Optional<ChatUserMetadata> result = chatSessionManager.remove(chatId, otherUsername);
 
         assertEquals(1, chatSessionManager.size());
         assertTrue(result.isEmpty());
@@ -176,15 +168,15 @@ public class ChatSessionManagerTest {
         String username = "username";
         ChatUserMetadata userMetadata = new ChatUserMetadata(username, ZoneId.of("UTC"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata);
-        Optional<ChatUserMetadata> result = chatSessionManager.removeIfPresent(chatId, username);
+        chatSessionManager.putIfAbsent(chatId, userMetadata);
+        Optional<ChatUserMetadata> result = chatSessionManager.remove(chatId, username);
 
         assertEquals(0, chatSessionManager.size());
         assertTrue(result.isPresent());
     }
 
     @Test
-    void computeIfAbsent_concurrentAccess_shouldNotOverrideChatRoomMetadata() throws InterruptedException {
+    void putIfAbsent_concurrentAccess_shouldNotOverrideChatRoomMetadata() throws InterruptedException {
         ChatSessionManager chatSessionManager = new ChatSessionManager();
         Long chatId = 1L;
         int numberOfThreads = 2;
@@ -197,10 +189,12 @@ public class ChatSessionManagerTest {
             final int index = i;
             executorService.submit(() -> {
                 ChatUserMetadata userMetadata = new ChatUserMetadata("username" + index, ZoneId.of("UTC"));
-                chatSessionManager.computeIfAbsent(chatId, () -> {
-                    createdChatUserMetadata.add(userMetadata);  // Store the created metadata instance
-                    return userMetadata;
-                });
+                ChatUserMetadata returnedMetadata = chatSessionManager.putIfAbsent(chatId, userMetadata);
+
+                // If the metadata is the same as the one returned, it means it was created
+                if(userMetadata.equals(returnedMetadata)) {
+                    createdChatUserMetadata.add(userMetadata);
+                }
             });
         }
 
@@ -227,8 +221,8 @@ public class ChatSessionManagerTest {
         ChatUserMetadata userMetadata1 = new ChatUserMetadata(username1, ZoneId.of("UTC"));
         ChatUserMetadata userMetadata2 = new ChatUserMetadata(username2, ZoneId.of("UTC"));
 
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata1);
-        chatSessionManager.computeIfAbsent(chatId, () -> userMetadata2);
+        chatSessionManager.putIfAbsent(chatId, userMetadata1);
+        chatSessionManager.putIfAbsent(chatId, userMetadata2);
 
         // Create a thread pool to simulate concurrent access
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
@@ -240,7 +234,7 @@ public class ChatSessionManagerTest {
         for (int i = 0; i < threadCount; i++) {
             final String usernameToRemove = (i % 2 == 0) ? username1 : username2;
             executorService.submit(() -> {
-                Optional<ChatUserMetadata> removedInstance = chatSessionManager.removeIfPresent(chatId, usernameToRemove);
+                Optional<ChatUserMetadata> removedInstance = chatSessionManager.remove(chatId, usernameToRemove);
                 removedInstance.ifPresent(successfulRemovals::add);
             });
         }

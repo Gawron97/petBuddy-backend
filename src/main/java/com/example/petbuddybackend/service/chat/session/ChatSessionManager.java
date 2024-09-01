@@ -8,13 +8,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
-import java.util.function.Supplier;
 
 @ToString
 @Component
 @EqualsAndHashCode
 class ChatSessionManager {
 
+    public static final String ILLEGAL_ACCESS_TO_FULL_CHAT_ROOM_MESSAGE = "Illegal access to full chat room: user not found in chat room";
     private final Map<Long, ChatRoomMetadata> chatSubscriptions;
 
     public ChatSessionManager() {
@@ -44,14 +44,15 @@ class ChatSessionManager {
 
     /**
      * Computes the metadata if the chat room does not exist, or adds the user to the chat room if it exists.
+     *
+     * @throws IllegalStateException if the chat room is full and the user is not part of it
      * */
-    public void computeIfAbsent(Long chatId, Supplier<ChatUserMetadata> userMetadataProvider) {
+    public ChatUserMetadata putIfAbsent(Long chatId, ChatUserMetadata userMetadata) {
         if(!chatSubscriptions.containsKey(chatId)) {
             synchronized(chatSubscriptions) {
                 if(!chatSubscriptions.containsKey(chatId)) {
-                    ChatUserMetadata userMetadata = userMetadataProvider.get();
                     chatSubscriptions.put(chatId, new ChatRoomMetadata(userMetadata));
-                    return;
+                    return userMetadata;
                 }
             }
         }
@@ -61,22 +62,30 @@ class ChatSessionManager {
 
         try {
             semaphore.acquire();
+
             if(metadata.isFull()) {
-                return;
+                try {
+                    return metadata.get(userMetadata.getUsername());
+                } catch(IllegalArgumentException e) {
+                    throw new IllegalStateException(ILLEGAL_ACCESS_TO_FULL_CHAT_ROOM_MESSAGE);
+                }
             }
 
-            ChatUserMetadata userMetadata = userMetadataProvider.get();
             if(!metadata.contains(userMetadata.getUsername())) {
                 metadata.add(userMetadata);
+                return userMetadata;
             }
         } catch(InterruptedException e) {
             Thread.currentThread().interrupt();
+            return null;
         } finally {
             semaphore.release();
         }
+
+        return metadata.get(userMetadata.getUsername());
     }
 
-    public Optional<ChatUserMetadata> removeIfPresent(Long chatId, String username) {
+    public Optional<ChatUserMetadata> remove(Long chatId, String username) {
         ChatRoomMetadata metadata = chatSubscriptions.get(chatId);
 
         if(metadata == null) {
