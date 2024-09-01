@@ -73,7 +73,7 @@ public class ChatRoomMetadataTest {
     }
 
     @Test
-    void remove_shouldRemoveSecondUserAndReturnMetadata() {
+    void remove_shouldRemoveFirstUserAndReturnMetadata() {
         ChatRoomMetadata room = new ChatRoomMetadata(user1, user2);
         ChatUserMetadata removed = room.remove("user1");
 
@@ -83,7 +83,7 @@ public class ChatRoomMetadataTest {
     }
 
     @Test
-    void remove_shouldRemoveFirstUserAndReturnMetadata() {
+    void remove_shouldRemoveSecondUserAndReturnMetadata() {
         ChatRoomMetadata room = new ChatRoomMetadata(user1, user2);
         ChatUserMetadata removed = room.remove("user2");
 
