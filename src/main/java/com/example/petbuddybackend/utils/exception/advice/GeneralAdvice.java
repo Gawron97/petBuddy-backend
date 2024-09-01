@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
+import com.example.petbuddybackend.utils.exception.throweable.general.DateRangeException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidWebSocketHeaderException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
@@ -128,6 +129,12 @@ public class GeneralAdvice {
     @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(code = HttpStatus.UNAUTHORIZED)
     public ApiExceptionResponse handleUnauthorizedException(UnauthorizedException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(DateRangeException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleDateRangeException(DateRangeException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 

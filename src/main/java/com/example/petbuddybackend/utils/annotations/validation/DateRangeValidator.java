@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.utils.annotations.validation;
 
+import com.example.petbuddybackend.utils.exception.throweable.general.DateRangeException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -35,16 +36,16 @@ public class DateRangeValidator implements ConstraintValidator<DateRange, Object
             boolean isValid = isValid(startDate, endDate);
 
             if (!isValid) {
-                // Disable default constraint violation and add a custom message
                 context.disableDefaultConstraintViolation();
-                context.buildConstraintViolationWithTemplate(message)
-                        .addPropertyNode(value.getClass().getSimpleName())
-                        .addConstraintViolation();
+                throw new DateRangeException(message);
             }
 
             return isValid;
 
-        } catch (Exception e) {
+        } catch (DateRangeException e) {
+            throw e;
+        }
+        catch (Exception e) {
             return false;
         }
 

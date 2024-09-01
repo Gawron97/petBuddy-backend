@@ -166,7 +166,7 @@ public class CareController {
             @RoleParameter @AcceptRole(acceptRole = "CARETAKER") @RequestHeader(value = "${header-name.role}") Role acceptRole,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
-            @ParameterObject @ModelAttribute CareSearchCriteria filters,
+            @ParameterObject @ModelAttribute @Valid CareSearchCriteria filters,
             @RequestParam(required = false) Set<String> clientEmails,
             Principal principal) {
 
