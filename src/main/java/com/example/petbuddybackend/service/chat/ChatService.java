@@ -71,17 +71,6 @@ public class ChatService {
             Long chatId,
             String principalEmail,
             ChatMessageSent chatMessage,
-            Role role,
-            ZoneId timeZone
-    ) {
-        return chatMapper.mapToChatMessageDTO(createMessage(chatId, principalEmail, role, chatMessage), timeZone);
-    }
-
-    @Transactional
-    public ChatMessageDTO createMessage(
-            Long chatId,
-            String principalEmail,
-            ChatMessageSent chatMessage,
             Role role
     ) {
         return chatMapper.mapToChatMessageDTO(createMessage(chatId, principalEmail, role, chatMessage));

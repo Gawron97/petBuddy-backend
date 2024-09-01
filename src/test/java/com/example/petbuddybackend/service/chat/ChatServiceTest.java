@@ -234,8 +234,7 @@ public class ChatServiceTest {
                 chatRoom.getId(),
                 client.getEmail(),
                 new ChatMessageSent("message content"),
-                Role.CLIENT,
-                ZoneId.of("Europe/Warsaw")
+                Role.CLIENT
         );
 
         assertEquals(msgCount + 1, chatMessageRepository.count());
@@ -252,28 +251,13 @@ public class ChatServiceTest {
                 chatRoom.getId(),
                 caretaker.getEmail(),
                 new ChatMessageSent("message content"),
-                Role.CARETAKER,
-                ZoneId.of("Europe/Warsaw")
+                Role.CARETAKER
         );
 
         assertEquals(msgCount + 1, chatMessageRepository.count());
         assertEquals("message content", msg.getContent());
         assertEquals(caretaker.getEmail(), msg.getSenderEmail());
         assertEquals(chatRoom.getId(), msg.getChatId());
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideTimeZones")
-    void testCreateMessageWithZone_shouldSucceed(String timeZone) {
-        ChatMessageDTO msg = chatService.createMessage(
-                chatRoom.getId(),
-                caretaker.getEmail(),
-                new ChatMessageSent("message content"),
-                Role.CARETAKER,
-                ZoneId.of(timeZone)
-        );
-
-        assertEquals(ZoneId.of(timeZone), msg.getCreatedAt().getZone());
     }
 
     @Test
@@ -284,8 +268,7 @@ public class ChatServiceTest {
                         -1L,
                         caretaker.getEmail(),
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER,
-                        ZoneId.of("Europe/Warsaw")
+                        Role.CARETAKER
                 )
         );
     }
@@ -298,8 +281,7 @@ public class ChatServiceTest {
                         chatRoom.getId(),
                         "notAParticipant",
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER,
-                        ZoneId.of("Europe/Warsaw")
+                        Role.CARETAKER
                 )
         );
     }
@@ -312,8 +294,7 @@ public class ChatServiceTest {
                         chatRoom.getId(),
                         client.getEmail(),
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER,
-                        ZoneId.of("Europe/Warsaw")
+                        Role.CARETAKER
                 )
         );
 
@@ -323,8 +304,7 @@ public class ChatServiceTest {
                         chatRoom.getId(),
                         caretaker.getEmail(),
                         new ChatMessageSent("message content"),
-                        Role.CLIENT,
-                        ZoneId.of("Europe/Warsaw")
+                        Role.CLIENT
                 )
         );
     }
