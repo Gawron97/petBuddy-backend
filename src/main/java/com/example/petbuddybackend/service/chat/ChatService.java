@@ -73,7 +73,7 @@ public class ChatService {
             ChatMessageSent chatMessage,
             Role role
     ) {
-        return chatMapper.mapToChatMessageDTO(createMessage(chatId, principalEmail, role, chatMessage));
+        return chatMapper.mapToChatMessageDTO(createMessageForRole(chatId, principalEmail, role, chatMessage));
     }
 
     public ChatMessageDTO createChatRoomWithMessage(
@@ -111,7 +111,7 @@ public class ChatService {
         Client clientSender = clientService.getClientByEmail(clientSenderEmail);
         Caretaker caretakerReceiver = caretakerService.getCaretakerByEmail(caretakerReceiverEmail);
         ChatRoom chatRoom = createChatRoom(clientSender, caretakerReceiver);
-        ChatMessage chatMessage = createMessage(chatRoom, clientSender.getAccountData(), message.getContent());
+        ChatMessage chatMessage = saveMessage(chatRoom, clientSender.getAccountData(), message.getContent());
 
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
@@ -125,12 +125,12 @@ public class ChatService {
         Client clientReceiver = clientService.getClientByEmail(clientReceiverEmail);
         Caretaker caretakerSender = caretakerService.getCaretakerByEmail(caretakerSenderEmail);
         ChatRoom chatRoom = createChatRoom(clientReceiver, caretakerSender);
-        ChatMessage chatMessage = createMessage(chatRoom, caretakerSender.getAccountData(), message.getContent());
+        ChatMessage chatMessage = saveMessage(chatRoom, caretakerSender.getAccountData(), message.getContent());
 
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
 
-    private ChatMessage createMessage(Long chatId, String principalEmail, Role principalRole, ChatMessageSent chatMessage) {
+    private ChatMessage createMessageForRole(Long chatId, String principalEmail, Role principalRole, ChatMessageSent chatMessage) {
         ChatRoom chatRoom = getChatRoomById(chatId);
         checkUserParticipatesInChat(chatRoom, principalEmail, principalRole);
 
@@ -138,10 +138,10 @@ public class ChatService {
                 chatRoom.getClient().getAccountData() :
                 chatRoom.getCaretaker().getAccountData();
 
-        return createMessage(chatRoom, sender, chatMessage.getContent());
+        return saveMessage(chatRoom, sender, chatMessage.getContent());
     }
 
-    private ChatMessage createMessage(ChatRoom chatRoom, AppUser sender, String content) {
+    private ChatMessage saveMessage(ChatRoom chatRoom, AppUser sender, String content) {
         ChatMessage chatMessage = ChatMessage.builder()
                 .sender(sender)
                 .content(content)
