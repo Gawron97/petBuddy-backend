@@ -9,8 +9,11 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
-@ToString
+/**
+ * Stores {@link ChatRoomMetadata} about chat rooms. It ensures thread safety per chat room instance.
+ * */
 @Component
+@ToString
 @EqualsAndHashCode
 class ChatSessionManager {
 
@@ -43,7 +46,8 @@ class ChatSessionManager {
     }
 
     /**
-     * Computes the metadata if the chat room does not exist, or adds the user to the chat room if it exists.
+     * Adds a user to the chat room if it is not full. If the chat room is full and the user is not part of it, an
+     * exception is thrown.
      *
      * @throws IllegalStateException if the chat room is full and the user is not part of it
      * */

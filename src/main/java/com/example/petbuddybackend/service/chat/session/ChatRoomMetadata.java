@@ -7,6 +7,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Semaphore;
 
+/**
+ * Stores {@link ChatUserMetadata} about a chat room for both of the users. It also contains a semaphore to control
+ * access to the chat room.
+ * */
 @Data
 @NoArgsConstructor
 class ChatRoomMetadata implements Iterable<ChatUserMetadata> {
@@ -15,6 +19,11 @@ class ChatRoomMetadata implements Iterable<ChatUserMetadata> {
     private static final String CHAT_ROOM_IS_FULL_MESSAGE = "Chat room is full";
     private static final String NO_MORE_ELEMENTS_IN_CHAT_ROOM_MESSAGE = "No more elements in chat room";
 
+    /**
+     * The two objects of ChatUserMetadata are stored in the order they joined the chat room. The order of filling
+     * the user metadata is: first user, second user. If one of the users is removed in full room, then it is ensured that
+     * the remaining user is the first user.
+     * */
     private ChatUserMetadata firstUserMeta;
     private ChatUserMetadata secondUserMeta;
     private Semaphore semaphore;
