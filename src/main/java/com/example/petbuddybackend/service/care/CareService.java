@@ -3,6 +3,7 @@ package com.example.petbuddybackend.service.care;
 import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -13,8 +14,12 @@ import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.specification.CareSpecificationUtils;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.common.util.CollectionUtil;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -203,5 +208,21 @@ public class CareService {
     }
 
 
+    public Page<CareDTO> getCaretakerCares(Pageable pageable, CareSearchCriteria filters, Set<String> clientEmails,
+                                           String caretakerEmail, ZoneId zoneId) {
 
+
+        Specification<Care> spec =
+                CareSpecificationUtils
+                        .toSpecification(filters)
+                        .and(CareSpecificationUtils.addCaretakerEmailFilter(caretakerEmail));
+
+        if(CollectionUtil.isNotEmpty(clientEmails)) {
+            spec = spec.and(CareSpecificationUtils.addClientEmailsFilter(clientEmails));
+        }
+
+        return careRepository.findAll(spec, pageable)
+                .map(care -> careMapper.mapToCareDTO(care, zoneId));
+
+    }
 }
