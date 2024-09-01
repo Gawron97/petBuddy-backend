@@ -111,7 +111,7 @@ public class ChatService {
         Client clientSender = clientService.getClientByEmail(clientSenderEmail);
         Caretaker caretakerReceiver = caretakerService.getCaretakerByEmail(caretakerReceiverEmail);
         ChatRoom chatRoom = createChatRoom(clientSender, caretakerReceiver);
-        ChatMessage chatMessage = saveMessage(chatRoom, clientSender.getAccountData(), message.getContent());
+        ChatMessage chatMessage = persistMessage(chatRoom, clientSender.getAccountData(), message.getContent());
 
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
@@ -125,7 +125,7 @@ public class ChatService {
         Client clientReceiver = clientService.getClientByEmail(clientReceiverEmail);
         Caretaker caretakerSender = caretakerService.getCaretakerByEmail(caretakerSenderEmail);
         ChatRoom chatRoom = createChatRoom(clientReceiver, caretakerSender);
-        ChatMessage chatMessage = saveMessage(chatRoom, caretakerSender.getAccountData(), message.getContent());
+        ChatMessage chatMessage = persistMessage(chatRoom, caretakerSender.getAccountData(), message.getContent());
 
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
@@ -138,10 +138,10 @@ public class ChatService {
                 chatRoom.getClient().getAccountData() :
                 chatRoom.getCaretaker().getAccountData();
 
-        return saveMessage(chatRoom, sender, chatMessage.getContent());
+        return persistMessage(chatRoom, sender, chatMessage.getContent());
     }
 
-    private ChatMessage saveMessage(ChatRoom chatRoom, AppUser sender, String content) {
+    private ChatMessage persistMessage(ChatRoom chatRoom, AppUser sender, String content) {
         ChatMessage chatMessage = ChatMessage.builder()
                 .sender(sender)
                 .content(content)
