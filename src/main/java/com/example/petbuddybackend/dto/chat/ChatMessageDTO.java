@@ -21,6 +21,6 @@ public class ChatMessageDTO {
         private String senderEmail;
         private String content;
         @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
-        @JsonDeserialize(using = ZonedDateTimeDeserializer.class) // required for tests
+        @JsonDeserialize(using = ZonedDateTimeDeserializer.class)
         private ZonedDateTime createdAt;
 }
