@@ -61,7 +61,7 @@ public class AcceptRoleValidatorTest {
     }
 
     @Test
-    void testValidRole_WhenRoleIsInValid_ShouldThrowUnauthorizeException() {
+    void testValidRole_WhenRoleIsInValid_ShouldThrowUnauthorizedException() {
         assertThrows(UnauthorizedException.class, () -> acceptRoleValidator.isValid(Role.CLIENT, context));
     }
 

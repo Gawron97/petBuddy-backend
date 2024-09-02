@@ -542,5 +542,19 @@ public class CareControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @WithMockUser(username = "caretakerEmail")
+    void getCaretakerCares_whenDatesInvalid_ShouldThrowDateRangeException() throws Exception {
+        // Given
+        PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
+        // When and Then
+        mockMvc.perform(get("/api/care/caretaker-cares")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER)
+                        .param("minCareStart", LocalDate.now().plusDays(8).toString())
+                        .param("maxCareStart", LocalDate.now().plusDays(7).toString()))
+                .andExpect(status().isBadRequest());
+    }
+
 
 }

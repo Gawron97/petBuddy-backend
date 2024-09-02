@@ -10,14 +10,12 @@ import java.time.temporal.Temporal;
 
 public class DateRangeValidator implements ConstraintValidator<DateRange, Object> {
 
-    private String startDateFieldName;
-    private String endDateFieldName;
+    private DateRangeField[] dateRangeFields;
     private String message;
 
     @Override
     public void initialize(DateRange constraintAnnotation) {
-        startDateFieldName = constraintAnnotation.startDateField();
-        endDateFieldName = constraintAnnotation.endDateField();
+        dateRangeFields = constraintAnnotation.fields();
         message = constraintAnnotation.message();
     }
 
@@ -26,30 +24,37 @@ public class DateRangeValidator implements ConstraintValidator<DateRange, Object
 
         boolean isValid;
 
-        try {
-            Field startDateField = value.getClass().getDeclaredField(this.startDateFieldName);
-            Field endDateField = value.getClass().getDeclaredField(this.endDateFieldName);
-            startDateField.setAccessible(true);
-            endDateField.setAccessible(true);
+        for(DateRangeField field: dateRangeFields) {
 
-            Object startDate = startDateField.get(value);
-            Object endDate = endDateField.get(value);
+            String startDateFieldName = field.startDateField();
+            String endDateFieldName = field.endDateField();
 
-            isValid = isValid(startDate, endDate);
+            try {
+                Field startDateField = value.getClass().getDeclaredField(startDateFieldName);
+                Field endDateField = value.getClass().getDeclaredField(endDateFieldName);
+                startDateField.setAccessible(true);
+                endDateField.setAccessible(true);
 
-        } catch (IllegalActionException e) {
-            throw e;
+                Object startDate = startDateField.get(value);
+                Object endDate = endDateField.get(value);
+
+                isValid = isValid(startDate, endDate);
+
+            } catch (IllegalActionException e) {
+                throw e;
+            }
+            catch (Exception e) {
+                return false;
+            }
+
+            if (!isValid) {
+                context.disableDefaultConstraintViolation();
+                throw new DateRangeException(message);
+            }
+
         }
-        catch (Exception e) {
-            return false;
-        }
 
-        if (!isValid) {
-            context.disableDefaultConstraintViolation();
-            throw new DateRangeException(message);
-        }
-
-        return isValid;
+        return true;
 
     }
 

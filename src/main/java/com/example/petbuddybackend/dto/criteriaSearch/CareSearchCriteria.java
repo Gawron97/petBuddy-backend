@@ -2,6 +2,7 @@ package com.example.petbuddybackend.dto.criteriaSearch;
 
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.utils.annotation.validation.DateRange;
+import com.example.petbuddybackend.utils.annotation.validation.DateRangeField;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
@@ -11,7 +12,11 @@ import java.time.ZonedDateTime;
 import java.util.Set;
 
 @Builder
-@DateRange(startDateField = "minCreatedTime", endDateField = "maxCreatedTime", message = "Max created time must be after min created time")
+@DateRange(fields = {
+        @DateRangeField(startDateField = "minCreatedTime", endDateField = "maxCreatedTime"),
+        @DateRangeField(startDateField = "minCareStart", endDateField = "maxCareStart"),
+        @DateRangeField(startDateField = "minCareEnd", endDateField = "maxCareEnd")
+}, message = "Max created time must be after min created time")
 public record CareSearchCriteria(
         @Schema(
                 description = "Filters by animal types in cares",
