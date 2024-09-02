@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,6 +40,9 @@ public class CareControllerIntegrationTest {
 
     @Value("${header-name.timezone}")
     private String TIMEZONE_HEADER_NAME;
+
+    @Value("${header-name.role}")
+    private String ROLE_HEADER_NAME;
 
     @Autowired
     private MockMvc mockMvc;
@@ -490,6 +495,50 @@ public class CareControllerIntegrationTest {
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
         mockMvc.perform(post("/api/care/" + careId + "/client-cancel"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "caretakerEmail")
+    void getCaretakerCares_ShouldReturnProperCares() throws Exception {
+        // Given
+        PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
+        // When and Then
+        mockMvc.perform(get("/api/care/caretaker-cares")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].clientStatus").value(CareStatus.ACCEPTED.name()))
+                .andExpect(jsonPath("$.content[0].caretakerStatus").value(CareStatus.PENDING.name()))
+                .andExpect(jsonPath("$.content[0].careStart").value(LocalDate.now().plusDays(2).toString()))
+                .andExpect(jsonPath("$.content[0].careEnd").value(LocalDate.now().plusDays(7).toString()))
+                .andExpect(jsonPath("$.content[0].description").value("Test care description"))
+                .andExpect(jsonPath("$.content[0].dailyPrice").value(50.00))
+                .andExpect(jsonPath("$.content[0].animalType").value("DOG"))
+                .andExpect(jsonPath("$.content[0].caretakerEmail").value("caretakerEmail"))
+                .andExpect(jsonPath("$.content[0].clientEmail").value("clientEmail"));
+    }
+
+    @Test
+    @WithMockUser(username = "caretakerEmail")
+    void getCaretakerCares_whenRoleIsClient_ShouldThrowUnauthorizedException() throws Exception {
+        // Given
+        PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
+        // When and Then
+        mockMvc.perform(get("/api/care/caretaker-cares")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CLIENT))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "caretakerEmail")
+    void getCaretakerCares_whenRoleIsNotProvided_ShouldThrowUnauthorizedException() throws Exception {
+        // Given
+        PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
+        // When and Then
+        mockMvc.perform(get("/api/care/caretaker-cares")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 

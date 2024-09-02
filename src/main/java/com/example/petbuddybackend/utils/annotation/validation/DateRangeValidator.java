@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.annotations.validation;
+package com.example.petbuddybackend.utils.annotation.validation;
 
 import com.example.petbuddybackend.utils.exception.throweable.general.DateRangeException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
@@ -22,7 +22,9 @@ public class DateRangeValidator implements ConstraintValidator<DateRange, Object
     }
 
     @Override
-    public boolean isValid(Object value, ConstraintValidatorContext context) {
+    public boolean isValid(Object value, ConstraintValidatorContext context) throws DateRangeException {
+
+        boolean isValid;
 
         try {
             Field startDateField = value.getClass().getDeclaredField(this.startDateFieldName);
@@ -33,25 +35,25 @@ public class DateRangeValidator implements ConstraintValidator<DateRange, Object
             Object startDate = startDateField.get(value);
             Object endDate = endDateField.get(value);
 
-            boolean isValid = isValid(startDate, endDate);
+            isValid = isValid(startDate, endDate);
 
-            if (!isValid) {
-                context.disableDefaultConstraintViolation();
-                throw new DateRangeException(message);
-            }
-
-            return isValid;
-
-        } catch (DateRangeException e) {
+        } catch (IllegalActionException e) {
             throw e;
         }
         catch (Exception e) {
             return false;
         }
 
+        if (!isValid) {
+            context.disableDefaultConstraintViolation();
+            throw new DateRangeException(message);
+        }
+
+        return isValid;
+
     }
 
-    private static boolean isValid(Object startDate, Object endDate) {
+    private static boolean isValid(Object startDate, Object endDate) throws IllegalActionException {
         if(startDate == null || endDate == null) {
             return true;
         }

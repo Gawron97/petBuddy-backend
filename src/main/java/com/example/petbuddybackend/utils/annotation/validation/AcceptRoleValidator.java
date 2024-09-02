@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.annotations.validation;
+package com.example.petbuddybackend.utils.annotation.validation;
 
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
@@ -30,7 +30,7 @@ public class AcceptRoleValidator implements ConstraintValidator<AcceptRole, Role
 
     private static boolean isValid(Role value, String[] acceptRoles) {
         if(value == null) {
-            return true;
+            return false;
         }
 
         for(String acceptRole : acceptRoles) {

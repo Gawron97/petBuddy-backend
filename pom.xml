@@ -138,7 +138,8 @@
                             <exclude>com/example/petbuddybackend/dto/**</exclude>
                             <exclude>com/example/petbuddybackend/entity/**</exclude>
                             <exclude>com/example/petbuddybackend/utils/exception/**</exclude>
-                            <exclude>com/example/petbuddybackend/utils/annotations/**</exclude>
+                            <exclude>com/example/petbuddybackend/utils/annotations/swaggerdocs</exclude>
+                            <exclude>com/example/petbuddybackend/utils/converter/WebConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/PetBuddyBackendApplication.class</exclude>
                             <exclude>com/example/petbuddybackend/config/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/config/security/NoSecurityConfig.class</exclude>

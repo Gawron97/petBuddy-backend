@@ -1,6 +1,5 @@
-package com.example.petbuddybackend.utils.annotations.swaggerdocs;
+package com.example.petbuddybackend.utils.annotation.swaggerdocs;
 
-import com.example.petbuddybackend.entity.user.Role;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -12,8 +11,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 @Parameter(
-        description = "Role of the principal user. Determines the user's selected profile.",
-        schema = @Schema(implementation = Role.class)
+        description = "The time zone to adjust the message timestamps to. If not provided, server's default timezone will be used.",
+        schema = @Schema(type = "string", example = "Europe/Warsaw, CET, +00:02, ...")
 )
-public @interface RoleParameter {
+public @interface TimeZoneParameter {
 }

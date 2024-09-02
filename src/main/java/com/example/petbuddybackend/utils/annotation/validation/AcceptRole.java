@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.annotations.validation;
+package com.example.petbuddybackend.utils.annotation.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
@@ -8,16 +8,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = DateRangeValidator.class)
-@Target({ElementType.TYPE})
+@Constraint(validatedBy = AcceptRoleValidator.class)
+@Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DateRange {
+public @interface AcceptRole {
 
-    String message() default "Invalid date range";
+    String message() default "Your profile is not allowed to do this action.";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 
-    String startDateField();
-    String endDateField();
+    String[] acceptRole();
 
 }

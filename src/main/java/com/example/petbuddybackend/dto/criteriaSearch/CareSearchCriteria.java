@@ -1,15 +1,16 @@
 package com.example.petbuddybackend.dto.criteriaSearch;
 
 import com.example.petbuddybackend.entity.care.CareStatus;
-import com.example.petbuddybackend.utils.annotations.validation.DateRange;
-import com.example.petbuddybackend.utils.time.TimeUtils;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.example.petbuddybackend.utils.annotation.validation.DateRange;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
+@Builder
 @DateRange(startDateField = "minCreatedTime", endDateField = "maxCreatedTime", message = "Max created time must be after min created time")
 public record CareSearchCriteria(
         @Schema(
@@ -46,6 +47,34 @@ public record CareSearchCriteria(
                 type = "string"
         )
         ZonedDateTime maxCreatedTime,
+
+        @Schema(
+                description = "Filters by min care start",
+                example = "2020-02-03",
+                type = "string"
+        )
+        LocalDate minCareStart,
+
+        @Schema(
+                description = "Filters by max care start",
+                example = "2020-02-07",
+                type = "string"
+        )
+        LocalDate maxCareStart,
+
+        @Schema(
+                description = "Filters by min care end",
+                example = "2020-02-08",
+                type = "string"
+        )
+        LocalDate minCareEnd,
+
+        @Schema(
+                description = "Filters by max care end",
+                example = "2020-02-17",
+                type = "string"
+        )
+        LocalDate maxCareEnd,
 
         @Schema(
                 description = "Filters by min daily price",

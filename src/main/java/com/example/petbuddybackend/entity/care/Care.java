@@ -69,7 +69,9 @@ public class Care {
 
     @PrePersist
     public void prePersist() {
-        submittedAt = ZonedDateTime.now();
+        if(submittedAt == null) {
+            submittedAt = ZonedDateTime.now();
+        }
         assertAnimalAttributesMatchWithAnimalType();
     }
 

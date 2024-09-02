@@ -4,6 +4,7 @@ import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
+import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -22,6 +23,7 @@ import com.example.petbuddybackend.testutils.mock.MockChatProvider;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -136,9 +138,16 @@ public class PersistenceUtils {
         return chatRoom;
     }
 
-    public static Care addCare(CareRepository careRepository, Caretaker caretaker,
-                               Client client, Animal animal) {
+    public static Care addCare(CareRepository careRepository, Caretaker caretaker, Client client, Animal animal) {
         Care care = createMockCare(caretaker, client, animal);
+        return careRepository.saveAndFlush(care);
+    }
+
+    public static Care addCare(CareRepository careRepository, Caretaker caretaker, Client client, Animal animal,
+                               ZonedDateTime submittedAt, LocalDate careStart, LocalDate careEnd, BigDecimal dailyPrice,
+                               CareStatus caretakerStatus, CareStatus clientStatus) {
+        Care care = createMockCare(caretaker, client, animal, submittedAt, careStart, careEnd, dailyPrice,
+                caretakerStatus, clientStatus);
         return careRepository.saveAndFlush(care);
     }
 

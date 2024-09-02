@@ -6,13 +6,13 @@ import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.utils.time.TimeUtils;
 import jakarta.persistence.criteria.Join;
 import lombok.NoArgsConstructor;
 import org.keycloak.common.util.CollectionUtil;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -27,6 +27,8 @@ public final class CareSpecificationUtils {
     public static final String CARETAKER_STATUS = "caretakerStatus";
     public static final String CLIENT_STATUS = "clientStatus";
     public static final String SUBMITTED_AT = "submittedAt";
+    public static final String CARE_START = "careStart";
+    public static final String CARE_END = "careEnd";
     public static final String DAILY_PRICE = "dailyPrice";
 
 
@@ -54,6 +56,22 @@ public final class CareSpecificationUtils {
 
         if(filters.maxCreatedTime() != null) {
             spec = spec.and(maxCreatedTime(filters.maxCreatedTime()));
+        }
+
+        if(filters.minCareStart() != null) {
+            spec = spec.and(minCareStart(filters.minCareStart()));
+        }
+
+        if(filters.maxCareStart() != null) {
+            spec = spec.and(maxCareStart(filters.maxCareStart()));
+        }
+
+        if(filters.minCareEnd() != null) {
+            spec = spec.and(minCareEnd(filters.minCareEnd()));
+        }
+
+        if(filters.maxCareEnd() != null) {
+            spec = spec.and(maxCareEnd(filters.maxCareEnd()));
         }
 
         if(filters.minDailyPrice() != null) {
@@ -98,6 +116,30 @@ public final class CareSpecificationUtils {
     private static Specification<Care> maxCreatedTime(ZonedDateTime maxCreatedTime) {
         return (root, query, criteriaBuilder) -> {
             return criteriaBuilder.lessThanOrEqualTo(root.get(SUBMITTED_AT), maxCreatedTime);
+        };
+    }
+
+    private static Specification<Care> minCareStart(LocalDate minCareStart) {
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(CARE_START), minCareStart);
+        };
+    }
+
+    private static Specification<Care> maxCareStart(LocalDate maxCareStart) {
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.lessThanOrEqualTo(root.get(CARE_START), maxCareStart);
+        };
+    }
+
+    private static Specification<Care> minCareEnd(LocalDate minCareEnd) {
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(CARE_END), minCareEnd);
+        };
+    }
+
+    private static Specification<Care> maxCareEnd(LocalDate maxCareEnd) {
+        return (root, query, criteriaBuilder) -> {
+            return criteriaBuilder.lessThanOrEqualTo(root.get(CARE_END), maxCareEnd);
         };
     }
 

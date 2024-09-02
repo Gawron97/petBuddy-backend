@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.dto.care;
 
-import com.example.petbuddybackend.utils.annotations.validation.DateRange;
+import com.example.petbuddybackend.utils.annotation.validation.DateRange;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 
