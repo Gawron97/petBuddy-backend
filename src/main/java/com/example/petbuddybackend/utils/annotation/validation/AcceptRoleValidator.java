@@ -5,9 +5,11 @@ import com.example.petbuddybackend.utils.exception.throweable.general.Unauthoriz
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+import java.util.Arrays;
+
 public class AcceptRoleValidator implements ConstraintValidator<AcceptRole, Role> {
 
-    private String[] acceptRoles;
+    private Role[] acceptRoles;
     private String message;
 
     @Override
@@ -19,27 +21,20 @@ public class AcceptRoleValidator implements ConstraintValidator<AcceptRole, Role
     @Override
     public boolean isValid(Role value, ConstraintValidatorContext context) {
 
-        boolean isValid = isValid(value, acceptRoles);
-        if(!isValid) {
+        if(!isValid(value, acceptRoles)) {
             context.disableDefaultConstraintViolation();
             throw new UnauthorizedException(message);
         }
-        return isValid;
+        return true;
 
     }
 
-    private static boolean isValid(Role value, String[] acceptRoles) {
+    private static boolean isValid(Role value, Role[] acceptRoles) {
         if(value == null) {
             return false;
         }
 
-        for(String acceptRole : acceptRoles) {
-            if(value.name().equals(acceptRole)) {
-                return true;
-            }
-        }
-
-        return false;
+        return Arrays.asList(acceptRoles).contains(value);
     }
 
 }

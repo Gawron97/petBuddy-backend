@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.service.care;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
@@ -15,6 +16,7 @@ import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
+import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +27,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -738,7 +742,22 @@ public class CareServiceIntegrationTest {
                         CareStatus.ACCEPTED
                 )
         );
+    }
 
+    @Test
+    void getCaretakerCares_sortingParamsShouldAlignWithDTO() {
+        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(Care.class);
+        fieldNames.addAll(List.of("animal_animalType", "caretaker_email", "client_email"));
+
+        for(String fieldName: fieldNames) {
+            assertDoesNotThrow(() -> careService.getCaretakerCares(
+                    PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
+                    CareSearchCriteria.builder().build(),
+                    Set.of(),
+                    caretaker.getEmail(),
+                    ZoneId.systemDefault()
+            ));
+        }
     }
 
 }

@@ -162,8 +162,9 @@ public class CareController {
             @ApiResponse(responseCode = "403", description = "Authorized caretaker can only fetch cares"),
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
+    @PreAuthorize("isAuthenticated()")
     public Page<CareDTO> getCaretakerCares(
-            @RoleParameter @AcceptRole(acceptRole = "CARETAKER") @RequestHeader(value = "${header-name.role}") Role acceptRole,
+            @RoleParameter @AcceptRole(acceptRole = Role.CARETAKER) @RequestHeader(value = "${header-name.role}") Role acceptRole,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute @Valid CareSearchCriteria filters,

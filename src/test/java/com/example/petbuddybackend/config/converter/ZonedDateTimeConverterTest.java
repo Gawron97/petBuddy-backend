@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.converter;
+package com.example.petbuddybackend.config.converter;
 
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import org.junit.jupiter.api.BeforeEach;

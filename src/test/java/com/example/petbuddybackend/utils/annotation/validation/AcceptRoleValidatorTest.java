@@ -47,8 +47,8 @@ public class AcceptRoleValidatorTest {
             }
 
             @Override
-            public String[] acceptRole() {
-                return new String[]{"CARETAKER"};
+            public Role[] acceptRole() {
+                return new Role[]{Role.CARETAKER};
             }
         });
 

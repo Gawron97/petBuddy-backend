@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.utils.annotation.validation;
 
+import com.example.petbuddybackend.entity.user.Role;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -17,6 +18,6 @@ public @interface AcceptRole {
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 
-    String[] acceptRole();
+    Role[] acceptRole();
 
 }

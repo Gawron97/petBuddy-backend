@@ -533,7 +533,7 @@ public class CareControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "caretakerEmail")
-    void getCaretakerCares_whenRoleIsNotProvided_ShouldThrowUnauthorizedException() throws Exception {
+    void getCaretakerCares_whenRoleIsNotProvided_ShouldThrowBadRequest() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then

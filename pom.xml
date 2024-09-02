@@ -139,12 +139,11 @@
                             <exclude>com/example/petbuddybackend/entity/**</exclude>
                             <exclude>com/example/petbuddybackend/utils/exception/**</exclude>
                             <exclude>com/example/petbuddybackend/utils/annotations/swaggerdocs</exclude>
-                            <exclude>com/example/petbuddybackend/utils/converter/WebConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/PetBuddyBackendApplication.class</exclude>
                             <exclude>com/example/petbuddybackend/config/datageneration/**</exclude>
-                            <exclude>com/example/petbuddybackend/config/security/NoSecurityConfig.class</exclude>
-                            <exclude>com/example/petbuddybackend/config/security/SecurityConfig.class</exclude>
-                            <exclude>com/example/petbuddybackend/controller/TestController.class</exclude>
+                            <exclude>com/example/petbuddybackend/config/security/**</exclude>
+                            <exclude>com/example/petbuddybackend/config/websocket/**</exclude>
+                            <exclude>com/example/petbuddybackend/config/converter/WebConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/service/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/filter/ExceptionHandlerFilter.class</exclude>
                             <exclude>com/example/petbuddybackend/filter/CORSFilter.class</exclude>
