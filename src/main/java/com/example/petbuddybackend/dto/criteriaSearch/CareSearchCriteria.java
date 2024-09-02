@@ -20,21 +20,21 @@ import java.util.Set;
 public record CareSearchCriteria(
         @Schema(
                 description = "Filters by animal types in cares",
-                examples = {"DOG", "CAT", "BIRD", "SMALL_PET", "FISH", "REPTILE", "HORSE"},
+                allowableValues = {"DOG", "CAT", "BIRD", "FISH", "REPTILE", "HORSE"},
                 type = "array"
         )
         Set<String> animalTypes,
 
         @Schema(
                 description = "Filters by caretaker statuses",
-                examples = {"PENDING", "ACCEPTED", "AWAITING_PAYMENT", "PAID", "CANCELLED", "OUTDATED"},
+                allowableValues = {"PENDING", "ACCEPTED", "AWAITING_PAYMENT", "PAID", "CANCELLED", "OUTDATED"},
                 type = "array"
         )
         Set<CareStatus> caretakerStatuses,
 
         @Schema(
                 description = "Filters by client statuses",
-                examples = {"PENDING", "ACCEPTED", "AWAITING_PAYMENT", "PAID", "CANCELLED", "OUTDATED"},
+                allowableValues = {"PENDING", "ACCEPTED", "AWAITING_PAYMENT", "PAID", "CANCELLED", "OUTDATED"},
                 type = "array"
         )
         Set<CareStatus> clientStatuses,

@@ -153,8 +153,18 @@ public class CareController {
     @GetMapping("/caretaker-cares")
     @Operation(
             summary = "Get filtered cares for caretaker",
-            description = "Returns filtered cares for caretaker. " +
-                    "The result is paginated, sorted and filtered by the provided parameters."
+            description =
+                    """
+                    ## Endpoint description
+                    Returns filtered cares for caretaker.
+                    The result is paginated, sorted and filtered by the provided parameters.
+                    
+                    ## Sorting
+                    You can sort by every param in DTO excluding selectedOptions, but with some fields it will be different formatt:
+                    - To sort by animalType you need to provide: `animal_animalType`
+                    - To sort by caretakerEmail you need to provide: `caretaker_email`
+                    - To sort by clientEmail you need to provide: `client_email`
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Cares fetched successfully"),
