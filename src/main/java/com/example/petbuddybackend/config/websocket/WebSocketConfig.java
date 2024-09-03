@@ -1,8 +1,9 @@
 package com.example.petbuddybackend.config.websocket;
 
 
-import com.example.petbuddybackend.utils.serializers.ZonedDateTimeDeserializer;
-import com.example.petbuddybackend.utils.serializers.ZonedDateTimeSerializer;
+import com.example.petbuddybackend.filter.SubscriptionInterceptor;
+import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
+import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.config.websocket;
+package com.example.petbuddybackend.filter;
 
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;

@@ -1,5 +1,6 @@
-package com.example.petbuddybackend.config.converter;
+package com.example.petbuddybackend.config.web;
 
+import com.example.petbuddybackend.utils.conversion.converter.ZonedDateTimeConverter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

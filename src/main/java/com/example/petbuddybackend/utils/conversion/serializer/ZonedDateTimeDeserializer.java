@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.utils.serializers;
+package com.example.petbuddybackend.utils.conversion.serializer;
 
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import com.fasterxml.jackson.core.JsonParser;
