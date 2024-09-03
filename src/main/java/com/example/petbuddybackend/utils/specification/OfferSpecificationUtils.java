@@ -10,11 +10,13 @@ import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
+import lombok.NoArgsConstructor;
 import org.keycloak.common.util.CollectionUtil;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.Set;
 
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class OfferSpecificationUtils {
 
     public static final String ANIMAL = "animal";
@@ -27,9 +29,6 @@ public final class OfferSpecificationUtils {
     public static final String ANIMAL_ATTRIBUTE = "animalAttribute";
     public static final String ID = "id";
     public static final String PRICE = "dailyPrice";
-
-    private OfferSpecificationUtils() {
-    }
 
     public static Specification<Offer> toSpecification(OfferSearchCriteria filters) {
 

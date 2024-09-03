@@ -3,22 +3,21 @@ package com.example.petbuddybackend.utils.specification;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
 import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CaretakerSpecificationUtils {
 
     public static final String VOIVODESHIP = "voivodeship";
@@ -28,12 +27,8 @@ public final class CaretakerSpecificationUtils {
     public static final String NAME = "name";
     public static final String SURNAME = "surname";
     public static final String EMAIL = "email";
-    public static final String OFFERS = "offers";
     public static final String CARETAKER = "caretaker";
 
-
-    private CaretakerSpecificationUtils() {
-    }
 
     public static Specification<Caretaker> toSpecification(CaretakerSearchCriteria filters) {
         Specification<Caretaker> spec = Specification.where(

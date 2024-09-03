@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
@@ -23,6 +24,26 @@ public class MockCareProvider {
                 .careEnd(LocalDate.now().plusDays(7))
                 .description("Test care description")
                 .dailyPrice(new BigDecimal("50.00"))
+                .animal(animal)
+                .animalAttributes(new HashSet<>())
+                .caretaker(caretaker)
+                .client(client)
+                .build();
+
+    }
+
+    public static Care createMockCare(Caretaker caretaker, Client client, Animal animal, ZonedDateTime submittedAt,
+                                      LocalDate careStart, LocalDate careEnd, BigDecimal dailyPrice,
+                                      CareStatus caretakerStatus, CareStatus clientStatus) {
+
+        return Care.builder()
+                .submittedAt(submittedAt)
+                .caretakerStatus(caretakerStatus)
+                .clientStatus(clientStatus)
+                .careStart(careStart)
+                .careEnd(careEnd)
+                .description("Test care description")
+                .dailyPrice(dailyPrice)
                 .animal(animal)
                 .animalAttributes(new HashSet<>())
                 .caretaker(caretaker)
