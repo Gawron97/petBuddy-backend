@@ -20,4 +20,5 @@ public class ChatMessageDTO {
         private String content;
         @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
         private ZonedDateTime createdAt;
+        private boolean seenByRecipient;
 }

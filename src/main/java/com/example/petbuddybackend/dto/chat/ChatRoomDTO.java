@@ -22,4 +22,5 @@ public class ChatRoomDTO {
     private ZonedDateTime lastMessageCreatedAt;
     private String lastMessage;
     private String lastMessageSendBy;
+    private Boolean seen;
 }

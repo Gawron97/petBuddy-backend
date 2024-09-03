@@ -41,7 +41,7 @@ public class ChatSessionServiceTest {
     private ChatSessionManager chatSessionManager;
 
     @Mock
-    private StompHeaderAccessor stompHeaderAccessor;
+    private StompHeaderAccessor accessor;
 
     private ChatMapper chatMapper = ChatMapper.INSTANCE;
 
@@ -52,7 +52,7 @@ public class ChatSessionServiceTest {
         ChatRoomMetadata chatRoomMetadata = createChatUserMeta("fstUsername", "sndUsername");
         when(chatSessionManager.get(chatId)).thenReturn(chatRoomMetadata);
 
-        chatSessionService.sendMessages(chatId, messageDTO);
+        chatSessionService.sendMessages(chatId, messageDTO, (empty) -> {});
 
         for (ChatUserMetadata userMetadata : chatRoomMetadata) {
             verify(simpMessagingTemplate, times(1)).convertAndSend(
@@ -77,7 +77,7 @@ public class ChatSessionServiceTest {
 
         // Mock the static method
         try (MockedStatic<HeaderUtils> headerUtilsMockedStatic = Mockito.mockStatic(HeaderUtils.class)) {
-            headerUtilsMockedStatic.when(() -> HeaderUtils.getOptionalHeaderSingleValue(any(), any(), any()))
+            headerUtilsMockedStatic.when(() -> HeaderUtils.getOptionalHeaderSingleValue(any(Map.class), any(), any()))
                     .thenReturn(Optional.of(newTimeZone));
 
             // when
@@ -111,25 +111,20 @@ public class ChatSessionServiceTest {
     void testSubscribeIfAbsent_shouldSubscribeUser() {
         // Arrange
         String username = "testUser";
-        String destination = String.format(SUBSCRIPTION_URL_PATTERN, 1L, username);
         String timeZone = "America/New_York";
         Long chatId = 1L;
 
-        when(stompHeaderAccessor.getUser()).thenReturn(() -> username);
-        when(stompHeaderAccessor.getDestination()).thenReturn(destination);
-        when(stompHeaderAccessor.getFirstNativeHeader("timezone")).thenReturn(timeZone);
-
         // Act
-        chatSessionService.subscribeIfAbsent(stompHeaderAccessor);
+        chatSessionService.subscribeIfAbsent(chatId, username, timeZone);
 
         // Assert
         verify(chatSessionManager, times(1)).putIfAbsent(
                 eq(chatId),
                 any()
         );
-        verify(stompHeaderAccessor).getUser();
-        verify(stompHeaderAccessor).getDestination();
-        verify(stompHeaderAccessor).getFirstNativeHeader(TIMEZONE_HEADER_NAME);
+        verify(accessor).getUser();
+        verify(accessor).getDestination();
+        verify(accessor).getFirstNativeHeader(TIMEZONE_HEADER_NAME);
     }
 
     @Test
@@ -149,18 +144,14 @@ public class ChatSessionServiceTest {
     void testUnsubscribeIfPresent_withStompHeaderAccessor_shouldRemoveUserFromChatSession() {
         // given
         String username = "testUser";
-        String destination = "/topic/messages/1";
         Long chatId = 1L;
 
-        when(stompHeaderAccessor.getUser()).thenReturn(() -> username);
-        when(stompHeaderAccessor.getDestination()).thenReturn(destination);
-
         // when
-        chatSessionService.unsubscribeIfPresent(stompHeaderAccessor);
+        chatSessionService.unsubscribeIfPresent(chatId, username);
 
         // then
-        verify(stompHeaderAccessor).getUser();
-        verify(stompHeaderAccessor).getDestination();
+        verify(accessor).getUser();
+        verify(accessor).getDestination();
         verify(chatSessionManager).remove(chatId, username);
     }
 

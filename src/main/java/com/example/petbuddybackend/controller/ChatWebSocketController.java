@@ -5,6 +5,7 @@ import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.chat.session.ChatSessionService;
+import com.example.petbuddybackend.service.chat.session.MessageCallback;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ChatWebSocketController {
 
+    private static final int CHAT_ID_INDEX_IN_TOPIC_URL = 3;
+
     @Value("${header-name.role}")
     private String ROLE_HEADER_NAME;
+
+    @Value("${header-name.timezone}")
+    private String TIMEZONE_HEADER_NAME;
 
     private final ChatService chatService;
     private final ChatSessionService chatSessionService;
@@ -38,23 +44,32 @@ public class ChatWebSocketController {
             @Headers Map<String, Object> headers,
             Principal principal
     ) {
-        String username = principal.getName();
+        String principalUsername = principal.getName();
         Role acceptRole = HeaderUtils.getHeaderSingleValue(headers, ROLE_HEADER_NAME, Role.class);
-        ChatMessageDTO messageDTO = chatService.createMessage(chatId, username, message, acceptRole);
+        ChatMessageDTO messageDTO = chatService.createMessage(chatId, principalUsername, message, acceptRole);
+        MessageCallback callback = chatService.createCallbackMessageSeen(chatId, principalUsername);
 
-        chatSessionService.patchMetadata(chatId, username, headers);
-        chatSessionService.sendMessages(chatId, messageDTO);
+        chatSessionService.patchMetadata(chatId, principalUsername, headers);
+        chatSessionService.sendMessages(chatId, messageDTO, callback);
     }
 
     @EventListener
     public void handleSubscription(SessionSubscribeEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        chatSessionService.subscribeIfAbsent(headerAccessor);
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String timeZone = HeaderUtils.getHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class);
+        String username = HeaderUtils.getUser(accessor);
+        Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
+
+        chatService.updateLastMessageSeen(chatId, username);
+        chatSessionService.subscribeIfAbsent(chatId, username, timeZone);
     }
 
     @EventListener
     public void handleUnsubscription(SessionUnsubscribeEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        chatSessionService.unsubscribeIfPresent(headerAccessor);
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String username = HeaderUtils.getUser(accessor);
+        Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
+
+        chatSessionService.unsubscribeIfPresent(chatId, username);
     }
 }

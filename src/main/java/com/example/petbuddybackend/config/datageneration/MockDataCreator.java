@@ -1,5 +1,7 @@
 package com.example.petbuddybackend.config.datageneration;
 
+import com.example.petbuddybackend.dto.chat.ChatMessageSent;
+import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
@@ -10,6 +12,7 @@ import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
@@ -23,13 +26,16 @@ import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
+import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.datageneration.MockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZoneId;
 import java.util.List;
 
 
@@ -61,6 +67,7 @@ public class MockDataCreator {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final CareRepository careRepository;
+    private final ChatService chatService;
 
     List<AppUser> caretakerAppUsers;
     List<AppUser> clientAppUsers;
@@ -170,14 +177,38 @@ public class MockDataCreator {
     }
 
     private void createChat(Client client, Caretaker caretaker) {
-        ChatRoom chatRoom = ChatRoom.builder()
-                .client(client)
-                .caretaker(caretaker)
-                .build();
+        chatService.createChatRoomWithMessage(
+                client.getEmail(),
+                Role.CLIENT,
+                caretaker.getEmail(),
+                new ChatMessageSent("Initial message to caretaker!"),
+                ZoneId.systemDefault()
+        );
 
-        chatRoom = chatRoomRepository.save(chatRoom);
-        List<ChatMessage> messages = mockService.generateMessages(10, client, caretaker, chatRoom);
+        ChatRoomDTO createdChatRoomDTO = chatService.getChatRoomsByParticipantEmail(
+                client.getEmail(),
+                Role.CLIENT,
+                PageRequest.of(0, 1),
+                ZoneId.systemDefault()
+        ).stream().findFirst().orElseThrow();
 
-        chatMessageRepository.saveAllAndFlush(messages);
+        Long chatId = createdChatRoomDTO.getId();
+
+        for(int i = 0; i < 10; i++) {
+            chatService.createMessage(
+                    chatId,
+                    client.getEmail(),
+                    new ChatMessageSent("Message from client: " + i),
+                    Role.CLIENT
+            );
+        }
+        for(int i = 0; i < 10; i++) {
+            chatService.createMessage(
+                    chatId,
+                    caretaker.getEmail(),
+                    new ChatMessageSent("Message from caretaker: " + i),
+                    Role.CARETAKER
+            );
+        }
     }
 }

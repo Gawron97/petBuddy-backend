@@ -98,9 +98,9 @@ public class ChatController {
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole
     ) {
         return chatService.createChatRoomWithMessage(
-                messageReceiverEmail,
                 principal.getName(),
                 acceptRole,
+                messageReceiverEmail,
                 message,
                 TimeUtils.getOrSystemDefault(acceptTimeZone)
         );

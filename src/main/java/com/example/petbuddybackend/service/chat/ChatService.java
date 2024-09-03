@@ -11,6 +11,7 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
+import com.example.petbuddybackend.service.chat.session.MessageCallback;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,13 +41,14 @@ public class ChatService {
     private final ChatRoomRepository chatRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
+    private final ChatRoomRepository chatRoomRepository;
 
     public Page<ChatMessageDTO> getChatMessages(Long chatId, String principalEmail, Pageable pageable, ZoneId timeZone) {
         checkChatExistsById(chatId);
         checkUserParticipatesInChat(chatId, principalEmail);
 
-        return chatMessageRepository.findByChatRoom_Id_OrderByCreatedAtDesc(chatId, pageable)
-                .map(msg -> chatMapper.mapToChatMessageDTO(msg, timeZone));
+        Page<ChatMessage> chatMessages = chatMessageRepository.findByChatRoom_Id_OrderByCreatedAtDesc(chatId, pageable);
+        return chatMessages.map(message -> chatMapper.mapToChatMessageDTO(message, timeZone));
     }
 
     public ChatRoom getChatRoomById(Long chatId) {
@@ -59,11 +62,11 @@ public class ChatService {
             Pageable pageable,
             ZoneId timeZone
     ) {
-        Page<ChatRoomDTO> chatRoomDTOS = role == Role.CLIENT ?
+        Page<ChatRoomDTO> chatRoomDTOs = role == Role.CLIENT ?
                 chatRepository.findByClientEmailSortByLastMessageDesc(principalEmail, pageable) :
                 chatRepository.findByCaretakerEmailSortByLastMessageDesc(principalEmail, pageable);
 
-        return chatRoomDTOS.map(room -> chatMapper.mapTimeZone(room, timeZone));
+        return chatRoomDTOs.map(room -> chatMapper.mapTimeZone(room, timeZone));
     }
 
     @Transactional
@@ -73,13 +76,14 @@ public class ChatService {
             ChatMessageSent chatMessage,
             Role role
     ) {
-        return chatMapper.mapToChatMessageDTO(createMessageForRole(chatId, principalEmail, role, chatMessage));
+        ChatMessage message = createMessageForRole(chatId, principalEmail, role, chatMessage);
+        return chatMapper.mapToChatMessageDTO(message);
     }
 
     public ChatMessageDTO createChatRoomWithMessage(
-            String messageReceiverEmail,
             String principalEmail,
             Role principalRole,
+            String messageReceiverEmail,
             ChatMessageSent message,
             ZoneId timeZone
     ) {
@@ -100,6 +104,38 @@ public class ChatService {
         return role == Role.CLIENT ?
                 chatRoom.getClient().getEmail().equals(email) :
                 chatRoom.getCaretaker().getEmail().equals(email);
+    }
+
+    /**
+     * Updates the last message seen by the user in the chat room to the latest message in the chat room.
+     * */
+    public void updateLastMessageSeen(Long chatId, String email) {
+        ChatRoom chatRoom = getChatRoomById(chatId);
+        Optional<ChatMessage> lastMessageOpt = chatMessageRepository.findFirstByChatRoom_IdOrderByCreatedAtDesc(chatId);
+
+        if(lastMessageOpt.isEmpty()) {
+            return;
+        }
+
+        ChatMessage lastMessage = lastMessageOpt.get();
+
+        if(chatRoom.getClient().getEmail().equals(email)) {
+            chatRoom.setLastMessageSeenByClient(lastMessage);
+            chatRoomRepository.save(chatRoom);
+        } else if(chatRoom.getCaretaker().getEmail().equals(email)) {
+            chatRoom.setLastMessageSeenByCaretaker(lastMessage);
+            chatRoomRepository.save(chatRoom);
+        }
+
+        throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatRoom.getId()));
+    }
+
+    public MessageCallback createCallbackMessageSeen(Long chatId, String usernameToSkip) {
+        return usernameSend -> {
+            if(!usernameSend.equals(usernameToSkip)) {
+                updateLastMessageSeen(chatId, usernameSend);
+            }
+        };
     }
 
     private ChatMessageDTO createChatRoomWithMessageForClientSender(
@@ -134,11 +170,21 @@ public class ChatService {
         ChatRoom chatRoom = getChatRoomById(chatId);
         checkUserParticipatesInChat(chatRoom, principalEmail, principalRole);
 
-        AppUser sender = principalRole == Role.CLIENT ?
-                chatRoom.getClient().getAccountData() :
-                chatRoom.getCaretaker().getAccountData();
-
-        return persistMessage(chatRoom, sender, chatMessage.getContent());
+        if(principalRole == Role.CLIENT) {
+            AppUser sender = chatRoom.getClient().getAccountData();
+            ChatMessage message = persistMessage(chatRoom, sender, chatMessage.getContent());
+            chatRoom.setLastMessageSeenByClient(message);
+            // FIXME
+            chatRoomRepository.save(chatRoom);
+            return message;
+        } else {
+            AppUser sender = chatRoom.getCaretaker().getAccountData();
+            ChatMessage message = persistMessage(chatRoom, sender, chatMessage.getContent());
+            chatRoom.setLastMessageSeenByCaretaker(message);
+            // FIXME
+            chatRoomRepository.save(chatRoom);
+            return message;
+        }
     }
 
     private ChatMessage persistMessage(ChatRoom chatRoom, AppUser sender, String content) {
