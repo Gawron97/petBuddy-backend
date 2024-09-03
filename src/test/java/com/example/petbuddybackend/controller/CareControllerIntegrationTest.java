@@ -504,7 +504,7 @@ public class CareControllerIntegrationTest {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
-        mockMvc.perform(get("/api/care/caretaker-cares")
+        mockMvc.perform(get("/api/care")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk())
@@ -525,7 +525,7 @@ public class CareControllerIntegrationTest {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
-        mockMvc.perform(get("/api/care/caretaker-cares")
+        mockMvc.perform(get("/api/care")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(ROLE_HEADER_NAME, Role.CLIENT))
                 .andExpect(status().isOk())
@@ -546,7 +546,7 @@ public class CareControllerIntegrationTest {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
-        mockMvc.perform(get("/api/care/caretaker-cares")
+        mockMvc.perform(get("/api/care")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -557,7 +557,7 @@ public class CareControllerIntegrationTest {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
-        mockMvc.perform(get("/api/care/caretaker-cares")
+        mockMvc.perform(get("/api/care")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(ROLE_HEADER_NAME, Role.CARETAKER)
                         .param("minCareStart", LocalDate.now().plusDays(8).toString())
