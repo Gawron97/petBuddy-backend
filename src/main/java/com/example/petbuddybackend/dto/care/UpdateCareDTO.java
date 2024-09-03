@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.dto.care;
 
-import com.example.petbuddybackend.utils.annotations.validation.DateRange;
+import com.example.petbuddybackend.utils.annotation.validation.DateRange;
+import com.example.petbuddybackend.utils.annotation.validation.DateRangeField;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Future;
@@ -11,7 +12,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Builder
-@DateRange(startDateField = "careStart", endDateField = "careEnd", message = "End date of care must be after start date")
+@DateRange(fields = {
+        @DateRangeField(startDateField = "careStart", endDateField = "careEnd")
+}, message = "End date of care must be after start date")
 public record UpdateCareDTO(
         @NotNull
         @Future
