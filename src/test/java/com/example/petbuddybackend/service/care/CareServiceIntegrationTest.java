@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.care;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.entity.animal.Animal;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -527,16 +529,21 @@ public class CareServiceIntegrationTest {
     @ParameterizedTest
     @MethodSource("parameterProviderForGetCaretakerCares")
     @Transactional(readOnly = true)
-    void getCaretakerCares_ShouldReturnProperCaretakerCares(CareSearchCriteria filters, Set<String> clientEmails, int expectedSize) {
+    void getCaretakerCares_ShouldReturnProperCaretakerCares(CareSearchCriteria filters, Role selectedProfile,
+                                                            Set<String> emails, String userEmail, int expectedSize) {
 
         // Given
         Client secondClient = PersistenceUtils.addClient(appUserRepository, clientRepository,
-                createMockClient("second", "second", "secondEmail"));
+                createMockClient("second", "second", "secondClientEmail"));
 
-        List<Care> cares = createCares(secondClient);
+        Caretaker secondCaretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository,
+                createMockCaretaker("secondCaretakerEmail"));
+
+        List<Care> cares = createCares(secondClient,secondCaretaker);
 
         // When
-        Page<CareDTO> result = careService.getCaretakerCares(Pageable.ofSize(10), filters, clientEmails, caretaker.getEmail(), ZoneId.systemDefault());
+        Page<CareDTO> result = careService.getCares(Pageable.ofSize(10), filters, emails, userEmail,
+                selectedProfile, ZoneId.systemDefault());
 
         // Then
         assertEquals(expectedSize, result.getTotalElements());
@@ -549,7 +556,9 @@ public class CareServiceIntegrationTest {
                         CareSearchCriteria.builder()
                                 .animalTypes(Set.of("DOG"))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         3
                 ),
                 Arguments.of(
@@ -557,7 +566,9 @@ public class CareServiceIntegrationTest {
                                 .minCreatedTime(ZonedDateTime.of(2024, 5, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
                                 .maxCreatedTime(ZonedDateTime.of(2024, 5, 31, 23, 59, 59, 0, ZoneId.systemDefault()))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         1
                 ),
                 Arguments.of(
@@ -565,7 +576,9 @@ public class CareServiceIntegrationTest {
                                 .minCareStart(LocalDate.of(2024, 5, 1))
                                 .maxCareStart(LocalDate.of(2024, 7, 10))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         3
                 ),
                 Arguments.of(
@@ -573,7 +586,9 @@ public class CareServiceIntegrationTest {
                                 .minCareEnd(LocalDate.of(2024, 6, 1))
                                 .maxCareEnd(LocalDate.of(2024, 8, 10))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         2
                 ),
                 Arguments.of(
@@ -581,66 +596,86 @@ public class CareServiceIntegrationTest {
                                 .minDailyPrice(new BigDecimal("15.00"))
                                 .maxDailyPrice(new BigDecimal("20.00"))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         2
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         5
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .build(),
+                        Role.CARETAKER,
                         Set.of("clientEmail"),
+                        "caretakerEmail",
                         3
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .build(),
-                        Set.of("secondEmail"),
+                        Role.CARETAKER,
+                        Set.of("secondClientEmail"),
+                        "caretakerEmail",
                         2
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .build(),
+                        Role.CARETAKER,
                         Set.of("wrongEmail"),
+                        "caretakerEmail",
                         0
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .caretakerStatuses(Set.of(CareStatus.PENDING))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         3
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .caretakerStatuses(Set.of(CareStatus.AWAITING_PAYMENT))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         1
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .clientStatuses(Set.of(CareStatus.AWAITING_PAYMENT))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         1
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .clientStatuses(Set.of(CareStatus.ACCEPTED))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         2
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .clientStatuses(Set.of(CareStatus.CANCELLED))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of(),
+                        "caretakerEmail",
                         1
                 ),
                 Arguments.of(
@@ -648,7 +683,9 @@ public class CareServiceIntegrationTest {
                                 .minCareStart(LocalDate.of(2024, 6, 10))
                                 .maxCareStart(LocalDate.of(2024, 6, 15))
                                 .build(),
+                        Role.CARETAKER,
                         Set.of("clientEmail"),
+                        "caretakerEmail",
                         1
                 ),
                 Arguments.of(
@@ -656,14 +693,18 @@ public class CareServiceIntegrationTest {
                                 .minCreatedTime(ZonedDateTime.of(2024, 6, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
                                 .maxCreatedTime(ZonedDateTime.of(2024, 6, 29, 0, 0, 0, 0, ZoneId.systemDefault()))
                                 .build(),
-                        Set.of("secondEmail"),
+                        Role.CARETAKER,
+                        Set.of("secondClientEmail"),
+                        "caretakerEmail",
                         1
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
                                 .animalTypes(Set.of("CAT"))
                                 .build(),
-                        Set.of("secondEmail"),
+                        Role.CARETAKER,
+                        Set.of("secondClientEmail"),
+                        "caretakerEmail",
                         1
                 ),
                 Arguments.of(
@@ -672,13 +713,51 @@ public class CareServiceIntegrationTest {
                                 .minCareStart(LocalDate.of(2024, 6, 20))
                                 .maxCareStart(LocalDate.of(2024, 6, 25))
                                 .build(),
-                        Set.of("secondEmail"),
+                        Role.CARETAKER,
+                        Set.of("secondClientEmail"),
+                        "caretakerEmail",
                         0
+                ),
+                Arguments.of(
+                        CareSearchCriteria.builder()
+                                .build(),
+                        Role.CLIENT,
+                        Set.of(),
+                        "secondClientEmail",
+                        3
+                ),
+                Arguments.of(
+                        CareSearchCriteria.builder()
+                                .build(),
+                        Role.CLIENT,
+                        Set.of("secondCaretakerEmail"),
+                        "secondClientEmail",
+                        1
+                ),
+                Arguments.of(
+                        CareSearchCriteria.builder()
+                                .minDailyPrice(new BigDecimal("20.00"))
+                                .maxDailyPrice(new BigDecimal("70.00"))
+                                .build(),
+                        Role.CLIENT,
+                        Set.of("caretakerEmail"),
+                        "secondClientEmail",
+                        2
+                ),
+                Arguments.of(
+                        CareSearchCriteria.builder()
+                                .minDailyPrice(new BigDecimal("20.00"))
+                                .maxDailyPrice(new BigDecimal("70.00"))
+                                .build(),
+                        Role.CLIENT,
+                        Set.of("caretakerEmail", "secondCaretakerEmail"),
+                        "secondClientEmail",
+                        3
                 )
         );
     }
 
-    private List<Care> createCares(Client secondClient) {
+    private List<Care> createCares(Client secondClient, Caretaker secondCaretaker) {
 
         return List.of(
                 PersistenceUtils.addCare(
@@ -740,6 +819,18 @@ public class CareServiceIntegrationTest {
                         new BigDecimal("20.00"),
                         CareStatus.CANCELLED,
                         CareStatus.ACCEPTED
+                ),
+                PersistenceUtils.addCare(
+                        careRepository,
+                        secondCaretaker,
+                        secondClient,
+                        animalRepository.findById("HORSE").orElseThrow(),
+                        ZonedDateTime.of(2024, 6, 10, 12, 0, 0, 0, ZoneId.systemDefault()),
+                        LocalDate.of(2024, 6, 15),
+                        LocalDate.of(2024, 6, 20),
+                        new BigDecimal("35.00"),
+                        CareStatus.CANCELLED,
+                        CareStatus.ACCEPTED
                 )
         );
     }
@@ -750,11 +841,12 @@ public class CareServiceIntegrationTest {
         fieldNames.addAll(List.of("animal_animalType", "caretaker_email", "client_email"));
 
         for(String fieldName: fieldNames) {
-            assertDoesNotThrow(() -> careService.getCaretakerCares(
+            assertDoesNotThrow(() -> careService.getCares(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
                     CareSearchCriteria.builder().build(),
                     Set.of(),
                     caretaker.getEmail(),
+                    Role.CARETAKER,
                     ZoneId.systemDefault()
             ));
         }

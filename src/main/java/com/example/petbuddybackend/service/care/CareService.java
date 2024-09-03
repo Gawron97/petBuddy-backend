@@ -7,6 +7,7 @@ import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.service.animal.AnimalService;
 import com.example.petbuddybackend.service.mapper.CareMapper;
@@ -207,22 +208,16 @@ public class CareService {
 
     }
 
+    public Page<CareDTO> getCares(Pageable pageable, CareSearchCriteria filters, Set<String> emails,
+                                  String userEmail, Role selectedProfile, ZoneId zoneId) {
 
-    public Page<CareDTO> getCaretakerCares(Pageable pageable, CareSearchCriteria filters, Set<String> clientEmails,
-                                           String caretakerEmail, ZoneId zoneId) {
-
-
-        Specification<Care> spec =
-                CareSpecificationUtils
-                        .toSpecification(filters)
-                        .and(CareSpecificationUtils.addCaretakerEmailFilter(caretakerEmail));
-
-        if(CollectionUtil.isNotEmpty(clientEmails)) {
-            spec = spec.and(CareSpecificationUtils.addClientEmailsFilter(clientEmails));
-        }
+        Specification<Care> spec = selectedProfile == Role.CARETAKER
+                ? CareSpecificationUtils.toSpecificationForCaretaker(filters, emails, userEmail)
+                : CareSpecificationUtils.toSpecificationForClient(filters, emails, userEmail);
 
         return careRepository.findAll(spec, pageable)
                 .map(care -> careMapper.mapToCareDTO(care, zoneId));
 
     }
+
 }

@@ -500,11 +500,11 @@ public class CareControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = "caretakerEmail")
-    void getCaretakerCares_ShouldReturnProperCares() throws Exception {
+    void getCares_whenRoleIsCaretaker_ShouldReturnProperCares() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
-        mockMvc.perform(get("/api/care/caretaker-cares")
+        mockMvc.perform(get("/api/care")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk())
@@ -520,15 +520,24 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
-    void getCaretakerCares_whenRoleIsClient_ShouldThrowUnauthorizedException() throws Exception {
+    @WithMockUser(username = "clientEmail")
+    void getCaretakerCares_whenRoleIsClient_ShouldReturnProperCares() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
-        mockMvc.perform(get("/api/care/caretaker-cares")
+        mockMvc.perform(get("/api/care")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(ROLE_HEADER_NAME, Role.CLIENT))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].clientStatus").value(CareStatus.ACCEPTED.name()))
+                .andExpect(jsonPath("$.content[0].caretakerStatus").value(CareStatus.PENDING.name()))
+                .andExpect(jsonPath("$.content[0].careStart").value(LocalDate.now().plusDays(2).toString()))
+                .andExpect(jsonPath("$.content[0].careEnd").value(LocalDate.now().plusDays(7).toString()))
+                .andExpect(jsonPath("$.content[0].description").value("Test care description"))
+                .andExpect(jsonPath("$.content[0].dailyPrice").value(50.00))
+                .andExpect(jsonPath("$.content[0].animalType").value("DOG"))
+                .andExpect(jsonPath("$.content[0].caretakerEmail").value("caretakerEmail"))
+                .andExpect(jsonPath("$.content[0].clientEmail").value("clientEmail"));
     }
 
     @Test
@@ -537,7 +546,7 @@ public class CareControllerIntegrationTest {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
-        mockMvc.perform(get("/api/care/caretaker-cares")
+        mockMvc.perform(get("/api/care")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -548,7 +557,7 @@ public class CareControllerIntegrationTest {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
-        mockMvc.perform(get("/api/care/caretaker-cares")
+        mockMvc.perform(get("/api/care")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(ROLE_HEADER_NAME, Role.CARETAKER)
                         .param("minCareStart", LocalDate.now().plusDays(8).toString())
