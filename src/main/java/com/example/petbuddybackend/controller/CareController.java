@@ -149,7 +149,7 @@ public class CareController {
         return careService.cancelCareByClient(careId, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
 
-    @GetMapping("/caretaker-cares")
+    @GetMapping
     @Operation(
             summary = "Get filtered cares for currently logged in user profile",
             description =
