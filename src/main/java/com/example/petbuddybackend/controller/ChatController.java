@@ -78,8 +78,11 @@ public class ChatController {
                     - To subscribe to chat room, use the following path: `/topic/messages/{chatId}`
                     - To send a message to chat room, use the following path: `/app/chat/{chatId}`
                     
-                    Same payload and headers apply to websocket endpoint as to this endpoint,
-                    except the time zone related header as it will be added in the future PR.
+                    ## Payload and headers
+                    Same payload and headers apply to websocket endpoint as to this endpoint. Time zone is cached per 
+                    session. It is highly recommended to provide the timezone header when subscribing to the topic.
+                    The header does not have to be provided on each message send, but if it is provided, then the
+                    new timezone will be cached.
                     """
     )
     @ApiResponses(value = {
@@ -121,8 +124,11 @@ public class ChatController {
                           - To subscribe to chat room, use the following path: `/topic/messages/{chatId}`
                           - To send a message to chat room, use the following path: `/app/chat/{chatId}`
                           
-                          Same payload and headers apply to websocket endpoint as to `/api/chat/{messageReceiverEmail}` endpoint,
-                          except the time zone related header as it will be added in the future PR.
+                          ## Payload and headers
+                          Same payload and headers apply to websocket endpoint as to `/api/chat/{messageReceiverEmail}` 
+                          endpoint. Time zone is cached per session. It is highly recommended to provide the timezone 
+                          header when subscribing to the topic. The header does not have to be provided on each 
+                          message send, but if it is provided, then the new timezone will be cached.
                           """
     )
     public Page<ChatRoomDTO> getChatRooms(

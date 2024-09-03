@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.config.converter;
+package com.example.petbuddybackend.utils.conversion.converter;
 
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ZonedDateTimeConverterTest {
 
     private ZonedDateTimeConverter converter = new ZonedDateTimeConverter();
-    private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(TimeUtils.ZONED_TIMESTAMP_FORMAT);
+    private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(TimeUtils.ZONED_DATETIME_FORMAT);
 
     @BeforeEach
     void setUp() {

@@ -23,6 +23,8 @@ import java.util.Collections;
 @Configuration
 public class NoSecurityInjectUserConfig {
 
+    public static String injectedUsername = "testuser";
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -39,20 +41,18 @@ public class NoSecurityInjectUserConfig {
 
     final static class TestAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-        private final Authentication testAuthentication;
+        @Override
+        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+            SecurityContextHolder.getContext().setAuthentication(createTestAuthentication());
+            chain.doFilter(request, response);
+        }
 
-        public TestAuthenticationFilter() {
-            this.testAuthentication = new UsernamePasswordAuthenticationToken(
-                    new User("testuser", "password", Collections.emptyList()),
+        private Authentication createTestAuthentication() {
+            return new UsernamePasswordAuthenticationToken(
+                    new User(injectedUsername, "password", Collections.emptyList()),
                     "password",
                     Collections.emptyList()
             );
-        }
-
-        @Override
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-            SecurityContextHolder.getContext().setAuthentication(testAuthentication);
-            chain.doFilter(request, response);
         }
     }
 }

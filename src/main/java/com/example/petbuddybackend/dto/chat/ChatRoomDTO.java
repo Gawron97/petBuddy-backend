@@ -18,7 +18,7 @@ public class ChatRoomDTO {
     private String chatterEmail;
     private String chatterName;
     private String chatterSurname;
-    @JsonFormat(pattern = TimeUtils.ZONED_TIMESTAMP_FORMAT)
+    @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
     private ZonedDateTime lastMessageCreatedAt;
     private String lastMessage;
     private String lastMessageSendBy;

@@ -12,7 +12,7 @@ import java.util.Map;
 
 public record CareDTO(
         Long id,
-        @JsonFormat(pattern = TimeUtils.ZONED_TIMESTAMP_FORMAT)
+        @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
         ZonedDateTime submittedAt,
         CareStatus caretakerStatus,
         CareStatus clientStatus,

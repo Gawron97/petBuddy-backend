@@ -18,6 +18,6 @@ public class ChatMessageDTO {
         private Long chatId;
         private String senderEmail;
         private String content;
-        @JsonFormat(pattern = TimeUtils.ZONED_TIMESTAMP_FORMAT)
+        @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
         private ZonedDateTime createdAt;
 }

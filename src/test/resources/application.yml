@@ -30,3 +30,8 @@ header-name:
   timezone: "Accept-Timezone"
   role: "Accept-Role"
 
+url:
+  chat:
+    topic:
+      base: "/topic/messages"
+      pattern: "/topic/messages/%d/%s"

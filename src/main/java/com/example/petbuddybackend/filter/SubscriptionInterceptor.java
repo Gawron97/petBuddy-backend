@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.config.websocket;
+package com.example.petbuddybackend.filter;
 
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
@@ -44,6 +44,6 @@ public class SubscriptionInterceptor implements ChannelInterceptor {
 
     private Long extractChatId(String destination) {
         String[] parts = destination.split("/");
-        return Long.parseLong(parts[parts.length - 1]);
+        return Long.parseLong(parts[3]);
     }
 }

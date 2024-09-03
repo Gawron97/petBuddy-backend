@@ -143,7 +143,7 @@
                             <exclude>com/example/petbuddybackend/config/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/config/security/**</exclude>
                             <exclude>com/example/petbuddybackend/config/websocket/**</exclude>
-                            <exclude>com/example/petbuddybackend/config/converter/WebConfig.class</exclude>
+                            <exclude>com/example/petbuddybackend/config/web/WebConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/service/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/filter/ExceptionHandlerFilter.class</exclude>
                             <exclude>com/example/petbuddybackend/filter/CORSFilter.class</exclude>
