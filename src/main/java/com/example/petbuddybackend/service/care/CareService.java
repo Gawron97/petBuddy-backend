@@ -212,45 +212,11 @@ public class CareService {
                                   String userEmail, Role selectedProfile, ZoneId zoneId) {
 
         Specification<Care> spec = selectedProfile == Role.CARETAKER
-                ? getSpecificationForCaretaker(filters, emails, userEmail)
-                : getSpecificationForClient(filters, emails, userEmail);
+                ? CareSpecificationUtils.toSpecificationForCaretaker(filters, emails, userEmail)
+                : CareSpecificationUtils.toSpecificationForClient(filters, emails, userEmail);
 
         return careRepository.findAll(spec, pageable)
                 .map(care -> careMapper.mapToCareDTO(care, zoneId));
-
-    }
-
-
-    private Specification<Care> getSpecificationForCaretaker(CareSearchCriteria filters, Set<String> clientEmails,
-                                                             String caretakerEmail) {
-
-
-        Specification<Care> spec =
-                CareSpecificationUtils
-                        .toSpecification(filters)
-                        .and(CareSpecificationUtils.addCaretakerEmailFilter(caretakerEmail));
-
-        if(CollectionUtil.isNotEmpty(clientEmails)) {
-            spec = spec.and(CareSpecificationUtils.addClientEmailsFilter(clientEmails));
-        }
-
-        return spec;
-
-    }
-
-    private Specification<Care> getSpecificationForClient(CareSearchCriteria filters, Set<String> caretakerEmails,
-                                                   String clientEmail) {
-
-        Specification<Care> spec =
-                CareSpecificationUtils
-                        .toSpecification(filters)
-                        .and(CareSpecificationUtils.addClientEmailFilter(clientEmail));
-
-        if(CollectionUtil.isNotEmpty(caretakerEmails)) {
-            spec = spec.and(CareSpecificationUtils.addCaretakerEmailsFilter(caretakerEmails));
-        }
-
-        return spec;
 
     }
 

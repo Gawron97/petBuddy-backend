@@ -31,6 +31,34 @@ public final class CareSpecificationUtils {
     public static final String CARE_END = "careEnd";
     public static final String DAILY_PRICE = "dailyPrice";
 
+    public static Specification<Care> toSpecificationForCaretaker(CareSearchCriteria filters, Set<String> clientEmails,
+                                                             String caretakerEmail) {
+
+
+        Specification<Care> spec = toSpecification(filters)
+                        .and(addCaretakerEmailFilter(caretakerEmail));
+
+        if(CollectionUtil.isNotEmpty(clientEmails)) {
+            spec = spec.and(addClientEmailsFilter(clientEmails));
+        }
+
+        return spec;
+
+    }
+
+    public static Specification<Care> toSpecificationForClient(CareSearchCriteria filters, Set<String> caretakerEmails,
+                                                          String clientEmail) {
+
+        Specification<Care> spec = toSpecification(filters)
+                        .and(addClientEmailFilter(clientEmail));
+
+        if(CollectionUtil.isNotEmpty(caretakerEmails)) {
+            spec = spec.and(addCaretakerEmailsFilter(caretakerEmails));
+        }
+
+        return spec;
+
+    }
 
     public static Specification<Care> toSpecification(CareSearchCriteria filters) {
 
