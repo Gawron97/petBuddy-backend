@@ -9,6 +9,7 @@ import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
+import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -16,6 +17,7 @@ import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
+import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
@@ -29,6 +31,7 @@ import java.util.List;
 
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
 import static com.example.petbuddybackend.testutils.mock.MockOfferProvider.*;
+import static com.example.petbuddybackend.testutils.mock.MockRatingProvider.createMockRatingForCaretaker;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 
 public class PersistenceUtils {
@@ -219,4 +222,11 @@ public class PersistenceUtils {
                 chatMessageRepository
         );
     }
+
+    public static Rating addRatingToCaretaker(Caretaker caretaker, Client client, Integer ratingNumber, String comment,
+                                              RatingRepository ratingRepository) {
+        Rating rating = createMockRatingForCaretaker(caretaker, client, ratingNumber, comment);
+        return ratingRepository.save(rating);
+    }
+
 }

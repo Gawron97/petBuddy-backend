@@ -20,6 +20,7 @@ public class CaretakerMapperTest {
         MockOfferProvider.createComplexMockOfferForCaretaker(caretaker);
 
         setIds(caretaker);
+        setCalculatedFields(caretaker);
 
         CaretakerDTO caretakerDTO = mapper.mapToCaretakerDTO(caretaker);
 
@@ -35,6 +36,11 @@ public class CaretakerMapperTest {
                 offerConfiguration.getOfferOptions().forEach(offerOption -> offerOption.setId(1L));
             });
         });
+    }
+
+    private void setCalculatedFields(Caretaker caretaker) {
+        caretaker.setAvgRating(4.5f);
+        caretaker.setNumberOfRatings(2);
     }
 
 }

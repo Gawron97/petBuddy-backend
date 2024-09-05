@@ -31,6 +31,10 @@ public class Caretaker {
     private AppUser accountData;
 
     @Basic(fetch = FetchType.LAZY)
+    @Formula("(SELECT COUNT(*) FROM Rating r WHERE r.caretaker_email = email)")
+    private Integer numberOfRatings;
+
+    @Basic(fetch = FetchType.LAZY)
     @Formula("(SELECT AVG(r.rating) FROM Rating r WHERE r.caretaker_email = email)")
     private Float avgRating;
 

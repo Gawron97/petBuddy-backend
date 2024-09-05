@@ -54,6 +54,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -148,6 +149,28 @@ public class CaretakerServiceTest {
         offerRepository.delete(offerToDelete);
         caretakerWithComplexOffer.setOffers(null);
         caretakerRepository.delete(caretakerWithComplexOffer);
+
+    }
+
+    @Test
+    void getCaretakers_shouldReturnProperRatingNumberAndAverageRating() {
+
+        // Given
+        Client client2 = PersistenceUtils.addClient(appUserRepository, clientRepository,
+                createMockClient("secondClient", "seconfClient", "secondClientEmail"));
+
+        PersistenceUtils.addRatingToCaretaker(caretaker, client, 5, "comment", ratingRepository);
+        PersistenceUtils.addRatingToCaretaker(caretaker, client2, 4, "comment second", ratingRepository);
+
+        // When
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10),
+                CaretakerSearchCriteria.builder()
+                        .personalDataLike("John Doe")
+                        .build());
+        CaretakerDTO resultCaretaker = resultPage.getContent().get(0);
+        assertEquals(2, resultCaretaker.numberOfRatings());
+        assertEquals(4.5f, resultCaretaker.avgRating());
+
 
     }
 

@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.testutils;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,10 @@ public final class ReflectionUtils {
                 fieldType.equals(String.class) ||
                 fieldType.equals(Long.class) ||
                 fieldType.equals(Integer.class) ||
-                fieldType.equals(Boolean.class);
+                fieldType.equals(Boolean.class) ||
+                fieldType.equals(Double.class) ||
+                fieldType.equals(Float.class) ||
+                fieldType.equals(BigDecimal.class);
     }
 
     public static boolean isClass(Field field) {
