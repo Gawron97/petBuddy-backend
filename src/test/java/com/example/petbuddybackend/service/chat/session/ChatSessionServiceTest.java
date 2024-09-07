@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.service.chat.session;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.testutils.mock.MockChatProvider;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
@@ -52,7 +53,7 @@ public class ChatSessionServiceTest {
         ChatRoomMetadata chatRoomMetadata = createChatUserMeta("fstUsername", "sndUsername");
         when(chatSessionManager.get(chatId)).thenReturn(chatRoomMetadata);
 
-        chatSessionService.sendMessages(chatId, messageDTO, (empty) -> {});
+        chatSessionService.sendNotifications(chatId, new ChatNotificationMessage(messageDTO), (empty) -> {});
 
         for (ChatUserMetadata userMetadata : chatRoomMetadata) {
             verify(simpMessagingTemplate, times(1)).convertAndSend(

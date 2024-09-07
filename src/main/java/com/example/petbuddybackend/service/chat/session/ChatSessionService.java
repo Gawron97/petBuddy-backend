@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.service.chat.session;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotification;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import com.example.petbuddybackend.utils.time.TimeUtils;
@@ -26,16 +28,19 @@ public class ChatSessionService {
     private final ChatSessionManager chatSessionManager;
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
 
-    public void sendMessages(Long chatId, ChatMessageDTO messageDTO, MessageCallback callback) {
-        chatSessionManager.get(chatId).forEach(userMetadata -> {
-            String username = userMetadata.getUsername();
-            simpMessagingTemplate.convertAndSend(
-                    String.format(SUBSCRIPTION_URL_PATTERN, chatId, username),
-                    chatMapper.mapTimeZone(messageDTO, userMetadata.getZoneId())
-            );
+    public void sendNotifications(Long chatId, ChatNotification notification, MessageCallback callback) {
+        switch(notification.getType()) {
+            case MESSAGE:
+                sendNotificationConvertTimeZone((ChatNotificationMessage) notification, chatId, callback);
+                break;
+            case JOINED, LEFT:
+                sendNotification(notification, chatId, callback);
+                break;
+        }
+    }
 
-            callback.onMessageSent(username);
-        });
+    public void sendNotifications(Long chatId, ChatNotification notification) {
+        sendNotification(notification, chatId, username -> {});
     }
 
     public void patchMetadata(Long chatId, String username, Map<String, Object> headers) {
@@ -51,5 +56,26 @@ public class ChatSessionService {
 
     public void unsubscribeIfPresent(Long chatId, String username) {
         chatSessionManager.remove(chatId, username);
+    }
+
+    private void sendNotificationConvertTimeZone(ChatNotificationMessage notification, Long chatId, MessageCallback callback) {
+        chatSessionManager.get(chatId).forEach(userMetadata -> {
+            String username = userMetadata.getUsername();
+            String destination = String.format(SUBSCRIPTION_URL_PATTERN, chatId, username);
+            ChatMessageDTO messageDTOConverted = chatMapper.mapTimeZone(notification.getContent(), userMetadata.getZoneId());
+
+            simpMessagingTemplate.convertAndSend(destination, messageDTOConverted);
+            callback.onMessageSent(username);
+        });
+    }
+
+    private void sendNotification(ChatNotification notification, Long chatId,  MessageCallback callback) {
+        chatSessionManager.get(chatId).forEach(userMetadata -> {
+            String username = userMetadata.getUsername();
+            String destination = String.format(SUBSCRIPTION_URL_PATTERN, chatId, username);
+
+            simpMessagingTemplate.convertAndSend(destination, notification);
+            callback.onMessageSent(username);
+        });
     }
 }

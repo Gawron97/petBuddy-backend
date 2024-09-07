@@ -35,6 +35,7 @@ public class ChatService {
     private static final String CHAT = "Chat";
     private static final String PARTICIPATE_EXCEPTION_MESSAGE = "User with email: %s is not in chat of id %s";
     private static final String CHAT_PARTICIPANTS_ALREADY_EXIST_MESSAGE = "Chat between client: \"%s\" and caretaker \"%s\" already exists";
+    private static final String SENT_TO_YOURSELF_MESSAGE = "Unable to send message to yourself";
 
     private final ClientService clientService;
     private final CaretakerService caretakerService;
@@ -69,6 +70,9 @@ public class ChatService {
         return chatRoomDTOs.map(room -> chatMapper.mapTimeZone(room, timeZone));
     }
 
+    /**
+     * Creates a message in the chat room with the given id and updates the last message seen by the user in the chat room.
+     * */
     @Transactional
     public ChatMessageDTO createMessage(
             Long chatId,
@@ -149,6 +153,9 @@ public class ChatService {
         ChatRoom chatRoom = createChatRoom(clientSender, caretakerReceiver);
         ChatMessage chatMessage = persistMessage(chatRoom, clientSender.getAccountData(), message.getContent());
 
+        chatRoom.setLastMessageSeenByClient(chatMessage);
+        chatRoomRepository.save(chatRoom);
+
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
 
@@ -163,6 +170,9 @@ public class ChatService {
         ChatRoom chatRoom = createChatRoom(clientReceiver, caretakerSender);
         ChatMessage chatMessage = persistMessage(chatRoom, caretakerSender.getAccountData(), message.getContent());
 
+        chatRoom.setLastMessageSeenByCaretaker(chatMessage);
+        chatRoomRepository.save(chatRoom);
+
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
 
@@ -174,14 +184,12 @@ public class ChatService {
             AppUser sender = chatRoom.getClient().getAccountData();
             ChatMessage message = persistMessage(chatRoom, sender, chatMessage.getContent());
             chatRoom.setLastMessageSeenByClient(message);
-            // FIXME
             chatRoomRepository.save(chatRoom);
             return message;
         } else {
             AppUser sender = chatRoom.getCaretaker().getAccountData();
             ChatMessage message = persistMessage(chatRoom, sender, chatMessage.getContent());
             chatRoom.setLastMessageSeenByCaretaker(message);
-            // FIXME
             chatRoomRepository.save(chatRoom);
             return message;
         }
@@ -240,7 +248,7 @@ public class ChatService {
 
     private void checkSenderIsNotTheSameAsReceiver(String senderEmail, String receiverEmail) {
         if(senderEmail.equals(receiverEmail)) {
-            throw new InvalidMessageReceiverException("Unable to send message to yourself");
+            throw new InvalidMessageReceiverException(SENT_TO_YOURSELF_MESSAGE);
         }
     }
 }

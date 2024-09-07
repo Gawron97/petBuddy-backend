@@ -314,11 +314,11 @@ public class ChatServiceTest {
         long chatsCount = chatRepository.count();
 
         ChatMessageDTO msg = chatService.createChatRoomWithMessage(
-            otherCaretaker.getEmail(),
-            otherClientWithCaretakerAccount.getEmail(),
-            Role.CLIENT,
-            new ChatMessageSent("message content"),
-            ZoneId.of("Europe/Warsaw")
+                otherCaretaker.getEmail(),
+                Role.CLIENT,
+                otherClientWithCaretakerAccount.getEmail(),
+                new ChatMessageSent("message content"),
+                ZoneId.of("Europe/Warsaw")
         );
 
         assertEquals("message content", msg.getContent());
@@ -332,8 +332,8 @@ public class ChatServiceTest {
 
         ChatMessageDTO msg = chatService.createChatRoomWithMessage(
                 otherClientWithCaretakerAccount.getEmail(),
-                otherCaretaker.getEmail(),
                 Role.CARETAKER,
+                otherCaretaker.getEmail(),
                 new ChatMessageSent("message content"),
                 ZoneId.of("Europe/Warsaw")
         );
@@ -348,8 +348,8 @@ public class ChatServiceTest {
     void testCreateChatRoomWithMessage_timeZoneProvided_shouldSucceed(String timeZone) {
         ChatMessageDTO msg = chatService.createChatRoomWithMessage(
                 otherCaretaker.getEmail(),
-                otherClientWithCaretakerAccount.getEmail(),
                 Role.CLIENT,
+                otherClientWithCaretakerAccount.getEmail(),
                 new ChatMessageSent("message content"),
                 ZoneId.of(timeZone)
         );
@@ -363,8 +363,8 @@ public class ChatServiceTest {
                 InvalidMessageReceiverException.class,
                 () -> chatService.createChatRoomWithMessage(
                         otherClientWithCaretakerAccount.getEmail(),
-                        otherClientWithCaretakerAccount.getEmail(),
                         Role.CARETAKER,
+                        otherClientWithCaretakerAccount.getEmail(),
                         new ChatMessageSent("message content"),
                         ZoneId.of("Europe/Warsaw")
                 )
@@ -377,8 +377,8 @@ public class ChatServiceTest {
                 ChatAlreadyExistsException.class,
                 () -> chatService.createChatRoomWithMessage(
                         caretaker.getEmail(),
-                        client.getEmail(),
                         Role.CLIENT,
+                        client.getEmail(),
                         new ChatMessageSent("message content"),
                         ZoneId.of("Europe/Warsaw")
                 )
@@ -388,8 +388,8 @@ public class ChatServiceTest {
                 ChatAlreadyExistsException.class,
                 () -> chatService.createChatRoomWithMessage(
                         client.getEmail(),
-                        caretaker.getEmail(),
                         Role.CARETAKER,
+                        caretaker.getEmail(),
                         new ChatMessageSent("message content"),
                         ZoneId.of("Europe/Warsaw")
                 )

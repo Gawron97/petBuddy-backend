@@ -2,6 +2,9 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.chat.session.ChatSessionService;
@@ -50,7 +53,7 @@ public class ChatWebSocketController {
         MessageCallback callback = chatService.createCallbackMessageSeen(chatId, principalUsername);
 
         chatSessionService.patchMetadata(chatId, principalUsername, headers);
-        chatSessionService.sendMessages(chatId, messageDTO, callback);
+        chatSessionService.sendNotifications(chatId, new ChatNotificationMessage(messageDTO), callback);
     }
 
     @EventListener
@@ -62,6 +65,7 @@ public class ChatWebSocketController {
 
         chatService.updateLastMessageSeen(chatId, username);
         chatSessionService.subscribeIfAbsent(chatId, username, timeZone);
+        chatSessionService.sendNotifications(chatId, new ChatNotificationJoined(chatId, username));
     }
 
     @EventListener
@@ -71,5 +75,6 @@ public class ChatWebSocketController {
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
 
         chatSessionService.unsubscribeIfPresent(chatId, username);
+        chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
     }
 }
