@@ -31,11 +31,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class ChatServiceTest {
@@ -241,6 +242,7 @@ public class ChatServiceTest {
         assertEquals("message content", msg.getContent());
         assertEquals(client.getEmail(), msg.getSenderEmail());
         assertEquals(chatRoom.getId(), msg.getChatId());
+        assertFalse(msg.getSeenByRecipient());
     }
 
     @Test
@@ -258,6 +260,46 @@ public class ChatServiceTest {
         assertEquals("message content", msg.getContent());
         assertEquals(caretaker.getEmail(), msg.getSenderEmail());
         assertEquals(chatRoom.getId(), msg.getChatId());
+        assertFalse(msg.getSeenByRecipient());
+    }
+
+    @Test
+    void testCreateMessage_shouldUpdateSeenByRecipientOnCreateNewMessage() {
+        ChatMessageSent payload = new ChatMessageSent("message content");
+
+        chatService.createMessage(
+                chatRoom.getId(),
+                caretaker.getEmail(),
+                payload,
+                Role.CARETAKER
+        );
+
+        chatService.createMessage(
+                chatRoom.getId(),
+                client.getEmail(),
+                payload,
+                Role.CLIENT
+        );
+
+        chatService.createMessage(
+                chatRoom.getId(),
+                caretaker.getEmail(),
+                payload,
+                Role.CARETAKER
+        );
+
+        List<ChatMessageDTO> clientMessages = chatService.getChatMessagesByParticipantEmail(
+                chatRoom.getId(),
+                client.getEmail(),
+                PageRequest.of(0, 10),
+                ZoneId.of("Europe/Warsaw")
+        ).getContent();
+
+        for(ChatMessageDTO chatMessageDTO : clientMessages.subList(1, clientMessages.size()-1)) {
+            assertTrue(chatMessageDTO.getSeenByRecipient());
+        }
+
+        assertFalse(clientMessages.get(0).getSeenByRecipient());
     }
 
     @Test
@@ -393,6 +435,79 @@ public class ChatServiceTest {
                         new ChatMessageSent("message content"),
                         ZoneId.of("Europe/Warsaw")
                 )
+        );
+    }
+
+    @Test
+    void testUpdateLastMessageSeen_clientUpdatesLastMessageSeen_shouldSucceed() {
+        chatMessageRepository.save(
+                MockChatProvider.createMockChatMessage(client.getAccountData(),  ZonedDateTime.now().plusYears(1), chatRoom)
+        );
+
+        chatMessageRepository.save(
+                MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now(), chatRoom)
+        );
+
+        chatService.updateLastMessageSeen(chatRoom.getId(), client.getEmail());
+        List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
+                chatRoom.getId(),
+                client.getEmail(),
+                PageRequest.of(0, 10),
+                ZoneId.of("Europe/Warsaw")
+        ).getContent();
+
+        for(ChatMessageDTO chatMessage : chatMessages) {
+            if(!chatMessage.getSenderEmail().equals(client.getEmail())) {
+                assertTrue(chatMessage.getSeenByRecipient());
+            }
+        }
+
+        // Last message should not be marked as seen
+        assertFalse(chatMessages.get(0).getSeenByRecipient());
+    }
+
+    @Test
+    void testUpdateLastMessageSeen_caretakerUpdatesLastMessageSeen_shouldSucceed() {
+        chatMessageRepository.save(
+                MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now().plusYears(1), chatRoom)
+        );
+
+        chatMessageRepository.save(
+                MockChatProvider.createMockChatMessage(client.getAccountData(), ZonedDateTime.now(), chatRoom)
+        );
+
+        chatService.updateLastMessageSeen(chatRoom.getId(), caretaker.getEmail());
+
+        List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
+                chatRoom.getId(),
+                caretaker.getEmail(),
+                PageRequest.of(0, 10),
+                ZoneId.of("Europe/Warsaw")
+        ).getContent();
+
+        for(ChatMessageDTO chatMessage : chatMessages) {
+            if(!chatMessage.getSenderEmail().equals(caretaker.getEmail())) {
+                assertTrue(chatMessage.getSeenByRecipient());
+            }
+        }
+
+        // Last message should not be marked as seen
+        assertFalse(chatMessages.get(0).getSeenByRecipient());
+    }
+
+    @Test
+    void testUpdateLastMessageSeen_userNotInChatRoom_shouldThrowNotParticipateException() {
+        assertThrows(
+                NotParticipateException.class,
+                () -> chatService.updateLastMessageSeen(chatRoom.getId(), "notInChatRoom")
+        );
+    }
+
+    @Test
+    void testUpdateLastMessageSeen_noChatRoomWithProvidedId_shouldThrowNotFoundException() {
+        assertThrows(
+                NotFoundException.class,
+                () -> chatService.updateLastMessageSeen(-1L, client.getEmail())
         );
     }
 

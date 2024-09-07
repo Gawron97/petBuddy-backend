@@ -25,16 +25,21 @@ public final class MockChatProvider {
         return List.of(clientMessage, caretakerMessage);
     }
 
-    public static ChatMessage createMockChatMessage(AppUser sender) {
-        return createMockChatMessage(sender, ZonedDateTime.now());
-    }
-
-    public static ChatMessage createMockChatMessage(AppUser sender, ZonedDateTime createdAt) {
+    public static ChatMessage createMockChatMessage(AppUser sender, ZonedDateTime createdAt, ChatRoom chatRoom) {
         return ChatMessage.builder()
                 .content(UUID.randomUUID().toString())
                 .createdAt(createdAt)
+                .chatRoom(chatRoom)
                 .sender(sender)
                 .build();
+    }
+
+    public static ChatMessage createMockChatMessage(AppUser sender, ZonedDateTime createdAt) {
+        return createMockChatMessage(sender, createdAt, null);
+    }
+
+    public static ChatMessage createMockChatMessage(AppUser sender) {
+        return createMockChatMessage(sender, ZonedDateTime.now());
     }
 
     public static ChatRoom createMockChatRoom(Client client, Caretaker caretaker) {

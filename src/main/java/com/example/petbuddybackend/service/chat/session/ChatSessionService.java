@@ -55,12 +55,14 @@ public class ChatSessionService {
     }
 
     public void subscribe(Long chatId, String username, String timeZone) {
-        sessionContext.setChatId(chatId);
-        sessionContext.setUsername(username);
-        sessionContext.setCleanupCallback(chatSessionManager::remove);
-
+        sessionContext.setContext(chatId, username, chatSessionManager::remove);
         ChatUserMetadata metadata = new ChatUserMetadata(username, TimeUtils.getOrSystemDefault(timeZone));
         chatSessionManager.putIfAbsent(chatId, metadata);
+    }
+
+    public void unsubscribe(Long chatId, String username) {
+        sessionContext.clearContext();
+        chatSessionManager.remove(chatId, username);
     }
 
     private void executeSendNotificationConvertTimeZone(

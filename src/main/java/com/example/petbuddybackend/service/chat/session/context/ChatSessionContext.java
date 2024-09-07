@@ -6,34 +6,48 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
-@Data
+@ToString
+@Getter
+@EqualsAndHashCode
 @Component
 @Scope(scopeName = "websocket", proxyMode = ScopedProxyMode.TARGET_CLASS)
-@AllArgsConstructor
 public class ChatSessionContext implements DisposableBean {
 
     private Long chatId;
     private String username;
-    private boolean userPresent;
     private ContextCleanupCallback cleanupCallback;
+    private boolean empty;
 
     public ChatSessionContext() {
         this.chatId = null;
         this.username = null;
-        this.userPresent = true;
+        this.empty = false;
         this.cleanupCallback = (chatId, username) -> {};
+    }
+
+    public ChatSessionContext(Long chatId, String username, ContextCleanupCallback cleanupCallback) {
+        this.chatId = chatId;
+        this.username = username;
+        this.cleanupCallback = cleanupCallback;
+        this.empty = false;
     }
 
     @Override
     public void destroy() {
-        if(chatId == null || username == null) {
-            return;
-        }
-
         cleanupCallback.onDestroy(chatId, username);
     }
 
-    public boolean isEmpty() {
-        return chatId == null && username == null;
+    public void clearContext() {
+        this.empty = true;
+        this.username = null;
+        this.chatId = null;
+        this.cleanupCallback = (id, username) -> {};
+    }
+
+    public void setContext(Long chatId, String username, ContextCleanupCallback cleanupCallback) {
+        this.empty = false;
+        this.username = username;
+        this.chatId = chatId;
+        this.cleanupCallback = cleanupCallback;
     }
 }

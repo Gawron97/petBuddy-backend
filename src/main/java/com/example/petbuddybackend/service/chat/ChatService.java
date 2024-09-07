@@ -49,7 +49,7 @@ public class ChatService {
             Pageable pageable,
             ZoneId timeZone
     ) {
-        checkChatExistsById(chatId);
+        checkChatExists(chatId);
         checkUserInChat(chatId, principalEmail);
 
         Page<ChatMessage> chatMessages = chatMessageRepository.findByChatRoom_Id_OrderByCreatedAtDesc(chatId, pageable);
@@ -118,7 +118,9 @@ public class ChatService {
     /**
      * Updates the last message seen by the user in the chat room to the latest message in the chat room.
      * */
+    @Transactional
     public void updateLastMessageSeen(Long chatId, String email) {
+        checkChatExists(chatId);
         Role userRole = getRoleOfUserInChat(chatId, email);
 
         if(userRole == Role.CLIENT) {
@@ -206,7 +208,7 @@ public class ChatService {
         return chatRepository.save(chatRoom);
     }
 
-    private void checkChatExistsById(Long chatId) {
+    private void checkChatExists(Long chatId) {
         if(!chatRepository.existsById(chatId)) {
             throw NotFoundException.withFormattedMessage(CHAT, chatId.toString());
         }

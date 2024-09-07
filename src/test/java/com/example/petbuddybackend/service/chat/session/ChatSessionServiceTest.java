@@ -148,17 +148,6 @@ public class ChatSessionServiceTest {
                 .putIfAbsent(eq(chatId), any());
     }
 
-//    @Test
-//    void testUnsubscribeIfPresent_shouldRemoveUserFromChatSession() {
-//        Long chatId = 1L;
-//        String username = "testUser";
-//
-//        chatSessionService.unsubscribeIfPresent(chatId, username);
-//
-//        verify(chatSessionManager)
-//                .remove(chatId, username);
-//    }
-
     private ChatRoomMetadata createChatUserMeta(String firstUsername, String secondUsername) {
         return new ChatRoomMetadata(
                 new ChatUserMetadata(firstUsername, ZoneId.systemDefault()),

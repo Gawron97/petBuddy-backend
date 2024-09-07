@@ -65,23 +65,9 @@ public class ChatWebSocketController {
         String username = HeaderUtils.getUser(accessor);
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
 
-        chatSessionService.getContext().setUserPresent(true);
         chatService.updateLastMessageSeen(chatId, username);
         chatSessionService.subscribe(chatId, username, timeZone);
         chatSessionService.sendNotifications(chatId, new ChatNotificationJoined(chatId, username));
-    }
-
-    @EventListener
-    public void handleDisconnect(SessionDisconnectEvent event) {
-        ChatSessionContext context = chatSessionService.getContext();
-
-        if(context.isEmpty() && !context.isUserPresent()) {
-            return;
-        }
-
-        String username = context.getUsername();
-        Long chatId = context.getChatId();
-        chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
     }
 
     @EventListener
@@ -95,7 +81,20 @@ public class ChatWebSocketController {
         String username = context.getUsername();
         Long chatId = context.getChatId();
 
+        chatSessionService.unsubscribe(chatId, username);
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
-        context.setUserPresent(false);
+    }
+
+    @EventListener
+    public void handleDisconnect(SessionDisconnectEvent event) {
+        ChatSessionContext context = chatSessionService.getContext();
+
+        if(context.isEmpty()) {
+            return;
+        }
+
+        String username = context.getUsername();
+        Long chatId = context.getChatId();
+        chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
     }
 }
