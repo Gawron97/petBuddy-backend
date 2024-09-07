@@ -51,7 +51,7 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return chatService.getChatMessages(
+        return chatService.getChatMessagesByParticipantEmail(
                 chatId,
                 principal.getName(),
                 pageable,

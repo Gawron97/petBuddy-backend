@@ -31,26 +31,17 @@ public class ChatMessage {
     @JoinColumn(name = "senderEmail", referencedColumnName = "email")
     private AppUser sender;
 
-    @Transient
-    public boolean isSeenByRecipient() {
-        AppUser clientAccountData = chatRoom.getClient().getAccountData();
-        AppUser caretakerAccountData = chatRoom.getCaretaker().getAccountData();
-
-        if(sender.equals(clientAccountData)) {
-            ChatMessage lastSeenByCaretaker = chatRoom.getLastMessageSeenByCaretaker();
-            return lastSeenByCaretaker != null && !lastSeenByCaretaker.getCreatedAt().isBefore(createdAt);
-        } else if(sender.equals(caretakerAccountData)) {
-            ChatMessage lastSeenByClient = chatRoom.getLastMessageSeenByClient();
-            return lastSeenByClient != null && !lastSeenByClient.getCreatedAt().isBefore(createdAt);
-        }
-
-        return false;
-    }
+    @Column(nullable = false)
+    private Boolean seenByRecipient = false;
 
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
             createdAt = ZonedDateTime.now();
+        }
+
+        if (seenByRecipient == null) {
+            seenByRecipient = false;
         }
     }
 }

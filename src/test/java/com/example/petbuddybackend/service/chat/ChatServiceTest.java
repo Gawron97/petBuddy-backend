@@ -115,13 +115,13 @@ public class ChatServiceTest {
     void testGetChatMessages_shouldSucceed() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessages(
+        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessagesByParticipantEmail(
                 chatRoom.getId(),
                 client.getEmail(),
                 pageable,
                 ZoneId.of("Europe/Warsaw")
         );
-        Page<ChatMessageDTO> caretakerChatMessages = chatService.getChatMessages(
+        Page<ChatMessageDTO> caretakerChatMessages = chatService.getChatMessagesByParticipantEmail(
                 chatRoom.getId(),
                 caretaker.getEmail(),
                 pageable,
@@ -138,7 +138,7 @@ public class ChatServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         ZoneId zoneId = ZoneId.of(timeZone);
 
-        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessages(chatRoom.getId(), client.getEmail(), pageable, zoneId);
+        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessagesByParticipantEmail(chatRoom.getId(), client.getEmail(), pageable, zoneId);
 
         for(ChatMessageDTO chatMessageDTO : clientChatMessages.getContent()) {
             assertEquals(zoneId, chatMessageDTO.getCreatedAt().getZone());
@@ -149,7 +149,7 @@ public class ChatServiceTest {
     void testGetChatMessages_chatDoesNotExist_shouldThrowNotFoundException() {
         assertThrows(
                 NotFoundException.class,
-                () -> chatService.getChatMessages(-1L, "", null, ZoneId.of("Europe/Warsaw"))
+                () -> chatService.getChatMessagesByParticipantEmail(-1L, "", null, ZoneId.of("Europe/Warsaw"))
         );
     }
 
@@ -157,7 +157,7 @@ public class ChatServiceTest {
     void testGetChatMessages_userDoesNotParticipateChat_shouldThrowNotParticipateException() {
         assertThrows(
                 NotParticipateException.class,
-                () -> chatService.getChatMessages(chatRoom.getId(), "notAParticipant", null, ZoneId.of("Europe/Warsaw"))
+                () -> chatService.getChatMessagesByParticipantEmail(chatRoom.getId(), "notAParticipant", null, ZoneId.of("Europe/Warsaw"))
         );
     }
 

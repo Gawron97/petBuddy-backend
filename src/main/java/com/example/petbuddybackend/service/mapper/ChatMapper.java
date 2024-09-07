@@ -20,12 +20,10 @@ public interface ChatMapper {
     @Mapping(target = "senderEmail", source = "sender.email")
     @Mapping(target = "chatId", source = "chatRoom.id")
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "mapToZonedDateTime")
-    @Mapping(target = "seenByRecipient", expression = "java(chatMessage.isSeenByRecipient())")
     ChatMessageDTO mapToChatMessageDTO(ChatMessage chatMessage, @Context ZoneId zoneId);
 
     @Mapping(target = "senderEmail", source = "sender.email")
     @Mapping(target = "chatId", source = "chatRoom.id")
-    @Mapping(target = "seenByRecipient", expression = "java(chatMessage.isSeenByRecipient())")
     ChatMessageDTO mapToChatMessageDTO(ChatMessage chatMessage);
 
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "mapToZonedDateTime")

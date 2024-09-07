@@ -18,37 +18,53 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
     @Query("""
         SELECT new com.example.petbuddybackend.dto.chat.ChatRoomDTO(
-            cr.id,
-            cr.caretaker.email,
-            cr.caretaker.accountData.name,
-            cr.caretaker.accountData.surname,
-            cm.createdAt,
-            cm.content,
-            cm.sender.email,
-            (lmsbc IS NOT NULL AND lmsbc.createdAt >= cm.createdAt)
+               cr.id,
+               cr.caretaker.email,
+               cr.caretaker.accountData.name,
+               cr.caretaker.accountData.surname,
+               cm.createdAt,
+               cm.content,
+               cm.sender.email,
+               CASE WHEN cm.sender.email = cr.client.email THEN true ELSE cm.seenByRecipient END
         )
         FROM ChatRoom cr
-        JOIN ChatMessage cm ON cr.lastMessageId = cm.id
-        LEFT JOIN ChatMessage lmsbc ON lmsbc.id = cr.lastMessageSeenByClient.id
+        JOIN ChatMessage cm ON cm.chatRoom.id = cr.id
         WHERE cr.client.email = :email
+        AND cm.id = (
+            SELECT MIN(cm2.id)
+            FROM ChatMessage cm2
+            WHERE cm2.createdAt = (
+                SELECT MAX(cm3.createdAt)
+                FROM ChatMessage cm3
+                WHERE cm3.chatRoom.id = cr.id
+            ) AND cm2.chatRoom.id = cr.id
+        )
         """)
     Page<ChatRoomDTO> findByClientEmailSortByLastMessageDesc(String email, Pageable pageable);
 
     @Query("""
         SELECT new com.example.petbuddybackend.dto.chat.ChatRoomDTO(
-            cr.id,
-            cr.client.email,
-            cr.client.accountData.name,
-            cr.client.accountData.surname,
-            cm.createdAt,
-            cm.content,
-            cm.sender.email,
-            (lmsbc IS NOT NULL AND lmsbc.createdAt >= cm.createdAt)
+               cr.id,
+               cr.client.email,
+               cr.client.accountData.name,
+               cr.client.accountData.surname,
+               cm.createdAt,
+               cm.content,
+               cm.sender.email,
+               CASE WHEN cm.sender.email = cr.caretaker.email THEN true ELSE cm.seenByRecipient END
         )
         FROM ChatRoom cr
-        JOIN ChatMessage cm ON cr.lastMessageId = cm.id
-        LEFT JOIN ChatMessage lmsbc ON lmsbc.id = cr.lastMessageSeenByCaretaker.id
+        JOIN ChatMessage cm ON cm.chatRoom.id = cr.id
         WHERE cr.caretaker.email = :email
+        AND cm.id = (
+            SELECT MIN(cm2.id)
+            FROM ChatMessage cm2
+            WHERE cm2.createdAt = (
+                SELECT MAX(cm3.createdAt)
+                FROM ChatMessage cm3
+                WHERE cm3.chatRoom.id = cr.id
+            ) AND cm2.chatRoom.id = cr.id
+        )
         """)
     Page<ChatRoomDTO> findByCaretakerEmailSortByLastMessageDesc(String email, Pageable pageable);
 }

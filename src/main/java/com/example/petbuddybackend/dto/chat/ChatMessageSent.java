@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.dto.chat;
 
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatMessageSent {
-    @NotBlank @Max(4000)
+    @NotBlank
+    @Size(max = 4000)
     private String content;
 }
