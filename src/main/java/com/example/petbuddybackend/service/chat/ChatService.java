@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
 
@@ -76,6 +77,7 @@ public class ChatService {
     /**
      * Creates a message in the chat room with the given id and updates the last message seen by the user in the chat room.
      * */
+    @Transactional
     public ChatMessageDTO createMessage(
             Long chatId,
             String principalEmail,
@@ -86,6 +88,7 @@ public class ChatService {
         return chatMapper.mapToChatMessageDTO(message);
     }
 
+    @Transactional
     public ChatMessageDTO createChatRoomWithMessage(
             String principalEmail,
             Role principalRole,

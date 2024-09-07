@@ -314,9 +314,9 @@ public class ChatServiceTest {
         long chatsCount = chatRepository.count();
 
         ChatMessageDTO msg = chatService.createChatRoomWithMessage(
-                otherCaretaker.getEmail(),
-                Role.CLIENT,
                 otherClientWithCaretakerAccount.getEmail(),
+                Role.CLIENT,
+                otherCaretaker.getEmail(),
                 new ChatMessageSent("message content"),
                 ZoneId.of("Europe/Warsaw")
         );
@@ -331,9 +331,9 @@ public class ChatServiceTest {
         long chatsCount = chatRepository.count();
 
         ChatMessageDTO msg = chatService.createChatRoomWithMessage(
-                otherClientWithCaretakerAccount.getEmail(),
-                Role.CARETAKER,
                 otherCaretaker.getEmail(),
+                Role.CARETAKER,
+                otherClientWithCaretakerAccount.getEmail(),
                 new ChatMessageSent("message content"),
                 ZoneId.of("Europe/Warsaw")
         );
@@ -347,9 +347,9 @@ public class ChatServiceTest {
     @MethodSource("provideTimeZones")
     void testCreateChatRoomWithMessage_timeZoneProvided_shouldSucceed(String timeZone) {
         ChatMessageDTO msg = chatService.createChatRoomWithMessage(
-                otherCaretaker.getEmail(),
-                Role.CLIENT,
                 otherClientWithCaretakerAccount.getEmail(),
+                Role.CLIENT,
+                otherCaretaker.getEmail(),
                 new ChatMessageSent("message content"),
                 ZoneId.of(timeZone)
         );
@@ -376,9 +376,9 @@ public class ChatServiceTest {
         assertThrows(
                 ChatAlreadyExistsException.class,
                 () -> chatService.createChatRoomWithMessage(
-                        caretaker.getEmail(),
-                        Role.CLIENT,
                         client.getEmail(),
+                        Role.CLIENT,
+                        caretaker.getEmail(),
                         new ChatMessageSent("message content"),
                         ZoneId.of("Europe/Warsaw")
                 )
@@ -387,9 +387,9 @@ public class ChatServiceTest {
         assertThrows(
                 ChatAlreadyExistsException.class,
                 () -> chatService.createChatRoomWithMessage(
-                        client.getEmail(),
-                        Role.CARETAKER,
                         caretaker.getEmail(),
+                        Role.CARETAKER,
+                        client.getEmail(),
                         new ChatMessageSent("message content"),
                         ZoneId.of("Europe/Warsaw")
                 )

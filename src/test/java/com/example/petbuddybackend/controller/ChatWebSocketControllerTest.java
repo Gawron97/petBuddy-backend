@@ -116,6 +116,9 @@ public class ChatWebSocketControllerTest {
         when(chatService.createMessage(any(), any(), any(), any()))
                 .thenReturn(returnPayload);
 
+        when(chatService.createCallbackMessageSeen(any(), any()))
+                .thenReturn(u -> {});
+
         when(chatService.isUserInChat(any(), any()))
                 .thenReturn(true);
 
