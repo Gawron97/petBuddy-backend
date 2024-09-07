@@ -2,9 +2,11 @@ package com.example.petbuddybackend.dto.chat.notification;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ChatNotificationJoined extends ChatNotification {
 
     private Long chatId;

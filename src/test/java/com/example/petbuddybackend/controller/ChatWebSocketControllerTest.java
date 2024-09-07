@@ -2,9 +2,14 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
+import com.example.petbuddybackend.dto.chat.notification.*;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
+import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
+import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +33,7 @@ import java.lang.reflect.Type;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -63,12 +69,16 @@ public class ChatWebSocketControllerTest {
     private MappingJackson2MessageConverter messageConverter;
 
     private WebSocketStompClient stompClient;
-    private BlockingQueue<ChatMessageDTO> blockingQueue;
+    private BlockingQueue<ChatNotificationMessage> messageBlockingQueue;
+    private BlockingQueue<ChatNotificationJoined> joinBlockingQueue;
+    private BlockingQueue<ChatNotificationLeft> leaveBlockingQueue;
 
 
     @BeforeEach
     public void setup() throws ExecutionException, InterruptedException, TimeoutException {
-        blockingQueue = new LinkedBlockingDeque<>();
+        messageBlockingQueue = new LinkedBlockingDeque<>();
+        joinBlockingQueue = new LinkedBlockingDeque<>();
+        leaveBlockingQueue = new LinkedBlockingDeque<>();
         stompClient = new WebSocketStompClient(new SockJsClient(createTransportClient()));
         stompClient.setMessageConverter(messageConverter);
     }
@@ -86,17 +96,20 @@ public class ChatWebSocketControllerTest {
         when(chatService.isUserInChat(any(), any()))
                 .thenReturn(true);
 
+        when(chatService.createCallbackMessageSeen(any(), any()))
+                .thenReturn(u -> {});
+
         StompSession stompSession = connectToWebSocket();
 
         // Subscribe to the chat room topic
         StompHeaders subscribeHeaders = createHeaders(subscribeDestination, "Europe/Warsaw");
-        stompSession.subscribe(subscribeHeaders, new ChatMessageFrameHandler());
+        stompSession.subscribe(subscribeHeaders, new ChatNotificationFrameHandler());
 
         // Send message with headers
         StompHeaders sendMessageHeaders = createHeaders(SEND_MESSAGE_ENDPOINT, "Europe/Warsaw", Role.CLIENT);
         stompSession.send(sendMessageHeaders, chatMessageSent);
 
-        ChatMessageDTO chatMessageDTO = blockingQueue.poll(2, SECONDS);
+        ChatMessageDTO chatMessageDTO = (messageBlockingQueue.poll(2, SECONDS)).getContent();
         assertNotNull(chatMessageDTO);
     }
 
@@ -127,12 +140,12 @@ public class ChatWebSocketControllerTest {
 
         // Subscribe to the chat room topic
         StompHeaders clientSubscribeHeaders = createHeaders(subscribeDestinationClient, clientTimezone);
-        clientSession.subscribe(clientSubscribeHeaders, new ChatMessageFrameHandler());
+        clientSession.subscribe(clientSubscribeHeaders, new ChatNotificationFrameHandler());
         Thread.sleep(100);
 
         NoSecurityInjectUserConfig.injectedUsername = caretakerUsername;
         StompHeaders caretakerSubscribeHeaders = createHeaders(subscribeDestinationCaretaker, caretakerTimezone);
-        caretakerSession.subscribe(caretakerSubscribeHeaders, new ChatMessageFrameHandler());
+        caretakerSession.subscribe(caretakerSubscribeHeaders, new ChatNotificationFrameHandler());
         Thread.sleep(100);
 
         // Send message with headers
@@ -140,8 +153,8 @@ public class ChatWebSocketControllerTest {
         StompHeaders clientSendHeaders = createHeaders(SEND_MESSAGE_ENDPOINT, clientTimezone, Role.CLIENT);
         clientSession.send(clientSendHeaders, chatMessageSent);
 
-        ChatMessageDTO firstMessage = blockingQueue.poll(2, SECONDS);
-        ChatMessageDTO secondMessage = blockingQueue.poll(2, SECONDS);
+        ChatMessageDTO firstMessage = (messageBlockingQueue.poll(2, SECONDS)).getContent();
+        ChatMessageDTO secondMessage = (messageBlockingQueue.poll(2, SECONDS)).getContent();
 
         assertNotNull(firstMessage);
         assertNotNull(secondMessage);
@@ -156,7 +169,7 @@ public class ChatWebSocketControllerTest {
         assertTrue(firstZone.equals(caretakerZone) || secondZone.equals(caretakerZone));
 
         // No messages should be left in the queue
-        assertEquals(0, blockingQueue.drainTo(new ArrayList<>()));
+        assertEquals(0, messageBlockingQueue.drainTo(new ArrayList<>()));
     }
 
     @Test
@@ -168,7 +181,7 @@ public class ChatWebSocketControllerTest {
                 .thenReturn(false);
 
         StompSession stompSession = connectToWebSocket();
-        stompSession.subscribe(subscribeDestination, new ChatMessageFrameHandler());
+        stompSession.subscribe(subscribeDestination, new ChatNotificationFrameHandler());
         Thread.sleep(100);
 
         assertThrows(IllegalStateException.class, () -> stompSession.send(
@@ -177,21 +190,120 @@ public class ChatWebSocketControllerTest {
         );
     }
 
+    @Test
+    void testSubscribeToChat_shouldSendNotificationToUsersInChat() throws InterruptedException {
+        String clientUsername = "client";
+        String caretakerUsername = "caretaker";
+        String subscribeDestinationClient = String.format(SUBSCRIPTION_URL_PATTERN, 1, clientUsername);
+        String subscribeDestinationCaretaker = String.format(SUBSCRIPTION_URL_PATTERN, 1, caretakerUsername);
+
+        when(chatService.isUserInChat(any(), any()))
+                .thenReturn(true);
+
+        StompSession clientSession = connectToWebSocket(clientUsername);
+        StompSession caretakerSession = connectToWebSocket(caretakerUsername);
+
+        // Subscribe to the chat room topic
+        NoSecurityInjectUserConfig.injectedUsername = clientUsername;
+        StompHeaders clientSubscribeHeaders = createHeaders(subscribeDestinationClient, "Europe/Warsaw");
+        clientSession.subscribe(clientSubscribeHeaders, new ChatNotificationFrameHandler());
+
+        ChatNotificationJoined firstNotification = joinBlockingQueue.poll(2, SECONDS);
+
+        NoSecurityInjectUserConfig.injectedUsername = caretakerUsername;
+        StompHeaders caretakerSubscribeHeaders = createHeaders(subscribeDestinationCaretaker, "Europe/Warsaw");
+        caretakerSession.subscribe(caretakerSubscribeHeaders, new ChatNotificationFrameHandler());
+
+        ChatNotificationJoined secondNotification = joinBlockingQueue.poll(2, SECONDS);
+        ChatNotificationJoined thirdNotification = joinBlockingQueue.poll(2, SECONDS);
+
+        assertNotNull(firstNotification);
+        assertEquals(clientUsername, firstNotification.getJoiningUserEmail());
+
+        assertNotNull(secondNotification);
+        assertEquals(caretakerUsername, secondNotification.getJoiningUserEmail());
+
+        assertNotNull(thirdNotification);
+        assertEquals(caretakerUsername, thirdNotification.getJoiningUserEmail());
+
+        // No notifications should be left in the queue
+        assertEquals(0, joinBlockingQueue.drainTo(new ArrayList<>()));
+    }
+
+    @Test
+    void testUnsubscribeToChat_shouldSendNotificationToOtherUserLeftInChat() throws InterruptedException {
+        String clientUsername = "client";
+        String caretakerUsername = "caretaker";
+        String subscribeDestinationClient = String.format(SUBSCRIPTION_URL_PATTERN, 1, clientUsername);
+        String subscribeDestinationCaretaker = String.format(SUBSCRIPTION_URL_PATTERN, 1, caretakerUsername);
+
+        when(chatService.isUserInChat(any(), any()))
+                .thenReturn(true);
+
+        StompSession clientSession = connectToWebSocket(clientUsername);
+        StompSession caretakerSession = connectToWebSocket(caretakerUsername);
+
+        // Subscribe to the chat room topic
+        NoSecurityInjectUserConfig.injectedUsername = clientUsername;
+        StompHeaders clientSubscribeHeaders = createHeaders(subscribeDestinationClient, "Europe/Warsaw");
+        clientSession.subscribe(clientSubscribeHeaders, new ChatNotificationFrameHandler());
+
+        NoSecurityInjectUserConfig.injectedUsername = caretakerUsername;
+        StompHeaders caretakerSubscribeHeaders = createHeaders(subscribeDestinationCaretaker, "Europe/Warsaw");
+        caretakerSession.subscribe(caretakerSubscribeHeaders, new ChatNotificationFrameHandler());
+
+        clientSession.disconnect();
+        Thread.sleep(200);
+        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(2, SECONDS);
+
+        assertNotNull(clientLeftNotification);
+        assertEquals(clientUsername, clientLeftNotification.getLeavingUserEmail());
+
+        // No notifications should be left in the queue
+        assertEquals(0, leaveBlockingQueue.drainTo(new ArrayList<>()));
+    }
+
     private List<Transport> createTransportClient() {
         List<Transport> transports = new ArrayList<>(1);
         transports.add(new WebSocketTransport(new StandardWebSocketClient()));
         return transports;
     }
 
-    private class ChatMessageFrameHandler implements StompFrameHandler {
+    private class ChatNotificationFrameHandler implements StompFrameHandler {
+
+        private final static ObjectMapper objectMapper;
+
+        static {
+            objectMapper = new ObjectMapper();
+            SimpleModule module = new SimpleModule();
+
+            module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+            module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
+
+            objectMapper.registerModule(module);
+        }
+
         @Override
         public Type getPayloadType(StompHeaders headers) {
-            return ChatMessageDTO.class;
+            return LinkedHashMap.class;
         }
 
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
-            blockingQueue.add((ChatMessageDTO) payload);
+            LinkedHashMap<String, Object> payloadConverted = (LinkedHashMap<String, Object>) payload;
+            ChatNotificationType type = ChatNotificationType.valueOf((String)payloadConverted.get("type"));
+
+            switch(type) {
+                case JOINED:
+                    joinBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationJoined.class));
+                    break;
+                case LEFT:
+                    leaveBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationLeft.class));
+                    break;
+                case MESSAGE:
+                    messageBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationMessage.class));
+                    break;
+            }
         }
     }
 

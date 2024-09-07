@@ -7,6 +7,7 @@ import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
+import com.example.petbuddybackend.service.chat.session.context.ChatSessionContext;
 import com.example.petbuddybackend.service.chat.session.ChatSessionService;
 import com.example.petbuddybackend.service.chat.session.MessageCallback;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
@@ -18,6 +19,7 @@ import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
@@ -63,18 +65,37 @@ public class ChatWebSocketController {
         String username = HeaderUtils.getUser(accessor);
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
 
+        chatSessionService.getContext().setUserPresent(true);
         chatService.updateLastMessageSeen(chatId, username);
-        chatSessionService.subscribeIfAbsent(chatId, username, timeZone);
+        chatSessionService.subscribe(chatId, username, timeZone);
         chatSessionService.sendNotifications(chatId, new ChatNotificationJoined(chatId, username));
     }
 
     @EventListener
-    public void handleUnsubscription(SessionUnsubscribeEvent event) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        String username = HeaderUtils.getUser(accessor);
-        Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
+    public void handleDisconnect(SessionDisconnectEvent event) {
+        ChatSessionContext context = chatSessionService.getContext();
 
-        chatSessionService.unsubscribeIfPresent(chatId, username);
+        if(context.isEmpty() && !context.isUserPresent()) {
+            return;
+        }
+
+        String username = context.getUsername();
+        Long chatId = context.getChatId();
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
+    }
+
+    @EventListener
+    public void handleUnsubscribe(SessionUnsubscribeEvent event) {
+        ChatSessionContext context = chatSessionService.getContext();
+
+        if(context.isEmpty()) {
+            return;
+        }
+
+        String username = context.getUsername();
+        Long chatId = context.getChatId();
+
+        chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
+        context.setUserPresent(false);
     }
 }
