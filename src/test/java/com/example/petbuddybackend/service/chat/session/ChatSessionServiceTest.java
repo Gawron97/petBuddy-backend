@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.service.chat.session;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.service.chat.session.context.ChatSessionContext;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
@@ -43,18 +45,53 @@ public class ChatSessionServiceTest {
     private ChatMapper chatMapper = ChatMapper.INSTANCE;
 
     @Test
-    void testSendMessages_shouldSendProperPayload() {
+    void testSendMessageNotification_shouldSendProperPayload() {
         Long chatId = 1L;
         ChatMessageDTO messageDTO = MockChatProvider.createMockChatMessageDTO();
         ChatRoomMetadata chatRoomMetadata = createChatUserMeta("fstUsername", "sndUsername");
         when(chatSessionManager.get(chatId)).thenReturn(chatRoomMetadata);
 
-        chatSessionService.sendNotifications(chatId, new ChatNotificationMessage(messageDTO), (empty) -> {});
+        ChatNotificationMessage payload = new ChatNotificationMessage(messageDTO);
+        chatSessionService.sendNotifications(chatId, payload, (empty) -> {});
 
         for (ChatUserMetadata userMetadata : chatRoomMetadata) {
             verify(simpMessagingTemplate, times(1)).convertAndSend(
                     String.format(SUBSCRIPTION_URL_PATTERN, chatId, userMetadata.getUsername()),
                     new ChatNotificationMessage(chatMapper.mapTimeZone(messageDTO, userMetadata.getZoneId()))
+            );
+        }
+    }
+
+    @Test
+    void testSendJoinNotification_shouldSendProperPayload() {
+        Long chatId = 1L;
+        ChatRoomMetadata chatRoomMetadata = createChatUserMeta("fstUsername", "sndUsername");
+        when(chatSessionManager.get(chatId)).thenReturn(chatRoomMetadata);
+
+        ChatNotificationJoined payload = new ChatNotificationJoined(chatId, "fstUsername");
+        chatSessionService.sendNotifications(chatId, payload);
+
+        for (ChatUserMetadata userMetadata : chatRoomMetadata) {
+            verify(simpMessagingTemplate, times(1)).convertAndSend(
+                    String.format(SUBSCRIPTION_URL_PATTERN, chatId, userMetadata.getUsername()),
+                    payload
+            );
+        }
+    }
+
+    @Test
+    void testSendLeftNotification_shouldSendProperPayload() {
+        Long chatId = 1L;
+        ChatRoomMetadata chatRoomMetadata = createChatUserMeta("fstUsername", "sndUsername");
+        when(chatSessionManager.get(chatId)).thenReturn(chatRoomMetadata);
+
+        ChatNotificationLeft payload = new ChatNotificationLeft(chatId, "fstUsername");
+        chatSessionService.sendNotifications(chatId, payload);
+
+        for (ChatUserMetadata userMetadata : chatRoomMetadata) {
+            verify(simpMessagingTemplate, times(1)).convertAndSend(
+                    String.format(SUBSCRIPTION_URL_PATTERN, chatId, userMetadata.getUsername()),
+                    payload
             );
         }
     }
