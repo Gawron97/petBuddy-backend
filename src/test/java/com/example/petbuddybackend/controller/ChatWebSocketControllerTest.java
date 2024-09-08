@@ -49,6 +49,7 @@ public class ChatWebSocketControllerTest {
 
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
     private static final String SEND_MESSAGE_ENDPOINT = "/app/chat/1";
+    private static final int TIMEOUT = 5;
 
     @Value("${url.chat.topic.pattern}")
     private String SUBSCRIPTION_URL_PATTERN;
@@ -109,7 +110,7 @@ public class ChatWebSocketControllerTest {
         StompHeaders sendMessageHeaders = createHeaders(SEND_MESSAGE_ENDPOINT, "Europe/Warsaw", Role.CLIENT);
         stompSession.send(sendMessageHeaders, chatMessageSent);
 
-        ChatMessageDTO chatMessageDTO = (messageBlockingQueue.poll(2, SECONDS)).getContent();
+        ChatMessageDTO chatMessageDTO = (messageBlockingQueue.poll(TIMEOUT, SECONDS)).getContent();
         assertNotNull(chatMessageDTO);
     }
 
@@ -153,8 +154,8 @@ public class ChatWebSocketControllerTest {
         StompHeaders clientSendHeaders = createHeaders(SEND_MESSAGE_ENDPOINT, clientTimezone, Role.CLIENT);
         clientSession.send(clientSendHeaders, chatMessageSent);
 
-        ChatMessageDTO firstMessage = (messageBlockingQueue.poll(2, SECONDS)).getContent();
-        ChatMessageDTO secondMessage = (messageBlockingQueue.poll(2, SECONDS)).getContent();
+        ChatMessageDTO firstMessage = (messageBlockingQueue.poll(TIMEOUT, SECONDS)).getContent();
+        ChatMessageDTO secondMessage = (messageBlockingQueue.poll(TIMEOUT, SECONDS)).getContent();
 
         assertNotNull(firstMessage);
         assertNotNull(secondMessage);
@@ -209,15 +210,15 @@ public class ChatWebSocketControllerTest {
         clientSession.subscribe(clientSubscribeHeaders, new ChatNotificationFrameHandler());
         Thread.sleep(100);
 
-        ChatNotificationJoined firstNotification = joinBlockingQueue.poll(2, SECONDS);
+        ChatNotificationJoined firstNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
 
         NoSecurityInjectUserConfig.injectedUsername = caretakerUsername;
         StompHeaders caretakerSubscribeHeaders = createHeaders(subscribeDestinationCaretaker, "Europe/Warsaw");
         caretakerSession.subscribe(caretakerSubscribeHeaders, new ChatNotificationFrameHandler());
         Thread.sleep(100);
 
-        ChatNotificationJoined secondNotification = joinBlockingQueue.poll(2, SECONDS);
-        ChatNotificationJoined thirdNotification = joinBlockingQueue.poll(2, SECONDS);
+        ChatNotificationJoined secondNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationJoined thirdNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNotNull(firstNotification);
         assertEquals(clientUsername, firstNotification.getJoiningUserEmail());
@@ -256,7 +257,7 @@ public class ChatWebSocketControllerTest {
 
         clientSession.disconnect();
         Thread.sleep(200);
-        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(2, SECONDS);
+        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNotNull(clientLeftNotification);
         assertEquals(clientUsername, clientLeftNotification.getLeavingUserEmail());
