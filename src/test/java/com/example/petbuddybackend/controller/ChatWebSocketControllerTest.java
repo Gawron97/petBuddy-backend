@@ -207,12 +207,14 @@ public class ChatWebSocketControllerTest {
         NoSecurityInjectUserConfig.injectedUsername = clientUsername;
         StompHeaders clientSubscribeHeaders = createHeaders(subscribeDestinationClient, "Europe/Warsaw");
         clientSession.subscribe(clientSubscribeHeaders, new ChatNotificationFrameHandler());
+        Thread.sleep(100);
 
         ChatNotificationJoined firstNotification = joinBlockingQueue.poll(2, SECONDS);
 
         NoSecurityInjectUserConfig.injectedUsername = caretakerUsername;
         StompHeaders caretakerSubscribeHeaders = createHeaders(subscribeDestinationCaretaker, "Europe/Warsaw");
         caretakerSession.subscribe(caretakerSubscribeHeaders, new ChatNotificationFrameHandler());
+        Thread.sleep(100);
 
         ChatNotificationJoined secondNotification = joinBlockingQueue.poll(2, SECONDS);
         ChatNotificationJoined thirdNotification = joinBlockingQueue.poll(2, SECONDS);
