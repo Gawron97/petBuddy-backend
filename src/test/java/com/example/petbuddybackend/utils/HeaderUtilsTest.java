@@ -6,6 +6,7 @@ import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidW
 import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import org.junit.jupiter.api.Test;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 
 import java.util.*;
 
@@ -85,5 +86,45 @@ public class HeaderUtilsTest {
         Map<String, Object> headers = GeneralMockProvider.createHeadersWithSingleValue("Accept-Role", "CLIENT");
         Role role = HeaderUtils.getHeaderSingleValue(headers, "Accept-Role", Role.class);
         assertNotNull(role);
+    }
+
+    @Test
+    void testGetHeaderSingleValue_withStompAccessor_validHeader_shouldSucceed() {
+        StompHeaderAccessor accessor = GeneralMockProvider.createStompHeaderAccessorWithSingleValue("testHeader", "testValue");
+        String result = HeaderUtils.getHeaderSingleValue(accessor, "testHeader", String.class);
+        assertEquals("testValue", result);
+    }
+
+    @Test
+    void testGetHeaderSingleValue_withStompAccessor_missingHeader_shouldThrowMissingWebSocketHeaderException() {
+        StompHeaderAccessor accessor = GeneralMockProvider.createStompHeaderAccessorWithSingleValue("anotherHeader", "testValue");
+        assertThrows(MissingWebSocketHeaderException.class, () ->
+                HeaderUtils.getHeaderSingleValue(accessor, "testHeader", String.class));
+    }
+
+    @Test
+    void testGetUser_withStompAccessor_userPresent_shouldReturnUserName() {
+        StompHeaderAccessor accessor = GeneralMockProvider.createStompHeaderAccessorWithUser("testUser");
+        String userName = HeaderUtils.getUser(accessor);
+        assertEquals("testUser", userName);
+    }
+
+    @Test
+    void testGetUser_withStompAccessor_noUser_shouldThrowMissingWebSocketHeaderException() {
+        StompHeaderAccessor accessor = GeneralMockProvider.createStompHeaderAccessorWithoutUser();
+        assertThrows(MissingWebSocketHeaderException.class, () -> HeaderUtils.getUser(accessor));
+    }
+
+    @Test
+    void testGetLongFromDestination_validDestination_shouldReturnParsedLong() {
+        StompHeaderAccessor accessor = GeneralMockProvider.createStompHeaderAccessorWithDestination("/topic/12345");
+        Long result = HeaderUtils.getLongFromDestination(accessor, 2);
+        assertEquals(12345L, result);
+    }
+
+    @Test
+    void testGetLongFromDestination_invalidPosition_shouldThrowIndexOutOfBoundsException() {
+        StompHeaderAccessor accessor = GeneralMockProvider.createStompHeaderAccessorWithDestination("/topic/12345");
+        assertThrows(IndexOutOfBoundsException.class, () -> HeaderUtils.getLongFromDestination(accessor, 3));
     }
 }
