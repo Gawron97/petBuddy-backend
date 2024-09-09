@@ -1,11 +1,14 @@
 package com.example.petbuddybackend.service.chat.session;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
+import com.example.petbuddybackend.service.chat.session.context.ChatSessionContext;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.testutils.mock.MockChatProvider;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 
 import java.time.ZoneId;
 import java.util.Map;
@@ -28,9 +30,6 @@ public class ChatSessionServiceTest {
     @Value("${url.chat.topic.pattern}")
     private String SUBSCRIPTION_URL_PATTERN;
 
-    @Value("${header-name.timezone}")
-    private String TIMEZONE_HEADER_NAME;
-
     @Autowired
     private ChatSessionService chatSessionService;
 
@@ -38,26 +37,61 @@ public class ChatSessionServiceTest {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @MockBean
-    private ChatSessionManager chatSessionManager;
+    private ChatSessionContext mockContext;
 
-    @Mock
-    private StompHeaderAccessor stompHeaderAccessor;
+    @MockBean
+    private ChatSessionManager chatSessionManager;
 
     private ChatMapper chatMapper = ChatMapper.INSTANCE;
 
     @Test
-    void testSendMessages_shouldSendProperPayload() {
+    void testSendMessageNotification_shouldSendProperPayload() {
         Long chatId = 1L;
         ChatMessageDTO messageDTO = MockChatProvider.createMockChatMessageDTO();
         ChatRoomMetadata chatRoomMetadata = createChatUserMeta("fstUsername", "sndUsername");
         when(chatSessionManager.get(chatId)).thenReturn(chatRoomMetadata);
 
-        chatSessionService.sendMessages(chatId, messageDTO);
+        ChatNotificationMessage payload = new ChatNotificationMessage(messageDTO);
+        chatSessionService.sendNotifications(chatId, payload, (empty) -> {});
 
         for (ChatUserMetadata userMetadata : chatRoomMetadata) {
             verify(simpMessagingTemplate, times(1)).convertAndSend(
                     String.format(SUBSCRIPTION_URL_PATTERN, chatId, userMetadata.getUsername()),
-                    chatMapper.mapTimeZone(messageDTO, userMetadata.getZoneId())
+                    new ChatNotificationMessage(chatMapper.mapTimeZone(messageDTO, userMetadata.getZoneId()))
+            );
+        }
+    }
+
+    @Test
+    void testSendJoinNotification_shouldSendProperPayload() {
+        Long chatId = 1L;
+        ChatRoomMetadata chatRoomMetadata = createChatUserMeta("fstUsername", "sndUsername");
+        when(chatSessionManager.get(chatId)).thenReturn(chatRoomMetadata);
+
+        ChatNotificationJoined payload = new ChatNotificationJoined(chatId, "fstUsername");
+        chatSessionService.sendNotifications(chatId, payload);
+
+        for (ChatUserMetadata userMetadata : chatRoomMetadata) {
+            verify(simpMessagingTemplate, times(1)).convertAndSend(
+                    String.format(SUBSCRIPTION_URL_PATTERN, chatId, userMetadata.getUsername()),
+                    payload
+            );
+        }
+    }
+
+    @Test
+    void testSendLeftNotification_shouldSendProperPayload() {
+        Long chatId = 1L;
+        ChatRoomMetadata chatRoomMetadata = createChatUserMeta("fstUsername", "sndUsername");
+        when(chatSessionManager.get(chatId)).thenReturn(chatRoomMetadata);
+
+        ChatNotificationLeft payload = new ChatNotificationLeft(chatId, "fstUsername");
+        chatSessionService.sendNotifications(chatId, payload);
+
+        for (ChatUserMetadata userMetadata : chatRoomMetadata) {
+            verify(simpMessagingTemplate, times(1)).convertAndSend(
+                    String.format(SUBSCRIPTION_URL_PATTERN, chatId, userMetadata.getUsername()),
+                    payload
             );
         }
     }
@@ -77,13 +111,11 @@ public class ChatSessionServiceTest {
 
         // Mock the static method
         try (MockedStatic<HeaderUtils> headerUtilsMockedStatic = Mockito.mockStatic(HeaderUtils.class)) {
-            headerUtilsMockedStatic.when(() -> HeaderUtils.getOptionalHeaderSingleValue(any(), any(), any()))
+            headerUtilsMockedStatic.when(() -> HeaderUtils.getOptionalHeaderSingleValue(any(Map.class), any(), any()))
                     .thenReturn(Optional.of(newTimeZone));
 
-            // when
             chatSessionService.patchMetadata(chatId, username, headers);
 
-            // then
             verify(chatSessionManager).get(chatId, username);
             assertEquals(newZoneId, existingMetadata.getZoneId());
         }
@@ -91,16 +123,13 @@ public class ChatSessionServiceTest {
 
     @Test
     void testSubscribeIfAbsent_shouldCreateUserMetadata() {
-        // Arrange
         Long chatId = 1L;
         String username = "testUser";
         String timeZone = "America/New_York";
         ZoneId expectedZoneId = ZoneId.of(timeZone);
 
-        // Act
-        chatSessionService.subscribeIfAbsent(chatId, username, timeZone);
+        chatSessionService.subscribe(chatId, username, timeZone);
 
-        // Assert
         verify(chatSessionManager).putIfAbsent(
                 eq(chatId),
                 argThat(meta -> username.equals(meta.getUsername()) && expectedZoneId.equals(meta.getZoneId()))
@@ -109,59 +138,14 @@ public class ChatSessionServiceTest {
 
     @Test
     void testSubscribeIfAbsent_shouldSubscribeUser() {
-        // Arrange
         String username = "testUser";
-        String destination = String.format(SUBSCRIPTION_URL_PATTERN, 1L, username);
         String timeZone = "America/New_York";
         Long chatId = 1L;
 
-        when(stompHeaderAccessor.getUser()).thenReturn(() -> username);
-        when(stompHeaderAccessor.getDestination()).thenReturn(destination);
-        when(stompHeaderAccessor.getFirstNativeHeader("timezone")).thenReturn(timeZone);
+        chatSessionService.subscribe(chatId, username, timeZone);
 
-        // Act
-        chatSessionService.subscribeIfAbsent(stompHeaderAccessor);
-
-        // Assert
-        verify(chatSessionManager, times(1)).putIfAbsent(
-                eq(chatId),
-                any()
-        );
-        verify(stompHeaderAccessor).getUser();
-        verify(stompHeaderAccessor).getDestination();
-        verify(stompHeaderAccessor).getFirstNativeHeader(TIMEZONE_HEADER_NAME);
-    }
-
-    @Test
-    void testUnsubscribeIfPresent_shouldRemoveUserFromChatSession() {
-        // given
-        Long chatId = 1L;
-        String username = "testUser";
-
-        // when
-        chatSessionService.unsubscribeIfPresent(chatId, username);
-
-        // then
-        verify(chatSessionManager).remove(chatId, username);
-    }
-
-    @Test
-    void testUnsubscribeIfPresent_withStompHeaderAccessor_shouldRemoveUserFromChatSession() {
-        // given
-        String username = "testUser";
-        String destination = "/topic/messages/1";
-        Long chatId = 1L;
-
-        when(stompHeaderAccessor.getUser()).thenReturn(() -> username);
-        when(stompHeaderAccessor.getDestination()).thenReturn(destination);
-
-        // when
-        chatSessionService.unsubscribeIfPresent(stompHeaderAccessor);
-
-        // then
-        verify(stompHeaderAccessor).getUser();
-        verify(stompHeaderAccessor).getDestination();
-        verify(chatSessionManager).remove(chatId, username);
+        verify(chatSessionManager, times(1))
+                .putIfAbsent(eq(chatId), any());
     }
 
     private ChatRoomMetadata createChatUserMeta(String firstUsername, String secondUsername) {

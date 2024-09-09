@@ -51,7 +51,7 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return chatService.getChatMessages(
+        return chatService.getChatMessagesByParticipantEmail(
                 chatId,
                 principal.getName(),
                 pageable,
@@ -70,19 +70,26 @@ public class ChatController {
                     first step of the communication between a Caretaker and a Client. After this step, websocket 
                     endpoint should be used instead of this endpoint.
                     
-                    **Role header** determines the sender's role in the chat room. If the principal is, for example, 
-                    a Caretaker, the receiver is assumed to be a Client.
-                    
                     ## Connecting to websocket endpoint
                     - To connect to websocket endpoint, use the following path: `/ws`
                     - To subscribe to chat room, use the following path: `/topic/messages/{chatId}`
                     - To send a message to chat room, use the following path: `/app/chat/{chatId}`
                     
                     ## Payload and headers
-                    Same payload and headers apply to websocket endpoint as to this endpoint. Time zone is cached per 
-                    session. It is highly recommended to provide the timezone header when subscribing to the topic.
-                    The header does not have to be provided on each message send, but if it is provided, then the
-                    new timezone will be cached.
+                    **Role header** determines the sender's role in the chat room. If the principal is, for example, 
+                    a Caretaker, the receiver is assumed to be a Client.
+                    
+                    **Time zone** from header is cached per session. It is highly recommended to provide the timezone 
+                    header when subscribing to the topic. The header does not have to be provided on each message send, 
+                    but if it is provided, then the new timezone will be cached.
+                    
+                    The payload is describing the events happening in the chat room. It has a field `type` that determines
+                    the type of the event.
+                    
+                    ## Chat message types
+                    - `MESSAGE` - Used for sending messages. Has field `content` with **ChatMessageDTO**.
+                    - `JOINED` - Used for notifying that user joined the chat room. Has fields `chatId` and `joiningUserEmail`.
+                    - `LEFT` - Used for notifying that user left the chat room. Has fields `chatId` and `leavingUserEmail`.
                     """
     )
     @ApiResponses(value = {
@@ -98,9 +105,9 @@ public class ChatController {
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole
     ) {
         return chatService.createChatRoomWithMessage(
-                messageReceiverEmail,
                 principal.getName(),
                 acceptRole,
+                messageReceiverEmail,
                 message,
                 TimeUtils.getOrSystemDefault(acceptTimeZone)
         );
@@ -111,24 +118,31 @@ public class ChatController {
     @Operation(
             summary = "Get all chat rooms",
             description = """
-                          ## Endpoint description
-                          Retrieves a list of all chat rooms for the current user. The returned page is sorted by
-                          the last message timestamp in descending order (from newest to oldest). The chatRoomId can be 
-                          used to connect to the websocket endpoint and send messages to the chat room.
-                          
-                          **Role header** determines the sender's role in the chat room. If the principal is, for example, 
-                          a Caretaker, the receiver is assumed to be a Client.
-                          
-                          ## Connecting to websocket endpoint
-                          - To connect to websocket endpoint, use the following path: `/ws`
-                          - To subscribe to chat room, use the following path: `/topic/messages/{chatId}`
-                          - To send a message to chat room, use the following path: `/app/chat/{chatId}`
-                          
-                          ## Payload and headers
-                          Same payload and headers apply to websocket endpoint as to `/api/chat/{messageReceiverEmail}` 
-                          endpoint. Time zone is cached per session. It is highly recommended to provide the timezone 
-                          header when subscribing to the topic. The header does not have to be provided on each 
-                          message send, but if it is provided, then the new timezone will be cached.
+                        ## Endpoint description
+                        Creates a new chat room with the given user and sends the first message to him. This is the 
+                        first step of the communication between a Caretaker and a Client. After this step, websocket 
+                        endpoint should be used instead of this endpoint.
+                        
+                        ## Connecting to websocket endpoint
+                        - To connect to websocket endpoint, use the following path: `/ws`
+                        - To subscribe to chat room, use the following path: `/topic/messages/{chatId}`
+                        - To send a message to chat room, use the following path: `/app/chat/{chatId}`
+                        
+                        ## Payload and headers
+                        **Role header** determines the sender's role in the chat room. If the principal is, for example, 
+                        a Caretaker, the receiver is assumed to be a Client.
+                        
+                        **Time zone** from header is cached per session. It is highly recommended to provide the timezone 
+                        header when subscribing to the topic. The header does not have to be provided on each message send, 
+                        but if it is provided, then the new timezone will be cached.
+                        
+                        The payload is describing the events happening in the chat room. It has a field `type` that determines
+                        the type of the event.
+                        
+                        ## Chat message types
+                        - `MESSAGE` - Used for sending messages. Has field `content` with **ChatMessageDTO**.
+                        - `JOINED` - Used for notifying that user joined the chat room. Has fields `chatId` and `joiningUserEmail`.
+                        - `LEFT` - Used for notifying that user left the chat room. Has fields `chatId` and `leavingUserEmail`.
                           """
     )
     public Page<ChatRoomDTO> getChatRooms(

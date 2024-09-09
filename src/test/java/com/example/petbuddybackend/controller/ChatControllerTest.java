@@ -104,7 +104,7 @@ public class ChatControllerTest {
     @Test
     @WithMockUser
     void getChatMessages_includeTimeZone_shouldSucceed() throws Exception {
-        when(chatService.getChatMessages(any(), any(), any(), any())).thenReturn(expectedMessagePage);
+        when(chatService.getChatMessagesByParticipantEmail(any(), any(), any(), any())).thenReturn(expectedMessagePage);
 
         mockMvc.perform(get("/api/chat/1/messages")
                         .param("page", "0")

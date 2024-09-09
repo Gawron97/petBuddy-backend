@@ -1,15 +1,19 @@
 package com.example.petbuddybackend.service.chat.session;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotification;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationType;
+import com.example.petbuddybackend.service.chat.session.context.ChatSessionContext;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,22 +24,33 @@ public class ChatSessionService {
     @Value("${url.chat.topic.pattern}")
     private String SUBSCRIPTION_URL_PATTERN;
 
-    @Value("${url.chat.topic.base}")
-    private String SUBSCRIPTION_URL_BASE;
-
     @Value("${header-name.timezone}")
     private String TIMEZONE_HEADER_NAME;
 
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ChatSessionManager chatSessionManager;
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
+    private final ChatSessionContext sessionContext;
 
-    public void sendMessages(Long chatId, ChatMessageDTO messageDTO) {
-        chatSessionManager.get(chatId).forEach(userMetadata ->
-                simpMessagingTemplate.convertAndSend(
-                        String.format(SUBSCRIPTION_URL_PATTERN, chatId, userMetadata.getUsername()),
-                        chatMapper.mapTimeZone(messageDTO, userMetadata.getZoneId())
-                ));
+    public ChatSessionContext getContext() {
+        return sessionContext;
+    }
+
+    public void sendNotifications(Long chatId, ChatNotification notification, MessageCallback callback) {
+        ChatRoomMetadata chatRoomMeta = chatSessionManager.get(chatId);
+
+        chatRoomMeta.forEach(userMetadata -> {
+            if(notification.getType().equals(ChatNotificationType.MESSAGE)) {
+                convertNotificationMessageTimezone(notification, userMetadata.getZoneId());
+            }
+
+            executeSendNotification(notification, chatId, userMetadata.getUsername());
+            callback.onMessageSent(userMetadata.getUsername());
+        });
+    }
+
+    public void sendNotifications(Long chatId, ChatNotification notification) {
+        sendNotifications(chatId, notification, username -> {});
     }
 
     public void patchMetadata(Long chatId, String username, Map<String, Object> headers) {
@@ -44,41 +59,28 @@ public class ChatSessionService {
         timeZone.ifPresent(s -> metadata.setZoneId(TimeUtils.get(s)));
     }
 
-    public void subscribeIfAbsent(Long chatId, String username, String timeZone) {
-        chatSessionManager.putIfAbsent(
-                chatId,
-                new ChatUserMetadata(username, TimeUtils.getOrSystemDefault(timeZone))
-        );
+    public void subscribe(Long chatId, String username, String timeZone) {
+        sessionContext.setContext(chatId, username, chatSessionManager::remove);
+        ChatUserMetadata metadata = new ChatUserMetadata(username, TimeUtils.getOrSystemDefault(timeZone));
+        chatSessionManager.putIfAbsent(chatId, metadata);
     }
 
-    public void subscribeIfAbsent(StompHeaderAccessor accessor) {
-        String username = accessor.getUser().getName();
-        String destination = accessor.getDestination();
-        String timeZone = accessor.getFirstNativeHeader(TIMEZONE_HEADER_NAME);
-
-        if(destination != null && destination.startsWith(SUBSCRIPTION_URL_BASE)) {
-            String[] parts = destination.split("/");
-            if (parts.length > 3) {
-                Long chatId = Long.parseLong(parts[3]);
-                subscribeIfAbsent(chatId, username, timeZone);
-            }
-        }
-    }
-
-    public void unsubscribeIfPresent(Long chatId, String username) {
+    public void unsubscribe(Long chatId, String username) {
+        sessionContext.clearContext();
         chatSessionManager.remove(chatId, username);
     }
 
-    public void unsubscribeIfPresent(StompHeaderAccessor accessor) {
-        String username = accessor.getUser().getName();
-        String destination = accessor.getDestination();
+    private void executeSendNotification(ChatNotification notification, Long chatId, String receiverUsername) {
+        simpMessagingTemplate.convertAndSend(formatDestination(chatId, receiverUsername), notification);
+    }
 
-        if (destination != null && destination.startsWith(SUBSCRIPTION_URL_BASE)) {
-            String[] parts = destination.split("/");
-            if (parts.length > 3) {
-                Long chatId = Long.parseLong(parts[3]);
-                unsubscribeIfPresent(chatId, username);
-            }
-        }
+    private String formatDestination(Long chatId, String username) {
+        return String.format(SUBSCRIPTION_URL_PATTERN, chatId, username);
+    }
+
+    private void convertNotificationMessageTimezone(ChatNotification notification, ZoneId zoneId) {
+        ChatNotificationMessage notificationMessage = (ChatNotificationMessage) notification;
+        ChatMessageDTO mappedMessage = chatMapper.mapTimeZone(notificationMessage.getContent(), zoneId);
+        notificationMessage.setContent(mappedMessage);
     }
 }

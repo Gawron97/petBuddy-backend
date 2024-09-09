@@ -33,6 +33,7 @@ public class ChatMapperTest {
         ChatRoom chatRoom = MockChatProvider.createMockChatRoom(client, caretaker);
         chatRoom.setId(1L);
         chatMessage.setId(2L);
+        chatMessage.setSeenByRecipient(true);
         chatMessage.setChatRoom(chatRoom);
         chatMessage.setCreatedAt(ZonedDateTime.now().withZoneSameInstant(tokyoZone));
     }

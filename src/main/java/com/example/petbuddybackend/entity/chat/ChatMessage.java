@@ -31,10 +31,17 @@ public class ChatMessage {
     @JoinColumn(name = "senderEmail", referencedColumnName = "email")
     private AppUser sender;
 
+    @Column(nullable = false)
+    private Boolean seenByRecipient = false;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
             createdAt = ZonedDateTime.now();
+        }
+
+        if (seenByRecipient == null) {
+            seenByRecipient = false;
         }
     }
 }
