@@ -1,7 +1,9 @@
 package com.example.petbuddybackend.service.chat.session;
 
+import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotification;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationType;
 import com.example.petbuddybackend.service.chat.session.context.ChatSessionContext;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,14 +37,16 @@ public class ChatSessionService {
     }
 
     public void sendNotifications(Long chatId, ChatNotification notification, MessageCallback callback) {
-        switch(notification.getType()) {
-            case MESSAGE:
-                executeSendNotificationConvertTimeZone((ChatNotificationMessage) notification, chatId, callback);
-                break;
-            case JOINED, LEFT:
-                executeSendNotification(notification, chatId, callback);
-                break;
-        }
+        ChatRoomMetadata chatRoomMeta = chatSessionManager.get(chatId);
+
+        chatRoomMeta.forEach(userMetadata -> {
+            if(notification.getType().equals(ChatNotificationType.MESSAGE)) {
+                convertNotificationMessageTimezone(notification, userMetadata.getZoneId());
+            }
+
+            executeSendNotification(notification, chatId, userMetadata.getUsername());
+            callback.onMessageSent(userMetadata.getUsername());
+        });
     }
 
     public void sendNotifications(Long chatId, ChatNotification notification) {
@@ -65,33 +70,17 @@ public class ChatSessionService {
         chatSessionManager.remove(chatId, username);
     }
 
-    private void executeSendNotificationConvertTimeZone(
-            ChatNotificationMessage notification,
-            Long chatId,
-            MessageCallback callback
-    ) {
-        chatSessionManager.get(chatId).forEach(userMetadata -> {
-            String username = userMetadata.getUsername();
-
-            notification.setContent(
-                    chatMapper.mapTimeZone(notification.getContent(), userMetadata.getZoneId())
-            );
-
-            simpMessagingTemplate.convertAndSend(formatDestination(chatId, username), notification);
-            callback.onMessageSent(username);
-        });
-    }
-
-    private void executeSendNotification(ChatNotification notification, Long chatId, MessageCallback callback) {
-        chatSessionManager.get(chatId).forEach(userMetadata -> {
-            String username = userMetadata.getUsername();
-
-            simpMessagingTemplate.convertAndSend(formatDestination(chatId, username), notification);
-            callback.onMessageSent(username);
-        });
+    private void executeSendNotification(ChatNotification notification, Long chatId, String receiverUsername) {
+        simpMessagingTemplate.convertAndSend(formatDestination(chatId, receiverUsername), notification);
     }
 
     private String formatDestination(Long chatId, String username) {
         return String.format(SUBSCRIPTION_URL_PATTERN, chatId, username);
+    }
+
+    private void convertNotificationMessageTimezone(ChatNotification notification, ZoneId zoneId) {
+        ChatNotificationMessage notificationMessage = (ChatNotificationMessage) notification;
+        ChatMessageDTO mappedMessage = chatMapper.mapTimeZone(notificationMessage.getContent(), zoneId);
+        notificationMessage.setContent(mappedMessage);
     }
 }

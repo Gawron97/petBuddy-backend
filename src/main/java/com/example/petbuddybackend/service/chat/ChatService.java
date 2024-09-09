@@ -52,8 +52,9 @@ public class ChatService {
         checkChatExists(chatId);
         checkUserInChat(chatId, principalEmail);
 
-        Page<ChatMessage> chatMessages = chatMessageRepository.findByChatRoom_Id_OrderByCreatedAtDesc(chatId, pageable);
-        return chatMessages.map(message -> chatMapper.mapToChatMessageDTO(message, timeZone));
+        return chatMessageRepository
+                .findByChatRoom_Id_OrderByCreatedAtDesc(chatId, pageable)
+                .map(message -> chatMapper.mapToChatMessageDTO(message, timeZone));
     }
 
     public ChatRoom getChatRoomById(Long chatId) {
@@ -130,6 +131,7 @@ public class ChatService {
         }
     }
 
+    @Transactional
     public MessageCallback createCallbackMessageSeen(Long chatId, String usernameToSkip) {
         return usernameSend -> {
             if(!usernameSend.equals(usernameToSkip)) {
