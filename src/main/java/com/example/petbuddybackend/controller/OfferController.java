@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.service.offer.OfferService;
@@ -9,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +45,12 @@ public class OfferController {
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteConfiguration(@PathVariable Long configurationId) {
         return offerService.deleteConfiguration(configurationId);
+    }
+
+    @PostMapping("/set-availability")
+    public List<OfferDTO> setAvailabilityForOffers(@RequestBody CreateOffersAvailabilityDTO createOffersAvailability) {
+        return offerService.setAvailabilityForOffers(createOffersAvailability);
+
     }
 
 }

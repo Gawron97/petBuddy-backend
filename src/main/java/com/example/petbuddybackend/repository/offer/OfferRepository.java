@@ -9,4 +9,6 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
 
     Optional<Offer> findByCaretaker_EmailAndAnimal_AnimalType(String caretakerEmail, String animalType);
 
+    Optional<Offer> findByAnimal_AnimalType(String animalType);
+
 }

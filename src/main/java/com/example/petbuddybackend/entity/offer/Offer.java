@@ -2,6 +2,7 @@ package com.example.petbuddybackend.entity.offer;
 
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
+import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,6 +46,10 @@ public class Offer {
             inverseJoinColumns = @JoinColumn(name = "animalAmenityId")
     )
     private Set<AnimalAmenity> animalAmenities;
+
+    @OneToMany(mappedBy = "offer", fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
+    private Set<Availability> availabilities;
 
     @PrePersist
     public void prePersist() {

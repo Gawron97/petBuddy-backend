@@ -1,9 +1,12 @@
 package com.example.petbuddybackend.service.offer;
 
+import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
+import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
@@ -43,7 +46,7 @@ public class OfferService {
     public OfferDTO addOrEditOffer(OfferDTO offer, String caretakerEmail) {
         Caretaker caretaker = caretakerService.getCaretakerByEmail(caretakerEmail);
 
-        Offer modifiyngOffer = getOrCreateCaretakerOffer(caretakerEmail, offer.animal().animalType(),
+        Offer modifiyngOffer = getOrCreateOffer(caretakerEmail, offer.animal().animalType(),
                 caretaker, offer.description());
 
         if(StringUtils.hasText(offer.description())) {
@@ -191,8 +194,8 @@ public class OfferService {
                 .build();
     }
 
-    private Offer getOrCreateCaretakerOffer(String caretakerEmail, String animalType, Caretaker caretaker,
-                                            String description) {
+    private Offer getOrCreateOffer(String caretakerEmail, String animalType, Caretaker caretaker,
+                                   String description) {
         return offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerEmail, animalType)
                 .orElse(Offer.builder()
                         .caretaker(caretaker)
@@ -200,6 +203,11 @@ public class OfferService {
                         .description(description)
                         .build());
 
+    }
+
+    private Offer getOffer(String animalType) {
+        return offerRepository.findByAnimal_AnimalType(animalType)
+                .orElseThrow(() -> new NotFoundException("Offer for animal type " + animalType + " not found"));
     }
 
     private OfferConfiguration getOfferConfiguration(Long id) {
@@ -247,6 +255,50 @@ public class OfferService {
                 }
             }
         }
+    }
+
+    public List<OfferDTO> setAvailabilityForOffers(CreateOffersAvailabilityDTO createOffersAvailability) {
+
+        List<Offer> modifiedOffers = createOffersAvailability.animalTypes()
+                .stream()
+                .map(animalType -> setAvailabilityForOffer(animalType, createOffersAvailability.availabilityRanges()))
+                .toList();
+
+        return offerRepository.saveAll(modifiedOffers)
+                .stream()
+                .map(offerMapper::mapToOfferDTO)
+                .toList();
+    }
+
+    private Offer setAvailabilityForOffer(String animalType, List<AvailabilityRangeDTO> availabilityRanges) {
+
+        Offer offerToModify = getOffer(animalType);
+        Set<Availability> availabilities = createAvailabilities(availabilityRanges, offerToModify);
+
+        if(CollectionUtil.isNotEmpty(offerToModify.getAvailabilities())) {
+            offerToModify.getAvailabilities().clear();
+            offerToModify.getAvailabilities().addAll(availabilities);
+        } else {
+            offerToModify.setAvailabilities(availabilities);
+        }
+
+        return offerToModify;
+    }
+
+    private Set<Availability> createAvailabilities(List<AvailabilityRangeDTO> availabilityRanges, Offer offer) {
+        return availabilityRanges.stream()
+                .map(availabilityRange -> createAvailability(availabilityRange, offer))
+                .collect(Collectors.toSet());
+    }
+
+    private Availability createAvailability(AvailabilityRangeDTO availabilityRange, Offer offer) {
+
+        return Availability.builder()
+                .availableFrom(availabilityRange.availableFrom())
+                .availableTo(availabilityRange.availableTo())
+                .offer(offer)
+                .build();
+
     }
 
 }
