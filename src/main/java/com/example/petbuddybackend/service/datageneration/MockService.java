@@ -5,6 +5,7 @@ import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -417,6 +419,59 @@ public class MockService {
         long maxDay = maxDate.toEpochDay();
         long randomDay = ThreadLocalRandom.current().nextLong(minDay + 1, maxDay);
         return LocalDate.ofEpochDay(randomDay).atTime(faker.random().nextInt(0, 23), faker.random().nextInt(0, 59));
+    }
+
+    public Set<Availability> createMockAvailabilitiesForOffers(List<Offer> offers) {
+
+        Set<Availability> availabilities = new HashSet<>();
+        for(Offer offer : offers) {
+            Set<Availability> availabilitiesForOffer = createMockAvailabilitiesForOffer(offer);
+            offer.setAvailabilities(availabilitiesForOffer);
+            availabilities.addAll(availabilitiesForOffer);
+        }
+        return availabilities;
+    }
+
+    private Set<Availability> createMockAvailabilitiesForOffer(Offer offer) {
+
+        int availabilitiesCount = faker.random().nextInt(0, 10);
+        Set<Availability> availabilities = new HashSet<>();
+        while(availabilities.size() < availabilitiesCount) {
+            Availability availability = createMockAvailability(offer);
+            if(!isOverLapping(availability, availabilities)) {
+                availabilities.add(availability);
+            }
+        }
+
+        return availabilities;
+
+    }
+
+    private Availability createMockAvailability(Offer offer) {
+
+        LocalDateTime availableFrom = getRandomDateBetween(LocalDate.now(),
+                LocalDate.now().plusDays(180));
+
+        LocalDateTime availableTo = getRandomDateBetween(availableFrom.toLocalDate(),
+                availableFrom.toLocalDate().plusDays(15));
+
+        return Availability.builder()
+                .availableFrom(availableFrom.atZone(ZoneId.systemDefault()))
+                .availableTo(availableTo.atZone(ZoneId.systemDefault()))
+                .offer(offer)
+                .build();
+    }
+
+    private boolean isOverLapping(Availability availability, Set<Availability> availabilities) {
+
+        for(Availability existingAvailability : availabilities) {
+            if(availability.getAvailableFrom().isBefore(existingAvailability.getAvailableTo()) &&
+                    availability.getAvailableTo().isAfter(existingAvailability.getAvailableFrom())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

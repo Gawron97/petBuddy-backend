@@ -205,9 +205,9 @@ public class OfferService {
 
     }
 
-    private Offer getOffer(String animalType) {
-        return offerRepository.findByAnimal_AnimalType(animalType)
-                .orElseThrow(() -> new NotFoundException("Offer for animal type " + animalType + " not found"));
+    private Offer getOffer(Long offerId) {
+        return offerRepository.findById(offerId)
+                .orElseThrow(() -> new NotFoundException("Offer with id " + offerId + " not found"));
     }
 
     private OfferConfiguration getOfferConfiguration(Long id) {
@@ -259,9 +259,10 @@ public class OfferService {
 
     public List<OfferDTO> setAvailabilityForOffers(CreateOffersAvailabilityDTO createOffersAvailability) {
 
-        List<Offer> modifiedOffers = createOffersAvailability.animalTypes()
+        assertAvailabilityRangesNotOverlapping(createOffersAvailability.availabilityRanges());
+        List<Offer> modifiedOffers = createOffersAvailability.offerIds()
                 .stream()
-                .map(animalType -> setAvailabilityForOffer(animalType, createOffersAvailability.availabilityRanges()))
+                .map(offerId -> setAvailabilityForOffer(offerId, createOffersAvailability.availabilityRanges()))
                 .toList();
 
         return offerRepository.saveAll(modifiedOffers)
@@ -270,9 +271,9 @@ public class OfferService {
                 .toList();
     }
 
-    private Offer setAvailabilityForOffer(String animalType, List<AvailabilityRangeDTO> availabilityRanges) {
+    private Offer setAvailabilityForOffer(Long offerId, List<AvailabilityRangeDTO> availabilityRanges) {
 
-        Offer offerToModify = getOffer(animalType);
+        Offer offerToModify = getOffer(offerId);
         Set<Availability> availabilities = createAvailabilities(availabilityRanges, offerToModify);
 
         if(CollectionUtil.isNotEmpty(offerToModify.getAvailabilities())) {
@@ -299,6 +300,22 @@ public class OfferService {
                 .offer(offer)
                 .build();
 
+    }
+
+    private void assertAvailabilityRangesNotOverlapping(List<AvailabilityRangeDTO> availabilityRanges) {
+        for(int i = 0; i < availabilityRanges.size(); i++) {
+            for(int j = i + 1; j < availabilityRanges.size(); j++) {
+                if(availabilityRanges.get(i).overlaps(availabilityRanges.get(j))) {
+                    throw new IllegalArgumentException(
+                        MessageFormat.format(
+                            "Availability range {0} overlaps with availability range {1}",
+                            availabilityRanges.get(i).toString(),
+                            availabilityRanges.get(j).toString()
+                        )
+                    );
+                }
+            }
+        }
     }
 
 }

@@ -11,6 +11,10 @@ import java.time.ZonedDateTime;
 @Builder
 @Entity
 @Getter @Setter
+@Table(
+        uniqueConstraints = { @UniqueConstraint(columnNames = { "offerId", "availableFrom", "availableTo" }) }
+)
+@EqualsAndHashCode(of = {"availableFrom", "availableTo", "offer"})
 public class Availability {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
