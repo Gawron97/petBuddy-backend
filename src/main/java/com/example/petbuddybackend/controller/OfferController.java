@@ -22,8 +22,11 @@ public class OfferController {
 
     @Operation(
             summary = "Add or edit offer",
-            description = "Add offer if it does not exists, also can edit offer if it exists by changing offer data" +
-                    " and adding new configurations. It Cannot edit configurations of existing offer."
+            description = "Add offer if it does not exists," +
+                    " also can edit offer if it exists. Editing only support adding new configurations or amenities" +
+                    " when provide amenity or configuration that already exists throws error" +
+                    " For editing or removing configuration use /configuration/{configurationId}/edit" +
+                    " or /configuration/{configurationId}/delete endpoints."
     )
     @PostMapping("/add-or-edit")
     @PreAuthorize("isAuthenticated()")
@@ -33,7 +36,10 @@ public class OfferController {
 
     @Operation(
             summary = "Edit offer configuration",
-            description = "Edits offer configuration by changing configuration data and selected options."
+            description = "Edits offer configuration by changing configuration data and selected options." +
+                    " After editing in configuration exists only provided options. So if option not provided but" +
+                    " exists in configuration, it will be removed. If option provided but not exists in configuration," +
+                    " it will be added"
     )
     @PostMapping("/configuration/{configurationId}/edit")
     @PreAuthorize("isAuthenticated()")

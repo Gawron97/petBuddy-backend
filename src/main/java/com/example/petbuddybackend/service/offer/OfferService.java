@@ -247,8 +247,10 @@ public class OfferService {
     private void editConfigurationSelectedOptions(OfferConfiguration editingConfiguration, OfferConfigurationDTO configuration) {
         List<OfferOption> offerOptions = editingConfiguration.getOfferOptions();
 
-        offerOptions.removeIf(offerOption -> !configuration.selectedOptions().containsKey(offerOption.getAnimalAttribute().getAttributeName()) ||
-                !configuration.selectedOptions().get(offerOption.getAnimalAttribute().getAttributeName()).contains(offerOption.getAnimalAttribute().getAttributeValue()));
+        offerOptions.removeIf(offerOption ->
+                !configuration.selectedOptions().containsKey(offerOption.getAnimalAttribute().getAttributeName()) ||
+                !configuration.selectedOptions().get(offerOption.getAnimalAttribute().getAttributeName())
+                        .contains(offerOption.getAnimalAttribute().getAttributeValue()));
 
         for(Map.Entry<String, List<String>> entry : configuration.selectedOptions().entrySet()) {
             String attributeName = entry.getKey();
