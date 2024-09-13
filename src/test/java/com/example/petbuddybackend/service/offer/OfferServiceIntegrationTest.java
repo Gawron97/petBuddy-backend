@@ -23,6 +23,7 @@ import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -126,16 +127,9 @@ public class OfferServiceIntegrationTest {
         assertNotNull(resultOfferDTO);
 
         Offer offer = offerRepository.findById(resultOfferDTO.id()).orElseThrow();
-        if(expectedNumberOfConfigurationsAfterAddition > 0) {
-            assertEquals(expectedNumberOfConfigurationsAfterAddition, offer.getOfferConfigurations().size());
-        } else {
-            assertNull(offer.getOfferConfigurations());
-        }
-        if(expectedNumberOfAnimalAmenities > 0) {
-            assertEquals(expectedNumberOfAnimalAmenities, offer.getAnimalAmenities().size());
-        } else {
-            assertNull(offer.getAnimalAmenities());
-        }
+
+        assertEquals(expectedNumberOfConfigurationsAfterAddition, offer.getOfferConfigurations().size());
+        assertEquals(expectedNumberOfAnimalAmenities, offer.getAnimalAmenities().size());
 
     }
 
@@ -421,7 +415,7 @@ public class OfferServiceIntegrationTest {
                 .build();
 
         // When
-        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO);
+        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, caretakerWithComplexOffer.getEmail());
 
         // Then
         Offer offerAfterAvailabilitySet = offerRepository.findById(existingOffer.getId()).orElseThrow();
@@ -457,7 +451,7 @@ public class OfferServiceIntegrationTest {
                 .build();
 
         // When
-        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO);
+        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, caretakerWithComplexOffer.getEmail());
 
         // Then
         Offer offerAfterAvailabilitySet = offerRepository.findById(existingOffer.getId()).orElseThrow();
@@ -492,7 +486,7 @@ public class OfferServiceIntegrationTest {
                 .build();
 
         // When
-        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO);
+        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, caretakerWithComplexOffer.getEmail());
 
         // Then
         Offer offerAfterAvailabilitySet = offerRepository.findById(existingOffer.getId()).orElseThrow();
@@ -514,7 +508,7 @@ public class OfferServiceIntegrationTest {
                 .build();
 
         assertThrows(IllegalArgumentException.class,
-                () -> offerService.setAvailabilityForOffers(createOffersAvailabilityDTO));
+                () -> offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, caretakerWithComplexOffer.getEmail()));
 
     }
 
@@ -569,6 +563,35 @@ public class OfferServiceIntegrationTest {
                         )
                 )
         );
+    }
+
+    @Test
+    @Transactional
+    void setAvailabilityForOffers_whenModifyingByNotOwningCaretaker_ShouldThrowUnauthorizedException() {
+
+        // Given
+        CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
+                .offerIds(List.of(existingOffer.getId()))
+                .availabilityRanges(List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(1))
+                                .availableTo(ZonedDateTime.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(10))
+                                .availableTo(ZonedDateTime.now().plusDays(20))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(25))
+                                .availableTo(ZonedDateTime.now().plusDays(45))
+                                .build()
+                ))
+                .build();
+
+        // When Then
+        assertThrows(UnauthorizedException.class,
+                () -> offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, "anotherCaretaker"));
+
     }
 
 }

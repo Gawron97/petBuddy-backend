@@ -17,13 +17,15 @@ import com.example.petbuddybackend.service.animal.AnimalService;
 import com.example.petbuddybackend.service.mapper.OfferConfigurationMapper;
 import com.example.petbuddybackend.service.mapper.OfferMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
-import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
+import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.common.util.CollectionUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.text.MessageFormat;
@@ -43,6 +45,7 @@ public class OfferService {
     private final OfferMapper offerMapper = OfferMapper.INSTANCE;
     private final OfferConfigurationMapper offerConfigurationMapper = OfferConfigurationMapper.INSTANCE;
 
+    @Transactional
     public OfferDTO addOrEditOffer(OfferDTO offer, String caretakerEmail) {
         Caretaker caretaker = caretakerService.getCaretakerByEmail(caretakerEmail);
 
@@ -64,11 +67,10 @@ public class OfferService {
 
         if(CollectionUtil.isNotEmpty(offer.offerConfigurations())) {
             List<OfferConfiguration> offerConfigurations = createConfigurationsForOffer(offer.offerConfigurations(), modifiyngOffer);
-            if(CollectionUtil.isNotEmpty(modifiyngOffer.getOfferConfigurations())) {
-                modifiyngOffer.getOfferConfigurations().addAll(offerConfigurations);
-            } else {
-                modifiyngOffer.setOfferConfigurations(offerConfigurations);
+            if(modifiyngOffer.getOfferConfigurations() == null) {
+                modifiyngOffer.setOfferConfigurations(new ArrayList<>());
             }
+            modifiyngOffer.getOfferConfigurations().addAll(offerConfigurations);
         }
 
     }
@@ -77,12 +79,10 @@ public class OfferService {
 
         if(CollectionUtil.isNotEmpty(offer.animalAmenities())) {
             Set<AnimalAmenity> animalAmenities = createAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
-            if(CollectionUtil.isNotEmpty(modifiyngOffer.getAnimalAmenities())) {
-                modifiyngOffer.getAnimalAmenities().addAll(animalAmenities);
-            } else {
-                modifiyngOffer.setAnimalAmenities(animalAmenities);
+            if(modifiyngOffer.getAnimalAmenities() == null) {
+                modifiyngOffer.setAnimalAmenities(new HashSet<>());
             }
-
+            modifiyngOffer.getAnimalAmenities().addAll(animalAmenities);
         }
 
     }
@@ -201,6 +201,9 @@ public class OfferService {
                         .caretaker(caretaker)
                         .animal(animalService.getAnimal(animalType))
                         .description(description)
+                        .availabilities(new HashSet<>())
+                        .offerConfigurations(new ArrayList<>())
+                        .animalAmenities(new HashSet<>())
                         .build());
 
     }
@@ -215,6 +218,7 @@ public class OfferService {
                 .orElseThrow(() -> new NotFoundException("Offer configuration with id " + id + " not found"));
     }
 
+    @Transactional
     public OfferDTO deleteConfiguration(Long configurationId) {
 
         OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
@@ -224,6 +228,7 @@ public class OfferService {
 
     }
 
+    @Transactional
     public OfferConfigurationDTO editConfiguration(Long configurationId, OfferConfigurationDTO configuration) {
 
         OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
@@ -257,12 +262,14 @@ public class OfferService {
         }
     }
 
-    public List<OfferDTO> setAvailabilityForOffers(CreateOffersAvailabilityDTO createOffersAvailability) {
+    @Transactional
+    public List<OfferDTO> setAvailabilityForOffers(CreateOffersAvailabilityDTO createOffersAvailability,
+                                                   String caretakerEmail) {
 
         assertAvailabilityRangesNotOverlapping(createOffersAvailability.availabilityRanges());
         List<Offer> modifiedOffers = createOffersAvailability.offerIds()
                 .stream()
-                .map(offerId -> setAvailabilityForOffer(offerId, createOffersAvailability.availabilityRanges()))
+                .map(offerId -> setAvailabilityForOffer(offerId, createOffersAvailability.availabilityRanges(), caretakerEmail))
                 .toList();
 
         return offerRepository.saveAll(modifiedOffers)
@@ -271,19 +278,36 @@ public class OfferService {
                 .toList();
     }
 
-    private Offer setAvailabilityForOffer(Long offerId, List<AvailabilityRangeDTO> availabilityRanges) {
+    private Offer setAvailabilityForOffer(Long offerId, List<AvailabilityRangeDTO> availabilityRanges, String caretakerEmail) {
 
         Offer offerToModify = getOffer(offerId);
+        assertOfferIsModifyingByOwnerCaretaker(offerToModify, caretakerEmail);
         Set<Availability> availabilities = createAvailabilities(availabilityRanges, offerToModify);
 
-        if(CollectionUtil.isNotEmpty(offerToModify.getAvailabilities())) {
-            offerToModify.getAvailabilities().clear();
-            offerToModify.getAvailabilities().addAll(availabilities);
-        } else {
-            offerToModify.setAvailabilities(availabilities);
+        if(offerToModify.getAvailabilities() == null) {
+            offerToModify.setAvailabilities(new HashSet<>());
         }
+        removeAllAvailabilities(offerToModify.getAvailabilities());
+        offerToModify.getAvailabilities().addAll(availabilities);
 
         return offerToModify;
+    }
+
+    private void removeAllAvailabilities(Set<Availability> availabilities) {
+
+        Set<Availability> copyOfAvailabilities = new HashSet<>(availabilities);
+
+        for(Availability availability : copyOfAvailabilities) {
+            availabilities.remove(availability);
+        }
+
+    }
+
+    private void assertOfferIsModifyingByOwnerCaretaker(Offer offerToModify, String caretakerEmail) {
+        if(!offerToModify.getCaretaker().getEmail().equals(caretakerEmail)) {
+            throw new UnauthorizedException("Caretaker with email: " + caretakerEmail +
+                    "is trying to modify offer that does not belong to him");
+        }
     }
 
     private Set<Availability> createAvailabilities(List<AvailabilityRangeDTO> availabilityRanges, Offer offer) {

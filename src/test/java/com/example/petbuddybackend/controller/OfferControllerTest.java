@@ -1,8 +1,6 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.config.web.WebConfig;
 import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
-import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.service.offer.OfferService;
@@ -137,7 +135,7 @@ public class OfferControllerTest {
         OfferDTO offerDTO = OfferDTO.builder()
                 .availabilities(availabilityRanges)
                 .build();
-        when(offerService.setAvailabilityForOffers(any())).thenReturn(List.of(offerDTO));
+        when(offerService.setAvailabilityForOffers(any(), any())).thenReturn(List.of(offerDTO));
 
         // When and Then
         mockMvc.perform(post("/api/caretaker/offer/set-availability")

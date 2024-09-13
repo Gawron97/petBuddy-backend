@@ -48,9 +48,16 @@ public class OfferController {
         return offerService.deleteConfiguration(configurationId);
     }
 
+    @Operation(
+            summary = "Set availability for offers",
+            description = "Set availability for offers. If there was availability set before, it will be replaced."
+    )
     @PostMapping("/set-availability")
-    public List<OfferDTO> setAvailabilityForOffers(@RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability) {
-        return offerService.setAvailabilityForOffers(createOffersAvailability);
+    @PreAuthorize("isAuthenticated()")
+    public List<OfferDTO> setAvailabilityForOffers(
+            @RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability,
+            Principal principal) {
+        return offerService.setAvailabilityForOffers(createOffersAvailability, principal.getName());
     }
 
 }

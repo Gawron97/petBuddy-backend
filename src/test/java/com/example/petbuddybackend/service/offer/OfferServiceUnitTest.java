@@ -78,8 +78,8 @@ public class OfferServiceUnitTest {
 
         assertNotNull(captoredOffer);
         assertEquals(offerToCreate.description(), captoredOffer.getDescription());
-        assertNull(captoredOffer.getOfferConfigurations());
-        assertNull(captoredOffer.getAnimalAmenities());
+        assertEquals(0, captoredOffer.getOfferConfigurations().size());
+        assertEquals(0, captoredOffer.getAnimalAmenities().size());
 
     }
 
