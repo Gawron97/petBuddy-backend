@@ -1,6 +1,9 @@
 package com.example.petbuddybackend.service.offer;
 
 
+import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
+import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
+import com.example.petbuddybackend.repository.AvailabilityRepository;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.animal.AnimalDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
@@ -33,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,6 +70,9 @@ public class OfferServiceIntegrationTest {
 
     @Autowired
     private AnimalAmenityRepository animalAmenityRepository;
+
+    @Autowired
+    private AvailabilityRepository availabilityRepository;
 
     private Caretaker caretakerWithComplexOffer;
     private Animal animalInComplexOffer;
@@ -390,7 +397,178 @@ public class OfferServiceIntegrationTest {
         assertEquals(expectedNumberOfConfigurationsAfterDeletion, offerAfterDeletion.getOfferConfigurations().size());
     }
 
+    @Test
+    @Transactional
+    void setAvailabilityForOffers_ShouldSetAvailabilityForOffer() {
 
+        // Given
+        CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
+                .offerIds(List.of(existingOffer.getId()))
+                .availabilityRanges(List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(1))
+                                .availableTo(ZonedDateTime.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(10))
+                                .availableTo(ZonedDateTime.now().plusDays(20))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(25))
+                                .availableTo(ZonedDateTime.now().plusDays(45))
+                                .build()
+                ))
+                .build();
 
+        // When
+        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO);
+
+        // Then
+        Offer offerAfterAvailabilitySet = offerRepository.findById(existingOffer.getId()).orElseThrow();
+        assertEquals(3, offerAfterAvailabilitySet.getAvailabilities().size());
+
+    }
+
+    @Test
+    @Transactional
+    void setAvailabilityForOffers_whenSettingForMultipleOffers_ShouldSetAvailabilityForOffer() {
+
+        // Given
+        Offer anotherOffer = PersistenceUtils.addComplexOffer(
+                caretakerWithComplexOffer, animalRepository.findById("CAT").orElseThrow(), List.of(),
+                BigDecimal.valueOf(10.0), List.of(), offerRepository);
+
+        CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
+                .offerIds(List.of(existingOffer.getId(), anotherOffer.getId()))
+                .availabilityRanges(List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(1))
+                                .availableTo(ZonedDateTime.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(10))
+                                .availableTo(ZonedDateTime.now().plusDays(20))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(25))
+                                .availableTo(ZonedDateTime.now().plusDays(45))
+                                .build()
+                ))
+                .build();
+
+        // When
+        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO);
+
+        // Then
+        Offer offerAfterAvailabilitySet = offerRepository.findById(existingOffer.getId()).orElseThrow();
+        Offer anotherOfferAfterAvailabilitySet = offerRepository.findById(anotherOffer.getId()).orElseThrow();
+        assertEquals(3, offerAfterAvailabilitySet.getAvailabilities().size());
+        assertEquals(3, anotherOfferAfterAvailabilitySet.getAvailabilities().size());
+    }
+
+    @Test
+    @Transactional
+    void setAvailabilityForOffers_WhenOfferAlreadyHaveAvailabilities_ShouldReplaceAvailabilityForOffer() {
+
+        // Given
+        PersistenceUtils.addAvailabilitiesForOffer(offerRepository, existingOffer);
+
+        CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
+                .offerIds(List.of(existingOffer.getId()))
+                .availabilityRanges(List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(1))
+                                .availableTo(ZonedDateTime.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(10))
+                                .availableTo(ZonedDateTime.now().plusDays(20))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(ZonedDateTime.now().plusDays(25))
+                                .availableTo(ZonedDateTime.now().plusDays(45))
+                                .build()
+                ))
+                .build();
+
+        // When
+        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO);
+
+        // Then
+        Offer offerAfterAvailabilitySet = offerRepository.findById(existingOffer.getId()).orElseThrow();
+        assertEquals(3, offerAfterAvailabilitySet.getAvailabilities().size());
+
+        availabilityRepository.deleteAll();
+
+    }
+
+    @ParameterizedTest
+    @Transactional
+    @MethodSource("provideIncorrectAvailabilityRanges")
+    void setAvailabilityForOffers_whenProvidedAvailabilityRangesOverlapping_ShouldThrowIllegalArgumentException(
+            List<AvailabilityRangeDTO> availabilityRanges) {
+
+        CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
+                .offerIds(List.of(existingOffer.getId()))
+                .availabilityRanges(availabilityRanges)
+                .build();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> offerService.setAvailabilityForOffers(createOffersAvailabilityDTO));
+
+    }
+
+    static Stream<Arguments> provideIncorrectAvailabilityRanges() {
+        return Stream.of(
+                Arguments.of(
+                        List.of(
+                                AvailabilityRangeDTO.builder()
+                                        .availableFrom(ZonedDateTime.now().plusDays(1))
+                                        .availableTo(ZonedDateTime.now().plusDays(10))
+                                        .build(),
+                                AvailabilityRangeDTO.builder()
+                                        .availableFrom(ZonedDateTime.now().plusDays(5))
+                                        .availableTo(ZonedDateTime.now().plusDays(20))
+                                        .build()
+                        )
+                ),
+                Arguments.of(
+                        List.of(
+                                AvailabilityRangeDTO.builder()
+                                        .availableFrom(ZonedDateTime.now().plusDays(5))
+                                        .availableTo(ZonedDateTime.now().plusDays(10))
+                                        .build(),
+                                AvailabilityRangeDTO.builder()
+                                        .availableFrom(ZonedDateTime.now().plusDays(2))
+                                        .availableTo(ZonedDateTime.now().plusDays(7))
+                                        .build()
+                        )
+                ),
+                Arguments.of(
+                        List.of(
+                                AvailabilityRangeDTO.builder()
+                                        .availableFrom(ZonedDateTime.now().plusDays(5))
+                                        .availableTo(ZonedDateTime.now().plusDays(10))
+                                        .build(),
+                                AvailabilityRangeDTO.builder()
+                                        .availableFrom(ZonedDateTime.now().plusDays(6))
+                                        .availableTo(ZonedDateTime.now().plusDays(7))
+                                        .build()
+                        )
+                ),
+                Arguments.of(
+                        List.of(
+                                AvailabilityRangeDTO.builder()
+                                        .availableFrom(ZonedDateTime.now().plusDays(5))
+                                        .availableTo(ZonedDateTime.now().plusDays(10))
+                                        .build(),
+                                AvailabilityRangeDTO.builder()
+                                        .availableFrom(ZonedDateTime.now().plusDays(1))
+                                        .availableTo(ZonedDateTime.now().plusDays(15))
+                                        .build()
+                        )
+                )
+        );
+    }
 
 }

@@ -2,6 +2,7 @@ package com.example.petbuddybackend.dto.offer;
 
 import com.example.petbuddybackend.dto.amenity.AmenityDTO;
 import com.example.petbuddybackend.dto.animal.AnimalDTO;
+import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
 import lombok.Builder;
 
 import java.util.List;
@@ -12,6 +13,7 @@ public record OfferDTO(
         String description,
         AnimalDTO animal,
         List<OfferConfigurationDTO> offerConfigurations,
-        List<String> animalAmenities
+        List<String> animalAmenities,
+        List<AvailabilityRangeDTO> availabilities
 ) {
 }

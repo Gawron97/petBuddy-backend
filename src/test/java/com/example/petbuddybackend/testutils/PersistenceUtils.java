@@ -106,14 +106,13 @@ public class PersistenceUtils {
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
                                         BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
-        Offer offer = createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
+        Offer offer = addComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
         return offerRepository.save(offer);
     }
 
-    public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
-                                        BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository,
-                                        Offer offer) {
-        Offer offerToSave = createComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities, offer);
+    public static Offer addConfigurationAndAmenitiesForOffer(Offer offer, List<AnimalAttribute> animalAttributes, BigDecimal price,
+                                                             List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
+        Offer offerToSave = addConfigurationAndAmenitiesForMockOffer(offer, animalAttributes, price, animalAmenities);
         return offerRepository.save(offerToSave);
     }
 
@@ -229,4 +228,9 @@ public class PersistenceUtils {
         return ratingRepository.save(rating);
     }
 
+    public static void addAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer) {
+
+        Offer offer = addMockAvailabilitiesToOffer(existingOffer);
+        offerRepository.save(offer);
+    }
 }

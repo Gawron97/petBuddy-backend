@@ -127,25 +127,26 @@ public class CaretakerServiceTest {
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
-                offerRepository);
+                offerRepository
+        );
 
-        PersistenceUtils.addComplexOffer(
-                caretakerWithComplexOffer,
-                animalRepository.findById("DOG").orElseThrow(),
+        PersistenceUtils.addConfigurationAndAmenitiesForOffer(
+                caretakerWithComplexOffer.getOffers().get(0),
                 Arrays.asList(
                         animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
                                 "DOG", "SIZE", "SMALL").orElseThrow()
                 ),
                 BigDecimal.valueOf(90.0),
                 List.of(),
-                offerRepository,
-                caretakerWithComplexOffer.getOffers().get(0));
+                offerRepository
+        );
 
         Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters);
 
         assertEquals(expectedSize, resultPage.getContent().size());
 
-        Offer offerToDelete = offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerWithComplexOffer.getEmail(), "DOG").orElseThrow();
+        Offer offerToDelete = offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerWithComplexOffer.getEmail(),
+                "DOG").orElseThrow();
         offerRepository.delete(offerToDelete);
         caretakerWithComplexOffer.setOffers(null);
         caretakerRepository.delete(caretakerWithComplexOffer);

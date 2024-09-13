@@ -5,6 +5,7 @@ import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.service.offer.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -48,9 +49,8 @@ public class OfferController {
     }
 
     @PostMapping("/set-availability")
-    public List<OfferDTO> setAvailabilityForOffers(@RequestBody CreateOffersAvailabilityDTO createOffersAvailability) {
+    public List<OfferDTO> setAvailabilityForOffers(@RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability) {
         return offerService.setAvailabilityForOffers(createOffersAvailability);
-
     }
 
 }
