@@ -15,24 +15,26 @@ import java.util.Optional;
 public final class HeaderUtils {
 
     public static final String NATIVE_HEADERS = "nativeHeaders";
+    public static final String SIMP_SESSION_ID = "simpSessionId";
+
     private static final String INVALID_TYPE_MESSAGE = "Header \"%s\" is not of type \"%s\"";
     private static final String NO_VALUE_MESSAGE = "Header \"%s\" has no value";
     private static final String MULTIPLE_VALUES_MESSAGE = "Header \"%s\" has multiple values";
     private static final String HEADERS_ARE_NOT_OF_TYPE_MAP_MESSAGE = "Headers are not of type Map";
 
     /**
-     * Extract first value of header from headers map
+     * Extract first value of header from native headers map
      * */
-    public static <T> T getHeaderSingleValue(Map<String, Object> headers, String headerName, Class<T> type) {
+    public static <T> T getNativeHeaderSingleValue(Map<String, Object> headers, String headerName, Class<T> type) {
         Map<String, Object> nativeHeaders = extractNativeHeaders(headers);
         checkHeaderExists(nativeHeaders, headerName);
         return extractSingleHeaderValue(nativeHeaders, headerName, type);
     }
 
     /**
-     * Extract first value of header from headers map
+     * Extract first value of header from native headers map
      * */
-    public static <T> Optional<T> getOptionalHeaderSingleValue(Map<String, Object> headers, String headerName, Class<T> type) {
+    public static <T> Optional<T> getOptionalNativeHeaderSingleValue(Map<String, Object> headers, String headerName, Class<T> type) {
         Map<String, Object> nativeHeaders = extractNativeHeaders(headers);
         if(!nativeHeaders.containsKey(headerName)) {
             return Optional.empty();
@@ -40,13 +42,13 @@ public final class HeaderUtils {
         return Optional.of(extractSingleHeaderValue(nativeHeaders, headerName, type));
     }
 
-    public static <T> T getHeaderSingleValue(StompHeaderAccessor accessor, String headerName, Class<T> type) {
-        return getOptionalHeaderSingleValue(accessor, headerName, type).orElseThrow(
+    public static <T> T getNativeHeaderSingleValue(StompHeaderAccessor accessor, String headerName, Class<T> type) {
+        return getOptionalNativeHeaderSingleValue(accessor, headerName, type).orElseThrow(
                 () -> new MissingWebSocketHeaderException(headerName)
         );
     }
 
-    public static <T> Optional<T> getOptionalHeaderSingleValue(StompHeaderAccessor accessor, String headerName, Class<T> type) {
+    public static <T> Optional<T> getOptionalNativeHeaderSingleValue(StompHeaderAccessor accessor, String headerName, Class<T> type) {
         String value = accessor.getFirstNativeHeader(headerName);
 
         if(value == null) {
@@ -54,6 +56,14 @@ public final class HeaderUtils {
         }
 
         return Optional.of(castToType(headerName, value, type));
+    }
+
+    public static String getSessionId(Map<String, Object> headers) {
+        if(!headers.containsKey(SIMP_SESSION_ID)) {
+            throw new MissingWebSocketHeaderException(SIMP_SESSION_ID);
+        }
+
+        return (String)headers.get(SIMP_SESSION_ID);
     }
 
     public static String getUser(StompHeaderAccessor accessor) {
@@ -75,6 +85,15 @@ public final class HeaderUtils {
         }
 
         throw new IndexOutOfBoundsException("Position pointing to out of bounds element");
+    }
+
+    public static boolean destinationStartsWith(String prefix, String destination) {
+        return destination != null && destination.startsWith(prefix);
+    }
+
+    public static boolean destinationStartsWith(String prefix, StompHeaderAccessor accessor) {
+        String destination = accessor.getDestination();
+        return destinationStartsWith(prefix, destination);
     }
 
     @SuppressWarnings("unchecked")

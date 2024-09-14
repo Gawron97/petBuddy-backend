@@ -12,20 +12,24 @@ import static org.mockito.Mockito.verify;
 
 public class ChatSessionContextTest {
 
-    private ChatSessionContext chatSessionContext;
+    private SessionContext chatSessionContext;
     private ContextCleanupCallback cleanupCallback;
 
     @BeforeEach
     void setUp() {
         cleanupCallback = Mockito.mock(ContextCleanupCallback.class);
-        chatSessionContext = new ChatSessionContext(1L, "testUser", cleanupCallback);
+        chatSessionContext = new SessionContext(1L, "testUser", cleanupCallback);
+        chatSessionContext.setSessionId("sessionId");
     }
 
     @Test
     void testSetContext_shouldSetParams() {
         chatSessionContext.setContext(2L, "newUser", cleanupCallback);
+        chatSessionContext.setSessionId("newSessionId");
+
         assertEquals(2L, chatSessionContext.getChatId());
         assertEquals("newUser", chatSessionContext.getUsername());
+        assertEquals("newSessionId", chatSessionContext.getSessionId());
         assertFalse(chatSessionContext.isEmpty());
     }
 
@@ -38,7 +42,7 @@ public class ChatSessionContextTest {
     @Test
     void testDestroy_shouldCallOnDestroy() {
         chatSessionContext.destroy();
-        verify(cleanupCallback).onDestroy(1L, "testUser");
+        verify(cleanupCallback).onDestroy(1L, "testUser", "sessionId");
     }
 
     @Test

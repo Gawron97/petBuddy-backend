@@ -56,3 +56,7 @@ url:
     topic:
       base: "/topic/messages"
       pattern: "/topic/messages/%d/%s"
+  session:
+    topic:
+      base: "/topic/session"
+      pattern: "/topic/session/%s"
