@@ -66,10 +66,8 @@ public class OfferService {
     private void setOfferConfigurations(OfferDTO offer, Offer modifiyngOffer) {
 
         if(CollectionUtil.isNotEmpty(offer.offerConfigurations())) {
-            List<OfferConfiguration> offerConfigurations = createConfigurationsForOffer(offer.offerConfigurations(), modifiyngOffer);
-            if(modifiyngOffer.getOfferConfigurations() == null) {
-                modifiyngOffer.setOfferConfigurations(new ArrayList<>());
-            }
+            List<OfferConfiguration> offerConfigurations = createAdditionalConfigurationsForOffer(offer.offerConfigurations(), modifiyngOffer);
+
             modifiyngOffer.getOfferConfigurations().addAll(offerConfigurations);
         }
 
@@ -78,16 +76,14 @@ public class OfferService {
     private void setOfferAnimalAmenities(OfferDTO offer, Offer modifiyngOffer) {
 
         if(CollectionUtil.isNotEmpty(offer.animalAmenities())) {
-            Set<AnimalAmenity> animalAmenities = createAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
-            if(modifiyngOffer.getAnimalAmenities() == null) {
-                modifiyngOffer.setAnimalAmenities(new HashSet<>());
-            }
+            Set<AnimalAmenity> animalAmenities = createAdditionalAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
+
             modifiyngOffer.getAnimalAmenities().addAll(animalAmenities);
         }
 
     }
 
-    private Set<AnimalAmenity> createAnimalAmenitiesForOffer(List<String> animalAmenities, Offer modifiyngOffer) {
+    private Set<AnimalAmenity> createAdditionalAnimalAmenitiesForOffer(List<String> animalAmenities, Offer modifiyngOffer) {
 
         List<AnimalAmenity> newAnimalAmenities = new ArrayList<>();
         for(String animalAmenity : animalAmenities) {
@@ -114,8 +110,8 @@ public class OfferService {
         }
     }
 
-    private List<OfferConfiguration> createConfigurationsForOffer(List<OfferConfigurationDTO> offerConfigurations,
-                                                                  Offer offer) {
+    private List<OfferConfiguration> createAdditionalConfigurationsForOffer(List<OfferConfigurationDTO> offerConfigurations,
+                                                                            Offer offer) {
         List<OfferConfiguration> newOfferConfigurations = new ArrayList<>();
         for(OfferConfigurationDTO offerConfiguration : offerConfigurations) {
             OfferConfiguration configuration = createConfiguration(offerConfiguration, offer);
@@ -201,9 +197,6 @@ public class OfferService {
                         .caretaker(caretaker)
                         .animal(animalService.getAnimal(animalType))
                         .description(description)
-                        .availabilities(new HashSet<>())
-                        .offerConfigurations(new ArrayList<>())
-                        .animalAmenities(new HashSet<>())
                         .build());
 
     }
@@ -286,13 +279,14 @@ public class OfferService {
         assertOfferIsModifyingByOwnerCaretaker(offerToModify, caretakerEmail);
         Set<Availability> availabilities = createAvailabilities(availabilityRanges, offerToModify);
 
-        if(offerToModify.getAvailabilities() == null) {
-            offerToModify.setAvailabilities(new HashSet<>());
-        }
-        removeAllAvailabilities(offerToModify.getAvailabilities());
-        offerToModify.getAvailabilities().addAll(availabilities);
+        replaceAvailabilitiesInOffer(offerToModify, availabilities);
 
         return offerToModify;
+    }
+
+    private void replaceAvailabilitiesInOffer(Offer offerToModify, Set<Availability> availabilities) {
+        removeAllAvailabilities(offerToModify.getAvailabilities());
+        offerToModify.getAvailabilities().addAll(availabilities);
     }
 
     private void removeAllAvailabilities(Set<Availability> availabilities) {

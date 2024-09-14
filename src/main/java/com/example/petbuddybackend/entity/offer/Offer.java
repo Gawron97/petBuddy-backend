@@ -7,13 +7,15 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @Entity
+@Builder
 @Table(
         uniqueConstraints = { @UniqueConstraint(columnNames = { "caretakerEmail", "animalType" }) }
 )
@@ -37,7 +39,8 @@ public class Offer {
 
     @OneToMany(mappedBy = "offer", fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    private List<OfferConfiguration> offerConfigurations;
+    @Builder.Default
+    private List<OfferConfiguration> offerConfigurations = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -45,11 +48,13 @@ public class Offer {
             joinColumns = @JoinColumn(name = "offerId"),
             inverseJoinColumns = @JoinColumn(name = "animalAmenityId")
     )
-    private Set<AnimalAmenity> animalAmenities;
+    @Builder.Default
+    private Set<AnimalAmenity> animalAmenities = new HashSet<>();
 
     @OneToMany(mappedBy = "offer", fetch = FetchType.LAZY,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    private Set<Availability> availabilities;
+    @Builder.Default
+    private Set<Availability> availabilities = new HashSet<>();
 
     @PrePersist
     public void prePersist() {

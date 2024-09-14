@@ -148,7 +148,6 @@ public final class MockOfferProvider {
                 .animal(animal)
                 .caretaker(caretaker)
                 .description("description")
-                .availabilities(new HashSet<>())
                 .build();
 
         if(CollectionUtil.isNotEmpty(animalAttributes)) {
