@@ -192,7 +192,7 @@ public class MockService {
         for(int i = 0; i < caretakerOfferConfigurationCount; i++) {
             offerConfigurations.add(createMockOfferConfiguration(offer));
         }
-        offer.setOfferConfigurations(offerConfigurations);
+        offer.getOfferConfigurations().addAll(offerConfigurations);
 
         return offerConfigurations;
 
@@ -257,7 +257,7 @@ public class MockService {
         for(AnimalAttribute animalAttribute : uniqueRandomAnimalAttributes) {
             offerOptions.add(createMockOfferConfigurationOption(offerConfiguration, animalAttribute));
         }
-        offerConfiguration.setOfferOptions(offerOptions);
+        offerConfiguration.getOfferOptions().addAll(offerOptions);
 
         return offerOptions;
 
@@ -323,7 +323,7 @@ public class MockService {
     private Offer createMockOfferAmenities(Offer offer, List<AnimalAmenity> animalAmenities, int animalAmenityCount) {
 
         Set<AnimalAmenity> uniqueRandomAnimalAmenities = getSomeRandomUniqueAnimalAmenities(animalAmenities, animalAmenityCount);
-        offer.setAnimalAmenities(uniqueRandomAnimalAmenities);
+        offer.getAnimalAmenities().addAll(uniqueRandomAnimalAmenities);
         return offer;
 
     }
@@ -426,7 +426,7 @@ public class MockService {
         Set<Availability> availabilities = new HashSet<>();
         for(Offer offer : offers) {
             Set<Availability> availabilitiesForOffer = createMockAvailabilitiesForOffer(offer);
-            offer.setAvailabilities(availabilitiesForOffer);
+            offer.getAvailabilities().addAll(availabilitiesForOffer);
             availabilities.addAll(availabilitiesForOffer);
         }
         return availabilities;
