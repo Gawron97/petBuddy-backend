@@ -9,4 +9,8 @@ public record OfferConfigurationFilterDTO(
         BigDecimal minPrice,
         BigDecimal maxPrice
 ) {
+    public OfferConfigurationFilterDTO {
+        minPrice = (minPrice != null) ? minPrice : BigDecimal.ZERO;
+        maxPrice = (maxPrice != null) ? maxPrice : BigDecimal.valueOf(Double.MAX_VALUE);
+    }
 }

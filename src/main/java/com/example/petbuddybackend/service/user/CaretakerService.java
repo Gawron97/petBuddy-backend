@@ -91,6 +91,10 @@ public class CaretakerService {
             return false;
         }
 
+        if(offerFilter.offerConfigurations() == null || offerFilter.offerConfigurations().isEmpty()) {
+            return true;
+        }
+
         return isConfigurationsMatching(matchingOffer.getOfferConfigurations(), offerFilter.offerConfigurations());
 
     }
@@ -112,15 +116,21 @@ public class CaretakerService {
 
     private boolean isConfigurationMatching(OfferConfiguration offerConfiguration, OfferConfigurationFilterDTO offerConfigurationFilter) {
 
+        boolean matchingConfigurationPrice = isPriceInConfigurationMatch(
+                offerConfigurationFilter.minPrice(),
+                offerConfigurationFilter.maxPrice(),
+                offerConfiguration.getDailyPrice()
+        );
+
+        if(offerConfigurationFilter.attributes() == null || offerConfigurationFilter.attributes().isEmpty()) {
+            return matchingConfigurationPrice;
+        }
+
         Map<String, List<String>> attributesInOffer = getAttributesOfOffer(offerConfiguration.getOfferOptions());
         Map<String, List<String>> requiredAttributes = offerConfigurationFilter.attributes();
 
         return isAnimalAttributesInConfigurationMatch(attributesInOffer, requiredAttributes) &&
-                isPriceInConfigurationMatch(
-                        offerConfigurationFilter.minPrice(),
-                        offerConfigurationFilter.maxPrice(),
-                        offerConfiguration.getDailyPrice()
-                );
+                matchingConfigurationPrice;
 
     }
 
