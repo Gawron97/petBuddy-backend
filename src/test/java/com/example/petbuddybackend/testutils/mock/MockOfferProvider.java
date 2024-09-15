@@ -3,6 +3,7 @@ package com.example.petbuddybackend.testutils.mock;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
@@ -11,6 +12,7 @@ import lombok.NoArgsConstructor;
 import org.keycloak.common.util.CollectionUtil;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -93,7 +95,7 @@ public final class MockOfferProvider {
         return offerConfiguration;
     }
 
-    public static void createComplexMockOfferForCaretaker(Caretaker caretaker) {
+    public static void editComplexMockOfferForCaretaker(Caretaker caretaker) {
         Animal dog = MockAnimalProvider.createMockAnimal("DOG");
 
         AnimalAttribute dogAttribute = MockAnimalProvider.createAnimalAttribute("SIZE", "BIG", dog);
@@ -136,11 +138,11 @@ public final class MockOfferProvider {
                 .build();
     }
 
-    public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
-                                                           Animal animal,
-                                                           List<AnimalAttribute> animalAttributes,
-                                                           BigDecimal price,
-                                                           List<AnimalAmenity> animalAmenities) {
+    public static Offer addComplexMockOfferForCaretaker(Caretaker caretaker,
+                                                        Animal animal,
+                                                        List<AnimalAttribute> animalAttributes,
+                                                        BigDecimal price,
+                                                        List<AnimalAmenity> animalAmenities) {
 
         Offer offer = Offer.builder()
                 .animal(animal)
@@ -174,12 +176,10 @@ public final class MockOfferProvider {
 
     }
 
-    public static Offer createComplexMockOfferForCaretaker(Caretaker caretaker,
-                                                           Animal animal,
-                                                           List<AnimalAttribute> animalAttributes,
-                                                           BigDecimal price,
-                                                           List<AnimalAmenity> animalAmenities,
-                                                           Offer offer) {
+    public static Offer addConfigurationAndAmenitiesForMockOffer(Offer offer,
+                                                             List<AnimalAttribute> animalAttributes,
+                                                             BigDecimal price,
+                                                             List<AnimalAmenity> animalAmenities) {
 
 
         if(CollectionUtil.isNotEmpty(animalAttributes)) {
@@ -202,8 +202,31 @@ public final class MockOfferProvider {
             }
         }
 
-        caretaker.setOffers(new ArrayList<>(List.of(offer)));
+        return offer;
+    }
+
+    public static Offer addMockAvailabilitiesToOffer(Offer offer) {
+
+        List<Availability> availabilities = List.of(
+                createMockAvailability(offer, ZonedDateTime.now().plusDays(1), ZonedDateTime.now().plusDays(2)),
+                createMockAvailability(offer, ZonedDateTime.now().plusDays(5), ZonedDateTime.now().plusDays(10))
+        );
+        if(CollectionUtil.isNotEmpty(offer.getAvailabilities())) {
+            offer.getAvailabilities().clear();
+            offer.getAvailabilities().addAll(availabilities);
+        } else {
+            offer.setAvailabilities(new HashSet<>(availabilities));
+        }
 
         return offer;
     }
+
+    public static Availability createMockAvailability(Offer offer, ZonedDateTime availableFrom, ZonedDateTime availableTo) {
+        return Availability.builder()
+                .offer(offer)
+                .availableFrom(availableFrom)
+                .availableTo(availableTo)
+                .build();
+    }
+
 }

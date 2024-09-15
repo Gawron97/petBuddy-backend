@@ -1,12 +1,11 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.service.offer.OfferService;
-import com.example.petbuddybackend.service.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +40,23 @@ public class OfferControllerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
+    private static final String CREATE_OFFERS_AVAILABILITY_BODY = """
+        {
+            "offerIds": [%s],
+            "availabilityRanges": [
+                {
+                    "availableFrom": "%s",
+                    "availableTo": "%s"
+                },
+                {
+                    "availableFrom": "%s",
+                    "availableTo": "%s"
+                }
+            ]
+        }
+        """;
+
 
     @Test
     @WithMockUser
@@ -98,4 +116,41 @@ public class OfferControllerTest {
 
         verify(offerService, times(1)).deleteConfiguration(anyLong());
     }
+
+    @Test
+    @WithMockUser
+    void setAvailabilityForOffers_ShouldReturnOfferWithSetAvailabilities() throws Exception {
+
+        // Given
+        List<AvailabilityRangeDTO> availabilityRanges = List.of(
+                AvailabilityRangeDTO.builder()
+                        .availableFrom(ZonedDateTime.of(2027, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                        .availableTo(ZonedDateTime.of(2027, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                        .build(),
+                AvailabilityRangeDTO.builder()
+                        .availableFrom(ZonedDateTime.of(2027, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                        .availableTo(ZonedDateTime.of(2027, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
+                        .build()
+        );
+        OfferDTO offerDTO = OfferDTO.builder()
+                .availabilities(availabilityRanges)
+                .build();
+        when(offerService.setAvailabilityForOffers(any(), any())).thenReturn(List.of(offerDTO));
+
+        // When and Then
+        mockMvc.perform(post("/api/caretaker/offer/set-availability")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format(CREATE_OFFERS_AVAILABILITY_BODY,
+                                1,
+                                "2027-01-01 00:00:00.000 +0000",
+                                "2027-01-10 00:00:00.000 +0000",
+                                "2027-01-10 00:00:00.000 +0000",
+                                "2027-01-20 00:00:00.000 +0000"
+                        )))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].availabilities").isArray())
+                .andExpect(jsonPath("$[0].availabilities").exists());
+
+    }
+
 }

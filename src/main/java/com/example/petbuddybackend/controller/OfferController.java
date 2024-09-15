@@ -1,14 +1,17 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.service.offer.OfferService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,8 +22,11 @@ public class OfferController {
 
     @Operation(
             summary = "Add or edit offer",
-            description = "Add offer if it does not exists, also can edit offer if it exists by changing offer data" +
-                    " and adding new configurations. It Cannot edit configurations of existing offer."
+            description = "Add offer if it does not exists," +
+                    " also can edit offer if it exists. Editing only support adding new configurations or amenities" +
+                    " when provide amenity or configuration that already exists throws error" +
+                    " For editing or removing configuration use /configuration/{configurationId}/edit" +
+                    " or /configuration/{configurationId}/delete endpoints."
     )
     @PostMapping("/add-or-edit")
     @PreAuthorize("isAuthenticated()")
@@ -30,7 +36,10 @@ public class OfferController {
 
     @Operation(
             summary = "Edit offer configuration",
-            description = "Edits offer configuration by changing configuration data and selected options."
+            description = "Edits offer configuration by changing configuration data and selected options." +
+                    " After editing in configuration exists only provided options. So if option not provided but" +
+                    " exists in configuration, it will be removed. If option provided but not exists in configuration," +
+                    " it will be added"
     )
     @PostMapping("/configuration/{configurationId}/edit")
     @PreAuthorize("isAuthenticated()")
@@ -43,6 +52,18 @@ public class OfferController {
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteConfiguration(@PathVariable Long configurationId) {
         return offerService.deleteConfiguration(configurationId);
+    }
+
+    @Operation(
+            summary = "Set availability for offers",
+            description = "Set availability for offers. If there was availability set before, it will be replaced."
+    )
+    @PostMapping("/set-availability")
+    @PreAuthorize("isAuthenticated()")
+    public List<OfferDTO> setAvailabilityForOffers(
+            @RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability,
+            Principal principal) {
+        return offerService.setAvailabilityForOffers(createOffersAvailability, principal.getName());
     }
 
 }
