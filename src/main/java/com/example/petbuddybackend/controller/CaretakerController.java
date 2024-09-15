@@ -39,7 +39,7 @@ public class CaretakerController {
     public Page<CaretakerDTO> getCaretakers(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
-            @RequestBody List<OfferFilterDTO> offerFilters
+            @RequestBody @Valid List<OfferFilterDTO> offerFilters
             ) {
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters, offerFilters);
