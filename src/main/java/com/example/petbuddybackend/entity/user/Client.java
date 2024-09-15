@@ -4,6 +4,7 @@ import com.example.petbuddybackend.entity.rating.Rating;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -22,5 +23,6 @@ public class Client {
     private AppUser accountData;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "client", fetch = FetchType.LAZY)
-    private List<Rating> ratings;
+    @Builder.Default
+    private List<Rating> ratings = new ArrayList<>();
 }

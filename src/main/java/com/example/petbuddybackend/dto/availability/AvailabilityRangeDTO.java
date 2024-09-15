@@ -5,8 +5,8 @@ import com.example.petbuddybackend.utils.annotation.validation.DateRangeField;
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
-import lombok.ToString;
 
 import java.time.ZonedDateTime;
 
@@ -17,10 +17,12 @@ import java.time.ZonedDateTime;
 public record AvailabilityRangeDTO(
         @Future
         @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
+        @NotNull
         ZonedDateTime availableFrom,
 
         @Future
         @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
+        @NotNull
         ZonedDateTime availableTo
 ) {
         public boolean overlaps(AvailabilityRangeDTO availabilityRangeDTO) {

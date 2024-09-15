@@ -24,6 +24,7 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
+import com.example.petbuddybackend.utils.exception.throweable.offer.AvailabilityDatesOverlappingException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,10 +102,8 @@ public class OfferServiceIntegrationTest {
     }
 
     @AfterEach
+    @Transactional
     void tearDown() {
-        if(existingOffer != null) {
-            offerRepository.delete(existingOffer);
-        }
         caretakerRepository.delete(caretakerWithComplexOffer);
     }
 
@@ -117,6 +116,8 @@ public class OfferServiceIntegrationTest {
 
         if(!expectedToBeExistingOffer) {
             offerRepository.delete(existingOffer);
+            caretakerWithComplexOffer.getOffers().remove(existingOffer);
+            caretakerRepository.save(caretakerWithComplexOffer);
             existingOffer = null;
         }
 
@@ -507,7 +508,7 @@ public class OfferServiceIntegrationTest {
                 .availabilityRanges(availabilityRanges)
                 .build();
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(AvailabilityDatesOverlappingException.class,
                 () -> offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, caretakerWithComplexOffer.getEmail()));
 
     }

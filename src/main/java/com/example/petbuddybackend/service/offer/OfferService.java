@@ -20,6 +20,7 @@ import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
+import com.example.petbuddybackend.utils.exception.throweable.offer.AvailabilityDatesOverlappingException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +64,59 @@ public class OfferService {
 
     }
 
+    @Transactional
+    public OfferDTO deleteConfiguration(Long configurationId) {
+
+        OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
+        Offer offer = offerConfiguration.getOffer();
+        offer.getOfferConfigurations().remove(offerConfiguration);
+        return offerMapper.mapToOfferDTO(offerRepository.save(offer));
+
+    }
+
+    @Transactional
+    public OfferConfigurationDTO editConfiguration(Long configurationId, OfferConfigurationDTO configuration) {
+
+        OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
+
+        List<OfferConfiguration> restOfferConfigurations = offerConfiguration.getOffer().getOfferConfigurations().stream()
+                .filter(restOfferConfiguration -> !restOfferConfiguration.getId().equals(offerConfiguration.getId()))
+                .toList();
+
+        offerConfiguration.setDescription(configuration.description());
+        offerConfiguration.setDailyPrice(configuration.dailyPrice());
+        editConfigurationSelectedOptions(offerConfiguration, configuration);
+        checkForDuplicateConfiguration(restOfferConfigurations, offerConfiguration);
+        return offerConfigurationMapper.mapToOfferConfigurationDTO(offerConfigurationRepository.save(offerConfiguration));
+    }
+
+    @Transactional
+    public List<OfferDTO> setAvailabilityForOffers(CreateOffersAvailabilityDTO createOffersAvailability,
+                                                   String caretakerEmail) {
+
+        assertAvailabilityRangesNotOverlapping(createOffersAvailability.availabilityRanges());
+        List<Offer> modifiedOffers = createOffersAvailability.offerIds()
+                .stream()
+                .map(offerId -> setAvailabilityForOffer(offerId, createOffersAvailability.availabilityRanges(), caretakerEmail))
+                .toList();
+
+        return offerRepository.saveAll(modifiedOffers)
+                .stream()
+                .map(offerMapper::mapToOfferDTO)
+                .toList();
+    }
+
+    private Offer getOrCreateOffer(String caretakerEmail, String animalType, Caretaker caretaker,
+                                   String description) {
+        return offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerEmail, animalType)
+                .orElse(Offer.builder()
+                        .caretaker(caretaker)
+                        .animal(animalService.getAnimal(animalType))
+                        .description(description)
+                        .build());
+
+    }
+
     private void setOfferConfigurations(OfferDTO offer, Offer modifiyngOffer) {
 
         if(CollectionUtil.isNotEmpty(offer.offerConfigurations())) {
@@ -71,43 +125,6 @@ public class OfferService {
             modifiyngOffer.getOfferConfigurations().addAll(offerConfigurations);
         }
 
-    }
-
-    private void setOfferAnimalAmenities(OfferDTO offer, Offer modifiyngOffer) {
-
-        if(CollectionUtil.isNotEmpty(offer.animalAmenities())) {
-            Set<AnimalAmenity> animalAmenities = createAdditionalAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
-
-            modifiyngOffer.getAnimalAmenities().addAll(animalAmenities);
-        }
-
-    }
-
-    private Set<AnimalAmenity> createAdditionalAnimalAmenitiesForOffer(List<String> animalAmenities, Offer modifiyngOffer) {
-
-        List<AnimalAmenity> newAnimalAmenities = new ArrayList<>();
-        for(String animalAmenity : animalAmenities) {
-            AnimalAmenity newAnimalAmenity = animalService.getAnimalAmenity(animalAmenity, modifiyngOffer.getAnimal().getAnimalType());
-            checkDuplicateForAnimalAmenity(
-                    Stream.concat(
-                            Optional.ofNullable(modifiyngOffer.getAnimalAmenities()).orElse(Collections.emptySet()).stream(),
-                            newAnimalAmenities.stream()
-                    ).toList(), newAnimalAmenity
-            );
-            newAnimalAmenities.add(newAnimalAmenity);
-        }
-
-        return new HashSet<>(newAnimalAmenities);
-
-    }
-
-    private void checkDuplicateForAnimalAmenity(List<AnimalAmenity> oldAnimalAmenities, AnimalAmenity animalAmenity) {
-        if(oldAnimalAmenities.stream().anyMatch(oldAnimalAmenity -> oldAnimalAmenity.equals(animalAmenity))) {
-            throw new AnimalAmenityDuplicatedInOfferException(MessageFormat.format(
-                    "Animal amenity with name {0} already exists in offer",
-                    animalAmenity.getAmenity().getName()
-            ));
-        }
     }
 
     private List<OfferConfiguration> createAdditionalConfigurationsForOffer(List<OfferConfigurationDTO> offerConfigurations,
@@ -130,12 +147,12 @@ public class OfferService {
 
         List<List<AnimalAttribute>> animalAttributesLists =
                 oldConfigurations.stream()
-                .map(OfferConfiguration::getOfferOptions)
-                .map(offerOptions -> offerOptions.stream()
-                        .map(OfferOption::getAnimalAttribute)
-                        .sorted(Comparator.comparingLong(AnimalAttribute::getId))
-                        .collect(Collectors.toList()))
-                .toList();
+                        .map(OfferConfiguration::getOfferOptions)
+                        .map(offerOptions -> offerOptions.stream()
+                                .map(OfferOption::getAnimalAttribute)
+                                .sorted(Comparator.comparingLong(AnimalAttribute::getId))
+                                .collect(Collectors.toList()))
+                        .toList();
 
         List<AnimalAttribute> newAnimalAttributes = configuration.getOfferOptions().stream()
                 .map(OfferOption::getAnimalAttribute)
@@ -144,11 +161,11 @@ public class OfferService {
 
         if(animalAttributesLists.stream().anyMatch(animalAttributes -> animalAttributes.equals(newAnimalAttributes))) {
             throw new OfferConfigurationDuplicatedException(MessageFormat.format(
-                            "Offer configuration with animal attributes {0} already exists",
-                            newAnimalAttributes.stream()
-                                    .map(AnimalAttribute::toString)
-                                    .collect(Collectors.joining(", "))
-                    ));
+                    "Offer configuration with animal attributes {0} already exists",
+                    newAnimalAttributes.stream()
+                            .map(AnimalAttribute::toString)
+                            .collect(Collectors.joining(", "))
+            ));
         }
 
     }
@@ -190,51 +207,46 @@ public class OfferService {
                 .build();
     }
 
-    private Offer getOrCreateOffer(String caretakerEmail, String animalType, Caretaker caretaker,
-                                   String description) {
-        return offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerEmail, animalType)
-                .orElse(Offer.builder()
-                        .caretaker(caretaker)
-                        .animal(animalService.getAnimal(animalType))
-                        .description(description)
-                        .build());
+    private void setOfferAnimalAmenities(OfferDTO offer, Offer modifiyngOffer) {
+
+        if(CollectionUtil.isNotEmpty(offer.animalAmenities())) {
+            Set<AnimalAmenity> animalAmenities = createAdditionalAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
+
+            modifiyngOffer.getAnimalAmenities().addAll(animalAmenities);
+        }
 
     }
 
-    private Offer getOffer(Long offerId) {
-        return offerRepository.findById(offerId)
-                .orElseThrow(() -> new NotFoundException("Offer with id " + offerId + " not found"));
+    private Set<AnimalAmenity> createAdditionalAnimalAmenitiesForOffer(List<String> animalAmenities, Offer modifiyngOffer) {
+
+        List<AnimalAmenity> newAnimalAmenities = new ArrayList<>();
+        for(String animalAmenity : animalAmenities) {
+            AnimalAmenity newAnimalAmenity = animalService.getAnimalAmenity(animalAmenity, modifiyngOffer.getAnimal().getAnimalType());
+            checkDuplicateForAnimalAmenity(
+                    Stream.concat(
+                            Optional.ofNullable(modifiyngOffer.getAnimalAmenities()).orElse(Collections.emptySet()).stream(),
+                            newAnimalAmenities.stream()
+                    ).toList(), newAnimalAmenity
+            );
+            newAnimalAmenities.add(newAnimalAmenity);
+        }
+
+        return new HashSet<>(newAnimalAmenities);
+
+    }
+
+    private void checkDuplicateForAnimalAmenity(List<AnimalAmenity> oldAnimalAmenities, AnimalAmenity animalAmenity) {
+        if(oldAnimalAmenities.stream().anyMatch(oldAnimalAmenity -> oldAnimalAmenity.equals(animalAmenity))) {
+            throw new AnimalAmenityDuplicatedInOfferException(MessageFormat.format(
+                    "Animal amenity with name {0} already exists in offer",
+                    animalAmenity.getAmenity().getName()
+            ));
+        }
     }
 
     private OfferConfiguration getOfferConfiguration(Long id) {
         return offerConfigurationRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Offer configuration with id " + id + " not found"));
-    }
-
-    @Transactional
-    public OfferDTO deleteConfiguration(Long configurationId) {
-
-        OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
-        Offer offer = offerConfiguration.getOffer();
-        offer.getOfferConfigurations().remove(offerConfiguration);
-        return offerMapper.mapToOfferDTO(offerRepository.save(offer));
-
-    }
-
-    @Transactional
-    public OfferConfigurationDTO editConfiguration(Long configurationId, OfferConfigurationDTO configuration) {
-
-        OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
-
-        List<OfferConfiguration> restOfferConfigurations = offerConfiguration.getOffer().getOfferConfigurations().stream()
-                .filter(restOfferConfiguration -> !restOfferConfiguration.getId().equals(offerConfiguration.getId()))
-                .toList();
-
-        offerConfiguration.setDescription(configuration.description());
-        offerConfiguration.setDailyPrice(configuration.dailyPrice());
-        editConfigurationSelectedOptions(offerConfiguration, configuration);
-        checkForDuplicateConfiguration(restOfferConfigurations, offerConfiguration);
-        return offerConfigurationMapper.mapToOfferConfigurationDTO(offerConfigurationRepository.save(offerConfiguration));
     }
 
     private void editConfigurationSelectedOptions(OfferConfiguration editingConfiguration, OfferConfigurationDTO configuration) {
@@ -257,22 +269,6 @@ public class OfferService {
         }
     }
 
-    @Transactional
-    public List<OfferDTO> setAvailabilityForOffers(CreateOffersAvailabilityDTO createOffersAvailability,
-                                                   String caretakerEmail) {
-
-        assertAvailabilityRangesNotOverlapping(createOffersAvailability.availabilityRanges());
-        List<Offer> modifiedOffers = createOffersAvailability.offerIds()
-                .stream()
-                .map(offerId -> setAvailabilityForOffer(offerId, createOffersAvailability.availabilityRanges(), caretakerEmail))
-                .toList();
-
-        return offerRepository.saveAll(modifiedOffers)
-                .stream()
-                .map(offerMapper::mapToOfferDTO)
-                .toList();
-    }
-
     private Offer setAvailabilityForOffer(Long offerId, List<AvailabilityRangeDTO> availabilityRanges, String caretakerEmail) {
 
         Offer offerToModify = getOffer(offerId);
@@ -282,6 +278,11 @@ public class OfferService {
         replaceAvailabilitiesInOffer(offerToModify, availabilities);
 
         return offerToModify;
+    }
+
+    private Offer getOffer(Long offerId) {
+        return offerRepository.findById(offerId)
+                .orElseThrow(() -> new NotFoundException("Offer with id " + offerId + " not found"));
     }
 
     private void replaceAvailabilitiesInOffer(Offer offerToModify, Set<Availability> availabilities) {
@@ -323,17 +324,21 @@ public class OfferService {
     }
 
     private void assertAvailabilityRangesNotOverlapping(List<AvailabilityRangeDTO> availabilityRanges) {
-        for(int i = 0; i < availabilityRanges.size(); i++) {
-            for(int j = i + 1; j < availabilityRanges.size(); j++) {
-                if(availabilityRanges.get(i).overlaps(availabilityRanges.get(j))) {
-                    throw new IllegalArgumentException(
+        List<AvailabilityRangeDTO> sortedRanges = new ArrayList<>(availabilityRanges);
+        sortedRanges.sort(Comparator.comparing(AvailabilityRangeDTO::availableFrom));
+
+        for(int i = 1; i < availabilityRanges.size(); i++) {
+            AvailabilityRangeDTO previous = availabilityRanges.get(i - 1);
+            AvailabilityRangeDTO current = availabilityRanges.get(i);
+
+            if (previous.overlaps(current)) {
+                throw new AvailabilityDatesOverlappingException(
                         MessageFormat.format(
-                            "Availability range {0} overlaps with availability range {1}",
-                            availabilityRanges.get(i).toString(),
-                            availabilityRanges.get(j).toString()
+                                "Availability range {0} overlaps with availability range {1}",
+                                previous.toString(),
+                                current.toString()
                         )
-                    );
-                }
+                );
             }
         }
     }

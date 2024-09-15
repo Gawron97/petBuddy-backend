@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Formula;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -39,10 +40,12 @@ public class Caretaker {
     private Float avgRating;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "caretaker", fetch = FetchType.LAZY)
-    private List<Rating> ratings;
+    @Builder.Default
+    private List<Rating> ratings = new ArrayList<>();
 
-    @OneToMany(mappedBy = "caretaker", fetch = FetchType.LAZY)
-    private List<Offer> offers;
+    @OneToMany(mappedBy = "caretaker", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Offer> offers = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
     private Address address;

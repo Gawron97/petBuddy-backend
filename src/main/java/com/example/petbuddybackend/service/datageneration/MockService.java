@@ -146,7 +146,7 @@ public class MockService {
         List<Animal> uniqueRandomAnimals = getSomeRandomUniqueAnimals(animals, caretakerOfferCount);
 
         uniqueRandomAnimals.forEach(animal -> offers.add(createCaretakerOffer(caretaker, animal)));
-        caretaker.setOffers(offers);
+        caretaker.getOffers().addAll(offers);
         return offers;
 
     }

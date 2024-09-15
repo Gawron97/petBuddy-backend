@@ -24,6 +24,7 @@ public final class OfferSpecificationUtils {
     public static final String ANIMAl_AMENITIES = "animalAmenities";
     public static final String AMENITY = "amenity";
     public static final String AMENITY_NAME = "name";
+    public static final String OFFER = "offer";
     public static final String OFFER_CONFIGURATIONS = "offerConfigurations";
     public static final String OFFER_OPTIONS = "offerOptions";
     public static final String ANIMAL_ATTRIBUTE = "animalAttribute";

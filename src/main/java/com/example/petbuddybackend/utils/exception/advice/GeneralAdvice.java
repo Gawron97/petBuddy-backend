@@ -138,10 +138,4 @@ public class GeneralAdvice {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleIllegalArgumentException(IllegalArgumentException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
 }
