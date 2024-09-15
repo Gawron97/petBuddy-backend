@@ -1,10 +1,10 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
-import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
+import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
+import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
@@ -25,6 +25,7 @@ import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
@@ -50,11 +51,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
-import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 
@@ -106,22 +108,18 @@ public class CaretakerServiceTest {
         appUserRepository.deleteAll();
     }
 
-    @ParameterizedTest
-    @MethodSource("provideSpecificationParams")
-    void getCaretakersWithFiltering_shouldReturnFilteredResults(
-            CaretakerSearchCriteria filters,
-            int expectedSize
-    ) {
+    private void createCaretakersWithComplexOffers() {
+        // Opiekun 1
+        Caretaker caretaker1 = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository,
+                createMockCaretaker("John", "Doe", "john.doe@example.com", createMockAddress()));
 
-        Caretaker caretakerWithComplexOffer = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
+        // Oferta 1 dla Opiekuna 1 - DOG, SIZE: BIG, SEX: MALE, cena 10.0, udogodnienia: toys
         PersistenceUtils.addComplexOffer(
-                caretakerWithComplexOffer,
+                caretaker1,
                 animalRepository.findById("DOG").orElseThrow(),
                 Arrays.asList(
-                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
-                                "DOG", "SIZE", "BIG").orElseThrow(),
-                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
-                                "DOG", "SEX", "MALE").orElseThrow()
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("DOG", "SIZE", "BIG").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("DOG", "SEX", "MALE").orElseThrow()
                 ),
                 BigDecimal.valueOf(10.0),
                 Arrays.asList(
@@ -130,28 +128,516 @@ public class CaretakerServiceTest {
                 offerRepository
         );
 
-        PersistenceUtils.addConfigurationAndAmenitiesForOffer(
-                caretakerWithComplexOffer.getOffers().get(0),
+        // Oferta 2 dla Opiekuna 1 - CAT, SIZE: BIG, cena 30.0, bez udogodnień
+        PersistenceUtils.addComplexOffer(
+                caretaker1,
+                animalRepository.findById("CAT").orElseThrow(),
                 Arrays.asList(
-                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
-                                "DOG", "SIZE", "SMALL").orElseThrow()
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("CAT", "SIZE", "BIG").orElseThrow()
                 ),
-                BigDecimal.valueOf(90.0),
-                List.of(),
+                BigDecimal.valueOf(30.0),
+                Arrays.asList(),
                 offerRepository
         );
 
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters);
+        // Opiekun 2
+        Caretaker caretaker2 = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository,
+                createMockCaretaker("Jane", "Smith", "jane.smith@example.com", createMockAddress()));
 
+        // Oferta 1 dla Opiekuna 2 - DOG, SIZE: SMALL, cena 20.0, bez udogodnień
+        PersistenceUtils.addComplexOffer(
+                caretaker2,
+                animalRepository.findById("DOG").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("DOG", "SIZE", "SMALL").orElseThrow()
+                ),
+                BigDecimal.valueOf(20.0),
+                Arrays.asList(),
+                offerRepository
+        );
+
+        // Oferta 2 dla Opiekuna 2 - BIRD, SIZE: SMALL, cena 15.0, bez udogodnień
+        PersistenceUtils.addComplexOffer(
+                caretaker2,
+                animalRepository.findById("BIRD").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("BIRD", "SIZE", "SMALL").orElseThrow()
+                ),
+                BigDecimal.valueOf(15.0),
+                Arrays.asList(),
+                offerRepository
+        );
+
+        // Opiekun 3
+        Caretaker caretaker3 = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository,
+                createMockCaretaker("Alice", "Brown", "alice.brown@example.com", createMockAddress()));
+
+        // Oferta 1 dla Opiekuna 3 - FISH, AQUARIUM: YES, SEX: MALE, cena 12.0, bez udogodnień
+        PersistenceUtils.addComplexOffer(
+                caretaker3,
+                animalRepository.findById("FISH").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("FISH", "AQUARIUM", "YES").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("FISH", "SEX", "MALE").orElseThrow()
+                ),
+                BigDecimal.valueOf(12.0),
+                Arrays.asList(),
+                offerRepository
+        );
+
+        // Oferta 2 dla Opiekuna 3 - REPTILE, DANGEROUS: NO, SEX: SHE, cena 40.0, bez udogodnień
+        PersistenceUtils.addComplexOffer(
+                caretaker3,
+                animalRepository.findById("REPTILE").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("REPTILE", "DANGEROUS", "NO").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("REPTILE", "SEX", "SHE").orElseThrow()
+                ),
+                BigDecimal.valueOf(40.0),
+                Arrays.asList(),
+                offerRepository
+        );
+
+        // Opiekun 4
+        Caretaker caretaker4 = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository,
+                createMockCaretaker("Bob", "Johnson", "bob.johnson@example.com", createMockAddress()));
+
+        // Oferta 1 dla Opiekuna 4 - HORSE, SIZE: BIG, SEX: MALE, cena 50.0, bez udogodnień
+        PersistenceUtils.addComplexOffer(
+                caretaker4,
+                animalRepository.findById("HORSE").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("HORSE", "SIZE", "BIG").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("HORSE", "SEX", "MALE").orElseThrow()
+                ),
+                BigDecimal.valueOf(50.0),
+                Arrays.asList(),
+                offerRepository
+        );
+
+        // Oferta 2 dla Opiekuna 4 - CAT, SEX: SHE, cena 18.0, udogodnienia: scratching post
+        PersistenceUtils.addComplexOffer(
+                caretaker4,
+                animalRepository.findById("CAT").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("CAT", "SEX", "SHE").orElseThrow()
+                ),
+                BigDecimal.valueOf(18.0),
+                Arrays.asList(
+                        animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("scratching post", "CAT").orElseThrow()
+                ),
+                offerRepository
+        );
+
+        // Opiekun 5
+        Caretaker caretaker5 = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository,
+                createMockCaretaker("Charlie", "Lee", "charlie.lee@example.com", createMockAddress()));
+
+        // Oferta 1 dla Opiekuna 5 - DOG, SIZE: BIG, SEX: MALE, cena 35.0, udogodnienia: toys
+        PersistenceUtils.addComplexOffer(
+                caretaker5,
+                animalRepository.findById("DOG").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("DOG", "SIZE", "BIG").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("DOG", "SIZE", "SMALL").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("DOG", "SEX", "MALE").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("DOG", "SEX", "SHE").orElseThrow()
+                ),
+                BigDecimal.valueOf(35.0),
+                Arrays.asList(
+                        animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
+                ),
+                offerRepository
+        );
+
+        // Opiekun 6
+        Caretaker caretaker6 = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository,
+                createMockCaretaker("Emily", "Davis", "emily.davis@example.com", createMockAddress()));
+
+        // Oferta 1 dla Opiekuna 6 - FISH, AQUARIUM: NO, SEX: SHE, cena 8.0, bez udogodnień
+        PersistenceUtils.addComplexOffer(
+                caretaker6,
+                animalRepository.findById("FISH").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("FISH", "AQUARIUM", "NO").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("FISH", "SEX", "SHE").orElseThrow()
+                ),
+                BigDecimal.valueOf(8.0),
+                Arrays.asList(),
+                offerRepository
+        );
+
+        // Oferta 2 dla Opiekuna 6 - BIRD, SIZE: BIG, SEX: MALE, cena 22.0, bez udogodnień
+        PersistenceUtils.addComplexOffer(
+                caretaker6,
+                animalRepository.findById("BIRD").orElseThrow(),
+                Arrays.asList(
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("BIRD", "SIZE", "BIG").orElseThrow(),
+                        animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue("BIRD", "SEX", "MALE").orElseThrow()
+                ),
+                BigDecimal.valueOf(22.0),
+                Arrays.asList(),
+                offerRepository
+        );
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("provideFilterParams")
+    void getCaretakersWithFiltering_shouldReturnFilteredResults(
+            CaretakerSearchCriteria filters,
+            List<OfferFilterDTO> offerFilters,
+            int expectedSize
+    ) {
+
+        appUserRepository.deleteAll();
+        createCaretakersWithComplexOffers();
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters, offerFilters);
         assertEquals(expectedSize, resultPage.getContent().size());
 
-        Offer offerToDelete = offerRepository.findByCaretaker_EmailAndAnimal_AnimalType(caretakerWithComplexOffer.getEmail(),
-                "DOG").orElseThrow();
-        offerRepository.delete(offerToDelete);
-        caretakerWithComplexOffer.setOffers(null);
-        caretakerRepository.delete(caretakerWithComplexOffer);
-
     }
+
+    private static Stream<Arguments> provideFilterParams() {
+        return Stream.of(
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(null)
+                                        .build()
+                        ),
+                        3 // Caretakers: John Doe, Jane Smith, Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(null)
+                                        .build(),
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(null)
+                                        .build()
+                        ),
+                        1 // Caretakers: John Doe
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(null)
+                                        .build()
+                        ),
+                        2 // Caretakers: John Doe, Bob Johnson
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("FISH")
+                                        .offerConfigurations(null)
+                                        .build()
+                        ),
+                        2 // Caretakers: Alice Brown, Emily Davis
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("SIZE", List.of("BIG")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        2 // Caretakers: John Doe, Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("SIZE", List.of("SMALL")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        2 // Caretakers: Jane Smith, Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of(
+                                                                "SIZE", List.of("BIG"),
+                                                                "SEX", List.of("MALE"))
+                                                        )
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        2 // Caretakers: John Doe, Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of(
+                                                                "SIZE", List.of("SMALL"),
+                                                                "SEX", List.of("SHE"))
+                                                        )
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        2 // Caretakers: Jane Smith, Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("FISH")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("AQUARIUM", List.of("YES")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: Alice Brown
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("FISH")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("AQUARIUM", List.of("NO")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: Emily Davis
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(null)
+                                                        .minPrice(BigDecimal.valueOf(10.0))
+                                                        .maxPrice(BigDecimal.valueOf(20.0))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        2 // Caretakers: John Doe, Jane Smith
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("SIZE", List.of("BIG")))
+                                                        .minPrice(BigDecimal.valueOf(30.0))
+                                                        .maxPrice(BigDecimal.valueOf(40.0))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().personalDataLike("Doe").build(),
+                        null,
+                        1 // Caretaker: John Doe
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().personalDataLike("Smith").build(),
+                        null,
+                        1 // Caretaker: Jane Smith
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("REPTILE")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("DANGEROUS", List.of("YES")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        0 // No caretakers offer REPTILE with DANGEROUS: YES
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("REPTILE")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("DANGEROUS", List.of("NO")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: Alice Brown
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("BIRD")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(null)
+                                                        .minPrice(BigDecimal.valueOf(10.0))
+                                                        .maxPrice(BigDecimal.valueOf(20.0))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: Jane Smith
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("BIRD")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(null)
+                                                        .minPrice(BigDecimal.valueOf(20.0))
+                                                        .maxPrice(BigDecimal.valueOf(25.0))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: Emily Davis
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("SEX", List.of("MALE")))
+                                                        .minPrice(null)
+                                                        .maxPrice(BigDecimal.valueOf(15.0))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: John Doe
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("SEX", List.of("MALE")))
+                                                        .minPrice(BigDecimal.valueOf(20.0))
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        2 // Caretaker: Charlie Lee, Jane Smith
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().personalDataLike("Brown").build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("FISH")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("AQUARIUM", List.of("YES")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: Alice Brown
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("BIRD")
+                                        .offerConfigurations(null)
+                                        .build()
+                        ),
+                        2 // Caretakers: Jane Smith, Emily Davis
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("SIZE", List.of("BIG")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build(),
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("SEX", List.of("SHE")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // Caretaker: John Doe
+                )
+        );
+    }
+
 
     @Test
     void getCaretakers_shouldReturnProperRatingNumberAndAverageRating() {
@@ -167,7 +653,8 @@ public class CaretakerServiceTest {
         Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10),
                 CaretakerSearchCriteria.builder()
                         .personalDataLike("John Doe")
-                        .build());
+                        .build(),
+                null);
         CaretakerDTO resultCaretaker = resultPage.getContent().get(0);
         assertEquals(2, resultCaretaker.numberOfRatings());
         assertEquals(4.5f, resultCaretaker.avgRating());
@@ -184,7 +671,8 @@ public class CaretakerServiceTest {
         for(String fieldName : fieldNames) {
             assertDoesNotThrow(() -> caretakerService.getCaretakers(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
-                    CaretakerSearchCriteria.builder().build()
+                    CaretakerSearchCriteria.builder().build(),
+                    null
             ));
         }
     }
@@ -357,64 +845,6 @@ public class CaretakerServiceTest {
 
         clientSameAsCaretaker = PersistenceUtils.addClient(appUserRepository, clientRepository, clientSameAsCaretaker);
     }
-
-    private static Stream<Arguments> provideSpecificationParams() {
-        return Stream.of(
-                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
-                        OfferSearchCriteria.builder()
-                                .animalTypes(Set.of("DOG"))
-                                .build()
-                ).build(), 3),
-                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
-                        OfferSearchCriteria.builder()
-                                .animalTypes(Set.of("CAT"))
-                                .build()
-                ).build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
-                        OfferSearchCriteria.builder()
-                                .animalTypes(Set.of("DOG", "CAT"))
-                                .build()
-                ).build(), 3),
-                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
-                        OfferSearchCriteria.builder()
-                                .animalTypes(Set.of("DOG", "CAT"))
-                                .amenities(Set.of("toys"))
-                                .build()
-                ).build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
-                        OfferSearchCriteria.builder()
-                                .animalTypes(Set.of("DOG", "CAT"))
-                                .minPrice(10.0)
-                                .maxPrice(10.0)
-                                .build()
-                ).build(), 3),
-                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
-                        OfferSearchCriteria.builder()
-                                .animalTypes(Set.of("DOG"))
-                                .animalAttributeIds(Set.of(1L))
-                                .minPrice(10.0)
-                                .maxPrice(10.0)
-                                .build()
-                ).build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().offerSearchCriteria(
-                        OfferSearchCriteria.builder()
-                                .animalTypes(Set.of("DOG"))
-                                .animalAttributeIds(Set.of(1L))
-                                .minPrice(80.0)
-                                .maxPrice(100.0)
-                                .build()
-                ).build(), 0),
-                Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("doe").build(), 2),
-                Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("testmail").build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("john   doe").build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().personalDataLike("doe  john   ").build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().personalDataLike(" ").build(), 4),
-                Arguments.of(CaretakerSearchCriteria.builder().build(), 4),
-                Arguments.of(CaretakerSearchCriteria.builder().voivodeship(Voivodeship.SLASKIE).build(), 1),
-                Arguments.of(CaretakerSearchCriteria.builder().cityLike("war").build(), 3)
-        );
-    }
-
 
     @Test
     @Transactional

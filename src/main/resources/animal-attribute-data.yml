@@ -50,11 +50,11 @@ animal-attribute-data:
 
     - animalType: FISH
       attributeName: AQUARIUM
-      attributeValue: YES
+      attributeValue: "YES"
 
     - animalType: FISH
       attributeName: AQUARIUM
-      attributeValue: NO
+      attributeValue: "NO"
 
     - animalType: FISH
       attributeName: SEX
@@ -66,11 +66,11 @@ animal-attribute-data:
 
     - animalType: REPTILE
       attributeName: DANGEROUS
-      attributeValue: YES
+      attributeValue: "YES"
 
     - animalType: REPTILE
       attributeName: DANGEROUS
-      attributeValue: NO
+      attributeValue: "NO"
 
     - animalType: REPTILE
       attributeName: SEX
