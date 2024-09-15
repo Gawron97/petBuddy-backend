@@ -47,10 +47,6 @@ public final class CaretakerSpecificationUtils {
             spec = spec.and(voivodeshipEquals(filters.voivodeship()));
         }
 
-        if(!ObjectUtils.isEmpty(filters.offerSearchCriteria())) {
-            spec = spec.and(offerSearchCriteria(filters.offerSearchCriteria()));
-        }
-
         return spec;
     }
 
@@ -84,25 +80,6 @@ public final class CaretakerSpecificationUtils {
     private static Specification<Caretaker> voivodeshipEquals(Voivodeship voivodeship) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get(ADDRESS).get(VOIVODESHIP), voivodeship);
-    }
-
-    private static Specification<Caretaker> offerSearchCriteria(OfferSearchCriteria filters) {
-        Specification<Offer> offerSpec = OfferSpecificationUtils.toSpecification(filters);
-
-        return (root, query, criteriaBuilder) -> {
-            Subquery<Offer> offerSubquery = query.subquery(Offer.class);
-            Root<Offer> offerRoot = offerSubquery.from(Offer.class);
-
-            offerSubquery.select(offerRoot);
-            offerSubquery.where(
-                    criteriaBuilder.and(
-                            criteriaBuilder.equal(offerRoot.get(CARETAKER), root),
-                            offerSpec.toPredicate(offerRoot, query, criteriaBuilder)
-                    )
-            );
-            return criteriaBuilder.exists(offerSubquery);
-        };
-
     }
 
 }

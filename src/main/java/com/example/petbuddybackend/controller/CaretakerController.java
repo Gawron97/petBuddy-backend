@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
@@ -20,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,17 +31,18 @@ public class CaretakerController {
     private final CaretakerService caretakerService;
 
     @SecurityRequirements
-    @GetMapping
+    @PostMapping
     @Operation(
             summary = "Get list of caretakers",
             description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters."
     )
     public Page<CaretakerDTO> getCaretakers(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
-            @ParameterObject @ModelAttribute CaretakerSearchCriteria filters
-    ) {
+            @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
+            @RequestBody List<OfferFilterDTO> offerFilters
+            ) {
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
-        return caretakerService.getCaretakers(pageable, filters);
+        return caretakerService.getCaretakers(pageable, filters, offerFilters);
     }
 
     @PostMapping("/add")

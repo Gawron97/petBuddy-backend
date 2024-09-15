@@ -22,12 +22,6 @@ public record CaretakerSearchCriteria(
                         "PODLASKIE", "POMORSKIE", "SLASKIE", "SWIETOKRZYSKIE", "WARMINSKO_MAZURSKIE",
                         "WIELKOPOLSKIE", "ZACHODNIOPOMORSKIE"
                 })
-        Voivodeship voivodeship,
-
-        @Schema(
-                description = "Offer criteria",
-                type = "class"
-        )
-        OfferSearchCriteria offerSearchCriteria
+        Voivodeship voivodeship
 ) {
 }
