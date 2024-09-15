@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter @Setter
@@ -29,6 +30,7 @@ public class OfferConfiguration {
 
     @OneToMany(mappedBy = "offerConfiguration", fetch = FetchType.EAGER,
             cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
-    private List<OfferOption> offerOptions;
+    @Builder.Default
+    private List<OfferOption> offerOptions = new ArrayList<>();
 
 }
