@@ -286,18 +286,9 @@ public class OfferService {
     }
 
     private void replaceAvailabilitiesInOffer(Offer offerToModify, Set<Availability> availabilities) {
-        removeAllAvailabilities(offerToModify.getAvailabilities());
-        offerToModify.getAvailabilities().addAll(availabilities);
-    }
-
-    private void removeAllAvailabilities(Set<Availability> availabilities) {
-
-        Set<Availability> copyOfAvailabilities = new HashSet<>(availabilities);
-
-        for(Availability availability : copyOfAvailabilities) {
-            availabilities.remove(availability);
-        }
-
+        Set<Availability> availabilitiesFromOffer = offerToModify.getAvailabilities();
+        availabilitiesFromOffer.clear();
+        availabilitiesFromOffer.addAll(availabilities);
     }
 
     private void assertOfferIsModifyingByOwnerCaretaker(Offer offerToModify, String caretakerEmail) {
