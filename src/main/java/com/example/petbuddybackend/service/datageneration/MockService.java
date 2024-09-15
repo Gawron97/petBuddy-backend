@@ -323,7 +323,7 @@ public class MockService {
     private Offer createMockOfferAmenities(Offer offer, List<AnimalAmenity> animalAmenities, int animalAmenityCount) {
 
         Set<AnimalAmenity> uniqueRandomAnimalAmenities = getSomeRandomUniqueAnimalAmenities(animalAmenities, animalAmenityCount);
-        offer.setAnimalAmenities(uniqueRandomAnimalAmenities);
+        offer.getAnimalAmenities().addAll(uniqueRandomAnimalAmenities);
         return offer;
 
     }
