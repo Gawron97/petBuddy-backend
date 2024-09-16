@@ -1,5 +1,8 @@
 package com.example.petbuddybackend.dto.offer;
 
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -9,7 +12,15 @@ import java.util.Map;
 @Builder
 public record OfferConfigurationFilterDTO(
         Map<String, List<String>> attributes,
+
+        @NotNull
+        @DecimalMin(value = "0.0", inclusive = false)
+        @Digits(integer = 5, fraction = 2)
         BigDecimal minPrice,
+
+        @NotNull
+        @DecimalMin(value = "0.0", inclusive = false)
+        @Digits(integer = 5, fraction = 2)
         BigDecimal maxPrice
 ) {
     public OfferConfigurationFilterDTO {

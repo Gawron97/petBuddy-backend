@@ -51,7 +51,7 @@ public class CaretakerService {
     public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters, List<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters);
 
-        if(offerFilters == null || offerFilters.isEmpty()) {
+        if(offerFilters.isEmpty()) {
             return caretakerRepository.findAll(spec, pageable)
                     .map(caretakerMapper::mapToCaretakerDTO);
         }
