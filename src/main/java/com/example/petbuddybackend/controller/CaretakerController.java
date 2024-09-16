@@ -31,7 +31,7 @@ public class CaretakerController {
     private final CaretakerService caretakerService;
 
     @SecurityRequirements
-    @PostMapping
+    @GetMapping
     @Operation(
             summary = "Get list of caretakers",
             description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters."
@@ -40,7 +40,7 @@ public class CaretakerController {
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
             @RequestBody(required = false) @Valid List<OfferFilterDTO> offerFilters
-            ) {
+    ) {
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters, offerFilters);
     }
