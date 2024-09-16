@@ -32,7 +32,7 @@ public class CaretakerController {
     private final CaretakerService caretakerService;
 
     @SecurityRequirements
-    @GetMapping
+    @PostMapping
     @Operation(
             summary = "Get list of caretakers",
             description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters." +
