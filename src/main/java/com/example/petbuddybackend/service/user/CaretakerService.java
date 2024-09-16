@@ -49,22 +49,11 @@ public class CaretakerService {
 
     @Transactional(readOnly = true)
     public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters, List<OfferFilterDTO> offerFilters) {
-        Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters);
+        Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
-        if(offerFilters == null || offerFilters.isEmpty()) {
-            return caretakerRepository.findAll(spec, pageable)
-                    .map(caretakerMapper::mapToCaretakerDTO);
-        }
-
-        List<Caretaker> prefilteredCaretakers = caretakerRepository.findAll(spec);
-        List<Caretaker> filteredCaretakers = filterCaretakersByOfferFilter(prefilteredCaretakers, offerFilters);
-
-        return new PageImpl<>(
-                filteredCaretakers.stream().map(caretakerMapper::mapToCaretakerDTO).toList(),
-                pageable,
-                filteredCaretakers.size()
-        );
-        //TODO refactor
+        return caretakerRepository
+                .findAll(spec, pageable)
+                .map(caretakerMapper::mapToCaretakerDTO);
     }
 
     private List<Caretaker> filterCaretakersByOfferFilter(List<Caretaker> prefilteredCaretakers, List<OfferFilterDTO> offerFilters) {

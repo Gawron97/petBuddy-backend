@@ -9,6 +9,7 @@ import java.util.List;
 public record OfferFilterDTO(
         @NotBlank
         String animalType,
-        List<OfferConfigurationFilterDTO> offerConfigurations
+        List<OfferConfigurationFilterDTO> offerConfigurations,
+        List<String> amenities
 ) {
 }
