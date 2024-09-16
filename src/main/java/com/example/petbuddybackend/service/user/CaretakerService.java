@@ -1,15 +1,11 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
-import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
-import com.example.petbuddybackend.entity.offer.Offer;
-import com.example.petbuddybackend.entity.offer.OfferConfiguration;
-import com.example.petbuddybackend.entity.offer.OfferOption;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -23,17 +19,12 @@ import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundEx
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,125 +45,6 @@ public class CaretakerService {
         return caretakerRepository
                 .findAll(spec, pageable)
                 .map(caretakerMapper::mapToCaretakerDTO);
-    }
-
-    private List<Caretaker> filterCaretakersByOfferFilter(List<Caretaker> prefilteredCaretakers, List<OfferFilterDTO> offerFilters) {
-
-        List<Caretaker> filteredCaretakers = new ArrayList<>();
-
-        for(Caretaker caretaker: prefilteredCaretakers) {
-            if(isCaretakerHasAllRequiredOffers(caretaker.getOffers(), offerFilters)) {
-                filteredCaretakers.add(caretaker);
-            }
-        }
-
-        return filteredCaretakers;
-
-    }
-
-    private boolean isCaretakerHasAllRequiredOffers(List<Offer> offers, List<OfferFilterDTO> offerFilters) {
-        return offerFilters
-                .stream()
-                .allMatch(offerFilter -> isOfferMatching(offers, offerFilter));
-    }
-
-    private boolean isOfferMatching(List<Offer> offers, OfferFilterDTO offerFilter) {
-
-        Offer matchingOffer = offers.stream()
-                .filter(offer -> offer.getAnimal().getAnimalType().equals(offerFilter.animalType()))
-                .findFirst()
-                .orElse(null);
-        if(matchingOffer == null) {
-            return false;
-        }
-
-        if(offerFilter.offerConfigurations() == null || offerFilter.offerConfigurations().isEmpty()) {
-            return true;
-        }
-
-        return isConfigurationsMatching(matchingOffer.getOfferConfigurations(), offerFilter.offerConfigurations());
-
-    }
-
-    private boolean isConfigurationsMatching(List<OfferConfiguration> matchingOfferConfigurations,
-                                             List<OfferConfigurationFilterDTO> offerConfigurationsFilter) {
-
-
-        for(OfferConfigurationFilterDTO offerConfigurationFilter: offerConfigurationsFilter) {
-            boolean matchingOfferConfiguration = matchingOfferConfigurations
-                    .stream()
-                    .anyMatch(offerConfiguration -> isConfigurationMatching(offerConfiguration, offerConfigurationFilter));
-            if(!matchingOfferConfiguration) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean isConfigurationMatching(OfferConfiguration offerConfiguration, OfferConfigurationFilterDTO offerConfigurationFilter) {
-
-        boolean matchingConfigurationPrice = isPriceInConfigurationMatch(
-                offerConfigurationFilter.minPrice(),
-                offerConfigurationFilter.maxPrice(),
-                offerConfiguration.getDailyPrice()
-        );
-
-        if(offerConfigurationFilter.attributes() == null || offerConfigurationFilter.attributes().isEmpty()) {
-            return matchingConfigurationPrice;
-        }
-
-        Map<String, List<String>> attributesInOffer = getAttributesOfOffer(offerConfiguration.getOfferOptions());
-        Map<String, List<String>> requiredAttributes = offerConfigurationFilter.attributes();
-
-        return isAnimalAttributesInConfigurationMatch(attributesInOffer, requiredAttributes) &&
-                matchingConfigurationPrice;
-
-    }
-
-    private Map<String, List<String>> getAttributesOfOffer(List<OfferOption> offerOptions) {
-        return offerOptions.stream()
-                .collect(Collectors.groupingBy(
-                        offerOption -> offerOption.getAnimalAttribute().getAttributeName(),
-                        Collectors.mapping(
-                                offerOption -> offerOption.getAnimalAttribute().getAttributeValue(),
-                                Collectors.toList()
-                        )
-                ));
-    }
-
-    private boolean isAnimalAttributesInConfigurationMatch(Map<String, List<String>> offerOptions, Map<String, List<String>> requiredAttributes) {
-
-
-
-        return requiredAttributes
-                .entrySet()
-                .stream()
-                .allMatch(requiredAttribute ->
-                        !isRequiredAttributeGroupInOffer(requiredAttribute.getKey(), offerOptions) ||
-                        isRequiredAttributeGroupValuesMatchOfferAttributeGroup(
-                                requiredAttribute.getValue(),
-                                offerOptions.get(requiredAttribute.getKey())
-                        )
-                );
-    }
-
-    private boolean isRequiredAttributeGroupInOffer(String requiredAttributeName, Map<String, List<String>> offerOptions) {
-        return offerOptions.containsKey(requiredAttributeName);
-    }
-
-    private boolean isRequiredAttributeGroupValuesMatchOfferAttributeGroup(List<String> requiredAttributeValues,
-                                                                           List<String> offerAttributeValues) {
-
-        return requiredAttributeValues
-                .stream()
-                .allMatch(requiredAttributeValue -> offerAttributeValues
-                        .stream()
-                        .anyMatch(offerAttributeValue -> offerAttributeValue.equals(requiredAttributeValue))
-                );
-    }
-
-    private boolean isPriceInConfigurationMatch(BigDecimal minPrice, BigDecimal maxPrice, BigDecimal dailyPrice) {
-        return dailyPrice.compareTo(minPrice) >= 0 && dailyPrice.compareTo(maxPrice) <= 0;
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
