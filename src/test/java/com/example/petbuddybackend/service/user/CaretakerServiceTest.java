@@ -656,133 +656,133 @@ public class CaretakerServiceTest {
                                         .build()
                         ),
                         1 // Caretakers: Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .amenities(List.of("toys"))
+                                        .build()
+                        ),
+                        2 // Caretakers: John Doe, Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .amenities(List.of("scratching post"))
+                                        .build()
+                        ),
+                        2 // Caretakers: John Doe, Bob Johnson
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .amenities(List.of("toys", "scratching post"))
+                                        .build()
+                        ),
+                        1 // Caretakers: John Doe
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .amenities(List.of("toys"))
+                                        .build(),
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .amenities(List.of("scratching post"))
+                                        .build()
+                        ),
+                        1 // Caretakers: John Doe
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of(
+                                                                "SIZE", List.of("BIG", "SMALL"),
+                                                                "SEX", List.of("MALE", "SHE")
+                                                        ))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .amenities(List.of("toys"))
+                                        .build()
+                        ),
+                        1 // Caretakers: Charlie Lee
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        List.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .amenities(List.of("toys"))
+                                        .build(),
+                                OfferFilterDTO.builder()
+                                        .animalType("BIRD")
+                                        .offerConfigurations(List.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        0
                 )
-//                Arguments.of(
-//                        CaretakerSearchCriteria.builder().build(),
-//                        List.of(
-//                                OfferFilterDTO.builder()
-//                                        .animalType("DOG")
-//                                        .offerConfigurations(List.of(
-//                                                OfferConfigurationFilterDTO.builder()
-//                                                        .attributes(Map.of())
-//                                                        .minPrice(null)
-//                                                        .maxPrice(null)
-//                                                        .build()
-//                                        ))
-//                                        .amenities(List.of("toys"))
-//                                        .build()
-//                        ),
-//                        2 // Caretakers: John Doe, Charlie Lee
-//                ),
-//                Arguments.of(
-//                        CaretakerSearchCriteria.builder().build(),
-//                        List.of(
-//                                OfferFilterDTO.builder()
-//                                        .animalType("CAT")
-//                                        .offerConfigurations(List.of(
-//                                                OfferConfigurationFilterDTO.builder()
-//                                                        .attributes(Map.of())
-//                                                        .minPrice(null)
-//                                                        .maxPrice(null)
-//                                                        .build()
-//                                        ))
-//                                        .amenities(List.of("scratching post"))
-//                                        .build()
-//                        ),
-//                        2 // Caretakers: John Doe, Bob Johnson
-//                ),
-//                Arguments.of(
-//                        CaretakerSearchCriteria.builder().build(),
-//                        List.of(
-//                                OfferFilterDTO.builder()
-//                                        .animalType("CAT")
-//                                        .offerConfigurations(List.of(
-//                                                OfferConfigurationFilterDTO.builder()
-//                                                        .attributes(Map.of())
-//                                                        .minPrice(null)
-//                                                        .maxPrice(null)
-//                                                        .build()
-//                                        ))
-//                                        .amenities(List.of("toys", "scratching post"))
-//                                        .build()
-//                        ),
-//                        1 // Caretakers: John Doe
-//                ),
-//                Arguments.of(
-//                        CaretakerSearchCriteria.builder().build(),
-//                        List.of(
-//                                OfferFilterDTO.builder()
-//                                        .animalType("DOG")
-//                                        .offerConfigurations(List.of(
-//                                                OfferConfigurationFilterDTO.builder()
-//                                                        .attributes(Map.of())
-//                                                        .minPrice(null)
-//                                                        .maxPrice(null)
-//                                                        .build()
-//                                        ))
-//                                        .amenities(List.of("toys"))
-//                                        .build(),
-//                                OfferFilterDTO.builder()
-//                                        .animalType("CAT")
-//                                        .offerConfigurations(List.of(
-//                                                OfferConfigurationFilterDTO.builder()
-//                                                        .attributes(Map.of())
-//                                                        .minPrice(null)
-//                                                        .maxPrice(null)
-//                                                        .build()
-//                                        ))
-//                                        .amenities(List.of("scratching post"))
-//                                        .build()
-//                        ),
-//                        1 // Caretakers: John Doe
-//                ),
-//                Arguments.of(
-//                        CaretakerSearchCriteria.builder().build(),
-//                        List.of(
-//                                OfferFilterDTO.builder()
-//                                        .animalType("DOG")
-//                                        .offerConfigurations(List.of(
-//                                                OfferConfigurationFilterDTO.builder()
-//                                                        .attributes(Map.of(
-//                                                                "SIZE", List.of("BIG", "SMALL"),
-//                                                                "SEX", List.of("MALE", "SHE")
-//                                                        ))
-//                                                        .minPrice(null)
-//                                                        .maxPrice(null)
-//                                                        .build()
-//                                        ))
-//                                        .amenities(List.of("toys"))
-//                                        .build()
-//                        ),
-//                        1 // Caretakers: Charlie Lee
-//                ),
-//                Arguments.of(
-//                        CaretakerSearchCriteria.builder().build(),
-//                        List.of(
-//                                OfferFilterDTO.builder()
-//                                        .animalType("DOG")
-//                                        .offerConfigurations(List.of(
-//                                                OfferConfigurationFilterDTO.builder()
-//                                                        .attributes(Map.of())
-//                                                        .minPrice(null)
-//                                                        .maxPrice(null)
-//                                                        .build()
-//                                        ))
-//                                        .amenities(List.of("toys"))
-//                                        .build(),
-//                                OfferFilterDTO.builder()
-//                                        .animalType("BIRD")
-//                                        .offerConfigurations(List.of(
-//                                                OfferConfigurationFilterDTO.builder()
-//                                                        .attributes(Map.of())
-//                                                        .minPrice(null)
-//                                                        .maxPrice(null)
-//                                                        .build()
-//                                        ))
-//                                        .build()
-//                        ),
-//                        0
-//                )
         );
     }
 

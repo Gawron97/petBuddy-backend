@@ -5,6 +5,8 @@ import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.amenity.Amenity;
+import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.offer.OfferOption;
@@ -31,6 +33,18 @@ public final class CaretakerSpecificationUtils {
     public static final String SURNAME = "surname";
     public static final String EMAIL = "email";
     public static final String CARETAKER = "caretaker";
+    public static final String OFFER_CONFIGURATIONS = "offerConfigurations";
+    public static final String ANIMAL = "animal";
+    public static final String ANIMAL_TYPE = "animalType";
+    public static final String ANIMAL_AMENITIES = "animalAmenities";
+    public static final String AMENITY = "amenity";
+    public static final String ID = "id";
+    public static final String OFFER = "offer";
+    public static final String PRICE = "dailyPrice";
+    public static final String ANIMAL_ATTRIBUTE = "animalAttribute";
+    public static final String ATTRIBUTE_NAME = "attributeName";
+    public static final String ATTRIBUTE_VALUE = "attributeValue";
+    public static final String OFFER_CONFIGURATION = "offerConfiguration";
 
 
     public static Specification<Caretaker> toSpecification(CaretakerSearchCriteria filters, List<OfferFilterDTO> offerFilters) {
@@ -108,10 +122,10 @@ public final class CaretakerSpecificationUtils {
                                                 OfferFilterDTO offerFilter) {
         Subquery<Long> offerSubquery = query.subquery(Long.class);
         Root<Offer> offerRoot = offerSubquery.from(Offer.class);
-        offerSubquery.select(offerRoot.get("id"));
+        offerSubquery.select(offerRoot.get(ID));
 
-        Predicate caretakerMatch = cb.equal(offerRoot.get("caretaker"), root);
-        Predicate animalTypeMatch = cb.equal(offerRoot.get("animal").get("animalType"), offerFilter.animalType());
+        Predicate caretakerMatch = cb.equal(offerRoot.get(CARETAKER), root);
+        Predicate animalTypeMatch = cb.equal(offerRoot.get(ANIMAL).get(ANIMAL_TYPE), offerFilter.animalType());
 
         List<Predicate> offerPredicates = new ArrayList<>();
         offerPredicates.add(caretakerMatch);
@@ -122,6 +136,10 @@ public final class CaretakerSpecificationUtils {
             offerPredicates.add(configurationsMatch);
         }
 
+        if(offerFilter.amenities() != null && !offerFilter.amenities().isEmpty()) {
+            Predicate amenitiesMatch = amenitiesMatch(offerSubquery, cb, offerRoot, offerFilter.amenities());
+            offerPredicates.add(amenitiesMatch);
+        }
 
         offerSubquery.where(offerPredicates.toArray(new Predicate[0]));
 
@@ -146,10 +164,10 @@ public final class CaretakerSpecificationUtils {
                                                  OfferConfigurationFilterDTO configFilter) {
         Subquery<Long> configSubquery = offerSubquery.subquery(Long.class);
         Root<OfferConfiguration> configRoot = configSubquery.from(OfferConfiguration.class);
-        configSubquery.select(configRoot.get("id"));
+        configSubquery.select(configRoot.get(ID));
 
-        Predicate offerMatch = cb.equal(configRoot.get("offer"), offerRoot);
-        Predicate pricePredicate = cb.between(configRoot.get("dailyPrice"), configFilter.minPrice(), configFilter.maxPrice());
+        Predicate offerMatch = cb.equal(configRoot.get(OFFER), offerRoot);
+        Predicate pricePredicate = cb.between(configRoot.get(PRICE), configFilter.minPrice(), configFilter.maxPrice());
 
         List<Predicate> configPredicates = new ArrayList<>();
         configPredicates.add(offerMatch);
@@ -181,14 +199,16 @@ public final class CaretakerSpecificationUtils {
         return cb.and(attributeGroupPredicates.toArray(new Predicate[0]));
     }
 
-    private static Predicate attributeGroupMatches(Subquery<Long> configSubquery, CriteriaBuilder cb, Root<OfferConfiguration> configRoot, String attributeName, List<String> attributeValues) {
+    private static Predicate attributeGroupMatches(Subquery<Long> configSubquery, CriteriaBuilder cb,
+                                                   Root<OfferConfiguration> configRoot, String attributeName,
+                                                   List<String> attributeValues) {
         // First, check if the offer configuration has any OfferOption with this attributeName
         Subquery<Long> attributeNameSubquery = configSubquery.subquery(Long.class);
         Root<OfferOption> attributeNameOptionRoot = attributeNameSubquery.from(OfferOption.class);
-        attributeNameSubquery.select(attributeNameOptionRoot.get("id"));
+        attributeNameSubquery.select(attributeNameOptionRoot.get(ID));
 
-        Predicate configOptionMatch = cb.equal(attributeNameOptionRoot.get("offerConfiguration"), configRoot);
-        Predicate attributeNameMatch = cb.equal(attributeNameOptionRoot.get("animalAttribute").get("attributeName"), attributeName);
+        Predicate configOptionMatch = cb.equal(attributeNameOptionRoot.get(OFFER_CONFIGURATION), configRoot);
+        Predicate attributeNameMatch = cb.equal(attributeNameOptionRoot.get(ANIMAL_ATTRIBUTE).get(ATTRIBUTE_NAME), attributeName);
 
         attributeNameSubquery.where(cb.and(configOptionMatch, attributeNameMatch));
 
@@ -217,11 +237,11 @@ public final class CaretakerSpecificationUtils {
     private static Predicate attributeValueExists(Subquery<Long> configSubquery, CriteriaBuilder cb, Root<OfferConfiguration> configRoot, String attributeName, String attributeValue) {
         Subquery<Long> optionSubquery = configSubquery.subquery(Long.class);
         Root<OfferOption> optionRoot = optionSubquery.from(OfferOption.class);
-        optionSubquery.select(optionRoot.get("id"));
+        optionSubquery.select(optionRoot.get(ID));
 
-        Predicate optionConfigMatch = cb.equal(optionRoot.get("offerConfiguration"), configRoot);
-        Predicate optionAttributeNameMatch = cb.equal(optionRoot.get("animalAttribute").get("attributeName"), attributeName);
-        Predicate optionAttributeValueMatch = cb.equal(optionRoot.get("animalAttribute").get("attributeValue"), attributeValue);
+        Predicate optionConfigMatch = cb.equal(optionRoot.get(OFFER_CONFIGURATION), configRoot);
+        Predicate optionAttributeNameMatch = cb.equal(optionRoot.get(ANIMAL_ATTRIBUTE).get(ATTRIBUTE_NAME), attributeName);
+        Predicate optionAttributeValueMatch = cb.equal(optionRoot.get(ANIMAL_ATTRIBUTE).get(ATTRIBUTE_VALUE), attributeValue);
 
         optionSubquery.where(cb.and(optionConfigMatch, optionAttributeNameMatch, optionAttributeValueMatch));
 
@@ -229,5 +249,32 @@ public final class CaretakerSpecificationUtils {
         return cb.exists(optionSubquery);
     }
 
+    private static Predicate amenitiesMatch(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot,
+                                            List<String> amenities) {
+        List<Predicate> amenityExistsPredicates = new ArrayList<>();
 
+        for(String amenity : amenities) {
+            Predicate amenityExists = amenityExists(offerSubquery, cb, offerRoot, amenity);
+            amenityExistsPredicates.add(amenityExists);
+        }
+
+        // All amenities specified in the filter must have matching amenities in the offer
+        return cb.and(amenityExistsPredicates.toArray(new Predicate[0]));
+
+    }
+
+    private static Predicate amenityExists(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot, String amenity) {
+
+        Subquery<Long> amenitySubquery = offerSubquery.subquery(Long.class);
+        Root<Offer> correlatedOfferRoot = amenitySubquery.correlate(offerRoot);
+        Join<Offer, AnimalAmenity> animalAmenityJoin = correlatedOfferRoot.join(ANIMAL_AMENITIES);
+        Join<AnimalAmenity, Amenity> amenityJoin = animalAmenityJoin.join(AMENITY, JoinType.INNER);
+        amenitySubquery.select(animalAmenityJoin.get(ID));
+
+        Predicate amenityMatch = cb.equal(amenityJoin.get(NAME), amenity);
+
+        amenitySubquery.where(amenityMatch);
+        return cb.exists(amenitySubquery);
+
+    }
 }
