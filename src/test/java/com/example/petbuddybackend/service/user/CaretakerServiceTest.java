@@ -49,10 +49,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
@@ -482,12 +479,12 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().personalDataLike("Doe").build(),
-                        null,
+                        Collections.emptyList(),
                         1 // Caretaker: John Doe
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().personalDataLike("Smith").build(),
-                        null,
+                        Collections.emptyList(),
                         1 // Caretaker: Jane Smith
                 ),
                 Arguments.of(
@@ -802,7 +799,7 @@ public class CaretakerServiceTest {
                 CaretakerSearchCriteria.builder()
                         .personalDataLike("John Doe")
                         .build(),
-                null);
+                Collections.emptyList());
         CaretakerDTO resultCaretaker = resultPage.getContent().get(0);
         assertEquals(2, resultCaretaker.numberOfRatings());
         assertEquals(4.5f, resultCaretaker.avgRating());
@@ -819,7 +816,7 @@ public class CaretakerServiceTest {
             assertDoesNotThrow(() -> caretakerService.getCaretakers(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
                     CaretakerSearchCriteria.builder().build(),
-                    null
+                    Collections.emptyList()
             ));
         }
     }

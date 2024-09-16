@@ -21,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -31,16 +32,20 @@ public class CaretakerController {
     private final CaretakerService caretakerService;
 
     @SecurityRequirements
-    @PostMapping
+    @GetMapping
     @Operation(
             summary = "Get list of caretakers",
-            description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters."
+            description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters." +
+                    " Request body is not required!"
     )
     public Page<CaretakerDTO> getCaretakers(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
             @RequestBody(required = false) List<@Valid OfferFilterDTO> offerFilters
             ) {
+        if(offerFilters == null) {
+            offerFilters = Collections.emptyList();
+        }
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters, offerFilters);
     }

@@ -64,7 +64,7 @@ public final class CaretakerSpecificationUtils {
             spec = spec.and(voivodeshipEquals(filters.voivodeship()));
         }
 
-        if(offerFilters != null && !offerFilters.isEmpty()) {
+        if(!offerFilters.isEmpty()) {
             spec = spec.and(offersMatch(offerFilters));
         }
 
@@ -131,12 +131,12 @@ public final class CaretakerSpecificationUtils {
         offerPredicates.add(caretakerMatch);
         offerPredicates.add(animalTypeMatch);
 
-        if (offerFilter.offerConfigurations() != null && !offerFilter.offerConfigurations().isEmpty()) {
+        if (!offerFilter.offerConfigurations().isEmpty()) {
             Predicate configurationsMatch = configurationsMatch(offerSubquery, cb, offerRoot, offerFilter.offerConfigurations());
             offerPredicates.add(configurationsMatch);
         }
 
-        if(offerFilter.amenities() != null && !offerFilter.amenities().isEmpty()) {
+        if(!offerFilter.amenities().isEmpty()) {
             Predicate amenitiesMatch = amenitiesMatch(offerSubquery, cb, offerRoot, offerFilter.amenities());
             offerPredicates.add(amenitiesMatch);
         }
