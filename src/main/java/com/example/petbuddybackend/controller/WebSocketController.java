@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.service.chat.session.context.SessionContext;
+import com.example.petbuddybackend.service.chat.session.context.WebSocketSessionContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -13,12 +13,12 @@ import org.springframework.web.socket.messaging.SessionConnectEvent;
 @RequiredArgsConstructor
 public class WebSocketController {
 
-    private final SessionContext context;
+    private final WebSocketSessionContext context;
 
     @EventListener
     public void handleConnect(SessionConnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         context.setSessionId(accessor.getSessionId());
-        log.debug("Connect triggered by session: {}", accessor.getSessionId());
+        log.debug("Session with id: {} created", accessor.getSessionId());
     }
 }

@@ -29,12 +29,12 @@ class ChatRoomSessionMetadata implements Iterable<ChatUserMetadata> {
     @Nullable @Getter
     private String secondUserUsername;
 
-    private Map<String, ChatUserMetadata> firstUserMeta = new HashMap<>(INITIAL_SESSION_CAPACITY);
-    private Map<String, ChatUserMetadata> secondUserMeta = new HashMap<>(INITIAL_SESSION_CAPACITY);
+    private final Map<String, ChatUserMetadata> firstUserMetas = new HashMap<>(INITIAL_SESSION_CAPACITY);
+    private final Map<String, ChatUserMetadata> secondUserMetas = new HashMap<>(INITIAL_SESSION_CAPACITY);
 
     public ChatRoomSessionMetadata(@NonNull ChatUserMetadata firstUserMeta) {
         this.semaphore = new Semaphore(1);
-        this.firstUserMeta.put(firstUserMeta.getSessionId(), firstUserMeta);
+        this.firstUserMetas.put(firstUserMeta.getSessionId(), firstUserMeta);
         this.firstUserUsername = firstUserMeta.getUsername();
     }
 
@@ -44,7 +44,7 @@ class ChatRoomSessionMetadata implements Iterable<ChatUserMetadata> {
     ) {
         this(firstUserMeta);
         this.secondUserUsername = secondUserMeta.getUsername();
-        this.secondUserMeta.put(secondUserMeta.getSessionId(), secondUserMeta);
+        this.secondUserMetas.put(secondUserMeta.getSessionId(), secondUserMeta);
     }
 
     /**
@@ -58,21 +58,21 @@ class ChatRoomSessionMetadata implements Iterable<ChatUserMetadata> {
         String username = metadata.getUsername();
 
         if(username.equals(firstUserUsername)) {
-            return firstUserMeta.put(metadata.getSessionId(), metadata);
+            return firstUserMetas.put(metadata.getSessionId(), metadata);
         }
 
         if(username.equals(secondUserUsername)) {
-            return secondUserMeta.put(metadata.getSessionId(), metadata);
+            return secondUserMetas.put(metadata.getSessionId(), metadata);
         }
 
         if(firstUserUsername == null) {
             firstUserUsername = username;
-            return firstUserMeta.put(metadata.getSessionId(), metadata);
+            return firstUserMetas.put(metadata.getSessionId(), metadata);
         }
 
         if(secondUserUsername == null) {
             secondUserUsername = username;
-            return secondUserMeta.put(metadata.getSessionId(), metadata);
+            return secondUserMetas.put(metadata.getSessionId(), metadata);
         }
 
         throw new IllegalStateException(String.format(CHAT_ROOM_IS_FULL_MESSAGE, username));
@@ -84,12 +84,12 @@ class ChatRoomSessionMetadata implements Iterable<ChatUserMetadata> {
      * @throws IllegalArgumentException if the user is not found in the chat room.
      * */
     public ChatUserMetadata get(@NonNull String username, @NonNull String sessionId) {
-        if(username.equals(firstUserUsername) && firstUserMeta.containsKey(sessionId)) {
-            return firstUserMeta.get(sessionId);
+        if(username.equals(firstUserUsername) && firstUserMetas.containsKey(sessionId)) {
+            return firstUserMetas.get(sessionId);
         }
 
-        if(username.equals(secondUserUsername) && secondUserMeta.containsKey(sessionId)) {
-            return secondUserMeta.get(sessionId);
+        if(username.equals(secondUserUsername) && secondUserMetas.containsKey(sessionId)) {
+            return secondUserMetas.get(sessionId);
         }
 
         throw new IllegalArgumentException(String.format(USER_NOT_FOUND_IN_CHAT_ROOM_MESSAGE, username, sessionId));
@@ -108,28 +108,28 @@ class ChatRoomSessionMetadata implements Iterable<ChatUserMetadata> {
     }
 
     public int firstUserSessionsSize() {
-        return firstUserMeta.size();
+        return firstUserMetas.size();
     }
 
     public int secondUserSessionsSize() {
-        return secondUserMeta.size();
+        return secondUserMetas.size();
     }
 
     public Optional<ChatUserMetadata> removeIfExists(@NonNull String username, @NonNull String sessionId) {
-        if(username.equals(firstUserUsername) && firstUserMeta.containsKey(sessionId)) {
-            ChatUserMetadata removedMeta = firstUserMeta.remove(sessionId);
+        if(username.equals(firstUserUsername) && firstUserMetas.containsKey(sessionId)) {
+            ChatUserMetadata removedMeta = firstUserMetas.remove(sessionId);
 
-            if(firstUserMeta.isEmpty()) {
+            if(firstUserMetas.isEmpty()) {
                 firstUserUsername = null;
             }
 
             return Optional.of(removedMeta);
         }
 
-        if(username.equals(secondUserUsername) && secondUserMeta.containsKey(sessionId)) {
-            ChatUserMetadata removedMeta = secondUserMeta.remove(sessionId);
+        if(username.equals(secondUserUsername) && secondUserMetas.containsKey(sessionId)) {
+            ChatUserMetadata removedMeta = secondUserMetas.remove(sessionId);
 
-            if(secondUserMeta.isEmpty()) {
+            if(secondUserMetas.isEmpty()) {
                 secondUserUsername = null;
             }
 
@@ -154,8 +154,8 @@ class ChatRoomSessionMetadata implements Iterable<ChatUserMetadata> {
         private int secondIndex;
 
         public ChatRoomSessionMetadataIterator() {
-            this.firstSnapshot = List.copyOf(firstUserMeta.values());
-            this.secondSnapshot = List.copyOf(secondUserMeta.values());
+            this.firstSnapshot = List.copyOf(firstUserMetas.values());
+            this.secondSnapshot = List.copyOf(secondUserMetas.values());
             this.FIRST_SNAPSHOT_SIZE = firstSnapshot.size();
             this.SECOND_SNAPSHOTS_SIZE = secondSnapshot.size();
             this.firstIndex = 0;

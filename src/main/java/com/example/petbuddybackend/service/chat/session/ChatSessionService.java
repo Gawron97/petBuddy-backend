@@ -5,7 +5,7 @@ import com.example.petbuddybackend.dto.chat.notification.ChatNotification;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationConnected;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationType;
-import com.example.petbuddybackend.service.chat.session.context.SessionContext;
+import com.example.petbuddybackend.service.chat.session.context.WebSocketSessionContext;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.utils.exception.throweable.SessionNotFoundException;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
@@ -38,7 +38,7 @@ public class ChatSessionService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ChatSessionManager chatSessionManager;
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
-    private final SessionContext sessionContext;
+    private final WebSocketSessionContext sessionContext;
 
     public void sendNotifications(Long chatId, ChatNotification notification, MessageCallback callback) {
         ChatRoomSessionMetadata chatRoomMeta = chatSessionManager.find(chatId).orElseThrow(

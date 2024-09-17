@@ -14,7 +14,7 @@ import java.util.Set;
 @EqualsAndHashCode
 @Component
 @Scope(scopeName = "websocket", proxyMode = ScopedProxyMode.TARGET_CLASS)
-public class SessionContext implements DisposableBean {
+public class WebSocketSessionContext implements DisposableBean {
 
     private Long chatId;
     private String username;
@@ -25,7 +25,7 @@ public class SessionContext implements DisposableBean {
     @Setter
     private String sessionId;
 
-    public SessionContext() {
+    public WebSocketSessionContext() {
         this.chatId = null;
         this.username = null;
         this.cleanupCallback = (chatId, username, sessionId) -> {};
@@ -33,7 +33,7 @@ public class SessionContext implements DisposableBean {
         this.subscriptionIds = new HashSet<>();
     }
 
-    public SessionContext(Long chatId, String username, ContextCleanupCallback cleanupCallback) {
+    public WebSocketSessionContext(Long chatId, String username, ContextCleanupCallback cleanupCallback) {
         this.chatId = chatId;
         this.username = username;
         this.cleanupCallback = cleanupCallback;

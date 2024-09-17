@@ -9,7 +9,7 @@ import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.chat.session.ChatSessionService;
 import com.example.petbuddybackend.service.chat.session.MessageCallback;
-import com.example.petbuddybackend.service.chat.session.context.SessionContext;
+import com.example.petbuddybackend.service.chat.session.context.WebSocketSessionContext;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import jakarta.validation.Valid;
@@ -46,7 +46,7 @@ public class ChatWebSocketController {
 
     private final ChatService chatService;
     private final ChatSessionService chatSessionService;
-    private final SessionContext sessionContext;
+    private final WebSocketSessionContext sessionContext;
 
     @PreAuthorize("isAuthenticated()")
     @MessageMapping("/chat/{chatId}")

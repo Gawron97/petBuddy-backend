@@ -12,19 +12,19 @@ import static org.mockito.Mockito.verify;
 
 public class SessionContextTest {
 
-    private SessionContext chatSessionContext;
+    private WebSocketSessionContext chatSessionContext;
     private ContextCleanupCallback cleanupCallback;
 
     @BeforeEach
     void setUp() {
         cleanupCallback = Mockito.mock(ContextCleanupCallback.class);
-        chatSessionContext = new SessionContext(1L, "testUser", cleanupCallback);
+        chatSessionContext = new WebSocketSessionContext(1L, "testUser", cleanupCallback);
         chatSessionContext.setSessionId("sessionId");
     }
 
     @Test
     void testDefaultConstructor_initializesFields() {
-        SessionContext context = new SessionContext();
+        WebSocketSessionContext context = new WebSocketSessionContext();
 
         assertNull(context.getChatId());
         assertNull(context.getUsername());

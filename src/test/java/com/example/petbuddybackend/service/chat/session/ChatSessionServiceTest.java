@@ -4,7 +4,7 @@ import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
-import com.example.petbuddybackend.service.chat.session.context.SessionContext;
+import com.example.petbuddybackend.service.chat.session.context.WebSocketSessionContext;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.testutils.mock.MockChatProvider;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
@@ -38,7 +38,7 @@ public class ChatSessionServiceTest {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @MockBean
-    private SessionContext mockContext;
+    private WebSocketSessionContext mockContext;
 
     @MockBean
     private ChatSessionManager chatSessionManager;
