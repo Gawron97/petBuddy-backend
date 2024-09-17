@@ -3,10 +3,8 @@ package com.example.petbuddybackend.dto.offer;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 @Builder
