@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.utils.specification;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
-import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.entity.address.Voivodeship;
@@ -15,12 +14,12 @@ import jakarta.persistence.criteria.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CaretakerSpecificationUtils {
@@ -47,7 +46,7 @@ public final class CaretakerSpecificationUtils {
     public static final String OFFER_CONFIGURATION = "offerConfiguration";
 
 
-    public static Specification<Caretaker> toSpecification(CaretakerSearchCriteria filters, List<OfferFilterDTO> offerFilters) {
+    public static Specification<Caretaker> toSpecification(CaretakerSearchCriteria filters, Set<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = Specification.where(
                 (root, query, criteriaBuilder) -> criteriaBuilder.conjunction()
         );
@@ -103,7 +102,7 @@ public final class CaretakerSpecificationUtils {
                 criteriaBuilder.equal(root.get(ADDRESS).get(VOIVODESHIP), voivodeship);
     }
 
-    private static Specification<Caretaker> offersMatch(List<OfferFilterDTO> offerFilters) {
+    private static Specification<Caretaker> offersMatch(Set<OfferFilterDTO> offerFilters) {
         return (root, query, cb) -> {
             query.distinct(true);
 
@@ -148,7 +147,7 @@ public final class CaretakerSpecificationUtils {
     }
 
     private static Predicate configurationsMatch(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot,
-                                                 List<OfferConfigurationFilterDTO> configFilters) {
+                                                 Set<OfferConfigurationFilterDTO> configFilters) {
         List<Predicate> configExistsPredicates = new ArrayList<>();
 
         for (OfferConfigurationFilterDTO configFilter : configFilters) {
@@ -185,12 +184,12 @@ public final class CaretakerSpecificationUtils {
     }
 
     private static Predicate attributesMatch(Subquery<Long> configSubquery, CriteriaBuilder cb,
-                                             Root<OfferConfiguration> configRoot, Map<String, List<String>> attributes) {
+                                             Root<OfferConfiguration> configRoot, Map<String, Set<String>> attributes) {
         List<Predicate> attributeGroupPredicates = new ArrayList<>();
 
-        for (Map.Entry<String, List<String>> entry : attributes.entrySet()) {
+        for (Map.Entry<String, Set<String>> entry : attributes.entrySet()) {
             String attributeName = entry.getKey();
-            List<String> attributeValues = entry.getValue();
+            Set<String> attributeValues = entry.getValue();
 
             Predicate attributeGroupPredicate = attributeGroupMatches(configSubquery, cb, configRoot, attributeName, attributeValues);
             attributeGroupPredicates.add(attributeGroupPredicate);
@@ -201,7 +200,7 @@ public final class CaretakerSpecificationUtils {
 
     private static Predicate attributeGroupMatches(Subquery<Long> configSubquery, CriteriaBuilder cb,
                                                    Root<OfferConfiguration> configRoot, String attributeName,
-                                                   List<String> attributeValues) {
+                                                   Set<String> attributeValues) {
         // First, check if the offer configuration has any OfferOption with this attributeName
         Subquery<Long> attributeNameSubquery = configSubquery.subquery(Long.class);
         Root<OfferOption> attributeNameOptionRoot = attributeNameSubquery.from(OfferOption.class);
@@ -250,7 +249,7 @@ public final class CaretakerSpecificationUtils {
     }
 
     private static Predicate amenitiesMatch(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot,
-                                            List<String> amenities) {
+                                            Set<String> amenities) {
         List<Predicate> amenityExistsPredicates = new ArrayList<>();
 
         for(String amenity : amenities) {

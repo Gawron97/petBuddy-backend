@@ -24,7 +24,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class CaretakerService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters, List<OfferFilterDTO> offerFilters) {
+    public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters, Set<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
         return caretakerRepository

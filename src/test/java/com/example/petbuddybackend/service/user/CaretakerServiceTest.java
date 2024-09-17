@@ -292,7 +292,7 @@ public class CaretakerServiceTest {
 
         appUserRepository.deleteAll();
         createCaretakersWithComplexOffers();
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters, offerFilters);
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters,  not offerFilters);
         assertEquals(expectedSize, resultPage.getContent().size());
 
     }
@@ -348,9 +348,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("SIZE", List.of("BIG")))
+                                                        .attributes(Map.of("SIZE", Set.of("BIG")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -364,9 +364,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("SIZE", List.of("SMALL")))
+                                                        .attributes(Map.of("SIZE", Set.of("SMALL")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -380,11 +380,11 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of(
-                                                                "SIZE", List.of("BIG"),
-                                                                "SEX", List.of("MALE"))
+                                                                "SIZE", Set.of("BIG"),
+                                                                "SEX", Set.of("MALE"))
                                                         )
                                                         .minPrice(null)
                                                         .maxPrice(null)
@@ -399,11 +399,11 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of(
-                                                                "SIZE", List.of("SMALL"),
-                                                                "SEX", List.of("SHE"))
+                                                                "SIZE", Set.of("SMALL"),
+                                                                "SEX", Set.of("SHE"))
                                                         )
                                                         .minPrice(null)
                                                         .maxPrice(null)
@@ -418,9 +418,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("FISH")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("AQUARIUM", List.of("YES")))
+                                                        .attributes(Map.of("AQUARIUM", Set.of("YES")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -434,9 +434,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("FISH")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("AQUARIUM", List.of("NO")))
+                                                        .attributes(Map.of("AQUARIUM", Set.of("NO")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -450,7 +450,7 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(null)
                                                         .minPrice(BigDecimal.valueOf(10.0))
@@ -466,9 +466,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("SIZE", List.of("BIG")))
+                                                        .attributes(Map.of("SIZE", Set.of("BIG")))
                                                         .minPrice(BigDecimal.valueOf(30.0))
                                                         .maxPrice(BigDecimal.valueOf(40.0))
                                                         .build()
@@ -492,9 +492,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("REPTILE")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("DANGEROUS", List.of("YES")))
+                                                        .attributes(Map.of("DANGEROUS", Set.of("YES")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -508,9 +508,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("REPTILE")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("DANGEROUS", List.of("NO")))
+                                                        .attributes(Map.of("DANGEROUS", Set.of("NO")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -524,7 +524,7 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("BIRD")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(null)
                                                         .minPrice(BigDecimal.valueOf(10.0))
@@ -540,7 +540,7 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("BIRD")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(null)
                                                         .minPrice(BigDecimal.valueOf(20.0))
@@ -556,9 +556,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("SEX", List.of("MALE")))
+                                                        .attributes(Map.of("SEX", Set.of("MALE")))
                                                         .minPrice(null)
                                                         .maxPrice(BigDecimal.valueOf(15.0))
                                                         .build()
@@ -572,9 +572,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("SEX", List.of("MALE")))
+                                                        .attributes(Map.of("SEX", Set.of("MALE")))
                                                         .minPrice(BigDecimal.valueOf(20.0))
                                                         .maxPrice(null)
                                                         .build()
@@ -588,9 +588,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("FISH")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("AQUARIUM", List.of("YES")))
+                                                        .attributes(Map.of("AQUARIUM", Set.of("YES")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -614,9 +614,9 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("SIZE", List.of("BIG")))
+                                                        .attributes(Map.of("SIZE", Set.of("BIG")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -624,9 +624,9 @@ public class CaretakerServiceTest {
                                         .build(),
                                 OfferFilterDTO.builder()
                                         .animalType("CAT")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
-                                                        .attributes(Map.of("SEX", List.of("SHE")))
+                                                        .attributes(Map.of("SEX", Set.of("SHE")))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -640,11 +640,11 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of(
-                                                                "SIZE", List.of("BIG", "SMALL"),
-                                                                "SEX", List.of("MALE", "SHE")
+                                                                "SIZE", Set.of("BIG", "SMALL"),
+                                                                "SEX", Set.of("MALE", "SHE")
                                                                 ))
                                                         .minPrice(null)
                                                         .maxPrice(null)
@@ -659,14 +659,14 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of())
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
                                         ))
-                                        .amenities(List.of("toys"))
+                                        .amenities(Set.of("toys"))
                                         .build()
                         ),
                         2 // Caretakers: John Doe, Charlie Lee
@@ -676,14 +676,14 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("CAT")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of())
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
                                         ))
-                                        .amenities(List.of("scratching post"))
+                                        .amenities(Set.of("scratching post"))
                                         .build()
                         ),
                         2 // Caretakers: John Doe, Bob Johnson
@@ -693,14 +693,14 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("CAT")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of())
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
                                         ))
-                                        .amenities(List.of("toys", "scratching post"))
+                                        .amenities(Set.of("toys", "scratching post"))
                                         .build()
                         ),
                         1 // Caretakers: John Doe
@@ -710,25 +710,25 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of())
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
                                         ))
-                                        .amenities(List.of("toys"))
+                                        .amenities(Set.of("toys"))
                                         .build(),
                                 OfferFilterDTO.builder()
                                         .animalType("CAT")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of())
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
                                         ))
-                                        .amenities(List.of("scratching post"))
+                                        .amenities(Set.of("scratching post"))
                                         .build()
                         ),
                         1 // Caretakers: John Doe
@@ -738,17 +738,17 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of(
-                                                                "SIZE", List.of("BIG", "SMALL"),
-                                                                "SEX", List.of("MALE", "SHE")
+                                                                "SIZE", Set.of("BIG", "SMALL"),
+                                                                "SEX", Set.of("MALE", "SHE")
                                                         ))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
                                         ))
-                                        .amenities(List.of("toys"))
+                                        .amenities(Set.of("toys"))
                                         .build()
                         ),
                         1 // Caretakers: Charlie Lee
@@ -758,18 +758,18 @@ public class CaretakerServiceTest {
                         List.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of())
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
                                         ))
-                                        .amenities(List.of("toys"))
+                                        .amenities(Set.of("toys"))
                                         .build(),
                                 OfferFilterDTO.builder()
                                         .animalType("BIRD")
-                                        .offerConfigurations(List.of(
+                                        .offerConfigurations(Set.of(
                                                 OfferConfigurationFilterDTO.builder()
                                                         .attributes(Map.of())
                                                         .minPrice(null)

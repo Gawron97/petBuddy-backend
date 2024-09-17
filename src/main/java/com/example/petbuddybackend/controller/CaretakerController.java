@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,10 +42,10 @@ public class CaretakerController {
     public Page<CaretakerDTO> getCaretakers(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
-            @RequestBody(required = false) List<@Valid OfferFilterDTO> offerFilters
+            @RequestBody(required = false) Set<@Valid OfferFilterDTO> offerFilters
             ) {
         if(offerFilters == null) {
-            offerFilters = Collections.emptyList();
+            offerFilters = Collections.emptySet();
         }
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters, offerFilters);
