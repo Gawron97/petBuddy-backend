@@ -91,11 +91,6 @@ public final class HeaderUtils {
         return destination != null && destination.startsWith(prefix);
     }
 
-    public static boolean destinationStartsWith(String prefix, StompHeaderAccessor accessor) {
-        String destination = accessor.getDestination();
-        return destinationStartsWith(prefix, destination);
-    }
-
     @SuppressWarnings("unchecked")
     private static <T> T extractSingleHeaderValue(Map<String, Object> nativeHeaders, String headerName, Class<T> type) {
         Object header = nativeHeaders.get(headerName);

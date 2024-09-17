@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("test-security-inject-user")
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ChatWebSocketControllerTest {
+public class ChatWebSocketIntegrationTest {
 
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
     private static final String SEND_MESSAGE_ENDPOINT = "/app/chat/1";

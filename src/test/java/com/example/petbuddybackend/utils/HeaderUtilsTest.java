@@ -15,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class HeaderUtilsTest {
 
+    private static final String SIMP_SESSION_ID = "simpSessionId";
+
     @Test
     void testGetHeaderSingleValue_validHeader_shouldSucceed() {
         Map<String, Object> headers = GeneralMockProvider.createHeadersWithSingleValue("testHeader", "testValue");
@@ -127,4 +129,24 @@ public class HeaderUtilsTest {
         StompHeaderAccessor accessor = GeneralMockProvider.createStompHeaderAccessorWithDestination("/topic/12345");
         assertThrows(IndexOutOfBoundsException.class, () -> HeaderUtils.getLongFromDestination(accessor, 3));
     }
+
+    @Test
+    void testGetSessionId_validHeader_shouldReturnSessionId() {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(SIMP_SESSION_ID, "testSessionId");
+
+        String result = HeaderUtils.getSessionId(headers);
+
+        assertEquals("testSessionId", result);
+    }
+
+    @Test
+    void testGetSessionId_missingHeader_shouldThrowMissingWebSocketHeaderException() {
+        Map<String, Object> headers = Collections.emptyMap();
+
+        MissingWebSocketHeaderException thrown = assertThrows(
+                MissingWebSocketHeaderException.class,
+                () -> HeaderUtils.getSessionId(headers)
+        );
+        assertTrue(thrown.getMessage().contains(SIMP_SESSION_ID));    }
 }

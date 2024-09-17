@@ -18,9 +18,9 @@ public class SessionContext implements DisposableBean {
 
     private Long chatId;
     private String username;
-    private Set<String> subscriptionIds;
     private ContextCleanupCallback cleanupCallback;
     private boolean empty;
+    private final Set<String> subscriptionIds;
 
     @Setter
     private String sessionId;
