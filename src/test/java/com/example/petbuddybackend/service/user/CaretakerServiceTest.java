@@ -286,13 +286,13 @@ public class CaretakerServiceTest {
     @MethodSource("provideFilterParams")
     void getCaretakersWithFiltering_shouldReturnFilteredResults(
             CaretakerSearchCriteria filters,
-            List<OfferFilterDTO> offerFilters,
+            Set<OfferFilterDTO> offerFilters,
             int expectedSize
     ) {
 
         appUserRepository.deleteAll();
         createCaretakersWithComplexOffers();
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters,  not offerFilters);
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters,  offerFilters);
         assertEquals(expectedSize, resultPage.getContent().size());
 
     }
@@ -301,7 +301,7 @@ public class CaretakerServiceTest {
         return Stream.of(
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(null)
@@ -311,7 +311,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(null)
@@ -325,7 +325,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("CAT")
                                         .offerConfigurations(null)
@@ -335,7 +335,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("FISH")
                                         .offerConfigurations(null)
@@ -345,7 +345,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -361,7 +361,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -377,7 +377,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -396,7 +396,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -415,7 +415,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("FISH")
                                         .offerConfigurations(Set.of(
@@ -431,7 +431,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("FISH")
                                         .offerConfigurations(Set.of(
@@ -447,7 +447,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -463,7 +463,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -479,17 +479,17 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().personalDataLike("Doe").build(),
-                        Collections.emptyList(),
+                        Collections.emptySet(),
                         1 // Caretaker: John Doe
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().personalDataLike("Smith").build(),
-                        Collections.emptyList(),
+                        Collections.emptySet(),
                         1 // Caretaker: Jane Smith
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("REPTILE")
                                         .offerConfigurations(Set.of(
@@ -505,7 +505,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("REPTILE")
                                         .offerConfigurations(Set.of(
@@ -521,7 +521,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("BIRD")
                                         .offerConfigurations(Set.of(
@@ -537,7 +537,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("BIRD")
                                         .offerConfigurations(Set.of(
@@ -553,7 +553,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -569,7 +569,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -585,7 +585,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().personalDataLike("Brown").build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("FISH")
                                         .offerConfigurations(Set.of(
@@ -601,7 +601,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("BIRD")
                                         .offerConfigurations(null)
@@ -611,7 +611,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -637,7 +637,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -656,7 +656,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -673,7 +673,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("CAT")
                                         .offerConfigurations(Set.of(
@@ -690,7 +690,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("CAT")
                                         .offerConfigurations(Set.of(
@@ -707,7 +707,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -735,7 +735,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -755,7 +755,7 @@ public class CaretakerServiceTest {
                 ),
                 Arguments.of(
                         CaretakerSearchCriteria.builder().build(),
-                        List.of(
+                        Set.of(
                                 OfferFilterDTO.builder()
                                         .animalType("DOG")
                                         .offerConfigurations(Set.of(
@@ -799,7 +799,7 @@ public class CaretakerServiceTest {
                 CaretakerSearchCriteria.builder()
                         .personalDataLike("John Doe")
                         .build(),
-                Collections.emptyList());
+                Collections.emptySet());
         CaretakerDTO resultCaretaker = resultPage.getContent().get(0);
         assertEquals(2, resultCaretaker.numberOfRatings());
         assertEquals(4.5f, resultCaretaker.avgRating());
@@ -816,7 +816,7 @@ public class CaretakerServiceTest {
             assertDoesNotThrow(() -> caretakerService.getCaretakers(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
                     CaretakerSearchCriteria.builder().build(),
-                    Collections.emptyList()
+                    Collections.emptySet()
             ));
         }
     }
