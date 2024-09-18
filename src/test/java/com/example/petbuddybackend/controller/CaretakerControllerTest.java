@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,18 +51,18 @@ public class CaretakerControllerTest {
 
     @Test
     void getCaretakers_shouldReturnFilteredResults() throws Exception {
-        CaretakerDTO caretakerDTO1 = CaretakerDTO.builder()
+        CaretakerDTO caretakerComplexInfoDTO1 = CaretakerDTO.builder()
                 .accountData(AccountDataDTO.builder().name("John Doe").build())
                 .build();
 
-        CaretakerDTO caretakerDTO2 = CaretakerDTO.builder()
+        CaretakerDTO caretakerComplexInfoDTO2 = CaretakerDTO.builder()
                 .accountData(AccountDataDTO.builder().name("Jane Doe").build())
                 .build();
 
-        List<CaretakerDTO> caretakerDTOs = List.of(caretakerDTO1, caretakerDTO2);
+        List<CaretakerDTO> caretakerComplexInfoDTOS = List.of(caretakerComplexInfoDTO1, caretakerComplexInfoDTO2);
         Page<CaretakerDTO> page = new PageImpl<>(
-                caretakerDTOs,
-                PageRequest.of(0, 10), caretakerDTOs.size()
+                caretakerComplexInfoDTOS,
+                PageRequest.of(0, 10), caretakerComplexInfoDTOS.size()
         );
 
         when(caretakerService.getCaretakers(any(), any(), any())).thenReturn(page);

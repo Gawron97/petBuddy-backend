@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
+import com.example.petbuddybackend.dto.offer.ModifyConfigurationDTO;
+import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.service.offer.OfferService;
@@ -71,7 +73,7 @@ public class OfferControllerTest {
                                 .build()
                 ))
                 .build();
-        when(offerService.addOrEditOffer(any(OfferDTO.class), anyString())).thenReturn(offerDTO);
+        when(offerService.addOrEditOffer(any(ModifyOfferDTO.class), anyString())).thenReturn(offerDTO);
 
         // When and Then
         mockMvc.perform(post("/api/caretaker/offer/add-or-edit")
@@ -82,7 +84,7 @@ public class OfferControllerTest {
                 .andExpect(jsonPath("$.offerConfigurations[0].description").value("Test Configuration"))
                 .andExpect(jsonPath("$.offerConfigurations[0].selectedOptions.SIZE[0]").value("BIG"));
 
-        verify(offerService, times(1)).addOrEditOffer(any(OfferDTO.class), anyString());
+        verify(offerService, times(1)).addOrEditOffer(any(ModifyOfferDTO.class), anyString());
     }
 
     @Test
@@ -90,7 +92,7 @@ public class OfferControllerTest {
     void editConfiguration_ShouldReturnUpdatedConfiguration() throws Exception {
         // Given
         OfferConfigurationDTO configDTO = OfferConfigurationDTO.builder().description("Updated Configuration").build();
-        when(offerService.editConfiguration(anyLong(), any(OfferConfigurationDTO.class))).thenReturn(configDTO);
+        when(offerService.editConfiguration(anyLong(), any(ModifyConfigurationDTO.class))).thenReturn(configDTO);
 
         // When and Then
         mockMvc.perform(post("/api/caretaker/offer/configuration/1/edit")
@@ -99,7 +101,7 @@ public class OfferControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Updated Configuration"));
 
-        verify(offerService, times(1)).editConfiguration(anyLong(), any(OfferConfigurationDTO.class));
+        verify(offerService, times(1)).editConfiguration(anyLong(), any(ModifyConfigurationDTO.class));
     }
 
     @Test

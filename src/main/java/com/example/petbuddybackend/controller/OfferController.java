@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
+import com.example.petbuddybackend.dto.offer.ModifyConfigurationDTO;
+import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.service.offer.OfferService;
@@ -30,7 +32,7 @@ public class OfferController {
     )
     @PostMapping("/add-or-edit")
     @PreAuthorize("isAuthenticated()")
-    public OfferDTO addOrEditOffer(@RequestBody OfferDTO offer, Principal principal) {
+    public OfferDTO addOrEditOffer(@RequestBody ModifyOfferDTO offer, Principal principal) {
         return offerService.addOrEditOffer(offer, principal.getName());
     }
 
@@ -44,7 +46,7 @@ public class OfferController {
     @PostMapping("/configuration/{configurationId}/edit")
     @PreAuthorize("isAuthenticated()")
     public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
-                                                                   @RequestBody OfferConfigurationDTO configuration) {
+                                                                   @RequestBody ModifyConfigurationDTO configuration) {
         return offerService.editConfiguration(configurationId, configuration);
     }
 

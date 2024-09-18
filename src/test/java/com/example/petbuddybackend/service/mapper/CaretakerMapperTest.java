@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.mapper;
 
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.testutils.ValidationUtils;
 import com.example.petbuddybackend.testutils.mock.MockOfferProvider;
@@ -23,9 +23,9 @@ public class CaretakerMapperTest {
         setIds(caretaker);
         setCalculatedFields(caretaker);
 
-        CaretakerDTO caretakerDTO = mapper.mapToCaretakerDTO(caretaker);
+        CaretakerComplexInfoDTO caretakerComplexInfoDTO = mapper.mapToCaretakerComplexInfoDTO(caretaker);
 
-        assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerDTO));
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerComplexInfoDTO));
     }
 
     private void setIds(Caretaker caretaker) {

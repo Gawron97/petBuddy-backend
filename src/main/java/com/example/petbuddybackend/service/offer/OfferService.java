@@ -2,6 +2,8 @@ package com.example.petbuddybackend.service.offer;
 
 import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
 import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
+import com.example.petbuddybackend.dto.offer.ModifyConfigurationDTO;
+import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
@@ -47,7 +49,7 @@ public class OfferService {
     private final OfferConfigurationMapper offerConfigurationMapper = OfferConfigurationMapper.INSTANCE;
 
     @Transactional
-    public OfferDTO addOrEditOffer(OfferDTO offer, String caretakerEmail) {
+    public OfferDTO addOrEditOffer(ModifyOfferDTO offer, String caretakerEmail) {
         Caretaker caretaker = caretakerService.getCaretakerByEmail(caretakerEmail);
 
         Offer modifiyngOffer = getOrCreateOffer(caretakerEmail, offer.animal().animalType(),
@@ -75,7 +77,7 @@ public class OfferService {
     }
 
     @Transactional
-    public OfferConfigurationDTO editConfiguration(Long configurationId, OfferConfigurationDTO configuration) {
+    public OfferConfigurationDTO editConfiguration(Long configurationId, ModifyConfigurationDTO configuration) {
 
         OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
 
@@ -117,7 +119,7 @@ public class OfferService {
 
     }
 
-    private void setOfferConfigurations(OfferDTO offer, Offer modifiyngOffer) {
+    private void setOfferConfigurations(ModifyOfferDTO offer, Offer modifiyngOffer) {
 
         if(CollectionUtil.isNotEmpty(offer.offerConfigurations())) {
             List<OfferConfiguration> offerConfigurations = createAdditionalConfigurationsForOffer(offer.offerConfigurations(), modifiyngOffer);
@@ -127,10 +129,10 @@ public class OfferService {
 
     }
 
-    private List<OfferConfiguration> createAdditionalConfigurationsForOffer(List<OfferConfigurationDTO> offerConfigurations,
+    private List<OfferConfiguration> createAdditionalConfigurationsForOffer(List<ModifyConfigurationDTO> offerConfigurations,
                                                                             Offer offer) {
         List<OfferConfiguration> newOfferConfigurations = new ArrayList<>();
-        for(OfferConfigurationDTO offerConfiguration : offerConfigurations) {
+        for(ModifyConfigurationDTO offerConfiguration : offerConfigurations) {
             OfferConfiguration configuration = createConfiguration(offerConfiguration, offer);
             checkForDuplicateConfiguration(Stream.concat(
                     Optional.ofNullable(offer.getOfferConfigurations()).orElse(Collections.emptyList()).stream(),
@@ -170,7 +172,7 @@ public class OfferService {
 
     }
 
-    private OfferConfiguration createConfiguration(OfferConfigurationDTO offerConfiguration, Offer offer) {
+    private OfferConfiguration createConfiguration(ModifyConfigurationDTO offerConfiguration, Offer offer) {
         OfferConfiguration newOfferConfiguration = OfferConfiguration.builder()
                 .dailyPrice(offerConfiguration.dailyPrice())
                 .description(offerConfiguration.description())
@@ -207,7 +209,7 @@ public class OfferService {
                 .build();
     }
 
-    private void setOfferAnimalAmenities(OfferDTO offer, Offer modifiyngOffer) {
+    private void setOfferAnimalAmenities(ModifyOfferDTO offer, Offer modifiyngOffer) {
 
         if(CollectionUtil.isNotEmpty(offer.animalAmenities())) {
             Set<AnimalAmenity> animalAmenities = createAdditionalAnimalAmenitiesForOffer(offer.animalAmenities(), modifiyngOffer);
@@ -249,7 +251,7 @@ public class OfferService {
                 .orElseThrow(() -> new NotFoundException("Offer configuration with id " + id + " not found"));
     }
 
-    private void editConfigurationSelectedOptions(OfferConfiguration editingConfiguration, OfferConfigurationDTO configuration) {
+    private void editConfigurationSelectedOptions(OfferConfiguration editingConfiguration, ModifyConfigurationDTO configuration) {
         List<OfferOption> offerOptions = editingConfiguration.getOfferOptions();
 
         offerOptions.removeIf(offerOption ->
