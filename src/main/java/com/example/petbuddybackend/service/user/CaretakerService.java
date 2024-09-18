@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
@@ -23,6 +24,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class CaretakerService {
@@ -36,8 +39,8 @@ public class CaretakerService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters) {
-        Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters);
+    public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters, Set<OfferFilterDTO> offerFilters) {
+        Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
         return caretakerRepository
                 .findAll(spec, pageable)

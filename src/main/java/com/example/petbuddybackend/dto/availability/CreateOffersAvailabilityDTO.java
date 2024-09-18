@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.dto.availability;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 
@@ -11,6 +12,6 @@ public record CreateOffersAvailabilityDTO(
         List<Long> offerIds,
 
         @NotEmpty
-        List<AvailabilityRangeDTO> availabilityRanges
+        List<@Valid AvailabilityRangeDTO> availabilityRanges
 ) {
 }

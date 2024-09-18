@@ -1,10 +1,11 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
+import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
@@ -20,6 +21,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Collections;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,17 +32,22 @@ public class CaretakerController {
     private final CaretakerService caretakerService;
 
     @SecurityRequirements
-    @GetMapping
+    @PostMapping
     @Operation(
             summary = "Get list of caretakers",
-            description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters."
+            description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters." +
+                    " Request body is not required!"
     )
     public Page<CaretakerDTO> getCaretakers(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
-            @ParameterObject @ModelAttribute CaretakerSearchCriteria filters
-    ) {
+            @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
+            @RequestBody(required = false) Set<@Valid OfferFilterDTO> offerFilters
+            ) {
+        if(offerFilters == null) {
+            offerFilters = Collections.emptySet();
+        }
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
-        return caretakerService.getCaretakers(pageable, filters);
+        return caretakerService.getCaretakers(pageable, filters, offerFilters);
     }
 
     @PostMapping("/add")

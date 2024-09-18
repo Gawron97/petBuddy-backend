@@ -1,21 +1,25 @@
 package com.example.petbuddybackend.utils.specification;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
-import com.example.petbuddybackend.dto.criteriaSearch.OfferSearchCriteria;
+import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
+import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.amenity.Amenity;
+import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.offer.Offer;
+import com.example.petbuddybackend.entity.offer.OfferConfiguration;
+import com.example.petbuddybackend.entity.offer.OfferOption;
 import com.example.petbuddybackend.entity.user.Caretaker;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
+import jakarta.persistence.criteria.*;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CaretakerSpecificationUtils {
@@ -28,9 +32,21 @@ public final class CaretakerSpecificationUtils {
     public static final String SURNAME = "surname";
     public static final String EMAIL = "email";
     public static final String CARETAKER = "caretaker";
+    public static final String OFFER_CONFIGURATIONS = "offerConfigurations";
+    public static final String ANIMAL = "animal";
+    public static final String ANIMAL_TYPE = "animalType";
+    public static final String ANIMAL_AMENITIES = "animalAmenities";
+    public static final String AMENITY = "amenity";
+    public static final String ID = "id";
+    public static final String OFFER = "offer";
+    public static final String PRICE = "dailyPrice";
+    public static final String ANIMAL_ATTRIBUTE = "animalAttribute";
+    public static final String ATTRIBUTE_NAME = "attributeName";
+    public static final String ATTRIBUTE_VALUE = "attributeValue";
+    public static final String OFFER_CONFIGURATION = "offerConfiguration";
 
 
-    public static Specification<Caretaker> toSpecification(CaretakerSearchCriteria filters) {
+    public static Specification<Caretaker> toSpecification(CaretakerSearchCriteria filters, Set<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = Specification.where(
                 (root, query, criteriaBuilder) -> criteriaBuilder.conjunction()
         );
@@ -47,8 +63,8 @@ public final class CaretakerSpecificationUtils {
             spec = spec.and(voivodeshipEquals(filters.voivodeship()));
         }
 
-        if(!ObjectUtils.isEmpty(filters.offerSearchCriteria())) {
-            spec = spec.and(offerSearchCriteria(filters.offerSearchCriteria()));
+        if(!offerFilters.isEmpty()) {
+            spec = spec.and(offersMatch(offerFilters));
         }
 
         return spec;
@@ -86,23 +102,178 @@ public final class CaretakerSpecificationUtils {
                 criteriaBuilder.equal(root.get(ADDRESS).get(VOIVODESHIP), voivodeship);
     }
 
-    private static Specification<Caretaker> offerSearchCriteria(OfferSearchCriteria filters) {
-        Specification<Offer> offerSpec = OfferSpecificationUtils.toSpecification(filters);
+    private static Specification<Caretaker> offersMatch(Set<OfferFilterDTO> offerFilters) {
+        return (root, query, cb) -> {
+            query.distinct(true);
 
-        return (root, query, criteriaBuilder) -> {
-            Subquery<Offer> offerSubquery = query.subquery(Offer.class);
-            Root<Offer> offerRoot = offerSubquery.from(Offer.class);
+            List<Predicate> animalOfferPredicates = new ArrayList<>();
 
-            offerSubquery.select(offerRoot);
-            offerSubquery.where(
-                    criteriaBuilder.and(
-                            criteriaBuilder.equal(offerRoot.get(CARETAKER), root),
-                            offerSpec.toPredicate(offerRoot, query, criteriaBuilder)
-                    )
-            );
-            return criteriaBuilder.exists(offerSubquery);
+            for (OfferFilterDTO offerFilter : offerFilters) {
+                animalOfferPredicates.add(animalOfferMatches(root, query, cb, offerFilter));
+            }
+
+            // The caretaker must have offers for all animals specified in the filters
+            return cb.and(animalOfferPredicates.toArray(new Predicate[0]));
         };
+    }
+
+    private static Predicate animalOfferMatches(Root<Caretaker> root, CriteriaQuery<?> query, CriteriaBuilder cb,
+                                                OfferFilterDTO offerFilter) {
+        Subquery<Long> offerSubquery = query.subquery(Long.class);
+        Root<Offer> offerRoot = offerSubquery.from(Offer.class);
+        offerSubquery.select(offerRoot.get(ID));
+
+        Predicate caretakerMatch = cb.equal(offerRoot.get(CARETAKER), root);
+        Predicate animalTypeMatch = cb.equal(offerRoot.get(ANIMAL).get(ANIMAL_TYPE), offerFilter.animalType());
+
+        List<Predicate> offerPredicates = new ArrayList<>();
+        offerPredicates.add(caretakerMatch);
+        offerPredicates.add(animalTypeMatch);
+
+        if (!offerFilter.offerConfigurations().isEmpty()) {
+            Predicate configurationsMatch = configurationsMatch(offerSubquery, cb, offerRoot, offerFilter.offerConfigurations());
+            offerPredicates.add(configurationsMatch);
+        }
+
+        if(!offerFilter.amenities().isEmpty()) {
+            Predicate amenitiesMatch = amenitiesMatch(offerSubquery, cb, offerRoot, offerFilter.amenities());
+            offerPredicates.add(amenitiesMatch);
+        }
+
+        offerSubquery.where(offerPredicates.toArray(new Predicate[0]));
+
+        // The caretaker must have an offer for this animal that meets all the criteria
+        return cb.exists(offerSubquery);
+    }
+
+    private static Predicate configurationsMatch(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot,
+                                                 Set<OfferConfigurationFilterDTO> configFilters) {
+        List<Predicate> configExistsPredicates = new ArrayList<>();
+
+        for (OfferConfigurationFilterDTO configFilter : configFilters) {
+            Predicate configExists = configurationExists(offerSubquery, cb, offerRoot, configFilter);
+            configExistsPredicates.add(configExists);
+        }
+
+        // All configurations specified in the filter must have matching configurations in the offer
+        return cb.and(configExistsPredicates.toArray(new Predicate[0]));
+    }
+
+    private static Predicate configurationExists(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot,
+                                                 OfferConfigurationFilterDTO configFilter) {
+        Subquery<Long> configSubquery = offerSubquery.subquery(Long.class);
+        Root<OfferConfiguration> configRoot = configSubquery.from(OfferConfiguration.class);
+        configSubquery.select(configRoot.get(ID));
+
+        Predicate offerMatch = cb.equal(configRoot.get(OFFER), offerRoot);
+        Predicate pricePredicate = cb.between(configRoot.get(PRICE), configFilter.minPrice(), configFilter.maxPrice());
+
+        List<Predicate> configPredicates = new ArrayList<>();
+        configPredicates.add(offerMatch);
+        configPredicates.add(pricePredicate);
+
+        if (configFilter.attributes() != null && !configFilter.attributes().isEmpty()) {
+            Predicate attributesMatch = attributesMatch(configSubquery, cb, configRoot, configFilter.attributes());
+            configPredicates.add(attributesMatch);
+        }
+
+        configSubquery.where(configPredicates.toArray(new Predicate[0]));
+
+        // For each configuration filter, there must exist a configuration matching all criteria
+        return cb.exists(configSubquery);
+    }
+
+    private static Predicate attributesMatch(Subquery<Long> configSubquery, CriteriaBuilder cb,
+                                             Root<OfferConfiguration> configRoot, Map<String, Set<String>> attributes) {
+        List<Predicate> attributeGroupPredicates = new ArrayList<>();
+
+        for (Map.Entry<String, Set<String>> entry : attributes.entrySet()) {
+            String attributeName = entry.getKey();
+            Set<String> attributeValues = entry.getValue();
+
+            Predicate attributeGroupPredicate = attributeGroupMatches(configSubquery, cb, configRoot, attributeName, attributeValues);
+            attributeGroupPredicates.add(attributeGroupPredicate);
+        }
+
+        return cb.and(attributeGroupPredicates.toArray(new Predicate[0]));
+    }
+
+    private static Predicate attributeGroupMatches(Subquery<Long> configSubquery, CriteriaBuilder cb,
+                                                   Root<OfferConfiguration> configRoot, String attributeName,
+                                                   Set<String> attributeValues) {
+        // First, check if the offer configuration has any OfferOption with this attributeName
+        Subquery<Long> attributeNameSubquery = configSubquery.subquery(Long.class);
+        Root<OfferOption> attributeNameOptionRoot = attributeNameSubquery.from(OfferOption.class);
+        attributeNameSubquery.select(attributeNameOptionRoot.get(ID));
+
+        Predicate configOptionMatch = cb.equal(attributeNameOptionRoot.get(OFFER_CONFIGURATION), configRoot);
+        Predicate attributeNameMatch = cb.equal(attributeNameOptionRoot.get(ANIMAL_ATTRIBUTE).get(ATTRIBUTE_NAME), attributeName);
+
+        attributeNameSubquery.where(cb.and(configOptionMatch, attributeNameMatch));
+
+        // Check if OfferOptions with this attributeName exist
+        Predicate hasAttributeNameOptions = cb.exists(attributeNameSubquery);
+
+        // Create predicates to ensure all required attributeValues are present
+        List<Predicate> attributeValuePredicates = new ArrayList<>();
+
+        for (String attributeValue : attributeValues) {
+            Predicate attributeValueExists = attributeValueExists(configSubquery, cb, configRoot, attributeName, attributeValue);
+            attributeValuePredicates.add(attributeValueExists);
+        }
+
+        // Combine the attribute value predicates
+        Predicate allAttributeValuesMatch = cb.and(attributeValuePredicates.toArray(new Predicate[0]));
+
+        // Final predicate for this attributeName
+        // If no OfferOption with this attributeName exists, consider it matching (i.e., can handle all values)
+        return cb.or(
+                cb.not(hasAttributeNameOptions),
+                allAttributeValuesMatch
+        );
+    }
+
+    private static Predicate attributeValueExists(Subquery<Long> configSubquery, CriteriaBuilder cb, Root<OfferConfiguration> configRoot, String attributeName, String attributeValue) {
+        Subquery<Long> optionSubquery = configSubquery.subquery(Long.class);
+        Root<OfferOption> optionRoot = optionSubquery.from(OfferOption.class);
+        optionSubquery.select(optionRoot.get(ID));
+
+        Predicate optionConfigMatch = cb.equal(optionRoot.get(OFFER_CONFIGURATION), configRoot);
+        Predicate optionAttributeNameMatch = cb.equal(optionRoot.get(ANIMAL_ATTRIBUTE).get(ATTRIBUTE_NAME), attributeName);
+        Predicate optionAttributeValueMatch = cb.equal(optionRoot.get(ANIMAL_ATTRIBUTE).get(ATTRIBUTE_VALUE), attributeValue);
+
+        optionSubquery.where(cb.and(optionConfigMatch, optionAttributeNameMatch, optionAttributeValueMatch));
+
+        // Ensure that an OfferOption with this attributeValue exists
+        return cb.exists(optionSubquery);
+    }
+
+    private static Predicate amenitiesMatch(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot,
+                                            Set<String> amenities) {
+        List<Predicate> amenityExistsPredicates = new ArrayList<>();
+
+        for(String amenity : amenities) {
+            Predicate amenityExists = amenityExists(offerSubquery, cb, offerRoot, amenity);
+            amenityExistsPredicates.add(amenityExists);
+        }
+
+        // All amenities specified in the filter must have matching amenities in the offer
+        return cb.and(amenityExistsPredicates.toArray(new Predicate[0]));
 
     }
 
+    private static Predicate amenityExists(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot, String amenity) {
+
+        Subquery<Long> amenitySubquery = offerSubquery.subquery(Long.class);
+        Root<Offer> correlatedOfferRoot = amenitySubquery.correlate(offerRoot);
+        Join<Offer, AnimalAmenity> animalAmenityJoin = correlatedOfferRoot.join(ANIMAL_AMENITIES);
+        Join<AnimalAmenity, Amenity> amenityJoin = animalAmenityJoin.join(AMENITY, JoinType.INNER);
+        amenitySubquery.select(animalAmenityJoin.get(ID));
+
+        Predicate amenityMatch = cb.equal(amenityJoin.get(NAME), amenity);
+
+        amenitySubquery.where(amenityMatch);
+        return cb.exists(amenitySubquery);
+
+    }
 }
