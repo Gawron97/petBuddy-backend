@@ -7,12 +7,14 @@ import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
-import com.example.petbuddybackend.service.chat.session.context.ChatSessionContext;
 import com.example.petbuddybackend.service.chat.session.ChatSessionService;
 import com.example.petbuddybackend.service.chat.session.MessageCallback;
+import com.example.petbuddybackend.service.chat.session.context.WebSocketSessionContext;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
+import com.example.petbuddybackend.utils.time.TimeUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.*;
@@ -26,6 +28,7 @@ import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 import java.security.Principal;
 import java.util.Map;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class ChatWebSocketController {
@@ -38,8 +41,12 @@ public class ChatWebSocketController {
     @Value("${header-name.timezone}")
     private String TIMEZONE_HEADER_NAME;
 
+    @Value("${url.chat.topic.base}")
+    private String URL_CHAT_TOPIC_BASE;
+
     private final ChatService chatService;
     private final ChatSessionService chatSessionService;
+    private final WebSocketSessionContext sessionContext;
 
     @PreAuthorize("isAuthenticated()")
     @MessageMapping("/chat/{chatId}")
@@ -49,52 +56,75 @@ public class ChatWebSocketController {
             @Headers Map<String, Object> headers,
             Principal principal
     ) {
+        String sessionId = HeaderUtils.getSessionId(headers);
         String principalUsername = principal.getName();
-        Role acceptRole = HeaderUtils.getHeaderSingleValue(headers, ROLE_HEADER_NAME, Role.class);
+        Role acceptRole = HeaderUtils.getNativeHeaderSingleValue(headers, ROLE_HEADER_NAME, Role.class);
         ChatMessageDTO messageDTO = chatService.createMessage(chatId, principalUsername, message, acceptRole);
         MessageCallback callback = chatService.createCallbackMessageSeen(chatId, principalUsername);
 
-        chatSessionService.patchMetadata(chatId, principalUsername, headers);
+        chatSessionService.patchMetadata(chatId, principalUsername, sessionId, headers);
         chatSessionService.sendNotifications(chatId, new ChatNotificationMessage(messageDTO), callback);
+        log.debug("Send message triggered by session id: {}", sessionId);
     }
 
     @EventListener
-    public void handleSubscription(SessionSubscribeEvent event) {
+    public void handleSubscribeToMessageTopic(SessionSubscribeEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        String timeZone = HeaderUtils.getHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class);
+        String destination = accessor.getDestination();
+
+        if(!HeaderUtils.destinationStartsWith(URL_CHAT_TOPIC_BASE, destination)) {
+            return;
+        }
+
+        String timeZone = HeaderUtils.getNativeHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class);
         String username = HeaderUtils.getUser(accessor);
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
+        String sessionId = accessor.getSessionId();
+        String subscriptionId = accessor.getSubscriptionId();
 
         chatService.updateLastMessageSeen(chatId, username);
-        chatSessionService.subscribe(chatId, username, timeZone);
+        chatSessionService.subscribe(chatId, username, sessionId, TimeUtils.getOrSystemDefault(timeZone), subscriptionId);
         chatSessionService.sendNotifications(chatId, new ChatNotificationJoined(chatId, username));
+
+        log.debug("Subscribe triggered by session: {}, at destination: {}", sessionId, destination);
     }
 
     @EventListener
-    public void handleUnsubscribe(SessionUnsubscribeEvent event) {
-        ChatSessionContext context = chatSessionService.getContext();
+    public void handleUnsubscribeToMessageTopic(SessionUnsubscribeEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
 
-        if(context.isEmpty()) {
+        if(!sessionContext.containsSubscriptionId(accessor.getSubscriptionId())) {
             return;
         }
 
-        String username = context.getUsername();
-        Long chatId = context.getChatId();
+        if(sessionContext.isEmpty()) {
+            return;
+        }
 
-        chatSessionService.unsubscribe(chatId, username);
+        String username = sessionContext.getUsername();
+        Long chatId = sessionContext.getChatId();
+        String sessionId = sessionContext.getSessionId();
+        String subscriptionId = accessor.getSubscriptionId();
+
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
+        chatSessionService.unsubscribe(chatId, username, sessionId, subscriptionId);
+
+        String destination = accessor.getDestination();
+        log.debug("Unsubscribe triggered by session: {}, at destination: {}", sessionId, destination);
     }
 
     @EventListener
-    public void handleDisconnect(SessionDisconnectEvent event) {
-        ChatSessionContext context = chatSessionService.getContext();
+    public void handleDisconnectFromWebSocket(SessionDisconnectEvent event) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
 
-        if(context.isEmpty()) {
+        if(sessionContext.isEmpty()) {
             return;
         }
 
-        String username = context.getUsername();
-        Long chatId = context.getChatId();
+        String username = sessionContext.getUsername();
+        Long chatId = sessionContext.getChatId();
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
+
+        log.debug("Disconnect triggered by session: {}", accessor.getSessionId());
     }
 }
