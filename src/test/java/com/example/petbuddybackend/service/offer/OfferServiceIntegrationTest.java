@@ -97,7 +97,7 @@ public class OfferServiceIntegrationTest {
         );
 
         existingOffer = PersistenceUtils.addComplexOffer(caretakerWithComplexOffer, animalInComplexOffer,
-                animalAttributesInComplexOffer, BigDecimal.valueOf(10.0), animalAmenitiesInComplexOffer, offerRepository);
+                animalAttributesInComplexOffer, BigDecimal.valueOf(10.0), animalAmenitiesInComplexOffer, Set.of(), offerRepository);
 
     }
 
@@ -431,7 +431,7 @@ public class OfferServiceIntegrationTest {
         // Given
         Offer anotherOffer = PersistenceUtils.addComplexOffer(
                 caretakerWithComplexOffer, animalRepository.findById("CAT").orElseThrow(), List.of(),
-                BigDecimal.valueOf(10.0), List.of(), offerRepository);
+                BigDecimal.valueOf(10.0), List.of(), Set.of(), offerRepository);
 
         CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
                 .offerIds(List.of(existingOffer.getId(), anotherOffer.getId()))
@@ -466,7 +466,7 @@ public class OfferServiceIntegrationTest {
     void setAvailabilityForOffers_WhenOfferAlreadyHaveAvailabilities_ShouldReplaceAvailabilityForOffer() {
 
         // Given
-        PersistenceUtils.addAvailabilitiesForOffer(offerRepository, existingOffer);
+        PersistenceUtils.setAvailabilitiesForOffer(offerRepository, existingOffer);
 
         CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
                 .offerIds(List.of(existingOffer.getId()))

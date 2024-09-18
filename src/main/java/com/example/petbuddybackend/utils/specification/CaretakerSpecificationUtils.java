@@ -111,20 +111,19 @@ public final class CaretakerSpecificationUtils {
         return (root, query, cb) -> {
             query.distinct(true);
 
-            List<Predicate> animalOfferPredicates = new ArrayList<>();
+            List<Predicate> offerAnimalAndConfigurationsAndAmenitiesPredicates = new ArrayList<>();
 
             for (OfferFilterDTO offerFilter : offerFilters) {
-                animalOfferPredicates.add(animalOfferMatches(root, query, cb, offerFilter));
+                offerAnimalAndConfigurationsAndAmenitiesPredicates.add(animalOfferMatches(root, query, cb, offerFilter));
             }
 
-            Predicate animalOfferMatch = cb.and(animalOfferPredicates.toArray(new Predicate[0]));
+            Predicate offerAnimalAndConfigurationsAndAmenitiesMatch = cb.and(offerAnimalAndConfigurationsAndAmenitiesPredicates.toArray(new Predicate[0]));
 
-            Predicate availabilityPredicate = availabilityMatchForAtLeastOneOffer(root, query, cb, offerFilters);
-            Predicate availabilityMatch = cb.and(availabilityPredicate);
+            Predicate availabilityOfferPredicate = availabilityMatchForAtLeastOneOffer(root, query, cb, offerFilters);
 
             List<Predicate> offerPredicates = new ArrayList<>();
-            offerPredicates.add(animalOfferMatch);
-            offerPredicates.add(availabilityMatch);
+            offerPredicates.add(offerAnimalAndConfigurationsAndAmenitiesMatch);
+            offerPredicates.add(availabilityOfferPredicate);
 
             // The caretaker must have offers for all animals specified in the filters
             return cb.and(offerPredicates.toArray(new Predicate[0]));

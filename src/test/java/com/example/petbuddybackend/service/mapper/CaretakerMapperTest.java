@@ -18,7 +18,7 @@ public class CaretakerMapperTest {
     void mapToCaretakerDTO_shouldNotLeaveNullFields() throws IllegalAccessException {
         Caretaker caretaker = MockUserProvider.createMockCaretaker();
         MockOfferProvider.editComplexMockOfferForCaretaker(caretaker);
-        MockOfferProvider.addMockAvailabilitiesToOffer(caretaker.getOffers().get(0));
+        MockOfferProvider.setMockAvailabilitiesToOffer(caretaker.getOffers().get(0));
 
         setIds(caretaker);
         setCalculatedFields(caretaker);

@@ -3,6 +3,7 @@ package com.example.petbuddybackend.testutils;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
@@ -28,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
 import static com.example.petbuddybackend.testutils.mock.MockOfferProvider.*;
@@ -105,8 +107,10 @@ public class PersistenceUtils {
     }
 
     public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
-                                        BigDecimal price, List<AnimalAmenity> animalAmenities, OfferRepository offerRepository) {
-        Offer offer = addComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities);
+                                        BigDecimal price, List<AnimalAmenity> animalAmenities,
+                                        Set<Availability> availabilities, OfferRepository offerRepository) {
+        Offer offer = addComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities,
+                availabilities);
         return offerRepository.save(offer);
     }
 
@@ -228,9 +232,11 @@ public class PersistenceUtils {
         return ratingRepository.save(rating);
     }
 
-    public static void addAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer) {
+    public static void setAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer) {
 
-        Offer offer = addMockAvailabilitiesToOffer(existingOffer);
+        Offer offer = setMockAvailabilitiesToOffer(existingOffer);
         offerRepository.save(offer);
     }
+
+
 }
