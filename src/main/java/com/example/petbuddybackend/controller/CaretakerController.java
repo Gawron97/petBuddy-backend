@@ -5,6 +5,7 @@ import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
+import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
@@ -56,7 +57,7 @@ public class CaretakerController {
             description = "Add caretaker profile if it does not exists"
     )
     @PreAuthorize("isAuthenticated()")
-    public CaretakerDTO addCaretaker(
+    public CaretakerComplexInfoDTO addCaretaker(
             @RequestBody @Valid CreateCaretakerDTO caretakerDTO,
             Principal principal
     ) {
@@ -69,7 +70,7 @@ public class CaretakerController {
             description = "Edit caretaker profile if it does exists"
     )
     @PreAuthorize("isAuthenticated()")
-    public CaretakerDTO editCaretaker(
+    public CaretakerComplexInfoDTO editCaretaker(
             @RequestBody @Valid UpdateCaretakerDTO caretakerDTO,
             Principal principal
     ) {
