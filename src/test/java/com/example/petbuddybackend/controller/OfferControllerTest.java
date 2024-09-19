@@ -59,6 +59,24 @@ public class OfferControllerTest {
         }
         """;
 
+    private static final String CREATE_OR_UPDATE_OFFER = """
+        {
+            "description": "%s",
+            "animal": {
+                "animalType": "%s"
+            }
+        }
+        """;
+
+    private static final String CREATE_OR_UPDATE_CONFIGURATION = """
+        {
+            "description": "%s",
+            "dailyPrice": 10.0,
+            "selectedOptions": {
+                "SIZE": ["BIG"]
+            }
+        }
+        """;
 
     @Test
     @WithMockUser
@@ -78,7 +96,9 @@ public class OfferControllerTest {
         // When and Then
         mockMvc.perform(post("/api/caretaker/offer/add-or-edit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"description\": \"Test Offer\"}"))
+                        .content(String.format(CREATE_OR_UPDATE_OFFER,
+                                "Test Offer",
+                                "DOG")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Test Offer"))
                 .andExpect(jsonPath("$.offerConfigurations[0].description").value("Test Configuration"))
@@ -97,7 +117,7 @@ public class OfferControllerTest {
         // When and Then
         mockMvc.perform(post("/api/caretaker/offer/configuration/1/edit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"description\": \"Updated Configuration\"}"))
+                        .content(String.format(CREATE_OR_UPDATE_CONFIGURATION, "Updated Configuration")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Updated Configuration"));
 

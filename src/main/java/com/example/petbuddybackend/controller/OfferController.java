@@ -32,7 +32,7 @@ public class OfferController {
     )
     @PostMapping("/add-or-edit")
     @PreAuthorize("isAuthenticated()")
-    public OfferDTO addOrEditOffer(@RequestBody ModifyOfferDTO offer, Principal principal) {
+    public OfferDTO addOrEditOffer(@RequestBody @Valid ModifyOfferDTO offer, Principal principal) {
         return offerService.addOrEditOffer(offer, principal.getName());
     }
 
@@ -46,7 +46,7 @@ public class OfferController {
     @PostMapping("/configuration/{configurationId}/edit")
     @PreAuthorize("isAuthenticated()")
     public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
-                                                                   @RequestBody ModifyConfigurationDTO configuration) {
+                                                   @RequestBody @Valid ModifyConfigurationDTO configuration) {
         return offerService.editConfiguration(configurationId, configuration);
     }
 
