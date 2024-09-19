@@ -7,10 +7,7 @@ import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
-import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
-import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.*;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -1158,7 +1155,7 @@ public class CaretakerServiceTest {
                 .build();
 
         //When
-        CaretakerDTO result = caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail());
+        CaretakerComplexInfoDTO result = caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail());
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then
@@ -1240,7 +1237,7 @@ public class CaretakerServiceTest {
         String oldZipCode = caretakerWithComplexOffer.getAddress().getZipCode();
 
         //When
-        CaretakerDTO result = caretakerService.editCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
+        CaretakerComplexInfoDTO result = caretakerService.editCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then
@@ -1301,7 +1298,7 @@ public class CaretakerServiceTest {
                 .build();
 
         //When
-        CaretakerDTO result = caretakerService.editCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
+        CaretakerComplexInfoDTO result = caretakerService.editCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then

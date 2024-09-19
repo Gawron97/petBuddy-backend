@@ -18,6 +18,8 @@ public interface AddressMapper {
     @Mapping(target = "id", ignore = true)
     Address mapToAddress(AddressDTO addressDTO);
 
+    AddressDTO mapToAddressDTO(Address address);
+
     default void updateAddressFromDTO(UpdateAddressDTO addressDTO, @MappingTarget Address address) {
         if(StringUtils.hasText(addressDTO.city())) {
             address.setCity(addressDTO.city());

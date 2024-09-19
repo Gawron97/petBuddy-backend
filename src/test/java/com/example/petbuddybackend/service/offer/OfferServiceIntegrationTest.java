@@ -3,6 +3,8 @@ package com.example.petbuddybackend.service.offer;
 
 import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
 import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
+import com.example.petbuddybackend.dto.offer.ModifyConfigurationDTO;
+import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
 import com.example.petbuddybackend.repository.AvailabilityRepository;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.animal.AnimalDTO;
@@ -111,7 +113,7 @@ public class OfferServiceIntegrationTest {
     @ParameterizedTest
     @MethodSource("provideOfferConfigurations")
     void addOrEditOffer_ShouldAddOrEditOfferWithProperData(
-            OfferDTO offerToSave, boolean expectedToBeExistingOffer, int expectedNumberOfConfigurationsAfterAddition,
+            ModifyOfferDTO offerToSave, boolean expectedToBeExistingOffer, int expectedNumberOfConfigurationsAfterAddition,
             int expectedNumberOfAnimalAmenities) {
 
         if(!expectedToBeExistingOffer) {
@@ -137,12 +139,12 @@ public class OfferServiceIntegrationTest {
     static Stream<Arguments> provideOfferConfigurations() {
         return Stream.of(
                 Arguments.of(
-                        OfferDTO.builder()
+                        ModifyOfferDTO.builder()
                                 .description("First Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
                                 .offerConfigurations(
                                         new ArrayList<>(List.of(
-                                                OfferConfigurationDTO.builder()
+                                                ModifyConfigurationDTO.builder()
                                                         .description("First Description")
                                                         .dailyPrice(BigDecimal.valueOf(20.0))
                                                         .selectedOptions(new HashMap<>(Map.of("SIZE", new ArrayList<>(List.of("BIG")))))
@@ -155,12 +157,12 @@ public class OfferServiceIntegrationTest {
                         0 // Expected number of animal amenities
                 ),
                 Arguments.of(
-                        OfferDTO.builder()
+                        ModifyOfferDTO.builder()
                                 .description("Second Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
                                 .offerConfigurations(
                                         new ArrayList<>(List.of(
-                                                OfferConfigurationDTO.builder()
+                                                ModifyConfigurationDTO.builder()
                                                         .description("Second Description")
                                                         .dailyPrice(BigDecimal.valueOf(30.0))
                                                         .selectedOptions(new HashMap<>(Map.of("SIZE", new ArrayList<>(List.of("SMALL")))))
@@ -173,12 +175,12 @@ public class OfferServiceIntegrationTest {
                         1 // Expected number of animal amenities
                 ),
                 Arguments.of(
-                        OfferDTO.builder()
+                        ModifyOfferDTO.builder()
                                 .description("Third Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
                                 .offerConfigurations(
                                         new ArrayList<>(List.of(
-                                                OfferConfigurationDTO.builder()
+                                                ModifyConfigurationDTO.builder()
                                                         .description("Second Description")
                                                         .dailyPrice(BigDecimal.valueOf(30.0))
                                                         .selectedOptions(new HashMap<>(Map.of("SIZE", new ArrayList<>(List.of("SMALL")))))
@@ -192,7 +194,7 @@ public class OfferServiceIntegrationTest {
                         2 // Expected number of animal amenities
                 ),
                 Arguments.of(
-                        OfferDTO.builder()
+                        ModifyOfferDTO.builder()
                                 .description("Third Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
                                 .animalAmenities(new ArrayList<>(List.of("garden")))
@@ -209,7 +211,7 @@ public class OfferServiceIntegrationTest {
     @MethodSource("provideEditConfigurationScenarios")
     @Transactional
     void editConfiguration_ShouldEditConfigurationWithProperData(
-            int configurationIndex, OfferConfigurationDTO configurationToEdit, String expectedDescription,
+            int configurationIndex, ModifyConfigurationDTO configurationToEdit, String expectedDescription,
             BigDecimal expectedDailyPrice, Map<String, List<String>> expectedSelectedOptions) {
 
         Long configurationId = existingOffer.getOfferConfigurations().get(configurationIndex).getId();
@@ -244,7 +246,7 @@ public class OfferServiceIntegrationTest {
         return Stream.of(
                 Arguments.of(
                         0, // ID of the configuration to edit
-                        OfferConfigurationDTO.builder()
+                        ModifyConfigurationDTO.builder()
                                 .description("Updated Description")
                                 .dailyPrice(BigDecimal.valueOf(25.0))
                                 .selectedOptions(new HashMap<>(Map.of(
@@ -258,7 +260,7 @@ public class OfferServiceIntegrationTest {
                 ),
                 Arguments.of(
                         0, // ID of the configuration to edit
-                        OfferConfigurationDTO.builder()
+                        ModifyConfigurationDTO.builder()
                                 .description("Another Update")
                                 .dailyPrice(BigDecimal.valueOf(30.0))
                                 .selectedOptions(new HashMap<>(Map.of(
@@ -280,7 +282,7 @@ public class OfferServiceIntegrationTest {
     @ParameterizedTest
     @MethodSource("provideIncorrectOfferConfigurations")
     void addOrEditOffer_ShouldThrowException(
-            OfferDTO offerToSave, boolean expectedToBeExistingOffer, Class expectedExceptionClass) {
+            ModifyOfferDTO offerToSave, boolean expectedToBeExistingOffer, Class expectedExceptionClass) {
 
         if(!expectedToBeExistingOffer) {
             offerRepository.delete(existingOffer);
@@ -295,12 +297,12 @@ public class OfferServiceIntegrationTest {
     static Stream<Arguments> provideIncorrectOfferConfigurations() {
         return Stream.of(
                 Arguments.of(
-                        OfferDTO.builder()
+                        ModifyOfferDTO.builder()
                                 .description("First Configuration")
                                 .animal(AnimalDTO.builder().animalType("SOME ANIMAL").build())
                                 .offerConfigurations(
                                         new ArrayList<>(List.of(
-                                                OfferConfigurationDTO.builder()
+                                                ModifyConfigurationDTO.builder()
                                                         .description("First Description")
                                                         .dailyPrice(BigDecimal.valueOf(20.0))
                                                         .selectedOptions(new HashMap<>(Map.of("SIZE", new ArrayList<>(List.of("BIG")))))
@@ -312,12 +314,12 @@ public class OfferServiceIntegrationTest {
                         NotFoundException.class
                 ),
                 Arguments.of(
-                        OfferDTO.builder()
+                        ModifyOfferDTO.builder()
                                 .description("Second Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
                                 .offerConfigurations(
                                         new ArrayList<>(List.of(
-                                                OfferConfigurationDTO.builder()
+                                                ModifyConfigurationDTO.builder()
                                                         .description("Second Description")
                                                         .dailyPrice(BigDecimal.valueOf(30.0))
                                                         .selectedOptions(new HashMap<>(
@@ -333,7 +335,7 @@ public class OfferServiceIntegrationTest {
                         OfferConfigurationDuplicatedException.class
                 ),
                 Arguments.of(
-                        OfferDTO.builder()
+                        ModifyOfferDTO.builder()
                                 .description("Third Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
                                 .animalAmenities(new ArrayList<>(List.of("not found amenity")))
@@ -348,7 +350,7 @@ public class OfferServiceIntegrationTest {
     @MethodSource("provideIncorrectEditConfigurationScenarios")
     @Transactional
     void editConfiguration_ShouldThrowAnException(
-            int configurationIndex, OfferConfigurationDTO configurationToEdit, Class expectedExceptionClass) {
+            int configurationIndex, ModifyConfigurationDTO configurationToEdit, Class expectedExceptionClass) {
 
         Long configurationId = existingOffer.getOfferConfigurations().get(configurationIndex).getId();
 
@@ -365,7 +367,7 @@ public class OfferServiceIntegrationTest {
         return Stream.of(
                 Arguments.of(
                         0, // ID of the configuration to edit
-                        OfferConfigurationDTO.builder()
+                        ModifyConfigurationDTO.builder()
                                 .description("Updated Description")
                                 .dailyPrice(BigDecimal.valueOf(25.0))
                                 .selectedOptions(new HashMap<>(Map.of(

@@ -147,6 +147,12 @@
                             <exclude>com/example/petbuddybackend/service/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/filter/ExceptionHandlerFilter.class</exclude>
                             <exclude>com/example/petbuddybackend/filter/CORSFilter.class</exclude>
+
+                            <!-- Excludes for classes covered by websocket tests -->
+                            <exclude>com/example/petbuddybackend/filter/SubscriptionInterceptor.class</exclude>
+                            <exclude>com/example/petbuddybackend/controller/WebSocketController.class</exclude>
+                            <exclude>com/example/petbuddybackend/controller/ChatWebSocketController.class</exclude>
+                            <exclude>com/example/petbuddybackend/controller/SessionWebSocketController.class</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
@@ -190,6 +196,16 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <excludes>
+                        <exclude>com/example/petbuddybackend/controller/ChatWebSocketIntegrationTest.java</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

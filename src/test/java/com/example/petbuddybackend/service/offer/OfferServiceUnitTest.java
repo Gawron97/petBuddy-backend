@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.service.offer;
 
 import com.example.petbuddybackend.dto.animal.AnimalDTO;
-import com.example.petbuddybackend.dto.offer.OfferDTO;
+import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -21,7 +21,8 @@ import java.util.Optional;
 import static com.example.petbuddybackend.testutils.mock.MockAnimalProvider.createMockAnimal;
 import static com.example.petbuddybackend.testutils.mock.MockOfferProvider.createMockOffer;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,7 +58,7 @@ public class OfferServiceUnitTest {
     void addOrEditOffer_WhenOfferDoesNotExists_ShouldCreateNewOffer() {
 
         // Given
-        OfferDTO offerToCreate = OfferDTO.builder()
+        ModifyOfferDTO offerToCreate = ModifyOfferDTO.builder()
                 .description("description")
                 .animal(AnimalDTO.builder().animalType("DOG").build())
                 .build();

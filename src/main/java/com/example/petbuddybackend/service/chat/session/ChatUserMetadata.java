@@ -9,5 +9,6 @@ import java.time.ZoneId;
 @AllArgsConstructor
 class ChatUserMetadata {
     private String username;
+    private String sessionId;
     private ZoneId zoneId;
 }

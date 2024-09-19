@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.service.mapper;
 
+import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
@@ -19,7 +20,7 @@ public interface CaretakerMapper {
     CaretakerMapper INSTANCE = Mappers.getMapper(CaretakerMapper.class);
 
     @Mapping(target = "animals", source = "offers", qualifiedByName = "mapAnimalFromOffer")
-    CaretakerDTO mapToCaretakerDTO(Caretaker caretaker);
+    CaretakerComplexInfoDTO mapToCaretakerComplexInfoDTO(Caretaker caretaker);
 
     @Named("mapAnimalFromOffer")
     default String mapAnimalFromOffer(Offer offer) {
@@ -27,6 +28,9 @@ public interface CaretakerMapper {
     }
 
     Caretaker mapToCaretaker(CreateCaretakerDTO caretakerDTO);
+
+    @Mapping(target = "animals", source = "offers", qualifiedByName = "mapAnimalFromOffer")
+    CaretakerDTO mapToCaretakerDTO(Caretaker caretaker);
 
     default void updateCaretakerFromDTO(UpdateCaretakerDTO caretakerDTO, @MappingTarget Caretaker caretaker) {
         if (StringUtils.hasText(caretakerDTO.phoneNumber())) {
