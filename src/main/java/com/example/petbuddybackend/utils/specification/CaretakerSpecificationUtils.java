@@ -109,7 +109,6 @@ public final class CaretakerSpecificationUtils {
 
     private static Specification<Caretaker> offersMatch(Set<OfferFilterDTO> offerFilters) {
         return (root, query, cb) -> {
-            query.distinct(true);
 
             List<Predicate> offerAnimalAndConfigurationsAndAmenitiesPredicates = new ArrayList<>();
 

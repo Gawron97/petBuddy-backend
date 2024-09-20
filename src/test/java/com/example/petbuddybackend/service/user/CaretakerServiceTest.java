@@ -351,7 +351,8 @@ public class CaretakerServiceTest {
 
         appUserRepository.deleteAll();
         createCaretakersWithComplexOffers();
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters,  offerFilters);
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10),
+                false, Sort.Direction.ASC, filters, offerFilters);
         assertEquals(expectedSize, resultPage.getContent().size());
 
     }
@@ -936,11 +937,15 @@ public class CaretakerServiceTest {
         PersistenceUtils.addRatingToCaretaker(caretaker, client2, 4, "comment second", ratingRepository);
 
         // When
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10),
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(
+                Pageable.ofSize(10),
+                false,
+                Sort.Direction.ASC,
                 CaretakerSearchCriteria.builder()
                         .personalDataLike("John Doe")
                         .build(),
-                Collections.emptySet());
+                Collections.emptySet()
+        );
         CaretakerDTO resultCaretaker = resultPage.getContent().get(0);
         assertEquals(2, resultCaretaker.numberOfRatings());
         assertEquals(4.5f, resultCaretaker.avgRating());
@@ -953,10 +958,13 @@ public class CaretakerServiceTest {
         List<String> fieldNames = ReflectionUtils.getPrimitiveNames(CaretakerDTO.class);
         fieldNames.addAll(getPrimitiveNames(AddressDTO.class, "address_"));
         fieldNames.addAll(getPrimitiveNames(AccountDataDTO.class, "accountData_"));
+        fieldNames.remove("availabilityDaysMatch");
 
         for(String fieldName : fieldNames) {
             assertDoesNotThrow(() -> caretakerService.getCaretakers(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
+                    fieldName.equals("availabilityDaysMatch"),
+                    Sort.Direction.ASC,
                     CaretakerSearchCriteria.builder().build(),
                     Collections.emptySet()
             ));

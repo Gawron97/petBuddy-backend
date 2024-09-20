@@ -65,7 +65,7 @@ public class CaretakerControllerTest {
                 PageRequest.of(0, 10), caretakerComplexInfoDTOS.size()
         );
 
-        when(caretakerService.getCaretakers(any(), any(), any())).thenReturn(page);
+        when(caretakerService.getCaretakers(any(), any(), any(), any(), any())).thenReturn(page);
 
         mockMvc.perform(post("/api/caretaker")
                         .param("page", "0")
