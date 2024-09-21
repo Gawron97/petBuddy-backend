@@ -101,6 +101,23 @@ public class CaretakerServiceTest {
         initClients(this.caretaker);
     }
 
+    private void initCaretakers() {
+        List<Caretaker> caretakers = PersistenceUtils.addCaretakers(caretakerRepository, appUserRepository);
+        PersistenceUtils.addOffersToCaretakers(caretakers, offerRepository, animalRepository.findAll());
+        this.caretaker = caretakers.get(0);
+    }
+
+    private void initClients(Caretaker caretaker) {
+        client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+
+        clientSameAsCaretaker = Client.builder()
+                .email(caretaker.getEmail())
+                .accountData(caretaker.getAccountData())
+                .build();
+
+        clientSameAsCaretaker = PersistenceUtils.addClient(appUserRepository, clientRepository, clientSameAsCaretaker);
+    }
+
     @AfterEach
     void cleanUp() {
         offerRepository.deleteAll();
@@ -952,6 +969,200 @@ public class CaretakerServiceTest {
 
     }
 
+    @ParameterizedTest
+    @MethodSource("provideParamsForAvailabilityDaysMatchTest")
+    void getCaretakers_shouldReturnProperAvailabilityDaysMatch(Set<OfferFilterDTO> offerFilters,
+                                                               int expectedAvailabilityDaysMatch) {
+
+        // Given
+        PersistenceUtils.setAvailabilitiesForOffer(
+                offerRepository,
+                caretaker.getOffers().get(0),
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 2, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 2, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 2, 12, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 2, 28, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 3, 15, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 3, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build()
+                )
+        );
+
+        PersistenceUtils.setAvailabilitiesForOffer(
+                offerRepository,
+                caretaker.getOffers().get(1),
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 1, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 1, 15, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 3, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build()
+                )
+        );
+
+        // When
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(
+                Pageable.ofSize(10),
+                false,
+                Sort.Direction.ASC,
+                CaretakerSearchCriteria.builder().personalDataLike("John Doe").build(),
+                offerFilters
+        );
+
+        //Then
+        CaretakerDTO resultCaretaker = resultPage.getContent().get(0);
+        assertEquals(expectedAvailabilityDaysMatch, resultCaretaker.availabilityDaysMatch());
+
+    }
+
+    private static Stream<Arguments> provideParamsForAvailabilityDaysMatchTest() {
+        return Stream.of(
+                Arguments.of(
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        10
+                ),
+                Arguments.of(
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 2, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 2, 12, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        2
+                ),
+                Arguments.of(
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 2, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 2, 11, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1
+                ),
+                Arguments.of(
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 2, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 2, 7, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        3
+                ),
+                Arguments.of(
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 10, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        43
+                ),
+                Arguments.of(
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        6
+                ),
+                Arguments.of(
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 10, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build(),
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 10, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        75
+                ),
+                Arguments.of(
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 3, 30, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build(),
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 3, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 3, 25, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        6
+                )
+        );
+    }
+
     @Test
     @Ignore
     void testGetCaretakers_sortingParamsShouldAlignWithDTO() {
@@ -1121,23 +1332,6 @@ public class CaretakerServiceTest {
                 Arguments.of(5, true),
                 Arguments.of(6, false)
         );
-    }
-
-    private void initCaretakers() {
-        List<Caretaker> caretakers = PersistenceUtils.addCaretakers(caretakerRepository, appUserRepository);
-        PersistenceUtils.addOffersToCaretakers(caretakers, offerRepository, animalRepository.findAll());
-        this.caretaker = caretakers.get(0);
-    }
-
-    private void initClients(Caretaker caretaker) {
-        client = PersistenceUtils.addClient(appUserRepository, clientRepository);
-
-        clientSameAsCaretaker = Client.builder()
-                .email(caretaker.getEmail())
-                .accountData(caretaker.getAccountData())
-                .build();
-
-        clientSameAsCaretaker = PersistenceUtils.addClient(appUserRepository, clientRepository, clientSameAsCaretaker);
     }
 
     @Test

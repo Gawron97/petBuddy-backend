@@ -3,8 +3,6 @@ package com.example.petbuddybackend.service.user;
 import com.example.petbuddybackend.dto.availability.AvailabilityFilterDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
-import com.example.petbuddybackend.dto.paging.PagingParams;
-import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
@@ -22,7 +20,6 @@ import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import com.example.petbuddybackend.utils.paging.PagingUtils;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,7 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -56,8 +55,9 @@ public class CaretakerService {
                                             Set<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
-        List<CaretakerDTO> filteredCaretakers = caretakerRepository
-                .findAll(spec, pageable)
+        Page<Caretaker> caretakers = caretakerRepository.findAll(spec, pageable);
+
+        List<CaretakerDTO> filteredCaretakers = caretakers
                 .stream()
                 .map(caretaker -> caretakerMapper.mapToCaretakerDTO(
                         caretaker,
@@ -72,7 +72,7 @@ public class CaretakerService {
             );
         }
 
-        return new PageImpl<>(filteredCaretakers, pageable, filteredCaretakers.size());
+        return new PageImpl<>(filteredCaretakers, pageable, caretakers.getTotalElements());
 
     }
 

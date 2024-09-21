@@ -20,11 +20,13 @@ import java.util.stream.Collectors;
 public final class MockOfferProvider {
 
     public static Offer createMockOffer(Caretaker caretaker, Animal animal) {
-        return Offer.builder()
+        Offer offer = Offer.builder()
                 .caretaker(caretaker)
                 .animal(animal)
                 .description("description")
                 .build();
+        caretaker.getOffers().add(offer);
+        return offer;
     }
 
     public static List<Offer> createMockOffers(List<Caretaker> caretakers, List<Animal> animals) {
@@ -169,7 +171,7 @@ public final class MockOfferProvider {
             offer.getAvailabilities().addAll(availabilities);
         }
 
-        caretaker.setOffers(new ArrayList<>(List.of(offer)));
+        caretaker.getOffers().add(offer);
 
         return offer;
 
@@ -216,6 +218,7 @@ public final class MockOfferProvider {
 
     public static Offer setAvailabilitiesToOffer(Offer existingOffer, Set<Availability> availabilities) {
 
+        availabilities.forEach(availability -> availability.setOffer(existingOffer));
         existingOffer.getAvailabilities().clear();
         existingOffer.getAvailabilities().addAll(availabilities);
 

@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Sort;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -18,7 +19,7 @@ public class SortedPagingParams extends PagingParams {
             requiredMode = Schema.RequiredMode.NOT_REQUIRED,
             type = "array"
     )
-    private List<String> sortBy;
+    private List<String> sortBy = new ArrayList<>();
 
     @Schema(
             description = "Sort direction",

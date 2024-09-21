@@ -233,8 +233,12 @@ public class PersistenceUtils {
     }
 
     public static void setAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer) {
-
         Offer offer = setMockAvailabilitiesToOffer(existingOffer);
+        offerRepository.save(offer);
+    }
+
+    public static void setAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer, Set<Availability> availabilities) {
+        Offer offer = setAvailabilitiesToOffer(existingOffer, availabilities);
         offerRepository.save(offer);
     }
 
