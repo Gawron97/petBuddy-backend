@@ -14,7 +14,7 @@ public record OfferFilterDTO(
         String animalType,
         Set<@Valid OfferConfigurationFilterDTO> offerConfigurations,
         Set<String> amenities,
-        Set<AvailabilityFilterDTO> availabilities
+        Set<@Valid AvailabilityFilterDTO> availabilities
 ) {
 
         public OfferFilterDTO {

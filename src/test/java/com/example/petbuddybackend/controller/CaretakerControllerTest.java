@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,7 +66,7 @@ public class CaretakerControllerTest {
                 PageRequest.of(0, 10), caretakerComplexInfoDTOS.size()
         );
 
-        when(caretakerService.getCaretakers(any(), any(), any(), any(), any())).thenReturn(page);
+        when(caretakerService.getCaretakers(any(), anyBoolean(), any(), any(), any())).thenReturn(page);
 
         mockMvc.perform(post("/api/caretaker")
                         .param("page", "0")
