@@ -1,7 +1,10 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.user.UserProfiles;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
+import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final AppUserRepository userRepository;
+    private final ClientRepository clientRepository;
+    private final CaretakerRepository caretakerRepository;
 
     @Transactional
     public AppUser createUserIfNotExistOrGet(JwtAuthenticationToken token) {
@@ -42,6 +47,14 @@ public class UserService {
     public AppUser getAppUser(String email) {
         return userRepository.findById(email)
                 .orElseThrow(() -> new NotFoundException("User with email " + email + " not found"));
+    }
+
+    public UserProfiles getUserProfiles(String email) {
+        return UserProfiles.builder()
+                .email(email)
+                .hasClientProfile(clientRepository.existsById(email))
+                .hasCaretakerProfile(caretakerRepository.existsById(email))
+                .build();
     }
 
 }
