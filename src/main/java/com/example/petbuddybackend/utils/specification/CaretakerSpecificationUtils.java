@@ -155,53 +155,6 @@ public final class CaretakerSpecificationUtils {
         return cb.exists(offerSubquery);
     }
 
-    private static Predicate availabilityMatchForOffer(Root<Caretaker> root, CriteriaQuery<?> query,
-                                                       CriteriaBuilder cb, OfferFilterDTO offerFilter) {
-
-        Subquery<Long> offerSubquery = query.subquery(Long.class);
-        Root<Offer> offerRoot = offerSubquery.from(Offer.class);
-        offerSubquery.select(offerRoot.get(ID));
-
-        Predicate caretakerMatch = cb.equal(offerRoot.get(CARETAKER), root);
-        Predicate animalTypeMatch = cb.equal(offerRoot.get(ANIMAL).get(ANIMAL_TYPE), offerFilter.animalType());
-
-        List<Predicate> availabilityPredicates = new ArrayList<>();
-        availabilityPredicates.add(caretakerMatch);
-        availabilityPredicates.add(animalTypeMatch);
-
-        if(!offerFilter.availabilities().isEmpty()) {
-            availabilityPredicates.add(availabilitiesMatch(cb, offerRoot, offerFilter.availabilities()));
-        }
-
-        offerSubquery.where(availabilityPredicates.toArray(new Predicate[0]));
-
-        return cb.exists(offerSubquery);
-    }
-
-    private static Predicate availabilitiesMatch(CriteriaBuilder cb, Root<Offer> offerRoot,
-                                                 Set<AvailabilityFilterDTO> availabilities) {
-
-        List<Predicate> availabilityPredicates = new ArrayList<>();
-
-        for(AvailabilityFilterDTO availabilityFilter: availabilities) {
-            availabilityPredicates.add(availabilityMatch(cb, offerRoot, availabilityFilter));
-        }
-
-        return cb.or(availabilityPredicates.toArray(new Predicate[0]));
-    }
-
-    private static Predicate availabilityMatch(CriteriaBuilder cb, Root<Offer> offerRoot,
-                                               AvailabilityFilterDTO availabilityFilter) {
-
-        Join<Offer, Availability> availabilityJoin = offerRoot.join(AVAILABILITIES, JoinType.INNER);
-
-        Predicate overlapFrom = cb.lessThanOrEqualTo(availabilityJoin.get(AVAILABLE_FROM), availabilityFilter.availableFrom());
-        Predicate overlapTo = cb.greaterThanOrEqualTo(availabilityJoin.get(AVAILABLE_TO), availabilityFilter.availableTo());
-
-        return cb.and(overlapFrom, overlapTo);
-
-    }
-
     private static Predicate configurationsMatch(Subquery<Long> offerSubquery, CriteriaBuilder cb, Root<Offer> offerRoot,
                                                  Set<OfferConfigurationFilterDTO> configFilters) {
         List<Predicate> configExistsPredicates = new ArrayList<>();
@@ -330,6 +283,53 @@ public final class CaretakerSpecificationUtils {
 
         amenitySubquery.where(amenityMatch);
         return cb.exists(amenitySubquery);
+
+    }
+
+    private static Predicate availabilityMatchForOffer(Root<Caretaker> root, CriteriaQuery<?> query,
+                                                       CriteriaBuilder cb, OfferFilterDTO offerFilter) {
+
+        Subquery<Long> offerSubquery = query.subquery(Long.class);
+        Root<Offer> offerRoot = offerSubquery.from(Offer.class);
+        offerSubquery.select(offerRoot.get(ID));
+
+        Predicate caretakerMatch = cb.equal(offerRoot.get(CARETAKER), root);
+        Predicate animalTypeMatch = cb.equal(offerRoot.get(ANIMAL).get(ANIMAL_TYPE), offerFilter.animalType());
+
+        List<Predicate> availabilityPredicates = new ArrayList<>();
+        availabilityPredicates.add(caretakerMatch);
+        availabilityPredicates.add(animalTypeMatch);
+
+        if(!offerFilter.availabilities().isEmpty()) {
+            availabilityPredicates.add(availabilitiesMatch(cb, offerRoot, offerFilter.availabilities()));
+        }
+
+        offerSubquery.where(availabilityPredicates.toArray(new Predicate[0]));
+
+        return cb.exists(offerSubquery);
+    }
+
+    private static Predicate availabilitiesMatch(CriteriaBuilder cb, Root<Offer> offerRoot,
+                                                 Set<AvailabilityFilterDTO> availabilities) {
+
+        List<Predicate> availabilityPredicates = new ArrayList<>();
+
+        for(AvailabilityFilterDTO availabilityFilter: availabilities) {
+            availabilityPredicates.add(availabilityMatch(cb, offerRoot, availabilityFilter));
+        }
+
+        return cb.or(availabilityPredicates.toArray(new Predicate[0]));
+    }
+
+    private static Predicate availabilityMatch(CriteriaBuilder cb, Root<Offer> offerRoot,
+                                               AvailabilityFilterDTO availabilityFilter) {
+
+        Join<Offer, Availability> availabilityJoin = offerRoot.join(AVAILABILITIES, JoinType.INNER);
+
+        Predicate overlapFrom = cb.lessThanOrEqualTo(availabilityJoin.get(AVAILABLE_FROM), availabilityFilter.availableFrom());
+        Predicate overlapTo = cb.greaterThanOrEqualTo(availabilityJoin.get(AVAILABLE_TO), availabilityFilter.availableTo());
+
+        return cb.and(overlapFrom, overlapTo);
 
     }
 }
