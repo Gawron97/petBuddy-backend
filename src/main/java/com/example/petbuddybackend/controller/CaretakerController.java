@@ -37,7 +37,9 @@ public class CaretakerController {
     @Operation(
             summary = "Get list of caretakers",
             description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters." +
-                    " Request body is not required!"
+                    " Request body is not required!" +
+                    " When sorting by availabilityDaysMatch this sort will be applied last, so it will be" +
+                    " ordered priority by this field"
     )
     public Page<CaretakerDTO> getCaretakers(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
@@ -47,6 +49,7 @@ public class CaretakerController {
         if(offerFilters == null) {
             offerFilters = Collections.emptySet();
         }
+
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return caretakerService.getCaretakers(pageable, filters, offerFilters);
     }

@@ -40,11 +40,12 @@ public class CaretakerService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters, Set<OfferFilterDTO> offerFilters) {
+    public Page<CaretakerDTO> getCaretakers(Pageable pageable,
+                                            CaretakerSearchCriteria filters,
+                                            Set<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
-        return caretakerRepository
-                .findAll(spec, pageable)
+        return caretakerRepository.findAll(spec, pageable)
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 

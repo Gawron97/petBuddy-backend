@@ -20,11 +20,13 @@ import java.util.stream.Collectors;
 public final class MockOfferProvider {
 
     public static Offer createMockOffer(Caretaker caretaker, Animal animal) {
-        return Offer.builder()
+        Offer offer = Offer.builder()
                 .caretaker(caretaker)
                 .animal(animal)
                 .description("description")
                 .build();
+        caretaker.getOffers().add(offer);
+        return offer;
     }
 
     public static List<Offer> createMockOffers(List<Caretaker> caretakers, List<Animal> animals) {
@@ -142,7 +144,8 @@ public final class MockOfferProvider {
                                                         Animal animal,
                                                         List<AnimalAttribute> animalAttributes,
                                                         BigDecimal price,
-                                                        List<AnimalAmenity> animalAmenities) {
+                                                        List<AnimalAmenity> animalAmenities,
+                                                        Set<Availability> availabilities) {
 
         Offer offer = Offer.builder()
                 .animal(animal)
@@ -155,22 +158,20 @@ public final class MockOfferProvider {
             List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
 
             offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
-            if(CollectionUtil.isNotEmpty(offer.getOfferConfigurations())) {
-                offer.getOfferConfigurations().add(offerConfiguration);
-            } else {
-                offer.setOfferConfigurations(new ArrayList<>(List.of(offerConfiguration)));
-            }
+            offer.getOfferConfigurations().add(offerConfiguration);
+
 
         }
         if(CollectionUtil.isNotEmpty(animalAmenities)) {
-            if(CollectionUtil.isNotEmpty(offer.getAnimalAmenities())) {
-                offer.getAnimalAmenities().addAll(animalAmenities);
-            } else {
-                offer.setAnimalAmenities(new HashSet<>(animalAmenities));
-            }
+            offer.getAnimalAmenities().addAll(animalAmenities);
         }
 
-        caretaker.setOffers(new ArrayList<>(List.of(offer)));
+        if(CollectionUtil.isNotEmpty(availabilities)) {
+            availabilities.forEach(availability -> availability.setOffer(offer));
+            offer.getAvailabilities().addAll(availabilities);
+        }
+
+        caretaker.getOffers().add(offer);
 
         return offer;
 
@@ -187,38 +188,24 @@ public final class MockOfferProvider {
             List<OfferOption> offerOptions = createOfferOptions(animalAttributes, offerConfiguration);
 
             offerConfiguration.setOfferOptions(new ArrayList<>(offerOptions));
-            if(CollectionUtil.isNotEmpty(offer.getOfferConfigurations())) {
-                offer.getOfferConfigurations().add(offerConfiguration);
-            } else {
-                offer.setOfferConfigurations(new ArrayList<>(List.of(offerConfiguration)));
-            }
+            offer.getOfferConfigurations().add(offerConfiguration);
+
 
         }
         if(CollectionUtil.isNotEmpty(animalAmenities)) {
-            if(CollectionUtil.isNotEmpty(offer.getAnimalAmenities())) {
-                offer.getAnimalAmenities().addAll(animalAmenities);
-            } else {
-                offer.setAnimalAmenities(new HashSet<>(animalAmenities));
-            }
+            offer.getAnimalAmenities().addAll(animalAmenities);
+
         }
 
         return offer;
     }
 
-    public static Offer addMockAvailabilitiesToOffer(Offer offer) {
+    public static Offer setMockAvailabilitiesToOffer(Offer offer) {
 
-        List<Availability> availabilities = List.of(
+        return setAvailabilitiesToOffer(offer, Set.of(
                 createMockAvailability(offer, ZonedDateTime.now().plusDays(1), ZonedDateTime.now().plusDays(2)),
                 createMockAvailability(offer, ZonedDateTime.now().plusDays(5), ZonedDateTime.now().plusDays(10))
-        );
-        if(CollectionUtil.isNotEmpty(offer.getAvailabilities())) {
-            offer.getAvailabilities().clear();
-            offer.getAvailabilities().addAll(availabilities);
-        } else {
-            offer.setAvailabilities(new HashSet<>(availabilities));
-        }
-
-        return offer;
+        ));
     }
 
     public static Availability createMockAvailability(Offer offer, ZonedDateTime availableFrom, ZonedDateTime availableTo) {
@@ -227,6 +214,16 @@ public final class MockOfferProvider {
                 .availableFrom(availableFrom)
                 .availableTo(availableTo)
                 .build();
+    }
+
+    public static Offer setAvailabilitiesToOffer(Offer existingOffer, Set<Availability> availabilities) {
+
+        availabilities.forEach(availability -> availability.setOffer(existingOffer));
+        existingOffer.getAvailabilities().clear();
+        existingOffer.getAvailabilities().addAll(availabilities);
+
+        return existingOffer;
+
     }
 
 }

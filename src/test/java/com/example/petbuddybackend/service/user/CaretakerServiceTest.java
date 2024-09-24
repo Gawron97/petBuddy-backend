@@ -2,12 +2,14 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
+import com.example.petbuddybackend.dto.availability.AvailabilityFilterDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.*;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
@@ -46,6 +48,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -96,6 +100,23 @@ public class CaretakerServiceTest {
         initClients(this.caretaker);
     }
 
+    private void initCaretakers() {
+        List<Caretaker> caretakers = PersistenceUtils.addCaretakers(caretakerRepository, appUserRepository);
+        PersistenceUtils.addOffersToCaretakers(caretakers, offerRepository, animalRepository.findAll());
+        this.caretaker = caretakers.get(0);
+    }
+
+    private void initClients(Caretaker caretaker) {
+        client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+
+        clientSameAsCaretaker = Client.builder()
+                .email(caretaker.getEmail())
+                .accountData(caretaker.getAccountData())
+                .build();
+
+        clientSameAsCaretaker = PersistenceUtils.addClient(appUserRepository, clientRepository, clientSameAsCaretaker);
+    }
+
     @AfterEach
     void cleanUp() {
         offerRepository.deleteAll();
@@ -119,6 +140,16 @@ public class CaretakerServiceTest {
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 2, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 2, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build()
+                ),
                 offerRepository
         );
 
@@ -133,6 +164,16 @@ public class CaretakerServiceTest {
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("scratching post", "CAT").orElseThrow(),
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "CAT").orElseThrow()
+                ),
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 1, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 1, 15, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 2, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 2, 15, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build()
                 ),
                 offerRepository
         );
@@ -150,6 +191,16 @@ public class CaretakerServiceTest {
                 ),
                 BigDecimal.valueOf(20.0),
                 Arrays.asList(),
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 1, 7, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 2, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 2, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build()
+                ),
                 offerRepository
         );
 
@@ -162,6 +213,7 @@ public class CaretakerServiceTest {
                 ),
                 BigDecimal.valueOf(15.0),
                 Arrays.asList(),
+                Set.of(),
                 offerRepository
         );
 
@@ -179,6 +231,16 @@ public class CaretakerServiceTest {
                 ),
                 BigDecimal.valueOf(12.0),
                 Arrays.asList(),
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 3, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 3, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 4, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 4, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build()
+                ),
                 offerRepository
         );
 
@@ -192,6 +254,7 @@ public class CaretakerServiceTest {
                 ),
                 BigDecimal.valueOf(40.0),
                 Arrays.asList(),
+                Set.of(),
                 offerRepository
         );
 
@@ -209,6 +272,7 @@ public class CaretakerServiceTest {
                 ),
                 BigDecimal.valueOf(50.0),
                 Arrays.asList(),
+                Set.of(),
                 offerRepository
         );
 
@@ -222,6 +286,12 @@ public class CaretakerServiceTest {
                 BigDecimal.valueOf(18.0),
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("scratching post", "CAT").orElseThrow()
+                ),
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 1, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build()
                 ),
                 offerRepository
         );
@@ -244,6 +314,12 @@ public class CaretakerServiceTest {
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(ZonedDateTime.of(2025, 8, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableTo(ZonedDateTime.of(2025, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .build()
+                ),
                 offerRepository
         );
 
@@ -261,6 +337,7 @@ public class CaretakerServiceTest {
                 ),
                 BigDecimal.valueOf(8.0),
                 Arrays.asList(),
+                Set.of(),
                 offerRepository
         );
 
@@ -274,6 +351,7 @@ public class CaretakerServiceTest {
                 ),
                 BigDecimal.valueOf(22.0),
                 Arrays.asList(),
+                Set.of(),
                 offerRepository
         );
     }
@@ -289,7 +367,7 @@ public class CaretakerServiceTest {
 
         appUserRepository.deleteAll();
         createCaretakersWithComplexOffers();
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters,  offerFilters);
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters, offerFilters);
         assertEquals(expectedSize, resultPage.getContent().size());
 
     }
@@ -776,6 +854,160 @@ public class CaretakerServiceTest {
                                         .build()
                         ),
                         0
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(Set.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 7, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // John Doe
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(Set.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build(),
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2028, 8, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2028, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build(),
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(Set.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build(),
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2028, 8, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2028, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        1 // John Doe
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(Set.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of("SIZE", Set.of("SMALL")))
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 3, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        0
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("CAT")
+                                        .offerConfigurations(Set.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 8, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build(),
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(Set.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        0
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(Set.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 7, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build(),
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 8, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        3 // John Doe, Jane Smith Charlie Lee
                 )
         );
     }
@@ -792,11 +1024,13 @@ public class CaretakerServiceTest {
         PersistenceUtils.addRatingToCaretaker(caretaker, client2, 4, "comment second", ratingRepository);
 
         // When
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10),
+        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(
+                Pageable.ofSize(10),
                 CaretakerSearchCriteria.builder()
                         .personalDataLike("John Doe")
                         .build(),
-                Collections.emptySet());
+                Collections.emptySet()
+        );
         CaretakerDTO resultCaretaker = resultPage.getContent().get(0);
         assertEquals(2, resultCaretaker.numberOfRatings());
         assertEquals(4.5f, resultCaretaker.avgRating());
@@ -805,9 +1039,10 @@ public class CaretakerServiceTest {
 
     @Test
     void testGetCaretakers_sortingParamsShouldAlignWithDTO() {
-        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(CaretakerComplexInfoDTO.class);
+        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(CaretakerDTO.class);
         fieldNames.addAll(getPrimitiveNames(AddressDTO.class, "address_"));
         fieldNames.addAll(getPrimitiveNames(AccountDataDTO.class, "accountData_"));
+        fieldNames.remove("availabilityDaysMatch");
 
         for(String fieldName : fieldNames) {
             assertDoesNotThrow(() -> caretakerService.getCaretakers(
@@ -970,23 +1205,6 @@ public class CaretakerServiceTest {
         );
     }
 
-    private void initCaretakers() {
-        List<Caretaker> caretakers = PersistenceUtils.addCaretakers(caretakerRepository, appUserRepository);
-        PersistenceUtils.addOffersToCaretakers(caretakers, offerRepository, animalRepository.findAll());
-        this.caretaker = caretakers.get(0);
-    }
-
-    private void initClients(Caretaker caretaker) {
-        client = PersistenceUtils.addClient(appUserRepository, clientRepository);
-
-        clientSameAsCaretaker = Client.builder()
-                .email(caretaker.getEmail())
-                .accountData(caretaker.getAccountData())
-                .build();
-
-        clientSameAsCaretaker = PersistenceUtils.addClient(appUserRepository, clientRepository, clientSameAsCaretaker);
-    }
-
     @Test
     @Transactional
     void addCaretaker_whenUserExistsButCaretakerProfileNot_shouldCreateCaretakerProperly() {
@@ -1071,6 +1289,7 @@ public class CaretakerServiceTest {
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
+                Set.of(),
                 offerRepository);
 
         UpdateCaretakerDTO caretakerToCreate = UpdateCaretakerDTO.builder()
@@ -1133,6 +1352,7 @@ public class CaretakerServiceTest {
                 Arrays.asList(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow()
                 ),
+                Set.of(),
                 offerRepository);
 
         UpdateCaretakerDTO caretakerToCreate = UpdateCaretakerDTO.builder()
