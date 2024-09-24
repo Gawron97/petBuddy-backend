@@ -24,10 +24,6 @@ public interface CaretakerMapper {
     @Mapping(target = "animals", source = "offers", qualifiedByName = "mapAnimalFromOffer")
     CaretakerDTO mapToCaretakerDTO(Caretaker caretaker);
 
-    @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")
-    @Mapping(target = "availabilityDaysMatch", source = "availabilityDaysMatch")
-    CaretakerDTO mapToCaretakerDTO(Caretaker caretaker, Integer availabilityDaysMatch);
-
     default void updateCaretakerFromDTO(UpdateCaretakerDTO caretakerDTO, @MappingTarget Caretaker caretaker) {
         if (StringUtils.hasText(caretakerDTO.phoneNumber())) {
             caretaker.setPhoneNumber(caretakerDTO.phoneNumber());
