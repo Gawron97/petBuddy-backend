@@ -50,105 +50,12 @@ public class CaretakerService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public Page<CaretakerDTO> getCaretakers(Pageable pageable, boolean hasSortByAvailabilityDaysMatch,
-                                            Sort.Direction direction, CaretakerSearchCriteria filters,
+    public Page<CaretakerDTO> getCaretakers(Pageable pageable, CaretakerSearchCriteria filters,
                                             Set<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
-        Page<Caretaker> caretakers = caretakerRepository.findAll(spec, pageable);
-
-        List<CaretakerDTO> filteredCaretakers = caretakers
-                .stream()
-                .map(caretaker -> caretakerMapper.mapToCaretakerDTO(
-                        caretaker,
-                        calculateAvailabilityDaysMatch(caretaker, offerFilters)
-                ))
-                .collect(Collectors.toList());
-
-        if(hasSortByAvailabilityDaysMatch) {
-            sortCaretakers(
-                    filteredCaretakers,
-                    direction
-            );
-        }
-
-        return new PageImpl<>(filteredCaretakers, pageable, caretakers.getTotalElements());
-
-    }
-
-    private void sortCaretakers(List<CaretakerDTO> caretakers, Sort.Direction direction) {
-        caretakers.sort(getComparatorForSortByAvailabilityDaysMatch(direction));
-    }
-
-    private Comparator<CaretakerDTO> getComparatorForSortByAvailabilityDaysMatch(Sort.Direction direction) {
-        return direction == Sort.Direction.ASC ?
-                Comparator.comparingInt(CaretakerDTO::availabilityDaysMatch) :
-                Comparator.comparingInt(CaretakerDTO::availabilityDaysMatch).reversed();
-    }
-
-    private Integer calculateAvailabilityDaysMatch(Caretaker caretaker, Set<OfferFilterDTO> offerFilters) {
-
-        Integer totalAvailabilityDaysMatch = 0;
-
-        for (OfferFilterDTO offerFilter : offerFilters) {
-            if(!offerFilter.availabilities().isEmpty()) {
-                totalAvailabilityDaysMatch += calculateAvailabilityDaysMatchForOffer(caretaker,
-                        offerFilter.animalType(), offerFilter.availabilities());
-            }
-        }
-
-        return totalAvailabilityDaysMatch;
-    }
-
-    private Integer calculateAvailabilityDaysMatchForOffer(Caretaker caretaker, String animalType, Set<AvailabilityFilterDTO> availabilityFilters) {
-
-        Integer availabilityDaysMatchInOffer = 0;
-
-        Offer matchingOffer = getOfferFromList(caretaker.getOffers(), animalType);
-
-        for (AvailabilityFilterDTO availabilityFilter : availabilityFilters) {
-            availabilityDaysMatchInOffer += calculateAvailabilityDaysMatchForAvailabilityFilter(availabilityFilter, matchingOffer);
-        }
-
-        return availabilityDaysMatchInOffer;
-    }
-
-    private Integer calculateAvailabilityDaysMatchForAvailabilityFilter(AvailabilityFilterDTO availabilityFilter, Offer matchingOffer) {
-
-        if(matchingOffer.getAvailabilities().isEmpty()) {
-            return 0;
-        }
-
-        return matchingOffer.getAvailabilities()
-                .stream()
-                .map(availability -> calculateOverlappingDays(availability, availabilityFilter))
-                .reduce(0, Integer::sum);
-
-    }
-
-    private Integer calculateOverlappingDays(Availability availability, AvailabilityFilterDTO availabilityFilter) {
-
-        ZonedDateTime overlapStart = availability.getAvailableFrom().isAfter(availabilityFilter.availableFrom())
-                ? availability.getAvailableFrom()
-                : availabilityFilter.availableFrom();
-
-        ZonedDateTime overlapEnd = availability.getAvailableTo().isBefore(availabilityFilter.availableTo())
-                ? availability.getAvailableTo()
-                : availabilityFilter.availableTo();
-
-        if(overlapStart.isAfter(overlapEnd)) {
-            return 0;
-        }
-
-        return (int) ChronoUnit.DAYS.between(overlapStart, overlapEnd) + 1;
-    }
-
-    private Offer getOfferFromList(List<Offer> offers, String animalType) {
-        return offers
-                .stream()
-                .filter(offer -> offer.getAnimal().getAnimalType().equals(animalType))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Offer for animal type " + animalType + " not found"));
+        return caretakerRepository.findAll(spec, pageable)
+                .map(caretakerMapper::mapToCaretakerDTO);
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {

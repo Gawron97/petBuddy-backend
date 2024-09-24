@@ -50,15 +50,8 @@ public class CaretakerController {
             offerFilters = Collections.emptySet();
         }
 
-        boolean hasSortByAvailabilityDaysMatch = false;
-        if(pagingParams.getSortBy().contains("availabilityDaysMatch")) {
-            hasSortByAvailabilityDaysMatch = true;
-            pagingParams.getSortBy().remove("availabilityDaysMatch");
-        }
-
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
-        return caretakerService.getCaretakers(pageable, hasSortByAvailabilityDaysMatch, pagingParams.getSortDirection(),
-                filters, offerFilters);
+        return caretakerService.getCaretakers(pageable, filters, offerFilters);
     }
 
     @PostMapping("/add")

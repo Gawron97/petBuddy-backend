@@ -11,7 +11,6 @@ public record CaretakerDTO(
         AddressDTO address,
         List<String> animals,
         Integer numberOfRatings,
-        Float avgRating,
-        Integer availabilityDaysMatch
+        Float avgRating
 ) {
 }
