@@ -121,7 +121,9 @@ public final class CaretakerSpecificationUtils {
         };
     }
 
-    private static Predicate animalOfferMatches(Root<Caretaker> root, CriteriaQuery<?> query, CriteriaBuilder cb,
+    private static Predicate animalOfferMatches(Root<Caretaker> root,
+                                                CriteriaQuery<?> query,
+                                                CriteriaBuilder cb,
                                                 OfferFilterDTO offerFilter) {
         Subquery<Long> offerSubquery = query.subquery(Long.class);
         Root<Offer> offerRoot = offerSubquery.from(Offer.class);

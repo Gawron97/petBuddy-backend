@@ -106,9 +106,13 @@ public class PersistenceUtils {
         return appUserRepository.saveAndFlush(appUser);
     }
 
-    public static Offer addComplexOffer(Caretaker caretaker, Animal animal, List<AnimalAttribute> animalAttributes,
-                                        BigDecimal price, List<AnimalAmenity> animalAmenities,
-                                        Set<Availability> availabilities, OfferRepository offerRepository) {
+    public static Offer addComplexOffer(Caretaker caretaker,
+                                        Animal animal,
+                                        List<AnimalAttribute> animalAttributes,
+                                        BigDecimal price,
+                                        List<AnimalAmenity> animalAmenities,
+                                        Set<Availability> availabilities,
+                                        OfferRepository offerRepository) {
         Offer offer = addComplexMockOfferForCaretaker(caretaker, animal, animalAttributes, price, animalAmenities,
                 availabilities);
         return offerRepository.save(offer);

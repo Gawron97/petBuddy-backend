@@ -31,7 +31,6 @@ import com.example.petbuddybackend.testutils.ValidationUtils;
 import com.example.petbuddybackend.testutils.mock.MockRatingProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -894,6 +893,10 @@ public class CaretakerServiceTest {
                                                 AvailabilityFilterDTO.builder()
                                                         .availableFrom(ZonedDateTime.of(2025, 1, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
                                                         .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build(),
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2028, 8, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2028, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
                                                         .build()
                                         ))
                                         .build(),
@@ -910,6 +913,10 @@ public class CaretakerServiceTest {
                                                 AvailabilityFilterDTO.builder()
                                                         .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
                                                         .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build(),
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2028, 8, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2028, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
                                                         .build()
                                         ))
                                         .build()
@@ -975,6 +982,32 @@ public class CaretakerServiceTest {
                                         .build()
                         ),
                         0
+                ),
+                Arguments.of(
+                        CaretakerSearchCriteria.builder().build(),
+                        Set.of(
+                                OfferFilterDTO.builder()
+                                        .animalType("DOG")
+                                        .offerConfigurations(Set.of(
+                                                OfferConfigurationFilterDTO.builder()
+                                                        .attributes(Map.of())
+                                                        .minPrice(null)
+                                                        .maxPrice(null)
+                                                        .build()
+                                        ))
+                                        .availabilities(Set.of(
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 1, 7, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build(),
+                                                AvailabilityFilterDTO.builder()
+                                                        .availableFrom(ZonedDateTime.of(2025, 8, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableTo(ZonedDateTime.of(2025, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .build()
+                                        ))
+                                        .build()
+                        ),
+                        3 // John Doe, Jane Smith Charlie Lee
                 )
         );
     }
