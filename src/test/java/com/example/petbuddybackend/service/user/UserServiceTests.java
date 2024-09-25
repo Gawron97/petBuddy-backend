@@ -77,6 +77,7 @@ public class UserServiceTests {
 
         JwtAuthenticationToken token = createJwtToken(email, firstname, lastname, username);
 
+        when(userRepository.existsById(email)).thenReturn(true);
         when(userRepository.findById(email)).thenReturn(Optional.of(new AppUser()));
 
         //when
