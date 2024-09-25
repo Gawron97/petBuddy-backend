@@ -26,7 +26,7 @@ public class UserService {
 
         String email = (String) token.getTokenAttributes().get("email");
 
-        if(userRepository.findById(email).isEmpty()) {
+        if(!userRepository.existsById(email)) {
             log.info("User with email: " + email + " not found. Creating new user.");
             AppUser user = createAppUser(email, token);
             log.info("User with email: " + email + " created.");
