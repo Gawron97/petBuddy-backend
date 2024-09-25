@@ -5,7 +5,10 @@ import com.example.petbuddybackend.dto.offer.ModifyConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.offer.OfferService;
+import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
+import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +35,12 @@ public class OfferController {
     )
     @PostMapping("/add-or-edit")
     @PreAuthorize("isAuthenticated()")
-    public OfferDTO addOrEditOffer(@RequestBody @Valid ModifyOfferDTO offer, Principal principal) {
+    public OfferDTO addOrEditOffer(@RequestBody @Valid ModifyOfferDTO offer,
+                                   Principal principal,
+
+                                   @RoleParameter
+                                   @AcceptRole(acceptRole = Role.CARETAKER)
+                                   @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.addOrEditOffer(offer, principal.getName());
     }
 
@@ -46,14 +54,41 @@ public class OfferController {
     @PostMapping("/configuration/{configurationId}/edit")
     @PreAuthorize("isAuthenticated()")
     public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
-                                                   @RequestBody @Valid ModifyConfigurationDTO configuration) {
-        return offerService.editConfiguration(configurationId, configuration);
+                                                   @RequestBody @Valid ModifyConfigurationDTO configuration,
+                                                   Principal principal,
+
+                                                   @RoleParameter
+                                                       @AcceptRole(acceptRole = Role.CARETAKER)
+                                                       @RequestHeader(value = "${header-name.role}") Role role) {
+        return offerService.editConfiguration(configurationId, configuration, principal.getName());
     }
 
+    @Operation(
+            summary = "Delete configuration",
+            description = "Deletes configuration from offer"
+    )
     @DeleteMapping("/configuration/{configurationId}/delete")
     @PreAuthorize("isAuthenticated()")
-    public OfferDTO deleteConfiguration(@PathVariable Long configurationId) {
-        return offerService.deleteConfiguration(configurationId);
+    public OfferDTO deleteConfiguration(@PathVariable Long configurationId,
+                                        Principal principal,
+
+                                        @RoleParameter
+                                            @AcceptRole(acceptRole = Role.CARETAKER)
+                                            @RequestHeader(value = "${header-name.role}") Role role) {
+        return offerService.deleteConfiguration(configurationId, principal.getName());
+    }
+
+    @Operation(summary = "Delete amenities from offer")
+    @PostMapping("/{offerId}/amenities-delete")
+    @PreAuthorize("isAuthenticated()")
+    public OfferDTO deleteAmenitiesFromOffer(@RequestBody List<String> amenities,
+                                             @PathVariable Long offerId,
+                                             Principal principal,
+
+                                             @RoleParameter
+                                                 @AcceptRole(acceptRole = Role.CARETAKER)
+                                                 @RequestHeader(value = "${header-name.role}") Role role) {
+        return offerService.deleteAmenitiesFromOffer(amenities, principal.getName(), offerId);
     }
 
     @Operation(
@@ -64,7 +99,11 @@ public class OfferController {
     @PreAuthorize("isAuthenticated()")
     public List<OfferDTO> setAvailabilityForOffers(
             @RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability,
-            Principal principal) {
+            Principal principal,
+
+            @RoleParameter
+            @AcceptRole(acceptRole = Role.CARETAKER)
+            @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.setAvailabilityForOffers(createOffersAvailability, principal.getName());
     }
 

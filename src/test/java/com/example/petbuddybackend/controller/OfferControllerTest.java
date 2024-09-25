@@ -5,11 +5,13 @@ import com.example.petbuddybackend.dto.offer.ModifyConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.offer.OfferService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -19,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +40,9 @@ public class OfferControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Value("${header-name.role}")
+    private String roleHeaderName;
 
     @BeforeEach
     void setUp() {
@@ -98,7 +104,8 @@ public class OfferControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_OR_UPDATE_OFFER,
                                 "Test Offer",
-                                "DOG")))
+                                "DOG"))
+                        .header(roleHeaderName, Role.CARETAKER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Test Offer"))
                 .andExpect(jsonPath("$.offerConfigurations[0].description").value("Test Configuration"))
@@ -112,16 +119,17 @@ public class OfferControllerTest {
     void editConfiguration_ShouldReturnUpdatedConfiguration() throws Exception {
         // Given
         OfferConfigurationDTO configDTO = OfferConfigurationDTO.builder().description("Updated Configuration").build();
-        when(offerService.editConfiguration(anyLong(), any(ModifyConfigurationDTO.class))).thenReturn(configDTO);
+        when(offerService.editConfiguration(anyLong(), any(ModifyConfigurationDTO.class), any())).thenReturn(configDTO);
 
         // When and Then
         mockMvc.perform(post("/api/caretaker/offer/configuration/1/edit")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(String.format(CREATE_OR_UPDATE_CONFIGURATION, "Updated Configuration")))
+                        .content(String.format(CREATE_OR_UPDATE_CONFIGURATION, "Updated Configuration"))
+                        .header(roleHeaderName, Role.CARETAKER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Updated Configuration"));
 
-        verify(offerService, times(1)).editConfiguration(anyLong(), any(ModifyConfigurationDTO.class));
+        verify(offerService, times(1)).editConfiguration(anyLong(), any(ModifyConfigurationDTO.class), any());
     }
 
     @Test
@@ -129,14 +137,15 @@ public class OfferControllerTest {
     void deleteConfiguration_ShouldReturnDeletedConfiguration() throws Exception {
         // Given
         OfferDTO offerDTO = OfferDTO.builder().description("Deleted Configuration").build();
-        when(offerService.deleteConfiguration(anyLong())).thenReturn(offerDTO);
+        when(offerService.deleteConfiguration(anyLong(), any())).thenReturn(offerDTO);
 
         // When and Then
-        mockMvc.perform(delete("/api/caretaker/offer/configuration/1/delete"))
+        mockMvc.perform(delete("/api/caretaker/offer/configuration/1/delete")
+                        .header(roleHeaderName, Role.CARETAKER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Deleted Configuration"));
 
-        verify(offerService, times(1)).deleteConfiguration(anyLong());
+        verify(offerService, times(1)).deleteConfiguration(anyLong(), any());
     }
 
     @Test
@@ -168,10 +177,35 @@ public class OfferControllerTest {
                                 "2027-01-10 00:00:00.000 +0000",
                                 "2027-01-10 00:00:00.000 +0000",
                                 "2027-01-20 00:00:00.000 +0000"
-                        )))
+                        ))
+                        .header(roleHeaderName, Role.CARETAKER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].availabilities").isArray())
                 .andExpect(jsonPath("$[0].availabilities").exists());
+
+    }
+
+    @Test
+    @WithMockUser
+    void deleteAmenitiesFromOffer_ShouldReturnUpdatedOfferWithoutDeletedAmenities() throws Exception {
+
+        //Given
+        OfferDTO offer = OfferDTO.builder()
+                        .description("Test Offer")
+                        .animalAmenities(new ArrayList<>(List.of("AMENITY3")))
+                        .build();
+
+        when(offerService.deleteAmenitiesFromOffer(anyList(), any(), any())).thenReturn(offer);
+
+        //When Then
+        mockMvc.perform(post("/api/caretaker/offer/1/amenities-delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[\"AMENITY1\", \"AMENITY2\"]")
+                .header(roleHeaderName, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Offer"));
+
+        verify(offerService, times(1)).deleteAmenitiesFromOffer(anyList(), any(), any());
 
     }
 
