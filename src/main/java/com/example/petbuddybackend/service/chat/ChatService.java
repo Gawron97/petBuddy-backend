@@ -59,7 +59,7 @@ public class ChatService {
 
     public ChatRoom getChatRoomById(Long chatId) {
         return chatRepository.findById(chatId)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(chatId.toString(), CHAT));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CHAT, chatId.toString()));
     }
 
     public Page<ChatRoomDTO> getChatRoomsByParticipantEmail(

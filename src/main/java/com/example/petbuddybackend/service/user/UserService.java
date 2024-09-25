@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class UserService {
 
+    private static final String USER = "User";
+
     private final AppUserRepository userRepository;
     private final ClientRepository clientRepository;
     private final CaretakerRepository caretakerRepository;
@@ -46,7 +48,7 @@ public class UserService {
 
     public AppUser getAppUser(String email) {
         return userRepository.findById(email)
-                .orElseThrow(() -> new NotFoundException("User with email " + email + " not found"));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(USER, email));
     }
 
     public UserProfiles getUserProfiles(String email) {
