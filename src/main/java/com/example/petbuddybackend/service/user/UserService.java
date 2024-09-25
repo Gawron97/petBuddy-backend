@@ -50,11 +50,18 @@ public class UserService {
     }
 
     public UserProfiles getUserProfiles(String email) {
+        assertUserExists(email);
         return UserProfiles.builder()
                 .email(email)
                 .hasClientProfile(clientRepository.existsById(email))
                 .hasCaretakerProfile(caretakerRepository.existsById(email))
                 .build();
+    }
+
+    private void assertUserExists(String email) {
+        if(!userRepository.existsById(email)) {
+            throw new NotFoundException("User with email " + email + " not found");
+        }
     }
 
 }
