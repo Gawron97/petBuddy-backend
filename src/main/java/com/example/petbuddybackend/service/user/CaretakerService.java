@@ -31,6 +31,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class CaretakerService {
 
+    private final static String CARETAKER = "Caretaker";
+    private final static String CLIENT = "Client";
+
     private final CaretakerRepository caretakerRepository;
     private final RatingRepository ratingRepository;
     private final CaretakerMapper caretakerMapper = CaretakerMapper.INSTANCE;
@@ -108,11 +111,11 @@ public class CaretakerService {
 
     private void assertCaretakerAndClientExist(String caretakerEmail, String clientEmail) {
         if (!caretakerExists(caretakerEmail)) {
-            throw NotFoundException.withFormattedMessage("Caretaker", caretakerEmail);
+            throw NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail);
         }
 
         if (!clientService.clientExists(clientEmail)) {
-            throw NotFoundException.withFormattedMessage("Client", clientEmail);
+            throw NotFoundException.withFormattedMessage(CLIENT, clientEmail);
         }
     }
 

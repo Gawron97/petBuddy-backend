@@ -27,7 +27,7 @@ public class ClientService {
 
     public Client getClientByEmail(String clientEmail) {
         return clientRepository.findById(clientEmail)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(clientEmail, CLIENT));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CLIENT, clientEmail));
     }
 
     @Transactional

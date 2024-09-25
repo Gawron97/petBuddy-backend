@@ -44,7 +44,6 @@ public class CaretakerControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);

@@ -12,7 +12,7 @@ public class NotFoundException extends RuntimeException {
         super(message);
     }
 
-    public static NotFoundException withFormattedMessage(String name, String resourceTypeName)
+    public static NotFoundException withFormattedMessage(String resourceTypeName, String name)
     {
         return new NotFoundException(String.format(TYPED_RESOURCE_NOT_FOUND_MESSAGE, resourceTypeName, name));
     }
