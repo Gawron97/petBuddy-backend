@@ -221,7 +221,7 @@ public class OfferServiceIntegrationTest {
                 offerRepository);
 
         // When
-        OfferConfigurationDTO resultConfigDTO = offerService.editConfiguration(configurationId, configurationToEdit);
+        OfferConfigurationDTO resultConfigDTO = offerService.editConfiguration(configurationId, configurationToEdit, caretakerWithComplexOffer.getEmail());
 
         // Then
         assertNotNull(resultConfigDTO);
@@ -360,7 +360,7 @@ public class OfferServiceIntegrationTest {
                 offerRepository);
 
         assertThrows(expectedExceptionClass,
-                () -> offerService.editConfiguration(configurationId, configurationToEdit));
+                () -> offerService.editConfiguration(configurationId, configurationToEdit, caretakerWithComplexOffer.getEmail()));
     }
 
     static Stream<Arguments> provideIncorrectEditConfigurationScenarios() {
@@ -387,7 +387,7 @@ public class OfferServiceIntegrationTest {
         int expectedNumberOfConfigurationsAfterDeletion = existingOffer.getOfferConfigurations().size() - 1;
 
         // When
-        offerService.deleteConfiguration(configurationId);
+        offerService.deleteConfiguration(configurationId, caretakerWithComplexOffer.getEmail());
 
         // Then
         Offer offerAfterDeletion = offerRepository.findById(existingOffer.getId()).orElseThrow();
@@ -594,6 +594,47 @@ public class OfferServiceIntegrationTest {
         // When Then
         assertThrows(UnauthorizedException.class,
                 () -> offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, "anotherCaretaker"));
+
+    }
+
+    @Test
+    @Transactional
+    void deleteAmenitiesFromOffer_ShouldDeleteAmenitiesFromOffer() {
+        // Given
+        PersistenceUtils.addConfigurationAndAmenitiesForOffer(
+                existingOffer,
+                List.of(),
+                BigDecimal.valueOf(50.0),
+                List.of(
+                        animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow(),
+                        animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("garden", "DOG").orElseThrow()
+                ),
+                offerRepository
+        );
+
+        // When
+        OfferDTO resultOfferDTO = offerService.deleteAmenitiesFromOffer(
+                List.of("garden"),
+                caretakerWithComplexOffer.getEmail(),
+                existingOffer.getId()
+        );
+
+        // Then
+        Offer offer = offerRepository.findById(resultOfferDTO.id()).orElseThrow();
+        assertEquals(1, offer.getAnimalAmenities().size());
+
+    }
+
+    @Test
+    void deleteAmenitiesFromOffer_whenNotOwningCaretakerDeleting_ShouldThrowUnauthorizedException() {
+
+        // When Then
+        assertThrows(UnauthorizedException.class,
+                () -> offerService.deleteAmenitiesFromOffer(
+                        List.of("garden"),
+                        "badEmail",
+                        existingOffer.getId()
+                ));
 
     }
 

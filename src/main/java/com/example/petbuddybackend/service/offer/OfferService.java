@@ -67,9 +67,10 @@ public class OfferService {
     }
 
     @Transactional
-    public OfferDTO deleteConfiguration(Long configurationId) {
+    public OfferDTO deleteConfiguration(Long configurationId, String userEmail) {
 
         OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
+        assertOfferIsModifyingByOwnerCaretaker(offerConfiguration.getOffer(), userEmail);
         Offer offer = offerConfiguration.getOffer();
         offer.getOfferConfigurations().remove(offerConfiguration);
         return offerMapper.mapToOfferDTO(offerRepository.save(offer));
@@ -77,19 +78,34 @@ public class OfferService {
     }
 
     @Transactional
-    public OfferConfigurationDTO editConfiguration(Long configurationId, ModifyConfigurationDTO configuration) {
+    public OfferConfigurationDTO editConfiguration(Long configurationId, ModifyConfigurationDTO configuration, String userEmail) {
 
         OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
+        assertOfferIsModifyingByOwnerCaretaker(offerConfiguration.getOffer(), userEmail);
 
         List<OfferConfiguration> restOfferConfigurations = offerConfiguration.getOffer().getOfferConfigurations().stream()
                 .filter(restOfferConfiguration -> !restOfferConfiguration.getId().equals(offerConfiguration.getId()))
                 .toList();
+        assertOffersAreModifyingByOwnerCaretaker(restOfferConfigurations.stream().map(OfferConfiguration::getOffer).toList(), userEmail);
 
         offerConfiguration.setDescription(configuration.description());
         offerConfiguration.setDailyPrice(configuration.dailyPrice());
         editConfigurationSelectedOptions(offerConfiguration, configuration);
         checkForDuplicateConfiguration(restOfferConfigurations, offerConfiguration);
         return offerConfigurationMapper.mapToOfferConfigurationDTO(offerConfigurationRepository.save(offerConfiguration));
+    }
+
+    @Transactional
+    public OfferDTO deleteAmenitiesFromOffer(List<String> amenities, String userEmail, Long offerId) {
+        Offer offer = getOffer(offerId);
+        assertOfferIsModifyingByOwnerCaretaker(offer, userEmail);
+
+        Set<AnimalAmenity> animalAmenities = offer.getAnimalAmenities();
+        amenities.forEach(
+                amenity -> animalAmenities.removeIf(
+                        animalAmenity -> animalAmenity.getAmenity().getName().equals(amenity)));
+        return offerMapper.mapToOfferDTO(offerRepository.save(offer));
+
     }
 
     @Transactional
@@ -293,8 +309,12 @@ public class OfferService {
         availabilitiesFromOffer.addAll(availabilities);
     }
 
-    private void assertOfferIsModifyingByOwnerCaretaker(Offer offerToModify, String caretakerEmail) {
-        if(!offerToModify.getCaretaker().getEmail().equals(caretakerEmail)) {
+    private void assertOffersAreModifyingByOwnerCaretaker(List<Offer> offers, String caretakerEmail) {
+        offers.forEach(offer -> assertOfferIsModifyingByOwnerCaretaker(offer, caretakerEmail));
+    }
+
+    private void assertOfferIsModifyingByOwnerCaretaker(Offer offer, String caretakerEmail) {
+        if(!offer.getCaretaker().getEmail().equals(caretakerEmail)) {
             throw new UnauthorizedException("Caretaker with email: " + caretakerEmail +
                     "is trying to modify offer that does not belong to him");
         }
@@ -335,5 +355,4 @@ public class OfferService {
             }
         }
     }
-
 }
