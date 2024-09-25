@@ -63,6 +63,10 @@ public class OfferController {
         return offerService.editConfiguration(configurationId, configuration, principal.getName());
     }
 
+    @Operation(
+            summary = "Delete configuration",
+            description = "Deletes configuration from offer"
+    )
     @DeleteMapping("/configuration/{configurationId}/delete")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteConfiguration(@PathVariable Long configurationId,
@@ -74,6 +78,7 @@ public class OfferController {
         return offerService.deleteConfiguration(configurationId, principal.getName());
     }
 
+    @Operation(summary = "Delete amenities from offer")
     @PostMapping("/{offerId}/amenities-delete")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteAmenitiesFromOffer(@RequestBody List<String> amenities,
