@@ -1,11 +1,13 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +91,29 @@ public class ClientServiceTest {
 
         //Then
         assertEquals(1, clientRepository.count());
+    }
+
+    @Test
+    void getClient_ShouldReturnProperClient() {
+
+        //Given
+        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+
+        //When
+        ClientDTO result = clientService.getClient(client.getEmail());
+
+        //Then
+        assertNotNull(result);
+        assertEquals(client.getEmail(), result.accountData().email());
+
+    }
+
+    @Test
+    void getClient_whenClientNotExist_ShouldThrowNotFoundException() {
+
+        //When Then
+        assertThrows(NotFoundException.class, () -> clientService.getClient("invalidEmail"));
+
     }
 
 }
