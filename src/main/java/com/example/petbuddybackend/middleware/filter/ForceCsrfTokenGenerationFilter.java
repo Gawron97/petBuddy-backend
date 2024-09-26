@@ -21,7 +21,7 @@ import java.io.IOException;
 public class ForceCsrfTokenGenerationFilter extends OncePerRequestFilter {
 
     @Override
-    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("Invoking ForceCsrfTokenGenerationFilter");
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
         csrfToken.getToken();

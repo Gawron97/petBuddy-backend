@@ -15,7 +15,6 @@ public class CsrfController {
     @SecurityRequirements
     @GetMapping
     public CsrfToken csrfGeneration(CsrfToken token) {
-        log.error("CsrfToken: {}", token.getToken());
         return token;
     }
 }
