@@ -33,7 +33,7 @@ keycloak:
 
 logging:
   level:
-    root: info
+    root: INFO
 
 server:
   port: 8081

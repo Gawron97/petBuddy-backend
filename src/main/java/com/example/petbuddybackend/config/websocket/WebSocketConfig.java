@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.config.websocket;
 
 
-import com.example.petbuddybackend.filter.SubscriptionInterceptor;
+import com.example.petbuddybackend.middleware.interceptor.ValidChatRoomAccessInterceptor;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final SubscriptionInterceptor subscriptionInterceptor;
+    private final ValidChatRoomAccessInterceptor subscriptionInterceptor;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {

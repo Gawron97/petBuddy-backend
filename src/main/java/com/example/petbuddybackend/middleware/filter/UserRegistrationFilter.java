@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.filter;
+package com.example.petbuddybackend.middleware.filter;
 
 import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.service.user.UserService;

@@ -110,6 +110,12 @@ public class ChatService {
                 chatRepository.existsByIdAndCaretaker_Email(chatId, email);
     }
 
+    public boolean isUserInChat(Long chatId, String email, Role role) {
+        return role == Role.CLIENT ?
+                chatRepository.existsByIdAndClient_Email(chatId, email) :
+                chatRepository.existsByIdAndCaretaker_Email(chatId, email);
+    }
+
     public boolean isUserInChat(ChatRoom chatRoom, String email, Role role) {
         return role == Role.CLIENT ?
                 chatRoom.getClient().getEmail().equals(email) :

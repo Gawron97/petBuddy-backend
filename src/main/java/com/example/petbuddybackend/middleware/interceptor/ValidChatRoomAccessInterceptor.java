@@ -1,5 +1,6 @@
-package com.example.petbuddybackend.filter;
+package com.example.petbuddybackend.middleware.interceptor;
 
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
@@ -14,10 +15,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class SubscriptionInterceptor implements ChannelInterceptor {
+public class ValidChatRoomAccessInterceptor implements ChannelInterceptor {
 
     @Value("${url.chat.topic.base}")
     private String URL_CHAT_TOPIC_BASE;
+
+    @Value("${header-name.role}")
+    private String ROLE_HEADER_NAME;
 
     private final ChatService chatService;
 
@@ -36,6 +40,7 @@ public class SubscriptionInterceptor implements ChannelInterceptor {
 
     private void handleMessageTopic(StompHeaderAccessor accessor, String destination) {
         StompCommand command = accessor.getCommand();
+        Role role = Role.valueOf(accessor.getFirstNativeHeader(ROLE_HEADER_NAME));
 
         if(!StompCommand.SUBSCRIBE.equals(command) && !StompCommand.SEND.equals(command)) {
             return;
@@ -44,7 +49,7 @@ public class SubscriptionInterceptor implements ChannelInterceptor {
         String username = HeaderUtils.getUser(accessor);
         Long chatId = extractChatId(destination);
 
-        if (!chatService.isUserInChat(chatId, username)) {
+        if (!chatService.isUserInChat(chatId, username, role)) {
             throw new NotParticipateException("Action not allowed for this user");
         }
     }

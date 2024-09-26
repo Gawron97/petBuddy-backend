@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.filter;
+package com.example.petbuddybackend.middleware.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
