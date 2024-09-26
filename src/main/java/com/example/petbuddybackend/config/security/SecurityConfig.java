@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.authorization.AuthorizationManager;
@@ -72,7 +74,8 @@ public class SecurityConfig {
         return new BodyAndQueryTokenResolver();
     }
 
-    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @Bean("csrfChannelInterceptor")
     public ChannelInterceptor noopCsrfInterceptor() {
         // Disables CSRF protection for WebSocket messages
         return new ChannelInterceptor() {
