@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.config.security;
 
-import com.example.petbuddybackend.filter.ExceptionHandlerFilter;
+import com.example.petbuddybackend.middleware.filter.ExceptionHandlerFilter;
 import com.example.petbuddybackend.utils.keycloak.KeycloakJwtAuthenticationConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.filter;
+package com.example.petbuddybackend.middleware.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,11 +21,10 @@ import java.io.IOException;
 public class ForceCsrfTokenGenerationFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("Invoking ForceCsrfTokenGenerationFilter");
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
         csrfToken.getToken();
-        log.info("CsrfToken: {}", csrfToken.getToken());
         filterChain.doFilter(request, response);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.filter.interceptor;
+package com.example.petbuddybackend.middleware.interceptor;
 
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
