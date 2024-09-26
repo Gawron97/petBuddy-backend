@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
@@ -48,7 +47,6 @@ public class ChatWebSocketController {
     private final ChatSessionService chatSessionService;
     private final WebSocketSessionContext sessionContext;
 
-    @PreAuthorize("isAuthenticated()")
     @MessageMapping("/chat/{chatId}")
     public void sendChatMessage(
             @DestinationVariable Long chatId,
@@ -76,7 +74,9 @@ public class ChatWebSocketController {
             return;
         }
 
-        String timeZone = HeaderUtils.getNativeHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class);
+        String timeZone = HeaderUtils.getOptionalNativeHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class)
+                .orElse(null);
+
         String username = HeaderUtils.getUser(accessor);
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
         String sessionId = accessor.getSessionId();
@@ -92,12 +92,13 @@ public class ChatWebSocketController {
     @EventListener
     public void handleUnsubscribeToMessageTopic(SessionUnsubscribeEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String destination = accessor.getDestination();
 
-        if(!sessionContext.containsSubscriptionId(accessor.getSubscriptionId())) {
+        if(!HeaderUtils.destinationStartsWith(URL_CHAT_TOPIC_BASE, destination)) {
             return;
         }
 
-        if(sessionContext.isEmpty()) {
+        if(!sessionContext.containsSubscriptionId(accessor.getSubscriptionId()) || sessionContext.isEmpty()) {
             return;
         }
 
@@ -109,7 +110,6 @@ public class ChatWebSocketController {
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
         chatSessionService.unsubscribe(chatId, username, sessionId, subscriptionId);
 
-        String destination = accessor.getDestination();
         log.debug("Unsubscribe triggered by session: {}, at destination: {}", sessionId, destination);
     }
 

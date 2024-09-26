@@ -2,6 +2,8 @@ package com.example.petbuddybackend.config.datageneration;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.entity.address.Address;
+import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
@@ -122,7 +124,8 @@ public class MockDataCreator {
 
         // chat
         Client client = createKnownClient();
-        createChat(client, caretakers.get(0));
+        Caretaker caretaker = createKnownCaretaker();
+        createChat(client, caretaker);
 
         // cares
         careRepository.saveAllAndFlush(mockService.createMockCares(clients, caretakers, animals, animalAttributes, CARE_COUNT));
@@ -181,6 +184,33 @@ public class MockDataCreator {
                 .build();
 
         return clientRepository.save(client);
+    }
+
+    private Caretaker createKnownCaretaker() {
+        AppUser user = AppUser.builder()
+                .email("user@frontend.com")
+                .name("MyName")
+                .surname("MySurname")
+                .build();
+
+        appUserRepository.save(user);
+
+        Address address = Address.builder()
+                .city("City")
+                .street("Street")
+                .zipCode("12345")
+                .buildingNumber("1")
+                .voivodeship(Voivodeship.SLASKIE)
+                .build();
+
+        Caretaker caretaker = Caretaker.builder()
+                .accountData(user)
+                .phoneNumber("123456789")
+                .email(user.getEmail())
+                .address(address)
+                .build();
+
+        return caretakerRepository.save(caretaker);
     }
 
     private void createChat(Client client, Caretaker caretaker) {

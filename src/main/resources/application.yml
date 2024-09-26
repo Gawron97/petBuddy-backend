@@ -33,7 +33,50 @@ keycloak:
 
 logging:
   level:
-    root: info
+    root: INFO
+    com:
+      example:
+        petbuddybackend:
+          config:
+            security:
+              com.example.petbuddybackend.config.security.QueryTokenResolver: TRACE
+          controller:
+            ChatWebSocketController: DEBUG
+            WebSocketController: DEBUG
+
+    # Spring Security logging (for debugging authentication issues)
+    org:
+      springframework:
+        security: DEBUG
+        security.web: DEBUG
+        security.web.authentication: DEBUG
+        security.web.authentication.AnonymousAuthenticationFilter: DEBUG
+        security.web.authentication.UsernamePasswordAuthenticationFilter: DEBUG
+        security.web.csrf: DEBUG # If CSRF is related to your issue
+
+      # WebSocket-specific logging
+      web:
+        socket: DEBUG
+      springframework.web.socket: DEBUG
+      springframework.web.socket.handler: DEBUG
+      springframework.web.socket.server: DEBUG
+      springframework.web.socket.messaging: DEBUG
+      springframework.messaging: DEBUG
+
+    # Spring Messaging and Stomp for WebSockets
+    org.springframework.messaging.simp: DEBUG
+    org.springframework.messaging.simp.broker: DEBUG
+    org.springframework.messaging.simp.stomp: DEBUG
+    org.springframework.messaging.simp.user: DEBUG
+    org.springframework.messaging.support: DEBUG
+
+    # For inbound and outbound channel logging
+    org.springframework.messaging.interceptor: DEBUG
+    org.springframework.messaging.channel.ExecutorSubscribableChannel: TRACE
+
+    # If using Spring's DefaultHandshakeHandler for WebSocket connections
+    org.springframework.web.socket.server.support.DefaultHandshakeHandler: DEBUG
+
 
 server:
   port: 8081

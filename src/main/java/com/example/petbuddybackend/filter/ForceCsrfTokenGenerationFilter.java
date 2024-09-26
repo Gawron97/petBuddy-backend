@@ -25,6 +25,7 @@ public class ForceCsrfTokenGenerationFilter extends OncePerRequestFilter {
         log.info("Invoking ForceCsrfTokenGenerationFilter");
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
         csrfToken.getToken();
+        log.info("CsrfToken: {}", csrfToken.getToken());
         filterChain.doFilter(request, response);
     }
 }
