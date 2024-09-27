@@ -2,6 +2,7 @@ package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.throweable.general.DateRangeException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
+import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidWebSocketHeaderException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
@@ -155,4 +156,9 @@ public class GeneralAdvice {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidPhotoException.class)
+    public ApiExceptionResponse handleGeneralException(InvalidPhotoException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
 }

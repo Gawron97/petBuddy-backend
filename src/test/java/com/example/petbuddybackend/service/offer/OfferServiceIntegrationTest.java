@@ -5,7 +5,7 @@ import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
 import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
 import com.example.petbuddybackend.dto.offer.ModifyConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
-import com.example.petbuddybackend.repository.AvailabilityRepository;
+import com.example.petbuddybackend.repository.availability.AvailabilityRepository;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.animal.AnimalDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
