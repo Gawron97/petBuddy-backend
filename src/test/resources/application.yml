@@ -45,3 +45,17 @@ url:
     topic:
       base: "/topic/session"
       pattern: "/topic/session/%s"
+
+
+firebase:
+  key:
+    path: path
+  project:
+    id: none
+  bucket:
+    link: none
+  photo:
+    directory: none
+    expiration:
+      max-seconds: 21600
+      threshold-seconds: 2300

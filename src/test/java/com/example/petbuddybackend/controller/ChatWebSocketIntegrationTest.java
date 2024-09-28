@@ -102,7 +102,7 @@ public class ChatWebSocketIntegrationTest {
         ChatMessageSent chatMessageSent = new ChatMessageSent("hello");
         StompSession stompSession = connectToWebSocket();
 
-        when(chatService.isUserInChat(any(), any()))
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
         // Init session
@@ -125,7 +125,7 @@ public class ChatWebSocketIntegrationTest {
         String caretakerTimezone = "+06:00";
         ChatMessageSent chatMessageSent = new ChatMessageSent("hello");
 
-        when(chatService.isUserInChat(any(), any()))
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
         StompSession clientSession = connectToWebSocket(clientUsername);
@@ -169,7 +169,7 @@ public class ChatWebSocketIntegrationTest {
         String clientUsername = "client";
         String caretakerUsername = "caretaker";
 
-        when(chatService.isUserInChat(any(), any()))
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
         StompSession clientSession = connectToWebSocket(clientUsername);
@@ -202,11 +202,11 @@ public class ChatWebSocketIntegrationTest {
     }
 
     @Test
-    void testUnsubscribeToChat_shouldSendNotificationToOtherUserLeftInChat() throws InterruptedException {
+    void testDisconnectFromChat_shouldSendNotificationToOtherUserLeftInChat() throws InterruptedException {
         String clientUsername = "client";
         String caretakerUsername = "caretaker";
 
-        when(chatService.isUserInChat(any(), any()))
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
         StompSession clientSession = connectToWebSocket(clientUsername);
@@ -236,7 +236,7 @@ public class ChatWebSocketIntegrationTest {
         String clientUsername = "client";
         String caretakerUsername = "caretaker";
 
-        when(chatService.isUserInChat(any(), any()))
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
         StompSession clientSession = connectToWebSocket(clientUsername);

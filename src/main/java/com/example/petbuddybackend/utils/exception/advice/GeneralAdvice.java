@@ -2,6 +2,7 @@ package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.throweable.general.DateRangeException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
+import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidWebSocketHeaderException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.DateTimeException;
 import java.time.zone.ZoneRulesException;
@@ -155,4 +157,15 @@ public class GeneralAdvice {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
+    @ExceptionHandler(InvalidPhotoException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleGeneralException(InvalidPhotoException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(code = HttpStatus.PAYLOAD_TOO_LARGE)
+    public ApiExceptionResponse handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+        return new ApiExceptionResponse(e, "Maximum file upload size exceeded");
+    }
 }

@@ -18,6 +18,10 @@ spring:
     show-sql: false
   profiles:
     active: dev
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
   # import data for database
   config:
@@ -60,3 +64,16 @@ url:
     topic:
       base: "/topic/session"
       pattern: "/topic/session/%s"
+
+firebase:
+  key:
+    path: secret/petbuddy-firebase-private-key.json
+  project:
+    id: petbuddy-d6479
+  bucket:
+    link: petbuddy-d6479.appspot.com
+  photo:
+    directory: ${FIREBASE_PHOTO_DIRECTORY}
+    expiration:
+      max-seconds: 21600        # 6 hours
+      threshold-seconds: 2300   # 0.5 hour

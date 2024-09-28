@@ -94,10 +94,6 @@ public class ChatWebSocketController {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         String destination = accessor.getDestination();
 
-        if(!HeaderUtils.destinationStartsWith(URL_CHAT_TOPIC_BASE, destination)) {
-            return;
-        }
-
         if(!sessionContext.containsSubscriptionId(accessor.getSubscriptionId()) || sessionContext.isEmpty()) {
             return;
         }
