@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.service.image;
 
-import com.example.petbuddybackend.entity.photo.CloudPhoto;
-import com.example.petbuddybackend.repository.photo.CloudPhotoRepository;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
+import com.example.petbuddybackend.repository.photo.PhotoLinkRepository;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
 import com.google.cloud.storage.Blob;
@@ -45,26 +45,28 @@ public class FirebasePhotoService implements PhotoService {
     private Integer EXPIRATION_THRESHOLD_SECONDS;
 
     private final FirebaseApp firebaseApp;
-    private final CloudPhotoRepository cloudPhotoRepository;
+    private final PhotoLinkRepository photoRepository;
     private final Tika tika;
 
 
     @Override
-    public CloudPhoto getPhoto(String blob) {
-        return cloudPhotoRepository.findById(blob)
+    public PhotoLink getPhoto(String blob) {
+        PhotoLink photo = photoRepository.findById(blob)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(PHOTO, blob));
+
+        return updatePhotoExpiration(photo);
     }
 
     @Override
-    public CloudPhoto uploadPhoto(MultipartFile multipartFile) {
+    public PhotoLink uploadPhoto(MultipartFile multipartFile) {
         validatePhoto(multipartFile);
-        CloudPhoto photo = uploadFile(multipartFile, MAX_EXPIRATION_SECONDS);
-        return cloudPhotoRepository.save(photo);
+        PhotoLink photo = uploadFile(multipartFile, MAX_EXPIRATION_SECONDS);
+        return photoRepository.save(photo);
     }
 
     @Override
     public void deletePhoto(String blob) {
-        CloudPhoto photo = getPhoto(blob);
+        PhotoLink photo = getPhoto(blob);
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
         Blob blobToDelete = bucket.get(blob);
@@ -73,11 +75,11 @@ public class FirebasePhotoService implements PhotoService {
             blobToDelete.delete();
         }
 
-        cloudPhotoRepository.delete(photo);
+        photoRepository.delete(photo);
     }
 
     @Override
-    public CloudPhoto updatePhotoExpiration(CloudPhoto photo) {
+    public PhotoLink updatePhotoExpiration(PhotoLink photo) {
         LocalDateTime thresholdTime = photo
                 .getUrlExpiresAt()
                 .minusSeconds(EXPIRATION_THRESHOLD_SECONDS);
@@ -120,7 +122,7 @@ public class FirebasePhotoService implements PhotoService {
         return fileName.substring(fileName.lastIndexOf("."));
     }
 
-    private CloudPhoto uploadFile(MultipartFile file, int expirationSeconds) {
+    private PhotoLink uploadFile(MultipartFile file, int expirationSeconds) {
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
         String filename = UUID.randomUUID() + getExtension(file.getOriginalFilename());
@@ -130,7 +132,7 @@ public class FirebasePhotoService implements PhotoService {
             Blob blob = bucket.create(blobPath, file.getInputStream(), file.getContentType());
             String url = blob.signUrl(expirationSeconds, TimeUnit.SECONDS).toString();
 
-            return CloudPhoto.builder()
+            return PhotoLink.builder()
                     .url(url)
                     .blob(blobPath)
                     .urlExpiresAt(LocalDateTime.now().plusSeconds(expirationSeconds))
@@ -140,7 +142,7 @@ public class FirebasePhotoService implements PhotoService {
         }
     }
 
-    private CloudPhoto renewPhoto(CloudPhoto photo, int expirationSeconds) {
+    private PhotoLink renewPhoto(PhotoLink photo, int expirationSeconds) {
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
         Blob blob = bucket.get(photo.getBlob());
@@ -152,6 +154,6 @@ public class FirebasePhotoService implements PhotoService {
         String newUrl = blob.signUrl(expirationSeconds, TimeUnit.SECONDS).toString();
         photo.setUrl(newUrl);
         photo.setUrlExpiresAt(LocalDateTime.now().plusSeconds(expirationSeconds));
-        return cloudPhotoRepository.save(photo);
+        return photoRepository.save(photo);
     }
 }

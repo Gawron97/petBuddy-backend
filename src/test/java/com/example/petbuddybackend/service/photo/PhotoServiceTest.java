@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.service.photo;
 
-import com.example.petbuddybackend.entity.photo.CloudPhoto;
-import com.example.petbuddybackend.repository.photo.CloudPhotoRepository;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
+import com.example.petbuddybackend.repository.photo.PhotoLinkRepository;
 import com.example.petbuddybackend.service.image.FirebasePhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
@@ -50,7 +50,7 @@ public class PhotoServiceTest {
     private FirebaseApp firebaseApp;
 
     @MockBean
-    private CloudPhotoRepository cloudPhotoRepository;
+    private PhotoLinkRepository photoRepository;
 
     @MockBean
     private Tika tika;
@@ -93,14 +93,14 @@ public class PhotoServiceTest {
         when(mockBucket.create(any(String.class), any(ByteArrayInputStream.class), any(String.class))).thenReturn(mockBlob);
         when(mockBlob.signUrl(anyLong(), any())).thenReturn(new URL("http://signedurl.com"));
         when(tika.detect(any(InputStream.class))).thenReturn("image/jpeg");
-        when(cloudPhotoRepository.save(any(CloudPhoto.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(photoRepository.save(any(PhotoLink.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        CloudPhoto result = firebasePhotoService.uploadPhoto(validPhoto);
+        PhotoLink result = firebasePhotoService.uploadPhoto(validPhoto);
 
         assertNotNull(result);
         assertNotEquals(PHOTO_DIRECTORY + "/" + FILE_NAME, result.getBlob());
         assertTrue(result.getBlob().startsWith(PHOTO_DIRECTORY));
-        verify(cloudPhotoRepository, times(1)).save(result);
+        verify(photoRepository, times(1)).save(result);
     }
 
     @Test
@@ -108,28 +108,28 @@ public class PhotoServiceTest {
         MockMultipartFile invalidPhoto = new MockMultipartFile("file", "", "text/plain", new byte[]{0});
         when(tika.detect(any(InputStream.class))).thenReturn("text/plain");
 
-        assertThrows(InvalidPhotoException.class, () -> {
-            firebasePhotoService.uploadPhoto(invalidPhoto);
-        });
+        assertThrows(InvalidPhotoException.class,
+                () -> firebasePhotoService.uploadPhoto(invalidPhoto)
+        );
     }
 
     @Test
     public void testDeletePhoto_validBlob_shouldDeleteSuccessfully() {
-        CloudPhoto photo = new CloudPhoto(BLOB_PATH, PHOTO_URL, LocalDateTime.now().plusDays(10));
-        when(cloudPhotoRepository.findById(BLOB_PATH)).thenReturn(Optional.of(photo));
+        PhotoLink photo = new PhotoLink(BLOB_PATH, PHOTO_URL, LocalDateTime.now().plusDays(10));
+        when(photoRepository.findById(BLOB_PATH)).thenReturn(Optional.of(photo));
         when(mockBucket.get(BLOB_PATH)).thenReturn(mockBlob);
 
         firebasePhotoService.deletePhoto(BLOB_PATH);
 
         verify(mockBlob, times(1)).delete();
-        verify(cloudPhotoRepository, times(1)).delete(photo);
+        verify(photoRepository, times(1)).delete(photo);
     }
 
     @Test
     public void testDeletePhoto_nonExistentBlob_shouldNotThrowException() {
         String nonExistentBlob = "non/existent/blob";
 
-        when(cloudPhotoRepository.findById(nonExistentBlob)).thenReturn(Optional.empty());
+        when(photoRepository.findById(nonExistentBlob)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> firebasePhotoService.deletePhoto(nonExistentBlob));
     }
@@ -137,22 +137,22 @@ public class PhotoServiceTest {
     @Test
     public void testUpdatePhotoExpiration_withinThreshold_shouldNotRenew() {
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(20);
-        CloudPhoto photo = new CloudPhoto("valid/blob/path", "http://signedurl.com", expiresAt);
+        PhotoLink photo = new PhotoLink("valid/blob/path", "http://signedurl.com", expiresAt);
 
         firebasePhotoService.updatePhotoExpiration(photo);
 
-        verify(cloudPhotoRepository, never()).save(any());
+        verify(photoRepository, never()).save(any());
     }
 
     @Test
     public void testUpdatePhotoExpiration_expired_shouldRenew() throws MalformedURLException {
         LocalDateTime expiresAt = LocalDateTime.now().minusSeconds(1);
-        CloudPhoto photo = new CloudPhoto("valid/blob/path", "http://signedurl.com", expiresAt);
+        PhotoLink photo = new PhotoLink("valid/blob/path", "http://signedurl.com", expiresAt);
         when(mockBucket.get(photo.getBlob())).thenReturn(mockBlob);
         when(mockBlob.signUrl(anyLong(), any())).thenReturn(new URL("http://new-signedurl.com"));
 
         firebasePhotoService.updatePhotoExpiration(photo);
 
-        verify(cloudPhotoRepository, times(1)).save(photo);
+        verify(photoRepository, times(1)).save(photo);
     }
 }

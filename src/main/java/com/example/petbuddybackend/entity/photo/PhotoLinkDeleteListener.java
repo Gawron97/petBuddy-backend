@@ -10,12 +10,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CloudPhotoDeleteListener {
+public class PhotoLinkDeleteListener {
 
     private final FirebaseApp firebaseApp;
 
     @PreRemove
-    public void removePhotoFromRemote(CloudPhoto photo) {
+    public void removePhotoFromRemote(PhotoLink photo) {
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
         Blob blobToDelete = bucket.get(photo.getBlob());

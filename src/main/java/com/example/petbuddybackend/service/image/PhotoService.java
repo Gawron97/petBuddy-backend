@@ -1,15 +1,15 @@
 package com.example.petbuddybackend.service.image;
 
-import com.example.petbuddybackend.entity.photo.CloudPhoto;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface PhotoService {
 
-    CloudPhoto uploadPhoto(MultipartFile multipartFile);
+    PhotoLink uploadPhoto(MultipartFile multipartFile);
 
     void deletePhoto(String blob);
 
-    CloudPhoto updatePhotoExpiration(CloudPhoto photo);
+    PhotoLink updatePhotoExpiration(PhotoLink photo);
 
-    CloudPhoto getPhoto(String blob);
+    PhotoLink getPhoto(String blob);
 }

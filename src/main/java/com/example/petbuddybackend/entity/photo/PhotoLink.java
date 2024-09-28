@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "blob")
-@EntityListeners(CloudPhotoDeleteListener.class)
-public class CloudPhoto {
+@EntityListeners(PhotoLinkDeleteListener.class)
+public class PhotoLink {
 
     @Id
     @Column(nullable = false, length = 64, unique = true)
