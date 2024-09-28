@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 import java.io.*;
 
 @Slf4j
-@Profile("!test")
+@Profile("dev | prod")
 @Configuration
 @RequiredArgsConstructor
 public class FirebaseConfig {
