@@ -90,16 +90,13 @@ public class PhotoServiceTest {
 
     @Test
     public void testUploadPhoto_validFile_shouldUploadSuccessfully() throws IOException {
-        // Arrange
         when(mockBucket.create(any(String.class), any(ByteArrayInputStream.class), any(String.class))).thenReturn(mockBlob);
         when(mockBlob.signUrl(anyLong(), any())).thenReturn(new URL("http://signedurl.com"));
         when(tika.detect(any(InputStream.class))).thenReturn("image/jpeg");
         when(cloudPhotoRepository.save(any(CloudPhoto.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Act
         CloudPhoto result = firebasePhotoService.uploadPhoto(validPhoto);
 
-        // Assert
         assertNotNull(result);
         assertNotEquals(PHOTO_DIRECTORY + "/" + FILE_NAME, result.getBlob());
         assertTrue(result.getBlob().startsWith(PHOTO_DIRECTORY));
@@ -108,11 +105,9 @@ public class PhotoServiceTest {
 
     @Test
     public void testUploadPhoto_invalidFile_shouldThrowInvalidPhotoException() throws IOException {
-        // Arrange
         MockMultipartFile invalidPhoto = new MockMultipartFile("file", "", "text/plain", new byte[]{0});
         when(tika.detect(any(InputStream.class))).thenReturn("text/plain");
 
-        // Act & Assert
         assertThrows(InvalidPhotoException.class, () -> {
             firebasePhotoService.uploadPhoto(invalidPhoto);
         });

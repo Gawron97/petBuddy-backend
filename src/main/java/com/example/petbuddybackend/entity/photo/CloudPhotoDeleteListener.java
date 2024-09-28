@@ -1,5 +1,7 @@
 package com.example.petbuddybackend.entity.photo;
 
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.cloud.StorageClient;
 import jakarta.persistence.PreRemove;
@@ -15,10 +17,11 @@ public class CloudPhotoDeleteListener {
     @PreRemove
     public void removePhotoFromRemote(CloudPhoto photo) {
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
-        var bucket = storageClient.bucket();
-        var blobToDelete = bucket.get(photo.getBlob());
+        Bucket bucket = storageClient.bucket();
+        Blob blobToDelete = bucket.get(photo.getBlob());
 
-        if(blobToDelete != null)
+        if(blobToDelete != null) {
             blobToDelete.delete();
+        }
     }
 }
