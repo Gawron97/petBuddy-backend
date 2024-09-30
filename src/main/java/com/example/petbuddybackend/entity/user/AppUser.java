@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.entity.user;
 
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,11 +22,14 @@ public class AppUser {
     @Column(nullable = false, length = 100)
     private String surname;
 
+    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    private PhotoLink profilePicture;
+
     @JoinColumn(name = "email")
-    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Caretaker caretaker;
 
     @JoinColumn(name = "email")
-    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private Client client;
 }

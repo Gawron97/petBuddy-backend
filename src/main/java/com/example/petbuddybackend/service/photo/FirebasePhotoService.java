@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.service.image;
+package com.example.petbuddybackend.service.photo;
 
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.repository.photo.PhotoLinkRepository;

@@ -1,28 +1,52 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.user.UserProfiles;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.mock.GeneralMockProvider.createJwtToken;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class UserServiceTests {
+
+    public static final String USERNAME = "testuser";
+    public static final String NAME = "name";
+    public static final String SURNAME = "surname";
+    public static final String EMAIL = "test@example.com";
+
+    private static final MultipartFile profilePicture = new MockMultipartFile(
+            "file",
+            "test.jpg",
+            "image/jpeg",
+            new byte[]{1, 2, 3}
+    );
+
+    private static final PhotoLink photoLink = new PhotoLink(
+            "testBlob",
+            "testURL",
+            LocalDateTime.now()
+    );
 
     @Mock
     private AppUserRepository userRepository;
@@ -33,28 +57,34 @@ public class UserServiceTests {
     @Mock
     private CaretakerRepository caretakerRepository;
 
+    @Mock
+    private PhotoService photoService;
+
     @InjectMocks
     private UserService userService;
 
     @Captor
     private ArgumentCaptor<AppUser> userCaptor;
 
+    private AutoCloseable closeable;
+
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        closeable = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void releaseMocks() throws Exception {
+        closeable.close();
     }
 
     @Test
     void givenUserDoesNotExist_whenCreateUserIfNotExist_thenUserIsCreated() {
         // given
-        String email = "test@example.com";
-        String firstname = "name";
-        String lastname = "surname";
-        String username = "testuser";
+        JwtAuthenticationToken token = createJwtToken(EMAIL, NAME, SURNAME, USERNAME);
 
-        JwtAuthenticationToken token = createJwtToken(email, firstname, lastname, username);
-
-        when(userRepository.findById(email)).thenReturn(Optional.empty());
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.empty());
 
         //when
         userService.createUserIfNotExistOrGet(token);
@@ -62,23 +92,18 @@ public class UserServiceTests {
         //then
         verify(userRepository).save(userCaptor.capture());
         AppUser user = userCaptor.getValue();
-        assertEquals(email, user.getEmail());
-        assertEquals(firstname, user.getName());
-        assertEquals(lastname, user.getSurname());
+        assertEquals(EMAIL, user.getEmail());
+        assertEquals(NAME, user.getName());
+        assertEquals(SURNAME, user.getSurname());
     }
 
     @Test
     void givenUserAlreadyExists_whenCreateUserIfNotExist_thenUserIsNotCreated() {
         // given
-        String email = "test@example.com";
-        String firstname = "name";
-        String lastname = "surname";
-        String username = "testuser";
+        JwtAuthenticationToken token = createJwtToken(EMAIL, NAME, SURNAME, USERNAME);
 
-        JwtAuthenticationToken token = createJwtToken(email, firstname, lastname, username);
-
-        when(userRepository.existsById(email)).thenReturn(true);
-        when(userRepository.findById(email)).thenReturn(Optional.of(new AppUser()));
+        when(userRepository.existsById(EMAIL)).thenReturn(true);
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.of(new AppUser()));
 
         //when
         userService.createUserIfNotExistOrGet(token);
@@ -91,20 +116,92 @@ public class UserServiceTests {
     @ParameterizedTest
     @MethodSource("userProfilesProvider")
     void getUserProfiles(boolean clientExists, boolean caretakerExists, UserProfiles expectedProfiles) {
-
         //Given
-        String email = "test@example.com";
-
-        when(userRepository.existsById(email)).thenReturn(true);
-        when(clientRepository.existsById(email)).thenReturn(clientExists);
-        when(caretakerRepository.existsById(email)).thenReturn(caretakerExists);
+        when(userRepository.existsById(EMAIL)).thenReturn(true);
+        when(clientRepository.existsById(EMAIL)).thenReturn(clientExists);
+        when(caretakerRepository.existsById(EMAIL)).thenReturn(caretakerExists);
 
         //When
-        UserProfiles result = userService.getUserProfiles(email);
+        UserProfiles result = userService.getUserProfiles(EMAIL);
 
         //Then
         assertEquals(expectedProfiles, result);
 
+    }
+
+    @Test
+    void uploadProfilePicture_whenUserExists_thenProfilePictureIsUploaded() {
+        // Given
+        AppUser user = AppUser.builder()
+                .email(USERNAME)
+                .build();
+
+        when(userRepository.findById(USERNAME)).thenReturn(Optional.of(user));
+        when(photoService.uploadPhoto(profilePicture)).thenReturn(photoLink);
+
+        // When
+        PhotoLinkDTO result = userService.uploadProfilePicture(USERNAME, profilePicture);
+
+        // Then
+        verify(userRepository).save(userCaptor.capture());
+        AppUser savedUser = userCaptor.getValue();
+        assertEquals(photoLink, savedUser.getProfilePicture());
+        assertEquals(photoLink.getUrl(), result.url());
+        assertEquals(photoLink.getBlob(), result.blob());
+    }
+
+    @Test
+    void uploadProfilePicture_whenUserDoesNotExist_thenThrowNotFoundException() {
+        // Given
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(NotFoundException.class, () -> userService.uploadProfilePicture(EMAIL, profilePicture));
+        verify(photoService, never()).uploadPhoto(profilePicture);
+    }
+
+    @Test
+    void deleteProfilePicture_whenUserExistsAndProfilePicturePresent_thenProfilePictureIsDeleted() {
+        // Given
+        AppUser user = new AppUser();
+        user.setProfilePicture(photoLink);
+
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.of(user));
+
+        // When
+        userService.deleteProfilePicture(EMAIL);
+
+        // Then
+        verify(userRepository).save(userCaptor.capture());
+        AppUser savedUser = userCaptor.getValue();
+        assertNull(savedUser.getProfilePicture());
+        verify(photoService).deletePhoto(photoLink.getBlob());
+    }
+
+    @Test
+    void deleteProfilePicture_whenUserExistsAndProfilePictureIsNull_thenDoNothing() {
+        // Given
+        AppUser user = new AppUser();
+        user.setProfilePicture(null);
+
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.of(user));
+
+        // When
+        userService.deleteProfilePicture(EMAIL);
+
+        // Then
+        verify(userRepository, never()).save(any(AppUser.class));
+        verify(photoService, never()).deletePhoto(any());
+    }
+
+    @Test
+    void deleteProfilePicture_whenUserDoesNotExist_thenThrowNotFoundException() {
+        // Given
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(NotFoundException.class, () -> userService.deleteProfilePicture(EMAIL));
+        verify(photoService, never()).deletePhoto(any());
     }
 
     private static Stream<Arguments> userProfilesProvider() {
@@ -113,7 +210,7 @@ public class UserServiceTests {
                         true,
                         true,
                         UserProfiles.builder()
-                                .email("test@example.com")
+                                .email(EMAIL)
                                 .hasClientProfile(true)
                                 .hasCaretakerProfile(true)
                                 .build()
@@ -122,7 +219,7 @@ public class UserServiceTests {
                         false,
                         false,
                         UserProfiles.builder()
-                                .email("test@example.com")
+                                .email(EMAIL)
                                 .hasClientProfile(false)
                                 .hasCaretakerProfile(false)
                                 .build()
@@ -131,7 +228,7 @@ public class UserServiceTests {
                         false,
                         true,
                         UserProfiles.builder()
-                                .email("test@example.com")
+                                .email(EMAIL)
                                 .hasClientProfile(false)
                                 .hasCaretakerProfile(true)
                                 .build()
@@ -140,7 +237,7 @@ public class UserServiceTests {
                         true,
                         false,
                         UserProfiles.builder()
-                                .email("test@example.com")
+                                .email(EMAIL)
                                 .hasClientProfile(true)
                                 .hasCaretakerProfile(false)
                                 .build()
@@ -150,15 +247,10 @@ public class UserServiceTests {
 
     @Test
     void getUserProfiles_whenUserNotExists_thenThrowNotFoundException() {
-
         //Given
-        String email = "test@example.com";
-
-        when(userRepository.existsById(email)).thenReturn(false);
+        when(userRepository.existsById(EMAIL)).thenReturn(false);
 
         //When Then
-        assertThrows(NotFoundException.class, () -> userService.getUserProfiles(email));
-
+        assertThrows(NotFoundException.class, () -> userService.getUserProfiles(EMAIL));
     }
-
 }

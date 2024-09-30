@@ -2,7 +2,6 @@ package com.example.petbuddybackend.service.photo;
 
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.repository.photo.PhotoLinkRepository;
-import com.example.petbuddybackend.service.image.FirebasePhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
 import com.google.cloud.storage.Blob;
