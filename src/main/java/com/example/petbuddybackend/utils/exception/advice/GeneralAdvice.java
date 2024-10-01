@@ -18,6 +18,7 @@ import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.DateTimeException;
 import java.time.zone.ZoneRulesException;
@@ -167,5 +170,22 @@ public class GeneralAdvice {
     @ResponseStatus(code = HttpStatus.PAYLOAD_TOO_LARGE)
     public ApiExceptionResponse handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
         return new ApiExceptionResponse(e, "Maximum file upload size exceeded");
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ResponseStatus(code = HttpStatus.FORBIDDEN)
+    public void handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleNoHandlerFoundException(NoHandlerFoundException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleMissingServletRequestPartException(MissingServletRequestPartException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
     }
 }

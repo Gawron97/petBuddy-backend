@@ -42,7 +42,7 @@ public class ClientControllerTest {
                 .build()
         );
 
-        mockMvc.perform(get("/client")
+        mockMvc.perform(get("/api/client")
                         .header(roleHeaderName, Role.CLIENT))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accountData.email").value("clientEmail"));

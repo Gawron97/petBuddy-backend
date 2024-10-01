@@ -1,12 +1,14 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
+import com.example.petbuddybackend.dto.user.ProfileData;
 import com.example.petbuddybackend.dto.user.UserProfiles;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.service.mapper.UserMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.service.mapper.PhotoMapper;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
@@ -29,6 +31,7 @@ public class UserService {
     private final CaretakerRepository caretakerRepository;
     private final PhotoService photoService;
     private final PhotoMapper photoMapper = PhotoMapper.INSTANCE;
+    private final UserMapper userMapper = UserMapper.INSTANCE;
 
     @Transactional
     public AppUser createUserIfNotExistOrGet(JwtAuthenticationToken token) {
@@ -65,6 +68,15 @@ public class UserService {
                 .hasClientProfile(clientRepository.existsById(email))
                 .hasCaretakerProfile(caretakerRepository.existsById(email))
                 .build();
+    }
+
+    public ProfileData getProfileData(String email) {
+        AppUser user = getAppUser(email);
+        return userMapper.mapToProfileData(
+                user,
+                clientRepository.existsById(email),
+                caretakerRepository.existsById(email)
+        );
     }
 
     @Transactional

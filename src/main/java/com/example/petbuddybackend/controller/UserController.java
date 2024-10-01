@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
+import com.example.petbuddybackend.dto.user.ProfileData;
 import com.example.petbuddybackend.dto.user.UserProfiles;
 import com.example.petbuddybackend.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +14,7 @@ import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
@@ -25,15 +26,28 @@ public class UserController {
         return userService.getUserProfiles(principal.getName());
     }
 
+    @GetMapping
+    @Operation(
+            summary = "Get user profile data",
+            description = "Returns profile data associated with the principal."
+    )
+    @PreAuthorize("isAuthenticated()")
+    public ProfileData getUserProfileData(Principal principal) {
+        return userService.getProfileData(principal.getName());
+    }
+
     @PostMapping("/profile-picture")
     @Operation(
             summary = "Upload profile picture",
-            description = "Uploads profile picture that is shared between all user profiles"
+            description = """
+                Uploads profile picture that is shared between all user profiles.
+                If user already has a profile picture, it will be replaced.
+                """
     )
     @PreAuthorize("isAuthenticated()")
     public PhotoLinkDTO uploadProfilePicture(
             Principal principal,
-            MultipartFile profilePicture
+            @RequestParam MultipartFile profilePicture
     ) {
         return userService.uploadProfilePicture(principal.getName(), profilePicture);
     }
@@ -41,7 +55,7 @@ public class UserController {
     @DeleteMapping("/profile-picture")
     @Operation(
             summary = "Delete profile picture",
-            description = "Deletes profile picture that is shared between all user profiles"
+            description = "Deletes profile picture. All user profiles will be affected."
     )
     @PreAuthorize("isAuthenticated()")
     public void deleteProfilePicture(Principal principal) {
