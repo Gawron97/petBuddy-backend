@@ -70,27 +70,9 @@ public class GeneralAdvice {
         return new ApiExceptionResponse(e, errorList.toString());
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    @ResponseStatus(code = HttpStatus.NOT_FOUND)
-    public ApiExceptionResponse handleNotFoundException(NotFoundException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(IllegalActionException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleIllegalActionException(IllegalActionException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handlePropertyReferenceException(PropertyReferenceException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(NotParticipateException.class)
-    @ResponseStatus(code = HttpStatus.FORBIDDEN)
-    public ApiExceptionResponse handleNotParticipantException(NotParticipateException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
@@ -103,12 +85,6 @@ public class GeneralAdvice {
     @ExceptionHandler(DateTimeException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleDateTimeException(DateTimeException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(ChatAlreadyExistsException.class)
-    @ResponseStatus(code = HttpStatus.CONFLICT)
-    public ApiExceptionResponse handleResourceAlreadyExists(ChatAlreadyExistsException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
@@ -127,42 +103,6 @@ public class GeneralAdvice {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(InvalidMessageReceiverException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleInvalidMessageReceiverException(InvalidMessageReceiverException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(MissingWebSocketHeaderException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleMissingWebSocketHeaderException(MissingWebSocketHeaderException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(InvalidWebSocketHeaderException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleInvalidWebSocketHeaderException(InvalidWebSocketHeaderException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    @ResponseStatus(code = HttpStatus.UNAUTHORIZED)
-    public ApiExceptionResponse handleUnauthorizedException(UnauthorizedException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(DateRangeException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleDateRangeException(DateRangeException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(InvalidPhotoException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleGeneralException(InvalidPhotoException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
