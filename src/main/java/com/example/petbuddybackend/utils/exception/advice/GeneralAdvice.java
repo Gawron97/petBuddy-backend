@@ -1,16 +1,6 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
-import com.example.petbuddybackend.utils.exception.throweable.general.DateRangeException;
-import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
-import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
-import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidWebSocketHeaderException;
-import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
-import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
-import com.example.petbuddybackend.utils.exception.throweable.chat.InvalidMessageReceiverException;
-import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
-import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;

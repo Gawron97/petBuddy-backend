@@ -28,7 +28,7 @@ import static com.example.petbuddybackend.testutils.mock.GeneralMockProvider.cre
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class UserServiceTests {
+public class UserServiceTest {
 
     public static final String USERNAME = "testuser";
     public static final String NAME = "name";
@@ -151,6 +151,31 @@ public class UserServiceTests {
     }
 
     @Test
+    void uploadProfilePicture_userAlreadyHadProfilePicture_oldProfilePictureIsRemoved() {
+        // Given
+        PhotoLink newPhoto = new PhotoLink("newBlob", "newURL", LocalDateTime.now());
+
+        AppUser user = AppUser.builder()
+                .email(USERNAME)
+                .profilePicture(newPhoto)
+                .build();
+
+        when(userRepository.findById(USERNAME)).thenReturn(Optional.of(user));
+        when(photoService.uploadPhoto(profilePicture)).thenReturn(photoLink);
+
+        // When
+        PhotoLinkDTO result = userService.uploadProfilePicture(USERNAME, profilePicture);
+
+        // Then
+        verify(userRepository).save(userCaptor.capture());
+        verify(photoService).deletePhoto(newPhoto);
+        AppUser savedUser = userCaptor.getValue();
+        assertEquals(photoLink, savedUser.getProfilePicture());
+        assertEquals(photoLink.getUrl(), result.url());
+        assertEquals(photoLink.getBlob(), result.blob());
+    }
+
+    @Test
     void uploadProfilePicture_whenUserDoesNotExist_thenThrowNotFoundException() {
         // Given
         when(userRepository.findById(EMAIL)).thenReturn(Optional.empty());
@@ -191,7 +216,7 @@ public class UserServiceTests {
 
         // Then
         verify(userRepository, never()).save(any(AppUser.class));
-        verify(photoService, never()).deletePhoto(any());
+        verify(photoService, never()).deletePhoto(any(String.class));
     }
 
     @Test
@@ -201,7 +226,7 @@ public class UserServiceTests {
 
         // When & Then
         assertThrows(NotFoundException.class, () -> userService.deleteProfilePicture(EMAIL));
-        verify(photoService, never()).deletePhoto(any());
+        verify(photoService, never()).deletePhoto(any(String.class));
     }
 
     private static Stream<Arguments> userProfilesProvider() {

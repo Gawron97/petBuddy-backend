@@ -82,6 +82,12 @@ public class UserService {
     @Transactional
     public PhotoLinkDTO uploadProfilePicture(String username, MultipartFile profilePicture) {
         AppUser user = getAppUser(username);
+        PhotoLink oldPhoto = user.getProfilePicture();
+
+        if(oldPhoto != null) {
+            photoService.deletePhoto(oldPhoto);
+        }
+
         PhotoLink photoLink = photoService.uploadPhoto(profilePicture);
 
         user.setProfilePicture(photoLink);

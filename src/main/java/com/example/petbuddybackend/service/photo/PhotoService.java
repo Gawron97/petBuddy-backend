@@ -9,6 +9,8 @@ public interface PhotoService {
 
     void deletePhoto(String blob);
 
+    void deletePhoto(PhotoLink photoLink);
+
     PhotoLink updatePhotoExpiration(PhotoLink photo);
 
     PhotoLink getPhoto(String blob);

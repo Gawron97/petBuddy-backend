@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -65,8 +66,16 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     @Override
+    @Transactional
     public void deletePhoto(String blob) {
         PhotoLink photo = getPhoto(blob);
+        deletePhoto(photo);
+    }
+
+    @Override
+    @Transactional
+    public void deletePhoto(PhotoLink photoLink) {
+        String blob = photoLink.getBlob();
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
         Blob blobToDelete = bucket.get(blob);
@@ -75,7 +84,7 @@ public class FirebasePhotoService implements PhotoService {
             blobToDelete.delete();
         }
 
-        photoRepository.delete(photo);
+        photoRepository.delete(photoLink);
     }
 
     @Override

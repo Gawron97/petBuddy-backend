@@ -43,6 +43,10 @@ public class PersistenceUtils {
         return appUserRepository.save(appUser);
     }
 
+    public static AppUser addAppUser(AppUserRepository appUserRepository, AppUser appUser) {
+        return appUserRepository.saveAndFlush(appUser);
+    }
+
     public static List<Caretaker> addCaretakers(CaretakerRepository caretakerRepository, AppUserRepository appUserRepository, List<Caretaker> caretakers) {
         List<AppUser> accountData = caretakers.stream()
                 .map(Caretaker::getAccountData)
@@ -100,10 +104,6 @@ public class PersistenceUtils {
     public static Client addClient(AppUserRepository appUserRepository, ClientRepository clientRepository) {
         Client client = createMockClient();
         return addClient(appUserRepository, clientRepository, client);
-    }
-
-    public static AppUser addAppUser(AppUserRepository appUserRepository, AppUser appUser) {
-        return appUserRepository.saveAndFlush(appUser);
     }
 
     public static Offer addComplexOffer(Caretaker caretaker,

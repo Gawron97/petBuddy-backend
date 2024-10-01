@@ -6,6 +6,7 @@ import com.example.petbuddybackend.dto.user.UserProfiles;
 import com.example.petbuddybackend.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +37,7 @@ public class UserController {
         return userService.getProfileData(principal.getName());
     }
 
-    @PostMapping("/profile-picture")
+    @PostMapping( value = "/profile-picture", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     @Operation(
             summary = "Upload profile picture",
             description = """
@@ -47,7 +48,7 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public PhotoLinkDTO uploadProfilePicture(
             Principal principal,
-            @RequestParam MultipartFile profilePicture
+            @RequestPart MultipartFile profilePicture
     ) {
         return userService.uploadProfilePicture(principal.getName(), profilePicture);
     }
