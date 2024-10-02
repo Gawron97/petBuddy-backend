@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
+import com.example.petbuddybackend.dto.user.ProfileData;
 import com.example.petbuddybackend.dto.user.UserProfiles;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -130,6 +131,61 @@ public class UserServiceTest {
     }
 
     @Test
+    void getRenewedProfileData_shouldSucceed() {
+        // Given
+        PhotoLink existingProfilePicture = new PhotoLink("oldBlob", "oldURL", LocalDateTime.now());
+        AppUser userWithPicture = AppUser.builder()
+                .email(EMAIL)
+                .profilePicture(existingProfilePicture)
+                .build();
+
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.of(userWithPicture));
+        when(clientRepository.existsById(EMAIL)).thenReturn(true);
+        when(caretakerRepository.existsById(EMAIL)).thenReturn(false);
+
+        // When
+        ProfileData result = userService.getProfileData(EMAIL);
+
+        // Then
+        verify(photoService).updatePhotoExpiration(existingProfilePicture);
+        assertEquals(EMAIL, result.accountData().email());
+        assertEquals(existingProfilePicture.getBlob(), result.accountData().profilePicture().blob());
+    }
+
+    @Test
+    void getRenewedProfileData_userHasNoProfilePicture_shouldNotUpdatePhotoExpiration() {
+        // Given
+        AppUser userWithoutPicture = AppUser.builder()
+                .email(EMAIL)
+                .profilePicture(null)
+                .build();
+
+        // Mock repository and service interactions
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.of(userWithoutPicture));
+        when(clientRepository.existsById(EMAIL)).thenReturn(true); // Simulate user having a client profile
+        when(caretakerRepository.existsById(EMAIL)).thenReturn(true); // Simulate having caretaker profile
+
+        // Mock the user mapper to return ProfileData
+
+        // When
+        ProfileData result = userService.getProfileData(EMAIL);
+
+        // Then
+        verify(photoService, never()).updatePhotoExpiration(any(PhotoLink.class));
+        assertNull(result.accountData().profilePicture());
+    }
+
+    @Test
+    void getRenewedProfileData_userDoesNotExist_shouldThrowNotFoundException() {
+        // Given
+        when(userRepository.findById(EMAIL)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(NotFoundException.class, () -> userService.getProfileData(EMAIL));
+        verify(photoService, never()).updatePhotoExpiration(any(PhotoLink.class));
+    }
+
+    @Test
     void uploadProfilePicture_whenUserExists_thenProfilePictureIsUploaded() {
         // Given
         AppUser user = AppUser.builder()
@@ -145,7 +201,7 @@ public class UserServiceTest {
         // Then
         verify(userRepository).save(userCaptor.capture());
         AppUser savedUser = userCaptor.getValue();
-        assertEquals(photoLink, savedUser.getProfilePicture());
+        assertEquals(photoLink.getBlob(), savedUser.getProfilePictureBlob());
         assertEquals(photoLink.getUrl(), result.url());
         assertEquals(photoLink.getBlob(), result.blob());
     }
@@ -170,7 +226,7 @@ public class UserServiceTest {
         verify(userRepository).save(userCaptor.capture());
         verify(photoService).deletePhoto(newPhoto);
         AppUser savedUser = userCaptor.getValue();
-        assertEquals(photoLink, savedUser.getProfilePicture());
+        assertEquals(photoLink.getBlob(), savedUser.getProfilePictureBlob());
         assertEquals(photoLink.getUrl(), result.url());
         assertEquals(photoLink.getBlob(), result.blob());
     }
@@ -189,7 +245,7 @@ public class UserServiceTest {
     void deleteProfilePicture_whenUserExistsAndProfilePicturePresent_thenProfilePictureIsDeleted() {
         // Given
         AppUser user = new AppUser();
-        user.setProfilePicture(photoLink);
+        user.setProfilePictureBlob(photoLink.getBlob());
 
         when(userRepository.findById(EMAIL)).thenReturn(Optional.of(user));
 
@@ -199,7 +255,7 @@ public class UserServiceTest {
         // Then
         verify(userRepository).save(userCaptor.capture());
         AppUser savedUser = userCaptor.getValue();
-        assertNull(savedUser.getProfilePicture());
+        assertNull(savedUser.getProfilePictureBlob());
         verify(photoService).deletePhoto(photoLink.getBlob());
     }
 
@@ -207,7 +263,7 @@ public class UserServiceTest {
     void deleteProfilePicture_whenUserExistsAndProfilePictureIsNull_thenDoNothing() {
         // Given
         AppUser user = new AppUser();
-        user.setProfilePicture(null);
+        user.setProfilePictureBlob(null);
 
         when(userRepository.findById(EMAIL)).thenReturn(Optional.of(user));
 

@@ -50,12 +50,14 @@ public class FirebasePhotoService implements PhotoService {
     private final Tika tika;
 
 
-    @Override
-    public PhotoLink getPhoto(String blob) {
-        PhotoLink photo = photoRepository.findById(blob)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(PHOTO, blob));
+    public Optional<PhotoLink> findPhotoById(String blob) {
+        if(blob == null) {
+            return Optional.empty();
+        }
 
-        return updatePhotoExpiration(photo);
+        Optional<PhotoLink> photo = photoRepository.findById(blob);
+        photo.ifPresent(this::updatePhotoExpiration);
+        return photo;
     }
 
     @Override
@@ -68,8 +70,13 @@ public class FirebasePhotoService implements PhotoService {
     @Override
     @Transactional
     public void deletePhoto(String blob) {
-        PhotoLink photo = getPhoto(blob);
-        deletePhoto(photo);
+        Optional<PhotoLink> photo = findPhotoById(blob);
+
+        if(photo.isEmpty()) {
+            return;
+        }
+
+        deletePhoto(photo.get());
     }
 
     @Override

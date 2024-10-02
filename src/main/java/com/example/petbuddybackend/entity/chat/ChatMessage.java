@@ -31,6 +31,7 @@ public class ChatMessage {
     @JoinColumn(name = "senderEmail", referencedColumnName = "email")
     private AppUser sender;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean seenByRecipient = false;
 

@@ -37,7 +37,7 @@ public class UserController {
         return userService.getProfileData(principal.getName());
     }
 
-    @PostMapping( value = "/profile-picture", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    @PostMapping(value = "/profile-picture", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Upload profile picture",
             description = """

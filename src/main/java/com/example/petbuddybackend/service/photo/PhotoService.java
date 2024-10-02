@@ -3,6 +3,8 @@ package com.example.petbuddybackend.service.photo;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Optional;
+
 public interface PhotoService {
 
     PhotoLink uploadPhoto(MultipartFile multipartFile);
@@ -13,5 +15,5 @@ public interface PhotoService {
 
     PhotoLink updatePhotoExpiration(PhotoLink photo);
 
-    PhotoLink getPhoto(String blob);
+    Optional<PhotoLink> findPhotoById(String blob);
 }

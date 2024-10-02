@@ -10,6 +10,7 @@ public interface ClientMapper {
 
     ClientMapper INSTANCE = Mappers.getMapper(ClientMapper.class);
 
+    // TODO test
     ClientDTO mapToClientDTO(Client client);
 
 }
