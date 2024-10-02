@@ -105,7 +105,6 @@ public class CaretakerService {
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerToSave, profilePicture);
     }
 
-    // TODO: adjust the tests to check if photo was renewed
     public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretakerToSave = getCaretakerByEmail(appUser.getEmail());
