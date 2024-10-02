@@ -33,8 +33,8 @@ public interface AddressMapper {
         if(StringUtils.hasText(addressDTO.street())) {
             address.setStreet(addressDTO.street());
         }
-        if(StringUtils.hasText(addressDTO.buildingNumber())) {
-            address.setBuildingNumber(addressDTO.buildingNumber());
+        if(StringUtils.hasText(addressDTO.streetNumber())) {
+            address.setStreetNumber(addressDTO.streetNumber());
         }
         if(StringUtils.hasText(addressDTO.apartmentNumber())) {
             address.setApartmentNumber(addressDTO.apartmentNumber());

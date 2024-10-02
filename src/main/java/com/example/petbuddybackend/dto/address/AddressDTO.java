@@ -11,7 +11,7 @@ public record AddressDTO(
     @NotBlank String zipCode,
     @NotNull Voivodeship voivodeship,
     @NotBlank String street,
-    @NotBlank String buildingNumber,
+    @NotBlank String streetNumber,
     String apartmentNumber
 ) {
 }

@@ -70,7 +70,7 @@ public class MockService {
                 .zipCode(faker.address().zipCode())
                 .voivodeship(randomVoivodeship())
                 .city(faker.address().city())
-                .buildingNumber(faker.address().buildingNumber())
+                .streetNumber(faker.address().buildingNumber())
                 .apartmentNumber(faker.address().secondaryAddress())
                 .build();
 
