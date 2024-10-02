@@ -5,6 +5,8 @@ import com.example.petbuddybackend.dto.user.ProfileData;
 import com.example.petbuddybackend.dto.user.UserProfiles;
 import com.example.petbuddybackend.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +19,8 @@ import java.security.Principal;
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
 public class UserController {
+
+    private final static int MAX_UPLOAD_MB = 50;
 
     private final UserService userService;
 
@@ -43,8 +47,15 @@ public class UserController {
             description = """
                 Uploads profile picture that is shared between all user profiles.
                 If user already has a profile picture, it will be replaced.
+                
+                Maximum file size: ${spring.servlet.multipart.max-file-size}
                 """
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Profile picture uploaded successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input or image type"),
+            @ApiResponse(responseCode = "413", description = "Uploaded file exceeds the maximum allowed size of ${spring.servlet.multipart.max-file-size}")
+    })
     @PreAuthorize("isAuthenticated()")
     public PhotoLinkDTO uploadProfilePicture(
             Principal principal,
