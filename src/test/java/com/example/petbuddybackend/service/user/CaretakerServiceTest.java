@@ -1221,7 +1221,7 @@ public class CaretakerServiceTest {
                                 .zipCode("zipCode")
                                 .voivodeship(Voivodeship.DOLNOSLASKIE)
                                 .street("street")
-                                .buildingNumber("33HHD")
+                                .streetNumber("33HHD")
                                 .apartmentNumber("150SD")
                                 .build()
                 )
@@ -1239,7 +1239,7 @@ public class CaretakerServiceTest {
         assertEquals(caretakerToCreate.address().zipCode(), caretaker.getAddress().getZipCode());
         assertEquals(caretakerToCreate.address().voivodeship(), caretaker.getAddress().getVoivodeship());
         assertEquals(caretakerToCreate.address().street(), caretaker.getAddress().getStreet());
-        assertEquals(caretakerToCreate.address().buildingNumber(), caretaker.getAddress().getBuildingNumber());
+        assertEquals(caretakerToCreate.address().streetNumber(), caretaker.getAddress().getStreetNumber());
         assertEquals(caretakerToCreate.address().apartmentNumber(), caretaker.getAddress().getApartmentNumber());
 
 
@@ -1259,7 +1259,7 @@ public class CaretakerServiceTest {
                                 .zipCode("zipCode")
                                 .voivodeship(Voivodeship.DOLNOSLASKIE)
                                 .street("street")
-                                .buildingNumber("33HHD")
+                                .streetNumber("33HHD")
                                 .apartmentNumber("150SD")
                                 .build()
                 )
@@ -1300,7 +1300,7 @@ public class CaretakerServiceTest {
                                 .city("city")
                                 .voivodeship(Voivodeship.DOLNOSLASKIE)
                                 .street("street")
-                                .buildingNumber("33HHD")
+                                .streetNumber("33HHD")
                                 .apartmentNumber("150SD")
                                 .build()
                 )
@@ -1321,7 +1321,7 @@ public class CaretakerServiceTest {
         assertEquals(oldZipCode, caretaker.getAddress().getZipCode());
         assertEquals(caretakerToCreate.address().voivodeship(), caretaker.getAddress().getVoivodeship());
         assertEquals(caretakerToCreate.address().street(), caretaker.getAddress().getStreet());
-        assertEquals(caretakerToCreate.address().buildingNumber(), caretaker.getAddress().getBuildingNumber());
+        assertEquals(caretakerToCreate.address().streetNumber(), caretaker.getAddress().getStreetNumber());
         assertEquals(caretakerToCreate.address().apartmentNumber(), caretaker.getAddress().getApartmentNumber());
         assertEquals(1, caretaker.getOffers().size());
         assertEquals(1, caretaker.getOffers().get(0).getAnimalAmenities().size());
@@ -1364,7 +1364,7 @@ public class CaretakerServiceTest {
                                 .zipCode("zipCode")
                                 .voivodeship(Voivodeship.DOLNOSLASKIE)
                                 .street("street")
-                                .buildingNumber("33HHD")
+                                .streetNumber("33HHD")
                                 .apartmentNumber("150SD")
                                 .build()
                 )
@@ -1382,7 +1382,7 @@ public class CaretakerServiceTest {
         assertEquals(caretakerToCreate.address().zipCode(), caretaker.getAddress().getZipCode());
         assertEquals(caretakerToCreate.address().voivodeship(), caretaker.getAddress().getVoivodeship());
         assertEquals(caretakerToCreate.address().street(), caretaker.getAddress().getStreet());
-        assertEquals(caretakerToCreate.address().buildingNumber(), caretaker.getAddress().getBuildingNumber());
+        assertEquals(caretakerToCreate.address().streetNumber(), caretaker.getAddress().getStreetNumber());
         assertEquals(caretakerToCreate.address().apartmentNumber(), caretaker.getAddress().getApartmentNumber());
         assertEquals(1, caretaker.getOffers().size());
         assertEquals(1, caretaker.getOffers().get(0).getAnimalAmenities().size());

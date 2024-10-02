@@ -18,7 +18,7 @@ public final class MockUserProvider {
                 .voivodeship(voivodeship)
                 .street("street")
                 .zipCode("12-123")
-                .buildingNumber("5A")
+                .streetNumber("5A")
                 .apartmentNumber("10")
                 .build();
     }

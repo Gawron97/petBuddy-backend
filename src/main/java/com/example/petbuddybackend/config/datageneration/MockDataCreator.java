@@ -199,7 +199,7 @@ public class MockDataCreator {
                 .city("City")
                 .street("Street")
                 .zipCode("12345")
-                .buildingNumber("1")
+                .streetNumber("1")
                 .voivodeship(Voivodeship.SLASKIE)
                 .build();
 

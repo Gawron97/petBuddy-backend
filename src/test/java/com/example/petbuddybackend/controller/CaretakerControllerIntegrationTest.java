@@ -42,7 +42,7 @@ public class CaretakerControllerIntegrationTest {
                     "zipCode": "%s",
                     "voivodeship": "%s",
                     "street": "%s",
-                    "buildingNumber": "%s",
+                    "streetNumber": "%s",
                     "apartmentNumber": "%s"
                 }
             }
@@ -57,7 +57,7 @@ public class CaretakerControllerIntegrationTest {
                     "zipCode": "%s",
                     "voivodeship": "%s",
                     "street": "%s",
-                    "buildingNumber": "%s",
+                    "streetNumber": "%s",
                     "apartmentNumber": "%s"
                 }
             }
@@ -96,7 +96,7 @@ public class CaretakerControllerIntegrationTest {
                 .andExpect(jsonPath("$.address.zipCode").value("00-000"))
                 .andExpect(jsonPath("$.address.voivodeship").value(Voivodeship.MAZOWIECKIE.name()))
                 .andExpect(jsonPath("$.address.street").value("Street"))
-                .andExpect(jsonPath("$.address.buildingNumber").value("10"))
+                .andExpect(jsonPath("$.address.streetNumber").value("10"))
                 .andExpect(jsonPath("$.address.apartmentNumber").value("20"));
     }
 
@@ -165,7 +165,7 @@ public class CaretakerControllerIntegrationTest {
                 .andExpect(jsonPath("$.address.zipCode").value("11-111"))
                 .andExpect(jsonPath("$.address.voivodeship").value(Voivodeship.PODLASKIE.name()))
                 .andExpect(jsonPath("$.address.street").value("New Street"))
-                .andExpect(jsonPath("$.address.buildingNumber").value("11"))
+                .andExpect(jsonPath("$.address.streetNumber").value("11"))
                 .andExpect(jsonPath("$.address.apartmentNumber").value("21"));
     }
 

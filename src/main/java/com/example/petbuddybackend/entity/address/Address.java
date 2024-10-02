@@ -26,7 +26,7 @@ public class Address {
     private String street;
 
     @Column(nullable = false, length = 10)
-    private String buildingNumber;
+    private String streetNumber;
 
     @Column(length = 10)
     private String apartmentNumber;
