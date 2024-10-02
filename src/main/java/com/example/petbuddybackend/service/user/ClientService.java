@@ -1,10 +1,12 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.user.ClientDTO;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.ClientMapper;
+import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +24,8 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final UserService userService;
-
     private final ClientMapper clientMapper = ClientMapper.INSTANCE;
+    private final PhotoService photoService;
 
     public boolean clientExists(String clientEmail) {
         return clientRepository.existsById(clientEmail);
@@ -58,6 +60,10 @@ public class ClientService {
     }
 
     public ClientDTO getClient(String clientEmail) {
-        return clientMapper.mapToClientDTO(getClientByEmail(clientEmail));
+        Client client = getClientByEmail(clientEmail);
+        String profilePictureBlob = client.getAccountData().getProfilePictureBlob();
+        PhotoLink profilePicture = photoService.findByNullableId(profilePictureBlob).orElse(null);
+
+        return clientMapper.mapToClientDTO(client, profilePicture);
     }
 }

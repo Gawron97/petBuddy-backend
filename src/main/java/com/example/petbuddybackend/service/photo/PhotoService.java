@@ -15,5 +15,5 @@ public interface PhotoService {
 
     PhotoLink updatePhotoExpiration(PhotoLink photo);
 
-    Optional<PhotoLink> findPhotoById(String blob);
+    Optional<PhotoLink> findByNullableId(String blob);
 }

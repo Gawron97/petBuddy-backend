@@ -50,7 +50,7 @@ public class FirebasePhotoService implements PhotoService {
     private final Tika tika;
 
 
-    public Optional<PhotoLink> findPhotoById(String blob) {
+    public Optional<PhotoLink> findByNullableId(String blob) {
         if(blob == null) {
             return Optional.empty();
         }
@@ -70,7 +70,7 @@ public class FirebasePhotoService implements PhotoService {
     @Override
     @Transactional
     public void deletePhoto(String blob) {
-        Optional<PhotoLink> photo = findPhotoById(blob);
+        Optional<PhotoLink> photo = findByNullableId(blob);
 
         if(photo.isEmpty()) {
             return;

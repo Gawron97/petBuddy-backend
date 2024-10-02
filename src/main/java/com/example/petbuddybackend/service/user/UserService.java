@@ -77,7 +77,7 @@ public class UserService {
      * */
     public ProfileData getProfileData(String email) {
         AppUser user = getAppUser(email);
-        Optional<PhotoLink> profilePicture = photoService.findPhotoById(user.getProfilePictureBlob());
+        Optional<PhotoLink> profilePicture = photoService.findByNullableId(user.getProfilePictureBlob());
 
         return userMapper.mapToProfileData(
                 user,
@@ -90,7 +90,7 @@ public class UserService {
     @Transactional
     public PhotoLinkDTO uploadProfilePicture(String username, MultipartFile profilePicture) {
         AppUser user = getAppUser(username);
-        Optional<PhotoLink> oldPhoto = photoService.findPhotoById(user.getProfilePictureBlob());
+        Optional<PhotoLink> oldPhoto = photoService.findByNullableId(user.getProfilePictureBlob());
 
         oldPhoto.ifPresent(photoService::deletePhoto);
 
@@ -104,7 +104,7 @@ public class UserService {
     @Transactional
     public void deleteProfilePicture(String username) {
         AppUser user = getAppUser(username);
-        Optional<PhotoLink> profilePicture = photoService.findPhotoById(user.getProfilePictureBlob());
+        Optional<PhotoLink> profilePicture = photoService.findByNullableId(user.getProfilePictureBlob());
 
         if(profilePicture.isEmpty()) {
             return;

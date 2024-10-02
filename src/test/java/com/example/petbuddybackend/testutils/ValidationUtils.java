@@ -16,21 +16,20 @@ public final class ValidationUtils {
 
     @SneakyThrows
     public static boolean fieldsNotNullRecursive(Object obj, Set<String> fieldsToSkip) {
-        boolean allNotNull = true;
         Field[] fields = obj.getClass().getDeclaredFields();
 
         for (Field field : fields) {
             field.setAccessible(true);
 
             if (field.get(obj) == null && !fieldsToSkip.contains(field.getName())) {
-                allNotNull = false;
                 logger.error("Field '{}' is null in object: {}", field.getName(), obj.getClass().getSimpleName());
+                return false;
             } else if (ReflectionUtils.isClass(field)) {
                 logger.info("Descending into '{}' field that is a class", field.getName());
-                allNotNull = fieldsNotNullRecursive(field.get(obj));
+                return fieldsNotNullRecursive(field.get(obj));
             }
         }
-        return allNotNull;
+        return true;
     }
 
     public static boolean fieldsNotNullRecursive(Object obj) {

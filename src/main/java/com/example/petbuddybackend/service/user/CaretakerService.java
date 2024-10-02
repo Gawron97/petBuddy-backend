@@ -7,6 +7,7 @@ import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -15,6 +16,7 @@ import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
+import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
@@ -25,6 +27,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -41,6 +44,7 @@ public class CaretakerService {
 
     private final ClientService clientService;
     private final UserService userService;
+    private final PhotoService photoService;
 
     @Transactional(readOnly = true)
     public Page<CaretakerDTO> getCaretakers(Pageable pageable,
@@ -49,12 +53,12 @@ public class CaretakerService {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
         return caretakerRepository.findAll(spec, pageable)
-                .map(caretakerMapper::mapToCaretakerDTO);
+                .map(this::caretakerWithRenewedProfilePicture);
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
-                .orElseThrow(() -> new NotFoundException("Caretaker with email " + caretakerEmail + " not found"));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
     }
 
     public Page<RatingResponse> getRatings(Pageable pageable, String caretakerEmail) {
@@ -88,6 +92,35 @@ public class CaretakerService {
         ratingRepository.deleteById(ratingKey);
 
         return ratingMapper.mapToRatingResponse(rating);
+    }
+
+    public CaretakerComplexInfoDTO addCaretaker(CreateCaretakerDTO caretaker, String email) {
+        assertCaretakerNotExists(email);
+        AppUser appUser = userService.getAppUser(email);
+        Caretaker caretakerToSave = caretakerMapper.mapToCaretaker(caretaker, appUser);
+
+        PhotoLink profilePicture = photoService.findByNullableId(appUser.getProfilePictureBlob()).orElse(null);
+        caretakerToSave = caretakerRepository.save(caretakerToSave);
+
+        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerToSave, profilePicture);
+    }
+
+    // TODO: adjust the tests to check if photo was renewed
+    public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
+        AppUser appUser = userService.getAppUser(email);
+        Caretaker caretakerToSave = getCaretakerByEmail(appUser.getEmail());
+
+        PhotoLink profilePicture = photoService.findByNullableId(appUser.getProfilePictureBlob()).orElse(null);
+        caretakerMapper.updateCaretakerFromDTO(caretaker, caretakerToSave);
+        caretakerToSave = caretakerRepository.save(caretakerToSave);
+
+        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerToSave, profilePicture);
+    }
+
+    private CaretakerDTO caretakerWithRenewedProfilePicture(Caretaker caretaker) {
+        String blob = caretaker.getAccountData().getProfilePictureBlob();
+        Optional<PhotoLink> profilePicture = photoService.findByNullableId(blob);
+        return caretakerMapper.mapToCaretakerDTO(caretaker, profilePicture.orElse(null));
     }
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
@@ -130,27 +163,4 @@ public class CaretakerService {
             throw new IllegalActionException("Caretaker with email " + caretakerEmail + " already exists");
         }
     }
-
-    public CaretakerComplexInfoDTO addCaretaker(CreateCaretakerDTO caretaker, String email) {
-        assertCaretakerNotExists(email);
-        AppUser appUser = userService.getAppUser(email);
-        Caretaker caretakerToSave = caretakerMapper.mapToCaretaker(caretaker);
-        setAccountData(caretakerToSave, appUser);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretakerToSave));
-    }
-
-    private void setAccountData(Caretaker caretaker, AppUser appUser) {
-        caretaker.setEmail(appUser.getEmail());
-        caretaker.setAccountData(appUser);
-    }
-
-    public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
-
-        AppUser appUser = userService.getAppUser(email);
-        Caretaker caretakerToSave = getCaretakerByEmail(appUser.getEmail());
-        caretakerMapper.updateCaretakerFromDTO(caretaker, caretakerToSave);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretakerToSave));
-
-    }
-
 }

@@ -16,7 +16,6 @@ public interface UserMapper {
     @Mapping(target = "accountData", expression = "java(mapToAccountDataDTO(appUser, profilePicture))")
     ProfileData mapToProfileData(AppUser appUser, PhotoLink profilePicture, Boolean hasClientProfile, Boolean hasCaretakerProfile);
 
-    // TODO: test
     default AccountDataDTO mapToAccountDataDTO(AppUser appUser, PhotoLink profilePicture) {
         return new AccountDataDTO(
                 appUser.getEmail(),
