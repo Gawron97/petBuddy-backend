@@ -136,7 +136,7 @@ public class UserServiceTest {
         PhotoLink existingProfilePicture = new PhotoLink("oldBlob", "oldURL", LocalDateTime.now());
         AppUser userWithPicture = AppUser.builder()
                 .email(EMAIL)
-                .profilePictureBlob(existingProfilePicture.getBlob())
+                .profilePicture(existingProfilePicture)
                 .build();
 
         when(userRepository.findById(EMAIL)).thenReturn(Optional.of(userWithPicture));
@@ -160,12 +160,9 @@ public class UserServiceTest {
                 .email(EMAIL)
                 .build();
 
-        // Mock repository and service interactions
         when(userRepository.findById(EMAIL)).thenReturn(Optional.of(userWithoutPicture));
-        when(clientRepository.existsById(EMAIL)).thenReturn(true); // Simulate user having a client profile
-        when(caretakerRepository.existsById(EMAIL)).thenReturn(true); // Simulate having caretaker profile
-
-        // Mock the user mapper to return ProfileData
+        when(clientRepository.existsById(EMAIL)).thenReturn(true);
+        when(caretakerRepository.existsById(EMAIL)).thenReturn(true);
 
         // When
         ProfileData result = userService.getProfileData(EMAIL);
@@ -201,7 +198,7 @@ public class UserServiceTest {
         // Then
         verify(userRepository).save(userCaptor.capture());
         AppUser savedUser = userCaptor.getValue();
-        assertEquals(photoLink.getBlob(), savedUser.getProfilePictureBlob());
+        assertEquals(photoLink, savedUser.getProfilePicture());
         assertEquals(photoLink.getUrl(), result.url());
         assertEquals(photoLink.getBlob(), result.blob());
     }
@@ -209,11 +206,9 @@ public class UserServiceTest {
     @Test
     void uploadProfilePicture_userAlreadyHadProfilePicture_oldProfilePictureIsRemoved() {
         // Given
-        PhotoLink newPhoto = new PhotoLink("newBlob", "newURL", LocalDateTime.now());
-
         AppUser user = AppUser.builder()
                 .email(USERNAME)
-                .profilePictureBlob(photoLink.getBlob())
+                .profilePicture(photoLink)
                 .build();
 
         when(userRepository.findById(USERNAME)).thenReturn(Optional.of(user));
@@ -228,7 +223,7 @@ public class UserServiceTest {
         verify(userRepository).save(userCaptor.capture());
         verify(photoService).deletePhoto(photoLink);
         AppUser savedUser = userCaptor.getValue();
-        assertEquals(photoLink.getBlob(), savedUser.getProfilePictureBlob());
+        assertEquals(photoLink, savedUser.getProfilePicture());
         assertEquals(photoLink.getUrl(), result.url());
         assertEquals(photoLink.getBlob(), result.blob());
     }
@@ -247,7 +242,7 @@ public class UserServiceTest {
     void deleteProfilePicture_whenUserExistsAndProfilePicturePresent_thenProfilePictureIsDeleted() {
         // Given
         AppUser user = new AppUser();
-        user.setProfilePictureBlob(photoLink.getBlob());
+        user.setProfilePicture(photoLink);
 
         when(userRepository.findById(EMAIL)).thenReturn(Optional.of(user));
         when(photoService.findByNullableId(photoLink.getBlob())).thenReturn(Optional.of(photoLink));
@@ -258,7 +253,7 @@ public class UserServiceTest {
         // Then
         verify(userRepository).save(userCaptor.capture());
         AppUser savedUser = userCaptor.getValue();
-        assertNull(savedUser.getProfilePictureBlob());
+        assertNull(savedUser.getProfilePicture());
         verify(photoService).deletePhoto(photoLink);
     }
 
@@ -266,7 +261,7 @@ public class UserServiceTest {
     void deleteProfilePicture_whenUserExistsAndProfilePictureIsNull_thenDoNothing() {
         // Given
         AppUser user = new AppUser();
-        user.setProfilePictureBlob(null);
+        user.setProfilePicture(null);
 
         when(userRepository.findById(EMAIL)).thenReturn(Optional.of(user));
 

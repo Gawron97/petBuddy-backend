@@ -138,8 +138,7 @@ public class PhotoServiceTest {
         PhotoLink photo = new PhotoLink("valid/blob/path", "http://signedurl.com", expiresAt);
 
         firebasePhotoService.updatePhotoExpiration(photo);
-
-        verify(photoRepository, never()).save(any());
+        verify(photoRepository).save(any());
     }
 
     @Test

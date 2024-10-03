@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.service.mapper;
 
 import com.example.petbuddybackend.dto.user.ClientDTO;
-import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.testutils.ValidationUtils;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
@@ -16,9 +15,8 @@ public class ClientMapperTest {
     @Test
     void mapToClientDTO_shouldNotLeaveNullFields() {
         Client client = MockUserProvider.createMockClient();
-        PhotoLink profilePicture = MockUserProvider.createMockPhotoLink();
 
-        ClientDTO mappingResult = mapper.mapToClientDTO(client, profilePicture);
+        ClientDTO mappingResult = mapper.mapToClientDTO(client);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(mappingResult));
     }
 }

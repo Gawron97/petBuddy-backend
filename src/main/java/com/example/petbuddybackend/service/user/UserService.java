@@ -19,8 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -77,11 +75,10 @@ public class UserService {
      * */
     public ProfileData getProfileData(String email) {
         AppUser user = getAppUser(email);
-        Optional<PhotoLink> profilePicture = photoService.findByNullableId(user.getProfilePictureBlob());
+        renewProfilePicture(user);
 
         return userMapper.mapToProfileData(
                 user,
-                profilePicture.orElse(null),
                 clientRepository.existsById(email),
                 caretakerRepository.existsById(email)
         );
@@ -90,29 +87,39 @@ public class UserService {
     @Transactional
     public PhotoLinkDTO uploadProfilePicture(String username, MultipartFile profilePicture) {
         AppUser user = getAppUser(username);
-        Optional<PhotoLink> oldPhoto = photoService.findByNullableId(user.getProfilePictureBlob());
+        PhotoLink oldPhoto = user.getProfilePicture();
 
-        oldPhoto.ifPresent(photoService::deletePhoto);
+        if(oldPhoto != null) {
+            photoService.deletePhoto(oldPhoto);
+        }
 
         PhotoLink newPhoto = photoService.uploadPhoto(profilePicture);
-        user.setProfilePictureBlob(newPhoto.getBlob());
-        userRepository.save(user);
 
+        user.setProfilePicture(newPhoto);
+        userRepository.save(user);
         return photoMapper.mapToPhotoLinkDTO(newPhoto);
     }
 
     @Transactional
     public void deleteProfilePicture(String username) {
         AppUser user = getAppUser(username);
-        Optional<PhotoLink> profilePicture = photoService.findByNullableId(user.getProfilePictureBlob());
+        PhotoLink profilePicture = user.getProfilePicture();
 
-        if(profilePicture.isEmpty()) {
+        if(profilePicture == null) {
             return;
         }
 
-        user.setProfilePictureBlob(null);
+        photoService.deletePhoto(profilePicture);
+        user.setProfilePicture(null);
         userRepository.save(user);
-        photoService.deletePhoto(profilePicture.get());
+    }
+
+    public void renewProfilePicture(AppUser user) {
+        PhotoLink photoLink = user.getProfilePicture();
+
+        if(photoLink != null) {
+            photoService.updatePhotoExpiration(photoLink);
+        }
     }
 
     private void assertUserExists(String email) {

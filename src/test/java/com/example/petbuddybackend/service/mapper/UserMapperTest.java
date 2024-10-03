@@ -19,7 +19,7 @@ public class UserMapperTest {
         PhotoLink photo = MockUserProvider.createMockPhotoLink();
         AppUser user = MockUserProvider.createMockAppUser(photo);
 
-        ProfileData profileData = mapper.mapToProfileData(user, photo, true, true);
+        ProfileData profileData = mapper.mapToProfileData(user, true, true);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(profileData));
     }
 
@@ -28,7 +28,7 @@ public class UserMapperTest {
         PhotoLink photo = MockUserProvider.createMockPhotoLink();
         AppUser user = MockUserProvider.createMockAppUser(photo);
 
-        AccountDataDTO accountDataDTO = mapper.mapToAccountDataDTO(user, photo);
+        AccountDataDTO accountDataDTO = mapper.mapToAccountDataDTO(user);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(accountDataDTO));
     }
 }

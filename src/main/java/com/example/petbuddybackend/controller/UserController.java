@@ -20,8 +20,6 @@ import java.security.Principal;
 @RequestMapping("/api/user")
 public class UserController {
 
-    private final static int MAX_UPLOAD_MB = 50;
-
     private final UserService userService;
 
     @Operation(summary = "Get available user profiles")

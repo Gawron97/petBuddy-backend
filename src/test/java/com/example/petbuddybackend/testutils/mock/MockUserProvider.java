@@ -101,7 +101,7 @@ public final class MockUserProvider {
 
     public static AppUser createMockAppUser(PhotoLink photoLink) {
         AppUser user = createMockAppUser("appUser_name", "appUser_surname", "appUser_email");
-        user.setProfilePictureBlob(photoLink.getBlob());
+        user.setProfilePicture(photoLink);
         return user;
     }
 

@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.user.ClientDTO;
-import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.ClientRepository;
@@ -61,9 +60,7 @@ public class ClientService {
 
     public ClientDTO getClient(String clientEmail) {
         Client client = getClientByEmail(clientEmail);
-        String profilePictureBlob = client.getAccountData().getProfilePictureBlob();
-        PhotoLink profilePicture = photoService.findByNullableId(profilePictureBlob).orElse(null);
-
-        return clientMapper.mapToClientDTO(client, profilePicture);
+        userService.renewProfilePicture(client.getAccountData());
+        return clientMapper.mapToClientDTO(client);
     }
 }

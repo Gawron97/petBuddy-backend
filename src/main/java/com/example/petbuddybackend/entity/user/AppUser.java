@@ -21,18 +21,8 @@ public class AppUser {
     @Column(nullable = false, length = 100)
     private String surname;
 
-    @Column(name = "profile_picture_blob", length = 128)
-    private String profilePictureBlob;
-
-    /**
-     * {@link PhotoLink} should be rather fetched using PhotoService as it will refresh the url, that is why getters and
-     * setters are private. Reference to profilePictureBlob used only to ensure that profilePictureBlob is a foreign key
-     * with cascade delete
-     */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
     @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
-    @JoinColumn(name = "profile_picture_blob", referencedColumnName = "blob", insertable = false, updatable = false)
+    @JoinColumn(name = "profile_picture_blob", referencedColumnName = "blob")
     private PhotoLink profilePicture;
 
     @JoinColumn(name = "email")
