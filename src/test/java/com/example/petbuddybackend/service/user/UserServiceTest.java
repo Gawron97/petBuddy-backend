@@ -1,21 +1,17 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.ProfileData;
-import com.example.petbuddybackend.dto.user.UserProfiles;
+import com.example.petbuddybackend.dto.user.UserProfilesData;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.photo.PhotoService;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -23,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.mock.GeneralMockProvider.createJwtToken;
 import static org.junit.jupiter.api.Assertions.*;
@@ -114,22 +109,6 @@ public class UserServiceTest {
 
     }
 
-    @ParameterizedTest
-    @MethodSource("userProfilesProvider")
-    void getUserProfiles(boolean clientExists, boolean caretakerExists, UserProfiles expectedProfiles) {
-        //Given
-        when(userRepository.existsById(EMAIL)).thenReturn(true);
-        when(clientRepository.existsById(EMAIL)).thenReturn(clientExists);
-        when(caretakerRepository.existsById(EMAIL)).thenReturn(caretakerExists);
-
-        //When
-        UserProfiles result = userService.getUserProfiles(EMAIL);
-
-        //Then
-        assertEquals(expectedProfiles, result);
-
-    }
-
     @Test
     void getProfileData_shouldSucceed() {
         // Given
@@ -142,10 +121,10 @@ public class UserServiceTest {
         when(userRepository.findById(EMAIL)).thenReturn(Optional.of(userWithPicture));
         when(clientRepository.existsById(EMAIL)).thenReturn(true);
         when(caretakerRepository.existsById(EMAIL)).thenReturn(false);
-        when(photoService.findByNullableId(existingProfilePicture.getBlob())).thenReturn(Optional.of(existingProfilePicture));
+        when(photoService.findPhotoLinkByNullableId(existingProfilePicture.getBlob())).thenReturn(Optional.of(existingProfilePicture));
 
         // When
-        ProfileData result = userService.getProfileData(EMAIL);
+        UserProfilesData result = userService.getProfileData(EMAIL);
 
         // Then
         verify(photoService).updatePhotoExpiration(existingProfilePicture);
@@ -165,7 +144,7 @@ public class UserServiceTest {
         when(caretakerRepository.existsById(EMAIL)).thenReturn(true);
 
         // When
-        ProfileData result = userService.getProfileData(EMAIL);
+        UserProfilesData result = userService.getProfileData(EMAIL);
 
         // Then
         verify(photoService, never()).updatePhotoExpiration(any(PhotoLink.class));
@@ -193,14 +172,12 @@ public class UserServiceTest {
         when(photoService.uploadPhoto(profilePicture)).thenReturn(photoLink);
 
         // When
-        PhotoLinkDTO result = userService.uploadProfilePicture(USERNAME, profilePicture);
+        userService.uploadProfilePicture(USERNAME, profilePicture);
 
         // Then
         verify(userRepository).save(userCaptor.capture());
         AppUser savedUser = userCaptor.getValue();
         assertEquals(photoLink, savedUser.getProfilePicture());
-        assertEquals(photoLink.getUrl(), result.url());
-        assertEquals(photoLink.getBlob(), result.blob());
     }
 
     @Test
@@ -211,21 +188,21 @@ public class UserServiceTest {
                 .profilePicture(photoLink)
                 .build();
 
+        PhotoLink newPhoto = MockUserProvider.createMockPhotoLink();
+
         when(userRepository.findById(USERNAME)).thenReturn(Optional.of(user));
-        when(photoService.uploadPhoto(profilePicture)).thenReturn(photoLink);
-        when(photoService.findByNullableId(photoLink.getBlob())).thenReturn(Optional.of(photoLink));
+        when(photoService.uploadPhoto(profilePicture)).thenReturn(newPhoto);
+        when(photoService.findPhotoLinkByNullableId(photoLink.getBlob())).thenReturn(Optional.of(photoLink));
 
 
         // When
-        PhotoLinkDTO result = userService.uploadProfilePicture(USERNAME, profilePicture);
+        userService.uploadProfilePicture(USERNAME, profilePicture);
 
         // Then
         verify(userRepository).save(userCaptor.capture());
         verify(photoService).deletePhoto(photoLink);
         AppUser savedUser = userCaptor.getValue();
-        assertEquals(photoLink, savedUser.getProfilePicture());
-        assertEquals(photoLink.getUrl(), result.url());
-        assertEquals(photoLink.getBlob(), result.blob());
+        assertEquals(newPhoto, savedUser.getProfilePicture());
     }
 
     @Test
@@ -245,7 +222,7 @@ public class UserServiceTest {
         user.setProfilePicture(photoLink);
 
         when(userRepository.findById(EMAIL)).thenReturn(Optional.of(user));
-        when(photoService.findByNullableId(photoLink.getBlob())).thenReturn(Optional.of(photoLink));
+        when(photoService.findPhotoLinkByNullableId(photoLink.getBlob())).thenReturn(Optional.of(photoLink));
 
         // When
         userService.deleteProfilePicture(EMAIL);
@@ -281,55 +258,5 @@ public class UserServiceTest {
         // When & Then
         assertThrows(NotFoundException.class, () -> userService.deleteProfilePicture(EMAIL));
         verify(photoService, never()).deletePhoto(any(String.class));
-    }
-
-    private static Stream<Arguments> userProfilesProvider() {
-        return Stream.of(
-                Arguments.of(
-                        true,
-                        true,
-                        UserProfiles.builder()
-                                .email(EMAIL)
-                                .hasClientProfile(true)
-                                .hasCaretakerProfile(true)
-                                .build()
-                ),
-                Arguments.of(
-                        false,
-                        false,
-                        UserProfiles.builder()
-                                .email(EMAIL)
-                                .hasClientProfile(false)
-                                .hasCaretakerProfile(false)
-                                .build()
-                ),
-                Arguments.of(
-                        false,
-                        true,
-                        UserProfiles.builder()
-                                .email(EMAIL)
-                                .hasClientProfile(false)
-                                .hasCaretakerProfile(true)
-                                .build()
-                ),
-                Arguments.of(
-                        true,
-                        false,
-                        UserProfiles.builder()
-                                .email(EMAIL)
-                                .hasClientProfile(true)
-                                .hasCaretakerProfile(false)
-                                .build()
-                )
-        );
-    }
-
-    @Test
-    void getUserProfiles_whenUserNotExists_thenThrowNotFoundException() {
-        //Given
-        when(userRepository.existsById(EMAIL)).thenReturn(false);
-
-        //When Then
-        assertThrows(NotFoundException.class, () -> userService.getUserProfiles(EMAIL));
     }
 }

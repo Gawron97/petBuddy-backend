@@ -1,8 +1,7 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.ProfileData;
-import com.example.petbuddybackend.dto.user.UserProfiles;
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.UserProfilesData;
 import com.example.petbuddybackend.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -22,20 +21,13 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "Get available user profiles")
-    @GetMapping("/available-profiles")
-    @PreAuthorize("isAuthenticated()")
-    public UserProfiles getAvailableUserProfiles(Principal principal) {
-        return userService.getUserProfiles(principal.getName());
-    }
-
-    @GetMapping
     @Operation(
             summary = "Get user profile data",
             description = "Returns profile data associated with the principal."
     )
+    @GetMapping("/available-profiles")
     @PreAuthorize("isAuthenticated()")
-    public ProfileData getUserProfileData(Principal principal) {
+    public UserProfilesData getAvailableUserProfiles(Principal principal) {
         return userService.getProfileData(principal.getName());
     }
 
@@ -55,7 +47,7 @@ public class UserController {
             @ApiResponse(responseCode = "413", description = "Uploaded file exceeds the maximum allowed size of ${spring.servlet.multipart.max-file-size}")
     })
     @PreAuthorize("isAuthenticated()")
-    public PhotoLinkDTO uploadProfilePicture(
+    public AccountDataDTO uploadProfilePicture(
             Principal principal,
             @RequestPart MultipartFile profilePicture
     ) {

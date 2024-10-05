@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.service.mapper;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.ProfileData;
+import com.example.petbuddybackend.dto.user.UserProfilesData;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.testutils.ValidationUtils;
@@ -19,7 +19,7 @@ public class UserMapperTest {
         PhotoLink photo = MockUserProvider.createMockPhotoLink();
         AppUser user = MockUserProvider.createMockAppUser(photo);
 
-        ProfileData profileData = mapper.mapToProfileData(user, true, true);
+        UserProfilesData profileData = mapper.mapToProfileData(user, true, true);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(profileData));
     }
 

@@ -15,7 +15,6 @@ import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
-import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
@@ -42,7 +41,6 @@ public class CaretakerService {
 
     private final ClientService clientService;
     private final UserService userService;
-    private final PhotoService photoService;
 
     @Transactional(readOnly = true)
     public Page<CaretakerDTO> getCaretakers(Pageable pageable,
@@ -51,8 +49,10 @@ public class CaretakerService {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
         return caretakerRepository.findAll(spec, pageable)
-                .map(this::renewCaretakerProfilePicture)
-                .map(caretakerMapper::mapToCaretakerDTO);
+                .map(caretaker -> {
+                    userService.renewProfilePicture(caretaker.getAccountData());
+                    return caretakerMapper.mapToCaretakerDTO(caretaker);
+                });
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
@@ -98,25 +98,19 @@ public class CaretakerService {
         AppUser appUser = userService.getAppUser(email);
         Caretaker mappedCaretaker = caretakerMapper.mapToCaretaker(caretaker, appUser);
 
-        renewCaretakerProfilePicture(mappedCaretaker);
-        Caretaker savedCaretaker = caretakerRepository.save(mappedCaretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(savedCaretaker);
+        userService.renewProfilePicture(mappedCaretaker.getAccountData());
+        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(mappedCaretaker));
     }
 
     public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretakerToSave = getCaretakerByEmail(appUser.getEmail());
 
-        renewCaretakerProfilePicture(caretakerToSave);
+        userService.renewProfilePicture(caretakerToSave.getAccountData());
         Caretaker updatedCaretaker = caretakerMapper.updateCaretakerFromDTO(caretaker, caretakerToSave);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(
                 caretakerRepository.save(updatedCaretaker)
         );
-    }
-
-    private Caretaker renewCaretakerProfilePicture(Caretaker caretaker) {
-        userService.renewProfilePicture(caretaker.getAccountData());
-        return caretaker;
     }
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {

@@ -2,8 +2,7 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.ProfileData;
-import com.example.petbuddybackend.dto.user.UserProfiles;
+import com.example.petbuddybackend.dto.user.UserProfilesData;
 import com.example.petbuddybackend.service.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,38 +51,18 @@ public class UserControllerTest {
 
     @Test
     @WithMockUser(USERNAME)
-    void getAvailableUserProfiles_shouldReturnAvailableUserProfiles() throws Exception {
-        // when
-        when(userService.getUserProfiles(USERNAME)).thenReturn(
-                UserProfiles.builder()
-                        .email(USERNAME)
-                        .hasClientProfile(true)
-                        .hasCaretakerProfile(true)
-                        .build()
-        );
-
-        // then
-        mockMvc.perform(get("/api/user/available-profiles"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value(USERNAME))
-                .andExpect(jsonPath("$.hasClientProfile").value(true))
-                .andExpect(jsonPath("$.hasCaretakerProfile").value(true));
-    }
-
-    @Test
-    @WithMockUser(USERNAME)
     void getUserProfiles_shouldReturnUserProfiles() throws Exception {
         // given
         String name = "user name";
         String surname = "user surname";
         AccountDataDTO accountData = new AccountDataDTO(USERNAME, name, surname, null);
-        ProfileData profileData = new ProfileData(accountData, true, false);
+        UserProfilesData profileData = new UserProfilesData(accountData, true, false);
 
         // when
         when(userService.getProfileData(USERNAME)).thenReturn(profileData);
 
         // then
-        mockMvc.perform(get("/api/user")
+        mockMvc.perform(get("/api/user/available-profiles")
                         .with(user(USERNAME)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accountData.email").value(USERNAME))
@@ -100,18 +79,21 @@ public class UserControllerTest {
         String url = "http://example.com/profile.jpg";
         String blob = "someBlob";
         MockMultipartFile mockFile = new MockMultipartFile("profilePicture", "profile.jpg", "image/jpeg", "test image".getBytes());
+
         PhotoLinkDTO photoLinkDTO = new PhotoLinkDTO(blob, url);
+        AccountDataDTO accountDataDTO = new AccountDataDTO(USERNAME, "name", "surname", photoLinkDTO);
 
         // when
-        when(userService.uploadProfilePicture(eq(USERNAME), any(MultipartFile.class))).thenReturn(photoLinkDTO);
+        when(userService.uploadProfilePicture(eq(USERNAME), any(MultipartFile.class))).thenReturn(accountDataDTO);
 
         // then
         mockMvc.perform(multipart("/api/user/profile-picture")
                         .file(mockFile)
                         .with(user(USERNAME)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url").value(url))
-                .andExpect(jsonPath("$.blob").value(blob));
+                .andExpect(jsonPath("$.email").value(USERNAME))
+                .andExpect(jsonPath("$.profilePicture.url").value(url))
+                .andExpect(jsonPath("$.profilePicture.blob").value(blob));
     }
 
     @Test

@@ -1,8 +1,7 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.ProfileData;
-import com.example.petbuddybackend.dto.user.UserProfiles;
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.UserProfilesData;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
@@ -10,7 +9,6 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.UserMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
-import com.example.petbuddybackend.service.mapper.PhotoMapper;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +28,6 @@ public class UserService {
     private final ClientRepository clientRepository;
     private final CaretakerRepository caretakerRepository;
     private final PhotoService photoService;
-    private final PhotoMapper photoMapper = PhotoMapper.INSTANCE;
     private final UserMapper userMapper = UserMapper.INSTANCE;
 
     @Transactional
@@ -61,19 +58,10 @@ public class UserService {
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(USER, email));
     }
 
-    public UserProfiles getUserProfiles(String email) {
-        assertUserExists(email);
-        return UserProfiles.builder()
-                .email(email)
-                .hasClientProfile(clientRepository.existsById(email))
-                .hasCaretakerProfile(caretakerRepository.existsById(email))
-                .build();
-    }
-
     /**
-     * @return {@link ProfileData} with updated {@link PhotoLink} url
+     * @return {@link UserProfilesData} with updated {@link PhotoLink} url
      * */
-    public ProfileData getProfileData(String email) {
+    public UserProfilesData getProfileData(String email) {
         AppUser user = getAppUser(email);
         renewProfilePicture(user);
 
@@ -85,7 +73,7 @@ public class UserService {
     }
 
     @Transactional
-    public PhotoLinkDTO uploadProfilePicture(String username, MultipartFile profilePicture) {
+    public AccountDataDTO uploadProfilePicture(String username, MultipartFile profilePicture) {
         AppUser user = getAppUser(username);
         PhotoLink oldPhoto = user.getProfilePicture();
 
@@ -94,10 +82,8 @@ public class UserService {
         }
 
         PhotoLink newPhoto = photoService.uploadPhoto(profilePicture);
-
         user.setProfilePicture(newPhoto);
-        userRepository.save(user);
-        return photoMapper.mapToPhotoLinkDTO(newPhoto);
+        return userMapper.mapToAccountDataDTO(userRepository.save(user));
     }
 
     @Transactional

@@ -18,5 +18,5 @@ public interface PhotoService {
 
     List<PhotoLink> updatePhotoExpirations(List<PhotoLink> photos);
 
-    Optional<PhotoLink> findByNullableId(String blob);
+    Optional<PhotoLink> findPhotoLinkByNullableId(String blob);
 }
