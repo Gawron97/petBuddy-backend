@@ -4,6 +4,7 @@ import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.testutils.ValidationUtils;
@@ -20,6 +21,8 @@ public class CaretakerMapperTest {
     @Test
     void mapToCaretakerComplexInfoDTO_shouldNotLeaveNullFields() {
         Caretaker caretaker = MockUserProvider.createMockCaretaker();
+        PhotoLink profilePicture = MockUserProvider.createMockPhotoLink();
+        caretaker.getAccountData().setProfilePicture(profilePicture);
         MockOfferProvider.editComplexMockOfferForCaretaker(caretaker);
         MockOfferProvider.setMockAvailabilitiesToOffer(caretaker.getOffers().get(0));
 
@@ -54,6 +57,8 @@ public class CaretakerMapperTest {
     @Test
     void mapToCaretakerDTO_shouldNotLeaveNullFields() {
         Caretaker caretaker = MockUserProvider.createMockCaretaker();
+        PhotoLink profilePicture = MockUserProvider.createMockPhotoLink();
+        caretaker.getAccountData().setProfilePicture(profilePicture);
 
         // Set calculated fields to pass the test
         caretaker.setNumberOfRatings(1);

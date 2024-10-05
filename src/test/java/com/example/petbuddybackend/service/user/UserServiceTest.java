@@ -148,7 +148,7 @@ public class UserServiceTest {
         ProfileData result = userService.getProfileData(EMAIL);
 
         // Then
-        verify(photoService).findByNullableId(existingProfilePicture.getBlob());
+        verify(photoService).updatePhotoExpiration(existingProfilePicture);
         assertEquals(EMAIL, result.accountData().email());
         assertEquals(existingProfilePicture.getBlob(), result.accountData().profilePicture().blob());
     }
