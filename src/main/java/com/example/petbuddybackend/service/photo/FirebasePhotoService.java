@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.service.image;
+package com.example.petbuddybackend.service.photo;
 
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.repository.photo.PhotoLinkRepository;
@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -49,12 +50,14 @@ public class FirebasePhotoService implements PhotoService {
     private final Tika tika;
 
 
-    @Override
-    public PhotoLink getPhoto(String blob) {
-        PhotoLink photo = photoRepository.findById(blob)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(PHOTO, blob));
+    public Optional<PhotoLink> findPhotoLinkByNullableId(String blob) {
+        if(blob == null) {
+            return Optional.empty();
+        }
 
-        return updatePhotoExpiration(photo);
+        Optional<PhotoLink> photo = photoRepository.findById(blob);
+        photo.ifPresent(this::updatePhotoExpiration);
+        return photo;
     }
 
     @Override
@@ -65,8 +68,21 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     @Override
+    @Transactional
     public void deletePhoto(String blob) {
-        PhotoLink photo = getPhoto(blob);
+        Optional<PhotoLink> photo = findPhotoLinkByNullableId(blob);
+
+        if(photo.isEmpty()) {
+            return;
+        }
+
+        deletePhoto(photo.get());
+    }
+
+    @Override
+    @Transactional
+    public void deletePhoto(PhotoLink photoLink) {
+        String blob = photoLink.getBlob();
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
         Blob blobToDelete = bucket.get(blob);
@@ -75,20 +91,21 @@ public class FirebasePhotoService implements PhotoService {
             blobToDelete.delete();
         }
 
-        photoRepository.delete(photo);
+        photoRepository.delete(photoLink);
     }
 
     @Override
     public PhotoLink updatePhotoExpiration(PhotoLink photo) {
-        LocalDateTime thresholdTime = photo
-                .getUrlExpiresAt()
-                .minusSeconds(EXPIRATION_THRESHOLD_SECONDS);
+        return photoRepository.save(applyPhotoRenewal(photo));
+    }
 
-        if(thresholdTime.isAfter(LocalDateTime.now())) {
-            return photo;
-        }
+    @Override
+    public List<PhotoLink> updatePhotoExpirations(List<PhotoLink> photos) {
+        photos = photos.stream()
+                .map(this::applyPhotoRenewal)
+                .toList();
 
-        return renewPhoto(photo, MAX_EXPIRATION_SECONDS);
+        return photoRepository.saveAll(photos);
     }
 
     /**
@@ -142,18 +159,30 @@ public class FirebasePhotoService implements PhotoService {
         }
     }
 
-    private PhotoLink renewPhoto(PhotoLink photo, int expirationSeconds) {
+    private String renewPhoto(String blobName, int expirationSeconds) {
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
-        Blob blob = bucket.get(photo.getBlob());
+        Blob blob = bucket.get(blobName);
 
         if(blob == null) {
-            throw NotFoundException.withFormattedMessage(PHOTO, photo.getBlob());
+            throw NotFoundException.withFormattedMessage(PHOTO, blobName);
         }
 
-        String newUrl = blob.signUrl(expirationSeconds, TimeUnit.SECONDS).toString();
+        return blob.signUrl(expirationSeconds, TimeUnit.SECONDS).toString();
+    }
+
+    private PhotoLink applyPhotoRenewal(PhotoLink photo) {
+        LocalDateTime thresholdTime = photo
+                .getUrlExpiresAt()
+                .minusSeconds(EXPIRATION_THRESHOLD_SECONDS);
+
+        if(thresholdTime.isAfter(LocalDateTime.now())) {
+            return photo;
+        }
+
+        String newUrl = renewPhoto(photo.getBlob(), MAX_EXPIRATION_SECONDS);
         photo.setUrl(newUrl);
-        photo.setUrlExpiresAt(LocalDateTime.now().plusSeconds(expirationSeconds));
-        return photoRepository.save(photo);
+        photo.setUrlExpiresAt(LocalDateTime.now().plusSeconds(MAX_EXPIRATION_SECONDS));
+        return photo;
     }
 }

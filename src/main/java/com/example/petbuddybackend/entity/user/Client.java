@@ -19,7 +19,7 @@ public class Client {
     private String email;
 
     @PrimaryKeyJoinColumn
-    @OneToOne(cascade = CascadeType.MERGE, optional = false)
+    @OneToOne(mappedBy = "client", cascade = CascadeType.MERGE, optional = false)
     private AppUser accountData;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "client", fetch = FetchType.LAZY)

@@ -1,16 +1,6 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
-import com.example.petbuddybackend.utils.exception.throweable.general.DateRangeException;
-import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
-import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
-import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidWebSocketHeaderException;
-import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
-import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
-import com.example.petbuddybackend.utils.exception.throweable.chat.InvalidMessageReceiverException;
-import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
-import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -18,6 +8,7 @@ import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -26,6 +17,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.DateTimeException;
 import java.time.zone.ZoneRulesException;
@@ -67,27 +60,9 @@ public class GeneralAdvice {
         return new ApiExceptionResponse(e, errorList.toString());
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    @ResponseStatus(code = HttpStatus.NOT_FOUND)
-    public ApiExceptionResponse handleNotFoundException(NotFoundException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(IllegalActionException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleIllegalActionException(IllegalActionException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handlePropertyReferenceException(PropertyReferenceException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(NotParticipateException.class)
-    @ResponseStatus(code = HttpStatus.FORBIDDEN)
-    public ApiExceptionResponse handleNotParticipantException(NotParticipateException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
@@ -100,12 +75,6 @@ public class GeneralAdvice {
     @ExceptionHandler(DateTimeException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleDateTimeException(DateTimeException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(ChatAlreadyExistsException.class)
-    @ResponseStatus(code = HttpStatus.CONFLICT)
-    public ApiExceptionResponse handleResourceAlreadyExists(ChatAlreadyExistsException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
@@ -127,45 +96,26 @@ public class GeneralAdvice {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 
-    @ExceptionHandler(InvalidMessageReceiverException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleInvalidMessageReceiverException(InvalidMessageReceiverException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(MissingWebSocketHeaderException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleMissingWebSocketHeaderException(MissingWebSocketHeaderException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(InvalidWebSocketHeaderException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleInvalidWebSocketHeaderException(InvalidWebSocketHeaderException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    @ResponseStatus(code = HttpStatus.UNAUTHORIZED)
-    public ApiExceptionResponse handleUnauthorizedException(UnauthorizedException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(DateRangeException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleDateRangeException(DateRangeException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(InvalidPhotoException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ApiExceptionResponse handleGeneralException(InvalidPhotoException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(code = HttpStatus.PAYLOAD_TOO_LARGE)
     public ApiExceptionResponse handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
         return new ApiExceptionResponse(e, "Maximum file upload size exceeded");
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ResponseStatus(code = HttpStatus.FORBIDDEN)
+    public void handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleNoHandlerFoundException(NoHandlerFoundException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleMissingServletRequestPartException(MissingServletRequestPartException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
     }
 }

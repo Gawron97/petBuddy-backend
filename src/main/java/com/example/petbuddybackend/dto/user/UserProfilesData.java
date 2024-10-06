@@ -3,8 +3,8 @@ package com.example.petbuddybackend.dto.user;
 import lombok.Builder;
 
 @Builder
-public record UserProfiles(
-        String email,
+public record UserProfilesData(
+        AccountDataDTO accountData,
         Boolean hasClientProfile,
         Boolean hasCaretakerProfile
 ) {

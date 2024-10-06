@@ -6,25 +6,28 @@ import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.offer.Offer;
+import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.util.StringUtils;
 
-@Mapper(uses = {OfferMapper.class, AddressMapper.class})
+
+@Mapper(uses = {OfferMapper.class, AddressMapper.class, UserMapper.class})
 public interface CaretakerMapper {
 
     CaretakerMapper INSTANCE = Mappers.getMapper(CaretakerMapper.class);
 
-    @Mapping(target = "animals", source = "offers", qualifiedByName = "mapAnimalFromOffer")
+    @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")
     CaretakerComplexInfoDTO mapToCaretakerComplexInfoDTO(Caretaker caretaker);
 
-    Caretaker mapToCaretaker(CreateCaretakerDTO caretakerDTO);
+    @Mapping(target = "accountData", source = "accountData")
+    Caretaker mapToCaretaker(CreateCaretakerDTO caretakerDTO, AppUser accountData);
 
-    @Mapping(target = "animals", source = "offers", qualifiedByName = "mapAnimalFromOffer")
+    @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")
     CaretakerDTO mapToCaretakerDTO(Caretaker caretaker);
 
-    default void updateCaretakerFromDTO(UpdateCaretakerDTO caretakerDTO, @MappingTarget Caretaker caretaker) {
+    default Caretaker updateCaretakerFromDTO(UpdateCaretakerDTO caretakerDTO, @MappingTarget Caretaker caretaker) {
         if (StringUtils.hasText(caretakerDTO.phoneNumber())) {
             caretaker.setPhoneNumber(caretakerDTO.phoneNumber());
         }
@@ -37,6 +40,8 @@ public interface CaretakerMapper {
             }
             AddressMapper.INSTANCE.updateAddressFromDTO(caretakerDTO.address(), caretaker.getAddress());
         }
+
+        return caretaker;
     }
 
     @Named("mapAnimalFromOffer")

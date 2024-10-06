@@ -2,6 +2,7 @@ package com.example.petbuddybackend.testutils.mock;
 
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -28,11 +29,7 @@ public final class MockUserProvider {
     }
 
     public static Caretaker createMockCaretaker(String name, String surname, String email, Address address) {
-        AppUser accountData = AppUser.builder()
-                .email(email)
-                .name(name)
-                .surname(surname)
-                .build();
+        AppUser accountData = createMockAppUser(name, surname, email);
 
         return Caretaker.builder()
                 .email(email)
@@ -69,13 +66,11 @@ public final class MockUserProvider {
     }
 
     public static Client createMockClient(String newClientEmail) {
+        AppUser accountData = createMockAppUser("clientName", "clientSurname", newClientEmail);
+
         return Client.builder()
                 .email(newClientEmail)
-                .accountData(AppUser.builder()
-                        .email(newClientEmail)
-                        .name("clientName")
-                        .surname("clientSurname")
-                        .build())
+                .accountData(accountData)
                 .build();
     }
 
@@ -84,11 +79,7 @@ public final class MockUserProvider {
     }
 
     public static Client createMockClient(String name, String surname, String email) {
-        AppUser accountData = AppUser.builder()
-                .email(email)
-                .name(name)
-                .surname(surname)
-                .build();
+        AppUser accountData = createMockAppUser(name, surname, email);
 
         return Client.builder()
                 .email(email)
@@ -96,13 +87,28 @@ public final class MockUserProvider {
                 .build();
     }
 
-    public static AppUser createMockAppUser() {
-
+    public static AppUser createMockAppUser(String name, String surname, String email) {
         return AppUser.builder()
-                .name("Imie")
-                .surname("Nazwisko")
-                .email("email")
+                .name(name)
+                .surname(surname)
+                .email(email)
                 .build();
+    }
 
+    public static AppUser createMockAppUser() {
+        return createMockAppUser("name", "surname", "email");
+    }
+
+    public static AppUser createMockAppUser(PhotoLink photoLink) {
+        AppUser user = createMockAppUser("appUser_name", "appUser_surname", "appUser_email");
+        user.setProfilePicture(photoLink);
+        return user;
+    }
+
+    public static PhotoLink createMockPhotoLink() {
+        return PhotoLink.builder()
+                .blob("blobexample")
+                .url("http://example.com")
+                .build();
     }
 }

@@ -28,7 +28,7 @@ public class Caretaker {
     private String description;
 
     @PrimaryKeyJoinColumn
-    @OneToOne(cascade = CascadeType.MERGE, optional = false)
+    @OneToOne(mappedBy = "caretaker", cascade = CascadeType.MERGE, optional = false)
     private AppUser accountData;
 
     @Basic(fetch = FetchType.LAZY)

@@ -1,16 +1,21 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.dto.user.UserProfiles;
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.UserProfilesData;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.service.mapper.UserMapper;
+import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +27,8 @@ public class UserService {
     private final AppUserRepository userRepository;
     private final ClientRepository clientRepository;
     private final CaretakerRepository caretakerRepository;
+    private final PhotoService photoService;
+    private final UserMapper userMapper = UserMapper.INSTANCE;
 
     @Transactional
     public AppUser createUserIfNotExistOrGet(JwtAuthenticationToken token) {
@@ -51,19 +58,59 @@ public class UserService {
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(USER, email));
     }
 
-    public UserProfiles getUserProfiles(String email) {
-        assertUserExists(email);
-        return UserProfiles.builder()
-                .email(email)
-                .hasClientProfile(clientRepository.existsById(email))
-                .hasCaretakerProfile(caretakerRepository.existsById(email))
-                .build();
+    /**
+     * @return {@link UserProfilesData} with updated {@link PhotoLink} url
+     * */
+    public UserProfilesData getProfileData(String email) {
+        AppUser user = getAppUser(email);
+        renewProfilePicture(user);
+
+        return userMapper.mapToProfileData(
+                user,
+                clientRepository.existsById(email),
+                caretakerRepository.existsById(email)
+        );
+    }
+
+    @Transactional
+    public AccountDataDTO uploadProfilePicture(String username, MultipartFile profilePicture) {
+        AppUser user = getAppUser(username);
+        PhotoLink oldPhoto = user.getProfilePicture();
+
+        if(oldPhoto != null) {
+            photoService.deletePhoto(oldPhoto);
+        }
+
+        PhotoLink newPhoto = photoService.uploadPhoto(profilePicture);
+        user.setProfilePicture(newPhoto);
+        return userMapper.mapToAccountDataDTO(userRepository.save(user));
+    }
+
+    @Transactional
+    public void deleteProfilePicture(String username) {
+        AppUser user = getAppUser(username);
+        PhotoLink profilePicture = user.getProfilePicture();
+
+        if(profilePicture == null) {
+            return;
+        }
+
+        photoService.deletePhoto(profilePicture);
+        user.setProfilePicture(null);
+        userRepository.save(user);
+    }
+
+    public void renewProfilePicture(AppUser user) {
+        PhotoLink photoLink = user.getProfilePicture();
+
+        if(photoLink != null) {
+            photoService.updatePhotoExpiration(photoLink);
+        }
     }
 
     private void assertUserExists(String email) {
         if(!userRepository.existsById(email)) {
-            throw new NotFoundException("User with email " + email + " not found");
+            throw NotFoundException.withFormattedMessage(USER, email);
         }
     }
-
 }

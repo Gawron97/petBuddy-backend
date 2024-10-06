@@ -2,8 +2,6 @@ package com.example.petbuddybackend.service.photo;
 
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.repository.photo.PhotoLinkRepository;
-import com.example.petbuddybackend.service.image.FirebasePhotoService;
-import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
@@ -131,7 +129,7 @@ public class PhotoServiceTest {
 
         when(photoRepository.findById(nonExistentBlob)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> firebasePhotoService.deletePhoto(nonExistentBlob));
+        assertDoesNotThrow(() -> firebasePhotoService.deletePhoto(nonExistentBlob));
     }
 
     @Test
@@ -140,8 +138,7 @@ public class PhotoServiceTest {
         PhotoLink photo = new PhotoLink("valid/blob/path", "http://signedurl.com", expiresAt);
 
         firebasePhotoService.updatePhotoExpiration(photo);
-
-        verify(photoRepository, never()).save(any());
+        verify(photoRepository).save(any());
     }
 
     @Test

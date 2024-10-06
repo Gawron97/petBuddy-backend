@@ -49,12 +49,13 @@ public class CaretakerService {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
         return caretakerRepository.findAll(spec, pageable)
+                .map(this::renewCaretakerProfilePicture)
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
-                .orElseThrow(() -> new NotFoundException("Caretaker with email " + caretakerEmail + " not found"));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
     }
 
     public Page<RatingResponse> getRatings(Pageable pageable, String caretakerEmail) {
@@ -88,6 +89,29 @@ public class CaretakerService {
         ratingRepository.deleteById(ratingKey);
 
         return ratingMapper.mapToRatingResponse(rating);
+    }
+
+    public CaretakerComplexInfoDTO addCaretaker(CreateCaretakerDTO caretakerDTO, String email) {
+        assertCaretakerNotExists(email);
+        AppUser appUser = userService.getAppUser(email);
+        Caretaker caretaker = caretakerMapper.mapToCaretaker(caretakerDTO, appUser);
+
+        renewCaretakerProfilePicture(caretaker);
+        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+    }
+
+    public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretakerDTO, String email) {
+        AppUser appUser = userService.getAppUser(email);
+        Caretaker caretaker = getCaretakerByEmail(appUser.getEmail());
+
+        renewCaretakerProfilePicture(caretaker);
+        caretakerMapper.updateCaretakerFromDTO(caretakerDTO, caretaker);
+        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+    }
+
+    private Caretaker renewCaretakerProfilePicture(Caretaker caretaker) {
+        userService.renewProfilePicture(caretaker.getAccountData());
+        return caretaker;
     }
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
@@ -130,27 +154,4 @@ public class CaretakerService {
             throw new IllegalActionException("Caretaker with email " + caretakerEmail + " already exists");
         }
     }
-
-    public CaretakerComplexInfoDTO addCaretaker(CreateCaretakerDTO caretaker, String email) {
-        assertCaretakerNotExists(email);
-        AppUser appUser = userService.getAppUser(email);
-        Caretaker caretakerToSave = caretakerMapper.mapToCaretaker(caretaker);
-        setAccountData(caretakerToSave, appUser);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretakerToSave));
-    }
-
-    private void setAccountData(Caretaker caretaker, AppUser appUser) {
-        caretaker.setEmail(appUser.getEmail());
-        caretaker.setAccountData(appUser);
-    }
-
-    public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
-
-        AppUser appUser = userService.getAppUser(email);
-        Caretaker caretakerToSave = getCaretakerByEmail(appUser.getEmail());
-        caretakerMapper.updateCaretakerFromDTO(caretaker, caretakerToSave);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretakerToSave));
-
-    }
-
 }
