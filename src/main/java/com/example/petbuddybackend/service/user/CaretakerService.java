@@ -49,10 +49,8 @@ public class CaretakerService {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
         return caretakerRepository.findAll(spec, pageable)
-                .map(caretaker -> {
-                    userService.renewProfilePicture(caretaker.getAccountData());
-                    return caretakerMapper.mapToCaretakerDTO(caretaker);
-                });
+                .map(this::renewCaretakerProfilePicture)
+                .map(caretakerMapper::mapToCaretakerDTO);
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
@@ -93,24 +91,27 @@ public class CaretakerService {
         return ratingMapper.mapToRatingResponse(rating);
     }
 
-    public CaretakerComplexInfoDTO addCaretaker(CreateCaretakerDTO caretaker, String email) {
+    public CaretakerComplexInfoDTO addCaretaker(CreateCaretakerDTO caretakerDTO, String email) {
         assertCaretakerNotExists(email);
         AppUser appUser = userService.getAppUser(email);
-        Caretaker mappedCaretaker = caretakerMapper.mapToCaretaker(caretaker, appUser);
+        Caretaker caretaker = caretakerMapper.mapToCaretaker(caretakerDTO, appUser);
 
-        userService.renewProfilePicture(mappedCaretaker.getAccountData());
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(mappedCaretaker));
+        renewCaretakerProfilePicture(caretaker);
+        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
-    public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretaker, String email) {
+    public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretakerDTO, String email) {
         AppUser appUser = userService.getAppUser(email);
-        Caretaker caretakerToSave = getCaretakerByEmail(appUser.getEmail());
+        Caretaker caretaker = getCaretakerByEmail(appUser.getEmail());
 
-        userService.renewProfilePicture(caretakerToSave.getAccountData());
-        Caretaker updatedCaretaker = caretakerMapper.updateCaretakerFromDTO(caretaker, caretakerToSave);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(
-                caretakerRepository.save(updatedCaretaker)
-        );
+        renewCaretakerProfilePicture(caretaker);
+        caretakerMapper.updateCaretakerFromDTO(caretakerDTO, caretaker);
+        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+    }
+
+    private Caretaker renewCaretakerProfilePicture(Caretaker caretaker) {
+        userService.renewProfilePicture(caretaker.getAccountData());
+        return caretaker;
     }
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
