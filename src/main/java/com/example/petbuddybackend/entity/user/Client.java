@@ -32,14 +32,16 @@ public class Client {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "following_caretakers",
-            joinColumns = @JoinColumn(name = "client_email"),
-            inverseJoinColumns = @JoinColumn(name = "caretaker_email")
+            joinColumns = @JoinColumn(name = "client_email", nullable = false),
+            inverseJoinColumns = @JoinColumn(name = "caretaker_email", nullable = false),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"client_email", "caretaker_email"})
     )
     @Builder.Default
     private Set<Caretaker> followingCaretakers = new HashSet<>();
 
+    @PrePersist
     @PreUpdate
-    public void preUpdate() {
+    public void preSave() {
         assertClientNotFollowingItself();
     }
 
