@@ -8,12 +8,10 @@ import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,10 +24,35 @@ public class ClientController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ClientDTO getClient(Principal principal,
+
                                @RoleParameter
-                                   @AcceptRole(acceptRole = Role.CLIENT)
-                                   @RequestHeader(value = "${header-name.role}") Role role) {
+                               @AcceptRole(acceptRole = Role.CLIENT)
+                               @RequestHeader(value = "${header-name.role}") Role role) {
         return clientService.getClient(principal.getName());
+    }
+
+    @Operation(summary = "Add caretaker to following list of client")
+    @PostMapping("/follow/{caretakerEmail}")
+    @PreAuthorize("isAuthenticated()")
+    public Set<String> addFollowingCaretakers(Principal principal,
+
+                                                       @PathVariable String caretakerEmail,
+                                                       @RoleParameter
+                                                       @AcceptRole(acceptRole = Role.CLIENT)
+                                                       @RequestHeader(value = "${header-name.role}") Role role) {
+        return clientService.addFollowingCaretaker(principal.getName(), caretakerEmail);
+    }
+
+    @Operation(summary = "Remove caretaker from following list of client")
+    @DeleteMapping("/unfollow/{caretakerEmail}")
+    @PreAuthorize("isAuthenticated()")
+    public Set<String> removeFollowingCaretakers(Principal principal,
+                                                 @PathVariable String caretakerEmail,
+
+                                                 @RoleParameter
+                                                          @AcceptRole(acceptRole = Role.CLIENT)
+                                                          @RequestHeader(value = "${header-name.role}") Role role) {
+        return clientService.removeFollowingCaretaker(principal.getName(), caretakerEmail);
     }
 
 }

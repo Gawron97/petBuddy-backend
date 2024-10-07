@@ -1,11 +1,14 @@
 package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.rating.Rating;
+import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Builder
@@ -25,4 +28,27 @@ public class Client {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "client", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Rating> ratings = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "following_caretakers",
+            joinColumns = @JoinColumn(name = "client_email", nullable = false),
+            inverseJoinColumns = @JoinColumn(name = "caretaker_email", nullable = false),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"client_email", "caretaker_email"})
+    )
+    @Builder.Default
+    private Set<Caretaker> followingCaretakers = new HashSet<>();
+
+    @PrePersist
+    @PreUpdate
+    public void preSave() {
+        assertClientNotFollowingItself();
+    }
+
+    private void assertClientNotFollowingItself() {
+        if (followingCaretakers.stream().anyMatch(caretaker -> caretaker.getEmail().equals(email))) {
+            throw new IllegalActionException("Client cannot follow itself");
+        }
+    }
+
 }

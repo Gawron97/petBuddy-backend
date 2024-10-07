@@ -474,4 +474,33 @@ public class MockService {
         return false;
     }
 
+    public List<Client> addFollowingCaretakersToClients(List<Client> clients, List<Caretaker> caretakers, int count) {
+
+        for(Client client: clients) {
+            addFollowingCaretakersToClient(client, caretakers, count);
+        }
+
+        return clients;
+    }
+
+    private void addFollowingCaretakersToClient(Client client, List<Caretaker> caretakers, int count) {
+
+        Set<Caretaker> uniqueCaretakers = getSomeRandomUniqueCaretakers(caretakers, faker.random().nextInt(1, count));
+        uniqueCaretakers.removeIf(caretaker -> caretaker.getEmail().equals(client.getEmail()));
+        client.getFollowingCaretakers().addAll(uniqueCaretakers);
+
+    }
+
+    private Set<Caretaker> getSomeRandomUniqueCaretakers(List<Caretaker> caretakers, int count) {
+        if(count >= caretakers.size()) {
+            return new HashSet<>(caretakers);
+        }
+
+        Set<Caretaker> uniqueCaretakers = new HashSet<>();
+        while(uniqueCaretakers.size() < count) {
+            uniqueCaretakers.add(caretakers.get(faker.random().nextInt(caretakers.size())));
+        }
+        return uniqueCaretakers;
+    }
+
 }

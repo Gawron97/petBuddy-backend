@@ -53,6 +53,7 @@ public class MockDataCreator {
     private static final int OPTIONS_IN_CONFIGURATION_COUNT = 2;
     private static final int ANIMAL_AMENITY_IN_OFFER_COUNT = 2;
     private static final int CARE_COUNT = 30;
+    private static final int FOLLOWING_CARETAKERS_COUNT = 7;
 
     private final MockService mockService;
     private final CaretakerRepository caretakerRepository;
@@ -128,9 +129,16 @@ public class MockDataCreator {
         createChat(client, caretaker);
 
         // cares
+        clients = clientRepository.findAll();
+        caretakers = caretakerRepository.findAll();
         careRepository.saveAllAndFlush(mockService.createMockCares(clients, caretakers, animals, animalAttributes, CARE_COUNT));
 
+        // following caretakers
+        clients = clientRepository.findAll();
+        caretakers = caretakerRepository.findAll();
+        clientRepository.saveAllAndFlush(mockService.addFollowingCaretakersToClients(clients, caretakers, FOLLOWING_CARETAKERS_COUNT));
 
+        // clean cache
         log.info("Mock data created successfully!");
         cleanCache();
     }
