@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.user.ClientComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -8,12 +9,10 @@ import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,10 +25,35 @@ public class ClientController {
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ClientDTO getClient(Principal principal,
+
                                @RoleParameter
-                                   @AcceptRole(acceptRole = Role.CLIENT)
-                                   @RequestHeader(value = "${header-name.role}") Role role) {
+                               @AcceptRole(acceptRole = Role.CLIENT)
+                               @RequestHeader(value = "${header-name.role}") Role role) {
         return clientService.getClient(principal.getName());
+    }
+
+    @Operation(summary = "Add caretaker to following list of client")
+    @PostMapping("/add-following-caretakers")
+    @PreAuthorize("isAuthenticated()")
+    public ClientComplexInfoDTO addFollowingCaretakers(Principal principal,
+                                                       @RequestParam Set<String> caretakerEmails,
+
+                                                       @RoleParameter
+                                                      @AcceptRole(acceptRole = Role.CLIENT)
+                                                      @RequestHeader(value = "${header-name.role}") Role role) {
+        return clientService.addFollowingCaretakers(principal.getName(), caretakerEmails);
+    }
+
+    @Operation
+    @PostMapping("/remove-following-caretakers")
+    @PreAuthorize("isAuthenticated()")
+    public ClientComplexInfoDTO removeFollowingCaretakers(Principal principal,
+                                                          @RequestParam Set<String> caretakerEmails,
+
+                                                          @RoleParameter
+                                                          @AcceptRole(acceptRole = Role.CLIENT)
+                                                          @RequestHeader(value = "${header-name.role}") Role role) {
+        return clientService.removeFollowingCaretakers(principal.getName(), caretakerEmails);
     }
 
 }

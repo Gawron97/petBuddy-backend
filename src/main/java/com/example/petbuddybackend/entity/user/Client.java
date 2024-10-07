@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.rating.Rating;
+import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,7 +45,7 @@ public class Client {
 
     private void assertClientNotFollowingItself() {
         if (followingCaretakers.stream().anyMatch(caretaker -> caretaker.getEmail().equals(email))) {
-            throw new IllegalStateException("Client cannot follow itself");
+            throw new IllegalActionException("Client cannot follow itself");
         }
     }
 
