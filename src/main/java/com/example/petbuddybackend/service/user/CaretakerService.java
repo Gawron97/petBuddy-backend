@@ -53,6 +53,12 @@ public class CaretakerService {
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
+    public CaretakerComplexInfoDTO getCaretaker(String caretakerEmail) {
+        Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
+        renewCaretakerProfilePicture(caretaker);
+        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretaker);
+    }
+
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
