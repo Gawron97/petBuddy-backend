@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.ClientComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -55,86 +54,64 @@ public class ClientControllerTest {
 
     @Test
     @WithMockUser(username = "clientEmail")
-    void addFollowingCaretakers_shouldAddCaretakersToFollowingList() throws Exception {
+    void addFollowingCaretaker_shouldAddCaretakersToFollowingList() throws Exception {
 
         // Given
-        Set<String> caretakerEmails = Set.of("caretaker1@example.com", "caretaker2@example.com");
-
-        ClientComplexInfoDTO clientComplexInfoDTO = ClientComplexInfoDTO.builder()
-                .accountData(AccountDataDTO.builder()
-                        .email("clientEmail")
-                        .build())
-                .followingCaretakersEmails(caretakerEmails)
-                .build();
-
-        when(clientService.addFollowingCaretakers("clientEmail", caretakerEmails)).thenReturn(clientComplexInfoDTO);
+        String caretakerEmail = "caretaker1@example.com";
+        when(clientService.addFollowingCaretaker("clientEmail", caretakerEmail)).thenReturn(Set.of(caretakerEmail));
 
         // When Then
-        mockMvc.perform(post("/api/client/add-following-caretakers")
-                        .header(roleHeaderName, Role.CLIENT)
-                        .param("caretakerEmails", "caretaker1@example.com", "caretaker2@example.com"))
+        mockMvc.perform(post("/api/client/follow/".concat(caretakerEmail))
+                        .header(roleHeaderName, Role.CLIENT))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accountData.email").value("clientEmail"))
-                .andExpect(jsonPath("$.followingCaretakersEmails").isArray())
-                .andExpect(jsonPath("$.followingCaretakersEmails[0]").value(caretakerEmails.toArray()[0]))
-                .andExpect(jsonPath("$.followingCaretakersEmails[1]").value(caretakerEmails.toArray()[1]));
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0]").value(caretakerEmail));
     }
 
     @Test
     @WithMockUser(username = "clientEmail")
-    void addFollowingCaretakers_whenArgumentAreBad_shouldThrowIllegalActionException() throws Exception {
+    void addFollowingCaretaker_whenArgumentIsBad_shouldThrowIllegalActionException() throws Exception {
 
         // Given
-        Set<String> caretakerEmails = Set.of("caretaker1@example.com", "caretaker2@example.com");
+        String caretakerEmail = "aretaker1@example.com";
 
-        when(clientService.addFollowingCaretakers("clientEmail", caretakerEmails)).thenThrow(IllegalActionException.class);
+        when(clientService.addFollowingCaretaker("clientEmail", caretakerEmail)).thenThrow(IllegalActionException.class);
 
         // When Then
-        mockMvc.perform(post("/api/client/add-following-caretakers")
-                        .header(roleHeaderName, Role.CLIENT)
-                        .param("caretakerEmails", "caretaker1@example.com", "caretaker2@example.com"))
+        mockMvc.perform(post("/api/client/follow/".concat(caretakerEmail))
+                        .header(roleHeaderName, Role.CLIENT))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     @WithMockUser(username = "clientEmail")
-    void removeFollowingCaretakers_shouldRemoveCaretakersFromFollowingList() throws Exception {
+    void removeFollowingCaretaker_shouldRemoveCaretakersFromFollowingList() throws Exception {
 
         // Given
-        Set<String> caretakerEmails = Set.of("caretaker1@example.com", "caretaker2@example.com");
+        String caretakerEmail = "caretaker1@example.com";
 
-        ClientComplexInfoDTO clientComplexInfoDTO = ClientComplexInfoDTO.builder()
-                .accountData(AccountDataDTO.builder()
-                        .email("clientEmail")
-                        .build())
-                .followingCaretakersEmails(Set.of("caretaker3@example.com"))
-                .build();
-
-        when(clientService.removeFollowingCaretakers("clientEmail", caretakerEmails)).thenReturn(clientComplexInfoDTO);
+        when(clientService.removeFollowingCaretaker("clientEmail", caretakerEmail)).thenReturn(Set.of("caretaker3@example.com"));
 
         // When Then
-        mockMvc.perform(post("/api/client/remove-following-caretakers")
-                        .header(roleHeaderName, Role.CLIENT)
-                        .param("caretakerEmails", "caretaker1@example.com", "caretaker2@example.com"))
+        mockMvc.perform(delete("/api/client/unfollow/".concat(caretakerEmail))
+                        .header(roleHeaderName, Role.CLIENT))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accountData.email").value("clientEmail"))
-                .andExpect(jsonPath("$.followingCaretakersEmails").isArray())
-                .andExpect(jsonPath("$.followingCaretakersEmails[0]").value("caretaker3@example.com"));
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0]").value("caretaker3@example.com"));
     }
 
     @Test
     @WithMockUser(username = "clientEmail")
-    void removeFollowingCaretakers_whenArgumentsAreBad_shouldThrowIllegalActionException() throws Exception {
+    void removeFollowingCaretaker_whenArgumentsAreBad_shouldThrowIllegalActionException() throws Exception {
 
         // Given
-        Set<String> caretakerEmails = Set.of("caretaker1@example.com", "caretaker2@example.com");
+        String caretakerEmail = "notFollowed@example.com";
 
-        when(clientService.removeFollowingCaretakers("clientEmail", caretakerEmails)).thenThrow(IllegalActionException.class);
+        when(clientService.removeFollowingCaretaker("clientEmail", caretakerEmail)).thenThrow(IllegalActionException.class);
 
         // When Then
-        mockMvc.perform(post("/api/client/remove-following-caretakers")
-                        .header(roleHeaderName, Role.CLIENT)
-                        .param("caretakerEmails", "caretaker1@example.com", "caretaker2@example.com"))
+        mockMvc.perform(delete("/api/client/unfollow/".concat(caretakerEmail))
+                        .header(roleHeaderName, Role.CLIENT))
                 .andExpect(status().isBadRequest());
     }
 

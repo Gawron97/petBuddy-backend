@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.dto.user.ClientComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -129,38 +128,7 @@ public class ClientServiceTest {
 
     @Test
     @Transactional
-    void addFollowingCaretakers_ShouldAddCaretakersSuccessfully() {
-        // Given
-        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
-        List<Caretaker> caretakers = addTwoCaretakers();
-
-        Set<String> caretakerEmails = Set.of(caretakers.get(0).getEmail(), caretakers.get(1).getEmail());
-
-        // When
-        ClientComplexInfoDTO result = clientService.addFollowingCaretakers(client.getEmail(), caretakerEmails);
-
-        // Then
-        assertNotNull(result);
-        assertTrue(result.followingCaretakersEmails().contains(caretakers.get(0).getEmail()));
-        assertTrue(result.followingCaretakersEmails().contains(caretakers.get(1).getEmail()));
-    }
-
-    @Test
-    @Transactional
-    void addFollowingCaretakers_WhenClientTriesToFollowItself_ShouldThrowIllegalActionException() {
-        // Given
-        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
-        Set<String> caretakerEmails = Set.of(client.getEmail());
-
-        // When Then
-        assertThrows(IllegalActionException.class,
-                () -> clientService.addFollowingCaretakers(client.getEmail(), caretakerEmails));
-
-    }
-
-    @Test
-    @Transactional
-    void addFollowingCaretakers_WhenCaretakersAreAlreadyFollowed_ShouldThrowIllegalActionException() {
+    void addFollowingCaretaker_ShouldAddCaretakersSuccessfully() {
         // Given
         Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
         List<Caretaker> caretakers = addTwoCaretakers();
@@ -168,28 +136,60 @@ public class ClientServiceTest {
         client.getFollowingCaretakers().add(caretakers.get(0));
         clientRepository.saveAndFlush(client);
 
-        Set<String> caretakerEmails = Set.of(caretakers.get(0).getEmail(), caretakers.get(1).getEmail());
+        // When
+        Set<String> result = clientService.addFollowingCaretaker(client.getEmail(), caretakers.get(1).getEmail());
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.contains(caretakers.get(0).getEmail()));
+        assertTrue(result.contains(caretakers.get(1).getEmail()));
+    }
+
+    @Test
+    @Transactional
+    void addFollowingCaretaker_WhenClientTriesToFollowItself_ShouldThrowIllegalActionException() {
+        // Given
+        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+        String caretakerEmails = client.getEmail();
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> clientService.addFollowingCaretakers(client.getEmail(), caretakerEmails));
+                () -> clientService.addFollowingCaretaker(client.getEmail(), caretakerEmails));
+
     }
 
     @Test
     @Transactional
-    void addFollowingCaretakers_WhenCaretakerDoesNotExist_ShouldThrowNotFoundException() {
+    void addFollowingCaretaker_WhenCaretakersAreAlreadyFollowed_ShouldThrowIllegalActionException() {
         // Given
         Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
-        Set<String> caretakerEmails = Set.of("nonexistent@example.com");
+        Caretaker caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository,
+                createMockCaretaker("caretaker1")
+        );
+
+        client.getFollowingCaretakers().add(caretaker);
+        clientRepository.saveAndFlush(client);
+
+        // When Then
+        assertThrows(IllegalActionException.class,
+                () -> clientService.addFollowingCaretaker(client.getEmail(), caretaker.getEmail()));
+    }
+
+    @Test
+    @Transactional
+    void addFollowingCaretaker_WhenCaretakerDoesNotExist_ShouldThrowNotFoundException() {
+        // Given
+        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+        String caretakerEmail = "nonexistent@example.com";
 
         // When Then
         assertThrows(NotFoundException.class,
-                () -> clientService.addFollowingCaretakers(client.getEmail(), caretakerEmails));
+                () -> clientService.addFollowingCaretaker(client.getEmail(), caretakerEmail));
     }
 
     @Test
     @Transactional
-    void removeFollowingCaretakers_ShouldRemoveCaretakersSuccessfully() {
+    void removeFollowingCaretaker_ShouldRemoveCaretakersSuccessfully() {
         // Given
         Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
         List<Caretaker> caretakers = addTwoCaretakers();
@@ -198,44 +198,28 @@ public class ClientServiceTest {
         client.getFollowingCaretakers().add(caretakers.get(1));
         clientRepository.saveAndFlush(client);
 
-        Set<String> caretakerEmails = Set.of(caretakers.get(0).getEmail(), caretakers.get(1).getEmail());
-
         // When
-        ClientComplexInfoDTO result = clientService.removeFollowingCaretakers(client.getEmail(), caretakerEmails);
+        Set<String> result = clientService.removeFollowingCaretaker(client.getEmail(), caretakers.get(0).getEmail());
 
         // Then
         assertNotNull(result);
-        assertFalse(result.followingCaretakersEmails().contains(caretakers.get(0).getEmail()));
-        assertFalse(result.followingCaretakersEmails().contains(caretakers.get(1).getEmail()));
+        assertFalse(result.contains(caretakers.get(0).getEmail()));
+        assertTrue(result.contains(caretakers.get(1).getEmail()));
     }
 
     @Test
     @Transactional
-    void removeFollowingCaretakers_WhenClientTriesToUnfollowNotFollowedCaretaker_ShouldThrowIllegalActionException() {
+    void removeFollowingCaretaker_WhenClientTriesToUnfollowNotFollowedCaretaker_ShouldThrowIllegalActionException() {
         // Given
         Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
         List<Caretaker> caretakers = addTwoCaretakers();
 
         client.getFollowingCaretakers().add(caretakers.get(0));
-
-        Set<String> caretakerEmails = Set.of(caretakers.get(0).getEmail(), caretakers.get(1).getEmail());
-
-        // When Then
-        assertThrows(IllegalActionException.class,
-                () -> clientService.removeFollowingCaretakers(client.getEmail(), caretakerEmails));
-
-    }
-
-    @Test
-    @Transactional
-    void removeFollowingCaretakers_WhenClientTriesToUnFollowItself_ShouldThrowIllegalActionException() {
-        // Given
-        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
-        Set<String> caretakerEmails = Set.of(client.getEmail());
+        clientRepository.saveAndFlush(client);
 
         // When Then
         assertThrows(IllegalActionException.class,
-                () -> clientService.removeFollowingCaretakers(client.getEmail(), caretakerEmails));
+                () -> clientService.removeFollowingCaretaker(client.getEmail(), caretakers.get(1).getEmail()));
 
     }
 

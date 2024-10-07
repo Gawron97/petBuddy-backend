@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.user.ClientComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -33,27 +32,27 @@ public class ClientController {
     }
 
     @Operation(summary = "Add caretaker to following list of client")
-    @PostMapping("/add-following-caretakers")
+    @PostMapping("/follow/{caretakerEmail}")
     @PreAuthorize("isAuthenticated()")
-    public ClientComplexInfoDTO addFollowingCaretakers(Principal principal,
-                                                       @RequestParam Set<String> caretakerEmails,
+    public Set<String> addFollowingCaretakers(Principal principal,
 
+                                                       @PathVariable String caretakerEmail,
                                                        @RoleParameter
-                                                      @AcceptRole(acceptRole = Role.CLIENT)
-                                                      @RequestHeader(value = "${header-name.role}") Role role) {
-        return clientService.addFollowingCaretakers(principal.getName(), caretakerEmails);
+                                                       @AcceptRole(acceptRole = Role.CLIENT)
+                                                       @RequestHeader(value = "${header-name.role}") Role role) {
+        return clientService.addFollowingCaretaker(principal.getName(), caretakerEmail);
     }
 
-    @Operation
-    @PostMapping("/remove-following-caretakers")
+    @Operation(summary = "Remove caretaker from following list of client")
+    @DeleteMapping("/unfollow/{caretakerEmail}")
     @PreAuthorize("isAuthenticated()")
-    public ClientComplexInfoDTO removeFollowingCaretakers(Principal principal,
-                                                          @RequestParam Set<String> caretakerEmails,
+    public Set<String> removeFollowingCaretakers(Principal principal,
+                                                 @PathVariable String caretakerEmail,
 
-                                                          @RoleParameter
+                                                 @RoleParameter
                                                           @AcceptRole(acceptRole = Role.CLIENT)
                                                           @RequestHeader(value = "${header-name.role}") Role role) {
-        return clientService.removeFollowingCaretakers(principal.getName(), caretakerEmails);
+        return clientService.removeFollowingCaretaker(principal.getName(), caretakerEmail);
     }
 
 }

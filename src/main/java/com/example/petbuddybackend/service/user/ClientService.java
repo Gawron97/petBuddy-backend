@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.dto.user.ClientComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -8,7 +7,6 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.ClientMapper;
-import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -61,26 +59,29 @@ public class ClientService {
         return clientMapper.mapToClientDTO(client);
     }
 
-    public ClientComplexInfoDTO addFollowingCaretakers(String clientEmail, Set<String> caretakerEmails) {
+    public Set<String> addFollowingCaretaker(String clientEmail, String caretakerEmail) {
 
+        assertClientNotFollowingItself(clientEmail, caretakerEmail);
         Client client = getClientByEmail(clientEmail);
-        assertClientNotFollowingItself(client, caretakerEmails);
-        assertNewFollowingCaretakersAreNotAlreadyFollowed(client, caretakerEmails);
+        assertCaretakerIsNotAlreadyFollowed(client, caretakerEmail);
 
-        Set<Caretaker> caretakersToFollow = getCaretakersByEmails(caretakerEmails);
-        client.getFollowingCaretakers().addAll(caretakersToFollow);
-        return clientMapper.mapToClientComplexInfoDTO(clientRepository.save(client));
+        Caretaker caretakerToFollow = getCaretakerByEmail(caretakerEmail);
+        client.getFollowingCaretakers().add(caretakerToFollow);
+        clientRepository.save(client);
+
+        return getFollowedCaretakersEmails(client);
     }
 
-    public ClientComplexInfoDTO removeFollowingCaretakers(String clientEmail, Set<String> caretakerEmails) {
+    public Set<String> removeFollowingCaretaker(String clientEmail, String caretakerEmail) {
 
         Client client = getClientByEmail(clientEmail);
-        assertClientNotFollowingItself(client, caretakerEmails);
-        assertCaretakersToRemoveAreFollowed(client, caretakerEmails);
+        assertCaretakerToRemoveIsFollowed(client, caretakerEmail);
 
-        Set<Caretaker> caretakersToUnfollow = getCaretakersByEmails(caretakerEmails);
-        client.getFollowingCaretakers().removeAll(caretakersToUnfollow);
-        return clientMapper.mapToClientComplexInfoDTO(clientRepository.save(client));
+        Caretaker caretakerToUnfollow = getCaretakerByEmail(caretakerEmail);
+        client.getFollowingCaretakers().remove(caretakerToUnfollow);
+        clientRepository.save(client);
+
+        return getFollowedCaretakersEmails(client);
     }
 
     private Client createClient(JwtAuthenticationToken token) {
@@ -94,51 +95,27 @@ public class ClientService {
 
     }
 
-    private void assertClientNotFollowingItself(Client client, Set<String> caretakerEmails) {
-        if(caretakerEmails.stream().anyMatch(caretakerEmail -> caretakerEmail.equals(client.getEmail()))) {
+    private void assertClientNotFollowingItself(String clientEmail, String caretakerEmail) {
+        if(clientEmail.equals(caretakerEmail)) {
             throw new IllegalActionException("Client cannot follow itself");
         }
     }
 
-    private void assertNewFollowingCaretakersAreNotAlreadyFollowed(Client client, Set<String> caretakerEmails) {
-        Set<String> alreadyFollowedCaretakersEmails = getFollowedCaretakersEmails(client);
-
-        Set<String> conflicts = alreadyFollowedCaretakersEmails
-                .stream()
-                .filter(caretakerEmails::contains)
-                .collect(Collectors.toSet());
-
-        if(!conflicts.isEmpty()) {
-            throw new IllegalActionException("Client is already following caretakers: " + conflicts);
+    private void assertCaretakerIsNotAlreadyFollowed(Client client, String caretakerEmail) {
+        if(client.getFollowingCaretakers().stream().anyMatch(caretaker -> caretaker.getEmail().equals(caretakerEmail))) {
+            throw new IllegalActionException("Client is already following caretaker: " + caretakerEmail);
         }
-
     }
 
-    private Set<Caretaker> getCaretakersByEmails(Set<String> caretakerEmails) {
-        return caretakerEmails
-                .stream()
-                .map(this::getCaretakerByEmail)
-                .collect(Collectors.toSet());
+    private void assertCaretakerToRemoveIsFollowed(Client client, String caretakerEmail) {
+        if(client.getFollowingCaretakers().stream().noneMatch(caretaker -> caretaker.getEmail().equals(caretakerEmail))) {
+            throw new IllegalActionException("Client is trying to unfollow not followed caretaker: " + caretakerEmail);
+        }
     }
 
     private Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
-    }
-
-    private void assertCaretakersToRemoveAreFollowed(Client client, Set<String> caretakerEmails) {
-
-        Set<String> alreadyFollowedCaretakersEmails = getFollowedCaretakersEmails(client);
-
-        Set<String> notFollowed = caretakerEmails
-                .stream()
-                .filter(caretakerEmail -> !alreadyFollowedCaretakersEmails.contains(caretakerEmail))
-                .collect(Collectors.toSet());
-
-        if(!notFollowed.isEmpty()) {
-            throw new IllegalActionException("Client is trying to unfollow not followed caretakers: " + notFollowed);
-        }
-
     }
 
     private Set<String> getFollowedCaretakersEmails(Client client) {
