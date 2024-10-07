@@ -54,6 +54,16 @@ public class CaretakerController {
         return caretakerService.getCaretakers(pageable, filters, offerFilters);
     }
 
+    @SecurityRequirements
+    @GetMapping("/{caretakerEmail}")
+    @Operation(
+            summary = "Get caretaker information",
+            description = "Get caretaker with details information"
+    )
+    public CaretakerComplexInfoDTO getCaretaker(@PathVariable String caretakerEmail) {
+        return caretakerService.getCaretaker(caretakerEmail);
+    }
+
     @PostMapping("/add")
     @Operation(
             summary = "Add caretaker profile",

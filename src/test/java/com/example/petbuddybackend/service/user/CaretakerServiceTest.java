@@ -1394,5 +1394,31 @@ public class CaretakerServiceTest {
 
     }
 
+    @Test
+    @Transactional
+    void getCaretaker_shouldReturnProperCaretaker() {
+
+        //Given
+        String email = "testmail@mail.com";
+
+        //When
+        CaretakerComplexInfoDTO result = caretakerService.getCaretaker(email);
+
+        //Then
+        assertNotNull(result);
+        assertEquals(email, result.accountData().email());
+
+    }
+
+    @Test
+    void getCaretaker_whenCaretakerNotExists_shouldThrowNotFoundException() {
+
+        //Given
+        String email = "notexists@mail.com";
+
+        //When Then
+        assertThrows(NotFoundException.class, () -> caretakerService.getCaretaker(email));
+
+    }
 
 }

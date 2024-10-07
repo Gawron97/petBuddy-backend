@@ -1,8 +1,10 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -117,5 +119,42 @@ public class CaretakerControllerTest {
                 Arguments.of("{\"rating\": 4}", status().isBadRequest())
         );
     }
+
+    @Test
+    void getCaretaker_shouldReturnCaretakerDetails() throws Exception {
+        // Given
+        String caretakerEmail = "johndoe@example.com";
+        CaretakerComplexInfoDTO caretakerComplexInfoDTO = CaretakerComplexInfoDTO.builder()
+                .accountData(AccountDataDTO.builder()
+                        .email(caretakerEmail)
+                        .name("John Doe")
+                        .build())
+                .description("Experienced pet caretaker")
+                .build();
+
+        when(caretakerService.getCaretaker(caretakerEmail)).thenReturn(caretakerComplexInfoDTO);
+
+        // When Then
+        mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountData.email").value(caretakerEmail))
+                .andExpect(jsonPath("$.accountData.name").value("John Doe"))
+                .andExpect(jsonPath("$.description").value("Experienced pet caretaker"));
+    }
+
+    @Test
+    void getCaretaker_whenCaretakerNotExists_shouldThrowNotFound() throws Exception {
+        // Given
+        String caretakerEmail = "johndoe@example.com";
+
+        when(caretakerService.getCaretaker(caretakerEmail)).thenThrow(NotFoundException.class);
+
+        // When Then
+        mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
 
 }
