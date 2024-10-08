@@ -69,6 +69,25 @@ public class CaretakerMapperTest {
         assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerMappingResult));
     }
 
+    @Test
+    void updateCaretakerFromDTO_shouldNotLeaveNullFields() {
+        Caretaker caretaker = MockUserProvider.createMockCaretaker();
+        PhotoLink profilePicture = MockUserProvider.createMockPhotoLink();
+        caretaker.getAccountData().setProfilePicture(profilePicture);
+        caretaker.setNumberOfRatings(1);
+        caretaker.setAvgRating(4.5f);
+
+        ModifyCaretakerDTO dto = ModifyCaretakerDTO.builder()
+                        .phoneNumber("12345678")
+                        .description("description")
+                        .address(AddressMapper.INSTANCE.mapToAddressDTO(MockUserProvider.createMockAddress()))
+                        .build();
+
+        mapper.updateCaretakerFromDTO(dto, caretaker);
+
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(caretaker));
+    }
+
     private void setIds(Caretaker caretaker) {
         caretaker.getAddress().setId(1L);
         caretaker.getOffers().forEach(offer -> {
