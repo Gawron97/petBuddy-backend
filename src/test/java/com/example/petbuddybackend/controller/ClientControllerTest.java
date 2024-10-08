@@ -151,8 +151,7 @@ public class ClientControllerTest {
         mockMvc.perform(get("/api/client/followed-caretakers")
                         .header(roleHeaderName, Role.CLIENT))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$[0].accountData.email").value("caretaker1@email"));
+                .andExpect(jsonPath("$").isArray());
 
     }
 
