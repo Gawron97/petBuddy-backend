@@ -241,10 +241,16 @@ public class PersistenceUtils {
         offerRepository.save(offer);
     }
 
-    public static void setAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer, Set<Availability> availabilities) {
+    public static void setAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer,
+                                                 Set<Availability> availabilities) {
         Offer offer = setAvailabilitiesToOffer(existingOffer, availabilities);
         offerRepository.save(offer);
     }
 
+    public static void addFollowingCaretakersToClient(ClientRepository clientRepository, Client client,
+                                                       Set<Caretaker> caretakers) {
+        client.getFollowingCaretakers().addAll(caretakers);
+        clientRepository.saveAndFlush(client);
+    }
 
 }

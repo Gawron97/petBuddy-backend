@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -7,6 +8,7 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.ClientMapper;
+import com.example.petbuddybackend.service.mapper.UserMapper;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -31,10 +33,7 @@ public class ClientService {
     private final CaretakerRepository caretakerRepository;
     private final UserService userService;
     private final ClientMapper clientMapper = ClientMapper.INSTANCE;
-
-    public boolean clientExists(String clientEmail) {
-        return clientRepository.existsById(clientEmail);
-    }
+    private final UserMapper userMapper = UserMapper.INSTANCE;
 
     public Client getClientByEmail(String clientEmail) {
         return clientRepository.findById(clientEmail)
@@ -84,6 +83,15 @@ public class ClientService {
         return getFollowedCaretakersEmails(client);
     }
 
+    public Set<AccountDataDTO> getFollowedCaretakers(String clientEmail) {
+        Client client = getClientByEmail(clientEmail);
+        return client.getFollowingCaretakers()
+                .stream()
+                .map(Caretaker::getAccountData)
+                .map(userMapper::mapToAccountDataDTO)
+                .collect(Collectors.toSet());
+    }
+
     private Client createClient(JwtAuthenticationToken token) {
 
         AppUser appUser = userService.createUserIfNotExistOrGet(token);
@@ -118,11 +126,14 @@ public class ClientService {
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
     }
 
+    private boolean clientExists(String clientEmail) {
+        return clientRepository.existsById(clientEmail);
+    }
+
     private Set<String> getFollowedCaretakersEmails(Client client) {
         return client.getFollowingCaretakers()
                 .stream()
                 .map(Caretaker::getEmail)
                 .collect(Collectors.toSet());
     }
-
 }

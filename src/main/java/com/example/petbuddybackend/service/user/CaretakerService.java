@@ -13,6 +13,7 @@ import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
@@ -35,11 +36,11 @@ public class CaretakerService {
     private final static String CLIENT = "Client";
 
     private final CaretakerRepository caretakerRepository;
+    private final ClientRepository clientRepository;
     private final RatingRepository ratingRepository;
     private final CaretakerMapper caretakerMapper = CaretakerMapper.INSTANCE;
     private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
 
-    private final ClientService clientService;
     private final UserService userService;
 
     @Transactional(readOnly = true)
@@ -144,7 +145,7 @@ public class CaretakerService {
             throw NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail);
         }
 
-        if (!clientService.clientExists(clientEmail)) {
+        if (!clientRepository.existsById(clientEmail)) {
             throw NotFoundException.withFormattedMessage(CLIENT, clientEmail);
         }
     }

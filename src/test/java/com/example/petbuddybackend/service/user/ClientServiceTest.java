@@ -1,14 +1,13 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
-import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
-import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
@@ -18,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,32 +40,9 @@ public class ClientServiceTest {
     @Autowired
     private ClientService clientService;
 
-    @Autowired
-    private UserService userService;
-
-
     @AfterEach
     void tearDown() {
         appUserRepository.deleteAll();
-    }
-
-
-    @Test
-    void checkClientExists_shouldReturnTrue() {
-        Client client = MockUserProvider.createMockClient();
-
-        AppUser accountData = PersistenceUtils.addAppUser(appUserRepository, client.getAccountData());
-        client.setEmail(accountData.getEmail());
-        clientRepository.saveAndFlush(client);
-
-        boolean clientExists = clientService.clientExists(client.getAccountData().getEmail());
-        assertNotNull(clientExists);
-    }
-
-    @Test
-    void checkClientExists_noSuchClientPresent_shouldReturnFalse() {
-        boolean clientExists = clientService.clientExists("invalidEmail");
-        assertNotNull(clientExists);
     }
 
     @Test
@@ -84,7 +61,6 @@ public class ClientServiceTest {
         assertEquals("test@mail", createdClient.getEmail());
         assertEquals("firstname", createdClient.getAccountData().getName());
         assertEquals("lastname", createdClient.getAccountData().getSurname());
-
     }
 
     @Test
@@ -220,6 +196,24 @@ public class ClientServiceTest {
         // When Then
         assertThrows(IllegalActionException.class,
                 () -> clientService.removeFollowingCaretaker(client.getEmail(), caretakers.get(1).getEmail()));
+
+    }
+
+    @Test
+    @Transactional
+    void getFollowedCaretakers_shouldReturnProperAnswer() {
+
+        //Given
+        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+        List<Caretaker> caretakers = addTwoCaretakers();
+        PersistenceUtils.addFollowingCaretakersToClient(clientRepository, client, new HashSet<>(caretakers));
+
+        //When
+        Set<AccountDataDTO> result = clientService.getFollowedCaretakers(client.getEmail());
+
+        //Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
 
     }
 

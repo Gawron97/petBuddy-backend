@@ -17,8 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Set;
 
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -115,5 +115,32 @@ public class ClientControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @WithMockUser(username = "clientEmail")
+    void getFollowedCaretakers_shouldReturnProperResponse() throws Exception {
+
+        //Given
+        Set<AccountDataDTO> caretakers = Set.of(
+                AccountDataDTO.builder()
+                        .email("caretaker1@email")
+                        .name("caretaker1")
+                        .surname("caretaker1")
+                        .build(),
+                AccountDataDTO.builder()
+                        .email("caretaker2@email")
+                        .name("caretaker2")
+                        .surname("caretaker2")
+                        .build()
+        );
+
+        when(clientService.getFollowedCaretakers("clientEmail")).thenReturn(caretakers);
+
+        //When Then
+        mockMvc.perform(get("/api/client/follow")
+                        .header(roleHeaderName, Role.CLIENT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -35,11 +36,11 @@ public class ClientController {
     @PostMapping("/follow/{caretakerEmail}")
     @PreAuthorize("isAuthenticated()")
     public Set<String> addFollowingCaretakers(Principal principal,
+                                              @PathVariable String caretakerEmail,
 
-                                                       @PathVariable String caretakerEmail,
-                                                       @RoleParameter
-                                                       @AcceptRole(acceptRole = Role.CLIENT)
-                                                       @RequestHeader(value = "${header-name.role}") Role role) {
+                                              @RoleParameter
+                                              @AcceptRole(acceptRole = Role.CLIENT)
+                                              @RequestHeader(value = "${header-name.role}") Role role) {
         return clientService.addFollowingCaretaker(principal.getName(), caretakerEmail);
     }
 
@@ -50,9 +51,21 @@ public class ClientController {
                                                  @PathVariable String caretakerEmail,
 
                                                  @RoleParameter
-                                                          @AcceptRole(acceptRole = Role.CLIENT)
-                                                          @RequestHeader(value = "${header-name.role}") Role role) {
+                                                 @AcceptRole(acceptRole = Role.CLIENT)
+                                                 @RequestHeader(value = "${header-name.role}") Role role) {
         return clientService.removeFollowingCaretaker(principal.getName(), caretakerEmail);
+    }
+
+    @Operation(summary = "Get followed caretakers of client")
+    @GetMapping("/follow")
+    @PreAuthorize("isAuthenticated()")
+    public Set<AccountDataDTO> getFollowedCaretakers(Principal principal,
+
+                                                     @RoleParameter
+                                                   @AcceptRole(acceptRole = Role.CLIENT)
+                                                   @RequestHeader(value = "${header-name.role}") Role role) {
+
+        return clientService.getFollowedCaretakers(principal.getName());
     }
 
 }
