@@ -20,25 +20,13 @@ public interface AddressMapper {
 
     AddressDTO mapToAddressDTO(Address address);
 
-    default void updateAddressFromDTO(UpdateAddressDTO addressDTO, @MappingTarget Address address) {
-        if(StringUtils.hasText(addressDTO.city())) {
-            address.setCity(addressDTO.city());
-        }
-        if(StringUtils.hasText(addressDTO.zipCode())) {
-            address.setZipCode(addressDTO.zipCode());
-        }
-        if(addressDTO.voivodeship() != null) {
-            address.setVoivodeship(addressDTO.voivodeship());
-        }
-        if(StringUtils.hasText(addressDTO.street())) {
-            address.setStreet(addressDTO.street());
-        }
-        if(StringUtils.hasText(addressDTO.streetNumber())) {
-            address.setStreetNumber(addressDTO.streetNumber());
-        }
-        if(StringUtils.hasText(addressDTO.apartmentNumber())) {
-            address.setApartmentNumber(addressDTO.apartmentNumber());
-        }
+    default void updateAddressFromDTO(AddressDTO addressDTO, @MappingTarget Address address) {
+        address.setCity(addressDTO.city());
+        address.setZipCode(addressDTO.zipCode());
+        address.setVoivodeship(addressDTO.voivodeship());
+        address.setStreet(addressDTO.street());
+        address.setStreetNumber(addressDTO.streetNumber());
+        address.setApartmentNumber(addressDTO.apartmentNumber());
     }
 
 }

@@ -1212,7 +1212,7 @@ public class CaretakerServiceTest {
         //Given
         AppUser appUser = PersistenceUtils.addAppUser(appUserRepository);
 
-        CreateCaretakerDTO caretakerToCreate = CreateCaretakerDTO.builder()
+        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
                 .phoneNumber("123456789")
                 .description("description")
                 .address(
@@ -1250,7 +1250,7 @@ public class CaretakerServiceTest {
     void addCaretaker_whenUserNotExists_shouldThrowException() {
 
         //Given
-        CreateCaretakerDTO caretakerToCreate = CreateCaretakerDTO.builder()
+        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
                 .phoneNumber("123456789")
                 .description("description")
                 .address(

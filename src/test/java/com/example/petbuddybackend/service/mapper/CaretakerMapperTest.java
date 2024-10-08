@@ -3,7 +3,7 @@ package com.example.petbuddybackend.service.mapper;
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -39,7 +39,7 @@ public class CaretakerMapperTest {
         AppUser accountData = MockUserProvider.createMockAppUser();
         AddressDTO addressDTO = AddressMapper.INSTANCE.mapToAddressDTO(MockUserProvider.createMockAddress());
 
-        CreateCaretakerDTO dto = CreateCaretakerDTO.builder()
+        ModifyCaretakerDTO dto = ModifyCaretakerDTO.builder()
                         .phoneNumber("12345678")
                         .description("description")
                         .address(addressDTO)
