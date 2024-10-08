@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -57,11 +57,11 @@ public class ClientController {
     }
 
     @Operation(summary = "Get followed caretakers of client")
-    @GetMapping("/followed-caretakers")
+    @GetMapping("/follow")
     @PreAuthorize("isAuthenticated()")
-    public Set<CaretakerDTO> getFollowedCaretakers(Principal principal,
+    public Set<AccountDataDTO> getFollowedCaretakers(Principal principal,
 
-                                                   @RoleParameter
+                                                     @RoleParameter
                                                    @AcceptRole(acceptRole = Role.CLIENT)
                                                    @RequestHeader(value = "${header-name.role}") Role role) {
 
