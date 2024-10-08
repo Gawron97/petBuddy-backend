@@ -100,12 +100,12 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     @Override
-    public List<PhotoLink> updatePhotoExpirations(List<PhotoLink> photos) {
-        photos = photos.stream()
+    public Set<PhotoLink> updatePhotoExpirations(Set<PhotoLink> photos) {
+        List<PhotoLink> photosRenewed = photos.stream()
                 .map(this::applyPhotoRenewal)
                 .toList();
 
-        return photoRepository.saveAll(photos);
+        return new HashSet<>(photoRepository.saveAll(photosRenewed));
     }
 
     /**

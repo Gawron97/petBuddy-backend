@@ -5,6 +5,7 @@ import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
@@ -15,6 +16,7 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
+import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
@@ -41,6 +43,7 @@ public class CaretakerService {
     private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
 
     private final UserService userService;
+    private final PhotoService photoService;
 
     @Transactional(readOnly = true)
     public Page<CaretakerDTO> getCaretakers(Pageable pageable,
@@ -49,13 +52,13 @@ public class CaretakerService {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
         return caretakerRepository.findAll(spec, pageable)
-                .map(this::renewCaretakerProfilePicture)
+                .map(this::renewCaretakerPictures)
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
     public CaretakerComplexInfoDTO getCaretaker(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
-        renewCaretakerProfilePicture(caretaker);
+        renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretaker);
     }
 
@@ -102,7 +105,7 @@ public class CaretakerService {
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretaker = caretakerMapper.mapToCaretaker(caretakerDTO, appUser);
 
-        renewCaretakerProfilePicture(caretaker);
+        renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
@@ -110,14 +113,21 @@ public class CaretakerService {
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretaker = getCaretakerByEmail(appUser.getEmail());
 
-        renewCaretakerProfilePicture(caretaker);
+        renewCaretakerPictures(caretaker);
         caretakerMapper.updateCaretakerFromDTO(caretakerDTO, caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
-    private Caretaker renewCaretakerProfilePicture(Caretaker caretaker) {
-        userService.renewProfilePicture(caretaker.getAccountData());
-        return caretaker;
+    // FIXME: might throw if I replace photos
+    // TODO: check sql of this method
+    // TODO check if saved photo is in caretaker or is just saved in db
+    private Caretaker renewCaretakerPictures(Caretaker caretaker) {
+        AppUser appUser = caretaker.getAccountData();
+        Set<PhotoLink> userPhotos = caretaker.getOfferPhotos();
+
+        userService.renewProfilePicture(appUser);
+        photoService.updatePhotoExpirations(userPhotos);
+        return caretakerRepository.save(caretaker);
     }
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
