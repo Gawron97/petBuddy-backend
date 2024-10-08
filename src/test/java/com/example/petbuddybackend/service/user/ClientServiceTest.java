@@ -2,14 +2,12 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
-import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
-import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
@@ -51,25 +49,6 @@ public class ClientServiceTest {
         appUserRepository.deleteAll();
     }
 
-
-    @Test
-    void checkClientExists_shouldReturnTrue() {
-        Client client = MockUserProvider.createMockClient();
-
-        AppUser accountData = PersistenceUtils.addAppUser(appUserRepository, client.getAccountData());
-        client.setEmail(accountData.getEmail());
-        clientRepository.saveAndFlush(client);
-
-        boolean clientExists = clientService.clientExists(client.getAccountData().getEmail());
-        assertNotNull(clientExists);
-    }
-
-    @Test
-    void checkClientExists_noSuchClientPresent_shouldReturnFalse() {
-        boolean clientExists = clientService.clientExists("invalidEmail");
-        assertNotNull(clientExists);
-    }
-
     @Test
     @Transactional
     void createClientIfNotExist_WhenClientDoesNotExist_ThenShouldCreateClient() {
@@ -86,7 +65,6 @@ public class ClientServiceTest {
         assertEquals("test@mail", createdClient.getEmail());
         assertEquals("firstname", createdClient.getAccountData().getName());
         assertEquals("lastname", createdClient.getAccountData().getSurname());
-
     }
 
     @Test
