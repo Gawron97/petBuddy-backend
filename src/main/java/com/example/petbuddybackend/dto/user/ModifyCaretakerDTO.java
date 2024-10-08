@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
-public record CreateCaretakerDTO(
+public record ModifyCaretakerDTO(
         @NotBlank String phoneNumber,
         String description,
         @NotNull AddressDTO address

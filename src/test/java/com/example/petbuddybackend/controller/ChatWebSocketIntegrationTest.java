@@ -49,7 +49,7 @@ public class ChatWebSocketIntegrationTest {
 
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
     private static final String SEND_MESSAGE_ENDPOINT = "/app/chat/1";
-    private static final int TIMEOUT = 10;
+    private static final int TIMEOUT = 1;
 
     @Value("${url.chat.topic.pattern}")
     private String SUBSCRIPTION_URL_PATTERN;

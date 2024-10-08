@@ -5,8 +5,7 @@ import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
-import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -98,7 +97,7 @@ public class CaretakerService {
         return ratingMapper.mapToRatingResponse(rating);
     }
 
-    public CaretakerComplexInfoDTO addCaretaker(CreateCaretakerDTO caretakerDTO, String email) {
+    public CaretakerComplexInfoDTO addCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
         assertCaretakerNotExists(email);
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretaker = caretakerMapper.mapToCaretaker(caretakerDTO, appUser);
@@ -107,7 +106,7 @@ public class CaretakerService {
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
-    public CaretakerComplexInfoDTO editCaretaker(UpdateCaretakerDTO caretakerDTO, String email) {
+    public CaretakerComplexInfoDTO editCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretaker = getCaretakerByEmail(appUser.getEmail());
 

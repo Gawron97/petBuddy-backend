@@ -7,8 +7,7 @@ import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
-import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
+import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,20 +70,20 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexInfoDTO addCaretaker(
-            @RequestBody @Valid CreateCaretakerDTO caretakerDTO,
+            @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
             Principal principal
     ) {
         return caretakerService.addCaretaker(caretakerDTO, principal.getName());
     }
 
-    @PatchMapping("/edit")
+    @PutMapping("/edit")
     @Operation(
             summary = "Edit caretaker profile",
             description = "Edit caretaker profile if it does exists"
     )
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexInfoDTO editCaretaker(
-            @RequestBody @Valid UpdateCaretakerDTO caretakerDTO,
+            @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
             Principal principal
     ) {
         return caretakerService.editCaretaker(caretakerDTO, principal.getName());
