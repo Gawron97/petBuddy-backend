@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -18,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -220,6 +222,24 @@ public class ClientServiceTest {
         // When Then
         assertThrows(IllegalActionException.class,
                 () -> clientService.removeFollowingCaretaker(client.getEmail(), caretakers.get(1).getEmail()));
+
+    }
+
+    @Test
+    @Transactional
+    void getFollowedCaretakers_shouldReturnProperAnswer() {
+
+        //Given
+        Client client = PersistenceUtils.addClient(appUserRepository, clientRepository);
+        List<Caretaker> caretakers = addTwoCaretakers();
+        PersistenceUtils.addFollowingCaretakersToClient(clientRepository, client, new HashSet<>(caretakers));
+
+        //When
+        Set<CaretakerDTO> result = clientService.getFollowedCaretakers(client.getEmail());
+
+        //Then
+        assertNotNull(result);
+        assertEquals(2, result.size());
 
     }
 

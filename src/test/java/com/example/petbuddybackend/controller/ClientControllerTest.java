@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.Set;
 
 import static org.mockito.Mockito.when;
@@ -115,5 +117,43 @@ public class ClientControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @WithMockUser(username = "clientEmail")
+    void getFollowedCaretakers_shouldReturnProperResponse() throws Exception {
+
+        //Given
+        Set<CaretakerDTO> caretakers = Set.of(
+                CaretakerDTO.builder()
+                        .accountData(
+                                AccountDataDTO.builder()
+                                        .email("caretaker1@email")
+                                        .name("caretaker1")
+                                        .surname("caretaker1")
+                                        .build()
+                        )
+                        .animals(List.of("DOG"))
+                        .build(),
+                CaretakerDTO.builder()
+                        .accountData(
+                                AccountDataDTO.builder()
+                                        .email("caretaker2@email")
+                                        .name("caretaker2")
+                                        .surname("caretaker2")
+                                        .build()
+                        )
+                        .animals(List.of("CAT"))
+                        .build()
+        );
+
+        when(clientService.getFollowedCaretakers("clientEmail")).thenReturn(caretakers);
+
+        //When Then
+        mockMvc.perform(get("/api/client/followed-caretakers")
+                        .header(roleHeaderName, Role.CLIENT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].accountData.email").value("caretaker1@email"));
+
+    }
 
 }
