@@ -15,8 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -126,7 +125,7 @@ public class CaretakerControllerIntegrationTest {
     @WithMockUser(username = "email")
     void editCaretaker_WhenCaretakerNotExists_ShouldThrowNotFound() throws Exception {
         // When and Then
-        mockMvc.perform(patch("/api/caretaker/edit")
+        mockMvc.perform(put("/api/caretaker/edit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARETAKER_BODY,
                                 "987654321",
@@ -147,26 +146,26 @@ public class CaretakerControllerIntegrationTest {
         Caretaker caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
 
         // When and Then
-        mockMvc.perform(patch("/api/caretaker/edit")
+        mockMvc.perform(put("/api/caretaker/edit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARETAKER_BODY,
-                                "",
+                                "12",
                                 "Updated description",
-                                "",
+                                "New City",
                                 "11-111",
                                 Voivodeship.PODLASKIE.name(),
                                 "New Street",
                                 "11",
-                                "21")))
+                                "")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.phoneNumber").value(caretaker.getPhoneNumber()))
+                .andExpect(jsonPath("$.phoneNumber").value("12"))
                 .andExpect(jsonPath("$.description").value("Updated description"))
-                .andExpect(jsonPath("$.address.city").value(caretaker.getAddress().getCity()))
+                .andExpect(jsonPath("$.address.city").value("New City"))
                 .andExpect(jsonPath("$.address.zipCode").value("11-111"))
                 .andExpect(jsonPath("$.address.voivodeship").value(Voivodeship.PODLASKIE.name()))
                 .andExpect(jsonPath("$.address.street").value("New Street"))
                 .andExpect(jsonPath("$.address.streetNumber").value("11"))
-                .andExpect(jsonPath("$.address.apartmentNumber").value("21"));
+                .andExpect(jsonPath("$.address.apartmentNumber").value(""));
     }
 
 }

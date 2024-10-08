@@ -1,13 +1,15 @@
 package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
-import com.example.petbuddybackend.dto.address.UpdateAddressDTO;
 import com.example.petbuddybackend.dto.availability.AvailabilityFilterDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
-import com.example.petbuddybackend.dto.user.*;
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -1292,13 +1294,14 @@ public class CaretakerServiceTest {
                 Set.of(),
                 offerRepository);
 
-        UpdateCaretakerDTO caretakerToCreate = UpdateCaretakerDTO.builder()
-                .phoneNumber("")
+        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
+                .phoneNumber("123")
                 .description("description")
                 .address(
-                        UpdateAddressDTO.builder()
+                        AddressDTO.builder()
                                 .city("city")
                                 .voivodeship(Voivodeship.DOLNOSLASKIE)
+                                .zipCode("12-321")
                                 .street("street")
                                 .streetNumber("33HHD")
                                 .apartmentNumber("150SD")
@@ -1306,7 +1309,6 @@ public class CaretakerServiceTest {
                 )
                 .build();
 
-        String oldPhoneNumber = caretakerWithComplexOffer.getPhoneNumber();
         String oldZipCode = caretakerWithComplexOffer.getAddress().getZipCode();
 
         //When
@@ -1315,10 +1317,10 @@ public class CaretakerServiceTest {
 
         //Then
         assertNotNull(caretaker);
-        assertEquals(oldPhoneNumber, caretaker.getPhoneNumber());
+        assertEquals("123", caretaker.getPhoneNumber());
         assertEquals(caretakerToCreate.description(), caretaker.getDescription());
         assertEquals(caretakerToCreate.address().city(), caretaker.getAddress().getCity());
-        assertEquals(oldZipCode, caretaker.getAddress().getZipCode());
+        assertEquals("12-321", caretaker.getAddress().getZipCode());
         assertEquals(caretakerToCreate.address().voivodeship(), caretaker.getAddress().getVoivodeship());
         assertEquals(caretakerToCreate.address().street(), caretaker.getAddress().getStreet());
         assertEquals(caretakerToCreate.address().streetNumber(), caretaker.getAddress().getStreetNumber());
@@ -1355,11 +1357,11 @@ public class CaretakerServiceTest {
                 Set.of(),
                 offerRepository);
 
-        UpdateCaretakerDTO caretakerToCreate = UpdateCaretakerDTO.builder()
+        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
                 .phoneNumber("123456789")
                 .description("description")
                 .address(
-                        UpdateAddressDTO.builder()
+                        AddressDTO.builder()
                                 .city("city")
                                 .zipCode("zipCode")
                                 .voivodeship(Voivodeship.DOLNOSLASKIE)

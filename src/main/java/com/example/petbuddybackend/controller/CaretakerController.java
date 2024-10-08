@@ -8,7 +8,6 @@ import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
-import com.example.petbuddybackend.dto.user.UpdateCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
