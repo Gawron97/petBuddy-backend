@@ -35,10 +35,6 @@ public class ClientService {
     private final ClientMapper clientMapper = ClientMapper.INSTANCE;
     private final CaretakerMapper caretakerMapper = CaretakerMapper.INSTANCE;
 
-    public boolean clientExists(String clientEmail) {
-        return clientRepository.existsById(clientEmail);
-    }
-
     public Client getClientByEmail(String clientEmail) {
         return clientRepository.findById(clientEmail)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CLIENT, clientEmail));
@@ -127,6 +123,10 @@ public class ClientService {
     private Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
+    }
+
+    private boolean clientExists(String clientEmail) {
+        return clientRepository.existsById(clientEmail);
     }
 
     private Set<String> getFollowedCaretakersEmails(Client client) {
