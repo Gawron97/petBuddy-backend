@@ -6,10 +6,7 @@ import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
-import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.dto.user.*;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -1214,7 +1211,7 @@ public class CaretakerServiceTest {
         //Given
         AppUser appUser = PersistenceUtils.addAppUser(appUserRepository);
 
-        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
+        CreateCaretakerDTO caretakerToCreate = CreateCaretakerDTO.builder()
                 .phoneNumber("123456789")
                 .description("description")
                 .address(
@@ -1230,7 +1227,7 @@ public class CaretakerServiceTest {
                 .build();
 
         //When
-        CaretakerComplexInfoDTO result = caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail());
+        CaretakerComplexInfoDTO result = caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail(), new ArrayList<>());
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then
@@ -1252,7 +1249,7 @@ public class CaretakerServiceTest {
     void addCaretaker_whenUserNotExists_shouldThrowException() {
 
         //Given
-        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
+        CreateCaretakerDTO caretakerToCreate = CreateCaretakerDTO.builder()
                 .phoneNumber("123456789")
                 .description("description")
                 .address(
@@ -1268,7 +1265,8 @@ public class CaretakerServiceTest {
                 .build();
 
         //When Then
-        assertThrows(NotFoundException.class, () -> caretakerService.addCaretaker(caretakerToCreate, "Not existing email"));
+        assertThrows(NotFoundException.class,
+                () -> caretakerService.addCaretaker(caretakerToCreate, "Not existing email", new ArrayList<>()));
 
     }
 
@@ -1307,12 +1305,15 @@ public class CaretakerServiceTest {
                                 .apartmentNumber("150SD")
                                 .build()
                 )
+                .offerBlobsToKeep(Collections.emptySet())
                 .build();
 
-        String oldZipCode = caretakerWithComplexOffer.getAddress().getZipCode();
-
         //When
-        CaretakerComplexInfoDTO result = caretakerService.editCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
+        CaretakerComplexInfoDTO result = caretakerService.editCaretaker(
+                caretakerToCreate,
+                caretakerWithComplexOffer.getEmail(),
+                Collections.emptyList()
+        );
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then
@@ -1370,10 +1371,15 @@ public class CaretakerServiceTest {
                                 .apartmentNumber("150SD")
                                 .build()
                 )
+                .offerBlobsToKeep(Collections.emptySet())
                 .build();
 
         //When
-        CaretakerComplexInfoDTO result = caretakerService.editCaretaker(caretakerToCreate, caretakerWithComplexOffer.getEmail());
+        CaretakerComplexInfoDTO result = caretakerService.editCaretaker(
+                caretakerToCreate,
+                caretakerWithComplexOffer.getEmail(),
+                Collections.emptyList()
+        );
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then

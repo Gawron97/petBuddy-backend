@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -71,9 +72,9 @@ public class FirebasePhotoService implements PhotoService {
 
     @Override
     @Transactional
-    public Set<PhotoLink> uploadPhotos(List<MultipartFile> multipartFiles) {
+    public List<PhotoLink> uploadPhotos(List<MultipartFile> multipartFiles) {
         multipartFiles.forEach(this::validatePhoto);
-        Set<PhotoLink> uploadedPhotos = new HashSet<>(multipartFiles.size());
+        List<PhotoLink> uploadedPhotos = new ArrayList<>(multipartFiles.size());
 
         try {
             for(MultipartFile file : multipartFiles) {
@@ -86,8 +87,7 @@ public class FirebasePhotoService implements PhotoService {
             throw e;
         }
 
-        // TODO: maybe above rollback is not needed. Tests required
-        return new HashSet<>(photoRepository.saveAll(uploadedPhotos));
+        return photoRepository.saveAll(uploadedPhotos);
     }
 
     @Override
@@ -103,50 +103,16 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deletePhoto(PhotoLink photoLink) {
-        String blob = photoLink.getBlob();
-        StorageClient storageClient = StorageClient.getInstance(firebaseApp);
-        Bucket bucket = storageClient.bucket();
-        Blob blobToDelete = bucket.get(blob);
-
-        if(blobToDelete != null) {
-            blobToDelete.delete();
-        }
-
         photoRepository.delete(photoLink);
-    }
-
-    @Override
-    public void deletePhotos(Set<PhotoLink> photoLinksToDelete) {
-        throw new UnsupportedOperationException("Not implemented yet"); // TODO: implement
+        removePhotoFromCloud(photoLink.getBlob());
     }
 
     @Override
     @Transactional
-    public Set<PhotoLink> patchPhotos(
-            Set<PhotoLink> currentPhotos,
-            Set<String> blobsToKeep,
-            List<MultipartFile> newPhotos
-    ) {
-        int currentPhotosSize = currentPhotos.size();
-        int photosToKeepSize = Math.min(currentPhotosSize, blobsToKeep.size() + newPhotos.size());
-        int photosToRemoveSize = Math.max(0, currentPhotosSize - photosToKeepSize);
-
-        Set<PhotoLink> photosToKeep = new HashSet<>(photosToKeepSize);
-        Set<PhotoLink> photosToRemove = new HashSet<>(photosToRemoveSize);
-
-        currentPhotos.forEach(photo -> {
-            if(blobsToKeep.contains(photo.getBlob())) {
-                photosToKeep.add(photo);
-            } else {
-                photosToRemove.add(photo);
-            }
-        });
-
-        deletePhotos(photosToRemove);
-        photosToKeep.addAll(uploadPhotos(newPhotos));
-        return new HashSet<>(photoRepository.saveAll(photosToKeep));
+    public void deletePhotos(Collection<PhotoLink> photoLinksToDelete) {
+        photoLinksToDelete.forEach(this::deletePhoto);
     }
 
     @Override
@@ -155,12 +121,22 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     @Override
-    public Set<PhotoLink> updatePhotoExpirations(Set<PhotoLink> photos) {
+    public List<PhotoLink> updatePhotoExpirations(List<PhotoLink> photos) {
         List<PhotoLink> photosRenewed = photos.stream()
                 .map(this::applyPhotoRenewal)
                 .toList();
 
-        return new HashSet<>(photoRepository.saveAll(photosRenewed));
+        return photoRepository.saveAll(photosRenewed);
+    }
+
+    private void removePhotoFromCloud(String blob) {
+        StorageClient storageClient = StorageClient.getInstance(firebaseApp);
+        Bucket bucket = storageClient.bucket();
+        Blob blobToDelete = bucket.get(blob);
+
+        if(blobToDelete != null) {
+            blobToDelete.delete();
+        }
     }
 
     /**
@@ -175,7 +151,11 @@ public class FirebasePhotoService implements PhotoService {
              String mimeType = tika.detect(inputStream);
 
              if(!acceptedImageTypes.contains(mimeType)) {
-                 throw InvalidPhotoException.ofPhotoWithInvalidExtension(mimeType, acceptedImageTypes);
+                 throw InvalidPhotoException.ofPhotoWithInvalidExtension(
+                         multipartFile.getOriginalFilename(),
+                         mimeType,
+                         acceptedImageTypes
+                 );
              }
 
          } catch (IOException e) {

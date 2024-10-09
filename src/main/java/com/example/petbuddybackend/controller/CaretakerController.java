@@ -3,21 +3,28 @@ package com.example.petbuddybackend.controller;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
+import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.CaretakerService;
+import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,7 +54,7 @@ public class CaretakerController {
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
             @RequestBody(required = false) Set<@Valid OfferFilterDTO> offerFilters
-            ) {
+    ) {
         if(offerFilters == null) {
             offerFilters = Collections.emptySet();
         }
@@ -66,21 +73,26 @@ public class CaretakerController {
         return caretakerService.getCaretaker(caretakerEmail);
     }
 
-    @PostMapping("/add")
+    @PostMapping(value = "/add", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Add caretaker profile",
             description = "Add caretaker profile if it does not exists"
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Added caretaker profile successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input or image type"),
+            @ApiResponse(responseCode = "413", description = "Uploaded file exceeds the maximum allowed size of ${spring.servlet.multipart.max-file-size}")
+    })
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexInfoDTO addCaretaker(
-            @RequestBody @Valid CreateCaretakerDTO caretakerDTO,
             Principal principal,
-            List<MultipartFile> newOfferPhotos // TODO: will be null if not provided?
+            @RequestPart @Valid CreateCaretakerDTO caretakerData,
+            @RequestPart List<@NotNull MultipartFile> newOfferPhotos
     ) {
-        return caretakerService.addCaretaker(caretakerDTO, principal.getName(), newOfferPhotos);
+        return caretakerService.addCaretaker(caretakerData, principal.getName(), newOfferPhotos);
     }
 
-    @PutMapping("/edit")
+    @PutMapping(value = "/edit", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Edit caretaker profile",
             description = """
@@ -94,11 +106,35 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexInfoDTO editCaretaker(
-            @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
             Principal principal,
-            List<MultipartFile> newOfferPhotos // TODO: will be null if not provided?
+            @AcceptRole(acceptRole = Role.CARETAKER)
+            @RequestHeader(value = "${header-name.role}") Role role,
+            @RequestPart @Valid ModifyCaretakerDTO caretakerData,
+            @RequestPart List<@NotNull MultipartFile> newOfferPhotos
     ) {
-        return caretakerService.editCaretaker(caretakerDTO, principal.getName(), newOfferPhotos);
+        return caretakerService.editCaretaker(caretakerData, principal.getName(), newOfferPhotos);
+    }
+
+    @PutMapping(value = "/offer-photo", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "Add new offer photos",
+            description = """
+                    Edit caretaker offer photos
+                    Param newOfferPhotos adds new photos to caretaker profile.
+
+                    Param currentOfferBlobs should contain blobs of photos that are currently in caretaker profile.
+                    Blobs not included in this set will be removed. Not providing any blobs will remove all photos.
+                    """
+    )
+    public List<PhotoLinkDTO> editCaretakerOfferPhotos(
+            Principal principal,
+            @AcceptRole(acceptRole = Role.CARETAKER)
+            @RequestHeader(value = "${header-name.role}") Role role,
+            @RequestPart Set<@NotNull String> currentOfferBlobs,
+            @RequestPart List<@NotNull MultipartFile> newOfferPhotos
+    ) {
+        return caretakerService.applyOfferPhotoPatch(principal.getName(), currentOfferBlobs, newOfferPhotos);
     }
 
     @SecurityRequirements
@@ -122,6 +158,8 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public RatingResponse rateCaretaker(
+            @AcceptRole(acceptRole = Role.CLIENT)
+            @RequestHeader(value = "${header-name.role}") Role role,
             @PathVariable String caretakerEmail,
             @RequestBody @Valid RatingRequest ratingDTO,
             Principal principal
@@ -141,6 +179,8 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public RatingResponse deleteRating(
+            @AcceptRole(acceptRole = Role.CLIENT)
+            @RequestHeader(value = "${header-name.role}") Role role,
             @PathVariable String caretakerEmail,
             Principal principal
     ) {

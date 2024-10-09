@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
+import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
@@ -16,6 +17,7 @@ import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
+import com.example.petbuddybackend.service.mapper.PhotoMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
@@ -29,9 +31,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +47,7 @@ public class CaretakerService {
     private final RatingRepository ratingRepository;
     private final CaretakerMapper caretakerMapper = CaretakerMapper.INSTANCE;
     private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
+    private final PhotoMapper photoMapper = PhotoMapper.INSTANCE;
 
     private final UserService userService;
     private final PhotoService photoService;
@@ -104,8 +107,8 @@ public class CaretakerService {
         return ratingMapper.mapToRatingResponse(rating);
     }
 
-    // TODO: commit squished
-    // TODO: test if throws then will the photos get removed?
+
+    // TODO: test add/delete photos on addCaretaker, editCaretaker, editphotos
     @Transactional
     public CaretakerComplexInfoDTO addCaretaker(
             CreateCaretakerDTO createCaretakerDTO,
@@ -114,7 +117,7 @@ public class CaretakerService {
     ) {
         assertCaretakerNotExists(email);
         AppUser appUser = userService.getAppUser(email);
-        Set<PhotoLink> uploadedOfferPhotos = photoService.uploadPhotos(newOfferPhotos);
+        List<PhotoLink> uploadedOfferPhotos = photoService.uploadPhotos(newOfferPhotos);
         Caretaker caretaker = caretakerMapper.mapToCaretaker(createCaretakerDTO, appUser, uploadedOfferPhotos);
 
         renewCaretakerPictures(caretaker);
@@ -127,37 +130,56 @@ public class CaretakerService {
             String email,
             List<MultipartFile> newOfferPhotos
     ) {
-        AppUser appUser = userService.getAppUser(email);
-        Caretaker caretaker = getCaretakerByEmail(appUser.getEmail());
+        Caretaker caretaker = getCaretakerByEmail(email);
+        caretakerMapper.updateCaretakerFromDTO(caretaker, modifyCaretakerDTO);
 
-        // TODO: to function
-        Set<PhotoLink> currentOfferPhotos = caretaker.getOfferPhotos();
-        Set<String> offerBlobsToKeep = modifyCaretakerDTO.offerBlobsToKeep();
-
-        Set<PhotoLink> offerBlobsToRemove = currentOfferPhotos.stream()
-                .filter(photoLink -> !offerBlobsToKeep.contains(photoLink.getBlob()))
-                .collect(Collectors.toSet());
-
-        photoService.deletePhotos(offerBlobsToRemove);
-        Set<PhotoLink> uploadedOfferPhotos = photoService.uploadPhotos(newOfferPhotos);
-
-        Set<PhotoLink> mergedPhotos = currentOfferPhotos.stream()
-                .filter(photoLink -> offerBlobsToKeep.contains(photoLink.getBlob()))
-                .collect(Collectors.toSet());
-
-        mergedPhotos.addAll(uploadedOfferPhotos);
-
-        caretakerMapper.updateCaretakerFromDTO(caretaker, modifyCaretakerDTO, mergedPhotos);
+        applyOfferPhotoPatch(caretaker, modifyCaretakerDTO.offerBlobsToKeep(), newOfferPhotos);
         renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
-    // FIXME: might throw if I replace photos
-    // TODO: check sql of this method
-    // TODO check if saved photo is in caretaker or is just saved in db
+    @Transactional
+    public List<PhotoLinkDTO> applyOfferPhotoPatch(
+            String email,
+            Set<String> offerBlobsToKeep,
+            List<MultipartFile> newOfferPhotos
+    ) {
+        Caretaker caretaker = getCaretakerByEmail(email);
+        applyOfferPhotoPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
+        renewCaretakerPictures(caretaker);
+
+        return caretakerRepository.save(caretaker).getOfferPhotos().stream()
+                .map(photoMapper::mapToPhotoLinkDTO)
+                .toList();
+    }
+
+    private void applyOfferPhotoPatch(Caretaker caretaker, Set<String> blobsToKeep, List<MultipartFile> newPhotos) {
+        List<PhotoLink> currentPhotos = caretaker.getOfferPhotos();
+
+        int currentPhotosSize = currentPhotos.size();
+        int photosToKeepSize = Math.min(currentPhotosSize, blobsToKeep.size() + newPhotos.size());
+        int photosToRemoveSize = Math.max(0, currentPhotosSize - photosToKeepSize);
+
+        List<PhotoLink> photosToKeep = new ArrayList<>(photosToKeepSize);
+        List<PhotoLink> photosToRemove = new ArrayList<>(photosToRemoveSize);
+
+        currentPhotos.forEach(photo -> {
+            if(blobsToKeep.contains(photo.getBlob())) {
+                photosToKeep.add(photo);
+            } else {
+                photosToRemove.add(photo);
+            }
+        });
+
+        caretaker.getOfferPhotos().clear();
+        caretaker.getOfferPhotos().addAll(photosToKeep);
+        caretaker.getOfferPhotos().addAll(photoService.uploadPhotos(newPhotos));
+        photoService.deletePhotos(photosToRemove);
+    }
+
     private Caretaker renewCaretakerPictures(Caretaker caretaker) {
         AppUser appUser = caretaker.getAccountData();
-        Set<PhotoLink> userPhotos = caretaker.getOfferPhotos();
+        List<PhotoLink> userPhotos = caretaker.getOfferPhotos();
 
         userService.renewProfilePicture(appUser);
         photoService.updatePhotoExpirations(userPhotos);

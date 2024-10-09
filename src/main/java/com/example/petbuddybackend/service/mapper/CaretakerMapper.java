@@ -14,7 +14,7 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-import java.util.Set;
+import java.util.List;
 
 
 @Mapper(uses = {OfferMapper.class, AddressMapper.class, UserMapper.class})
@@ -26,16 +26,12 @@ public interface CaretakerMapper {
     CaretakerComplexInfoDTO mapToCaretakerComplexInfoDTO(Caretaker caretaker);
 
     @Mapping(target = "accountData", source = "accountData")
-    Caretaker mapToCaretaker(ModifyCaretakerDTO caretakerDTO, AppUser accountData, Set<PhotoLink> caretakerPhotos);
-
-    // TODO: add test
-    @Mapping(target = "accountData", source = "accountData")
-    Caretaker mapToCaretaker(CreateCaretakerDTO caretakerDTO, AppUser accountData, Set<PhotoLink> caretakerPhotos);
+    Caretaker mapToCaretaker(CreateCaretakerDTO caretakerDTO, AppUser accountData, List<PhotoLink> offerPhotos);
 
     @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")
     CaretakerDTO mapToCaretakerDTO(Caretaker caretaker);
 
-    void updateCaretakerFromDTO(@MappingTarget Caretaker caretaker, ModifyCaretakerDTO caretakerDTO, Set<PhotoLink> offerPhotos);
+    void updateCaretakerFromDTO(@MappingTarget Caretaker caretaker, ModifyCaretakerDTO caretakerDTO);
 
     @Named("mapAnimalFromOffer")
     default String mapAnimalFromOffer(Offer offer) {

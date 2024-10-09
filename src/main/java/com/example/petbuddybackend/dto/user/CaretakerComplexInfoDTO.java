@@ -17,5 +17,5 @@ public record CaretakerComplexInfoDTO(
     List<OfferDTO> offers,
     Integer numberOfRatings,
     Float avgRating,
-    Set<PhotoLinkDTO> offerPhotos
+    List<PhotoLinkDTO> offerPhotos
 ){}

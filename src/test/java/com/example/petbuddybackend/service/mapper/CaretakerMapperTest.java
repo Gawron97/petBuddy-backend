@@ -3,6 +3,7 @@ package com.example.petbuddybackend.service.mapper;
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -11,6 +12,8 @@ import com.example.petbuddybackend.testutils.ValidationUtils;
 import com.example.petbuddybackend.testutils.mock.MockOfferProvider;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,13 +42,13 @@ public class CaretakerMapperTest {
         AppUser accountData = MockUserProvider.createMockAppUser();
         AddressDTO addressDTO = AddressMapper.INSTANCE.mapToAddressDTO(MockUserProvider.createMockAddress());
 
-        ModifyCaretakerDTO dto = ModifyCaretakerDTO.builder()
+        CreateCaretakerDTO dto = CreateCaretakerDTO.builder()
                         .phoneNumber("12345678")
                         .description("description")
                         .address(addressDTO)
                         .build();
 
-        Caretaker caretakerMappingResult = mapper.mapToCaretaker(dto, accountData);
+        Caretaker caretakerMappingResult = mapper.mapToCaretaker(dto, accountData, new ArrayList<>());
 
         // Set calculated fields to pass the test
         caretakerMappingResult.setAvgRating(4.5f);
@@ -83,7 +86,7 @@ public class CaretakerMapperTest {
                         .address(AddressMapper.INSTANCE.mapToAddressDTO(MockUserProvider.createMockAddress()))
                         .build();
 
-        mapper.updateCaretakerFromDTO(dto, caretaker);
+        mapper.updateCaretakerFromDTO(caretaker, dto);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(caretaker));
     }
