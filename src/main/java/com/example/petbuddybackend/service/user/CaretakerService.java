@@ -7,6 +7,7 @@ import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -26,8 +27,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -100,21 +104,51 @@ public class CaretakerService {
         return ratingMapper.mapToRatingResponse(rating);
     }
 
-    public CaretakerComplexInfoDTO addCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
+    // TODO: commit squished
+    // TODO: test if throws then will the photos get removed?
+    @Transactional
+    public CaretakerComplexInfoDTO addCaretaker(
+            CreateCaretakerDTO createCaretakerDTO,
+            String email,
+            List<MultipartFile> newOfferPhotos
+    ) {
         assertCaretakerNotExists(email);
         AppUser appUser = userService.getAppUser(email);
-        Caretaker caretaker = caretakerMapper.mapToCaretaker(caretakerDTO, appUser);
+        Set<PhotoLink> uploadedOfferPhotos = photoService.uploadPhotos(newOfferPhotos);
+        Caretaker caretaker = caretakerMapper.mapToCaretaker(createCaretakerDTO, appUser, uploadedOfferPhotos);
 
         renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
-    public CaretakerComplexInfoDTO editCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
+    @Transactional
+    public CaretakerComplexInfoDTO editCaretaker(
+            ModifyCaretakerDTO modifyCaretakerDTO,
+            String email,
+            List<MultipartFile> newOfferPhotos
+    ) {
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretaker = getCaretakerByEmail(appUser.getEmail());
 
+        // TODO: to function
+        Set<PhotoLink> currentOfferPhotos = caretaker.getOfferPhotos();
+        Set<String> offerBlobsToKeep = modifyCaretakerDTO.offerBlobsToKeep();
+
+        Set<PhotoLink> offerBlobsToRemove = currentOfferPhotos.stream()
+                .filter(photoLink -> !offerBlobsToKeep.contains(photoLink.getBlob()))
+                .collect(Collectors.toSet());
+
+        photoService.deletePhotos(offerBlobsToRemove);
+        Set<PhotoLink> uploadedOfferPhotos = photoService.uploadPhotos(newOfferPhotos);
+
+        Set<PhotoLink> mergedPhotos = currentOfferPhotos.stream()
+                .filter(photoLink -> offerBlobsToKeep.contains(photoLink.getBlob()))
+                .collect(Collectors.toSet());
+
+        mergedPhotos.addAll(uploadedOfferPhotos);
+
+        caretakerMapper.updateCaretakerFromDTO(caretaker, modifyCaretakerDTO, mergedPhotos);
         renewCaretakerPictures(caretaker);
-        caretakerMapper.updateCaretakerFromDTO(caretakerDTO, caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 

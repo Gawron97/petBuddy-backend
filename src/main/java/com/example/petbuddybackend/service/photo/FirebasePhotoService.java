@@ -9,6 +9,7 @@ import com.google.cloud.storage.Bucket;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.cloud.StorageClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,11 +23,11 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FirebasePhotoService implements PhotoService {
 
-    private final static String INVALID_PHOTO_PROVIDED_MESSAGE = "Invalid photo provided";
     private final static String MISSING_FILE_EXTENSION = "Missing file extension";
     private final static String PHOTO = "Photo";
     private static final Set<String> acceptedImageTypes = Set.of(
@@ -50,6 +51,7 @@ public class FirebasePhotoService implements PhotoService {
     private final Tika tika;
 
 
+    @Override
     public Optional<PhotoLink> findPhotoLinkByNullableId(String blob) {
         if(blob == null) {
             return Optional.empty();
@@ -65,6 +67,27 @@ public class FirebasePhotoService implements PhotoService {
         validatePhoto(multipartFile);
         PhotoLink photo = uploadFile(multipartFile, MAX_EXPIRATION_SECONDS);
         return photoRepository.save(photo);
+    }
+
+    @Override
+    @Transactional
+    public Set<PhotoLink> uploadPhotos(List<MultipartFile> multipartFiles) {
+        multipartFiles.forEach(this::validatePhoto);
+        Set<PhotoLink> uploadedPhotos = new HashSet<>(multipartFiles.size());
+
+        try {
+            for(MultipartFile file : multipartFiles) {
+                uploadedPhotos.add(uploadFile(file, MAX_EXPIRATION_SECONDS));
+            }
+        } catch(Exception e) {
+            // Rollback uploaded photos
+            log.error("Error occurred while uploading photos. Rolling back uploaded photos", e);
+            photoRepository.deleteAll(uploadedPhotos);
+            throw e;
+        }
+
+        // TODO: maybe above rollback is not needed. Tests required
+        return new HashSet<>(photoRepository.saveAll(uploadedPhotos));
     }
 
     @Override
@@ -95,6 +118,38 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     @Override
+    public void deletePhotos(Set<PhotoLink> photoLinksToDelete) {
+        throw new UnsupportedOperationException("Not implemented yet"); // TODO: implement
+    }
+
+    @Override
+    @Transactional
+    public Set<PhotoLink> patchPhotos(
+            Set<PhotoLink> currentPhotos,
+            Set<String> blobsToKeep,
+            List<MultipartFile> newPhotos
+    ) {
+        int currentPhotosSize = currentPhotos.size();
+        int photosToKeepSize = Math.min(currentPhotosSize, blobsToKeep.size() + newPhotos.size());
+        int photosToRemoveSize = Math.max(0, currentPhotosSize - photosToKeepSize);
+
+        Set<PhotoLink> photosToKeep = new HashSet<>(photosToKeepSize);
+        Set<PhotoLink> photosToRemove = new HashSet<>(photosToRemoveSize);
+
+        currentPhotos.forEach(photo -> {
+            if(blobsToKeep.contains(photo.getBlob())) {
+                photosToKeep.add(photo);
+            } else {
+                photosToRemove.add(photo);
+            }
+        });
+
+        deletePhotos(photosToRemove);
+        photosToKeep.addAll(uploadPhotos(newPhotos));
+        return new HashSet<>(photoRepository.saveAll(photosToKeep));
+    }
+
+    @Override
     public PhotoLink updatePhotoExpiration(PhotoLink photo) {
         return photoRepository.save(applyPhotoRenewal(photo));
     }
@@ -113,18 +168,18 @@ public class FirebasePhotoService implements PhotoService {
      * */
      private void validatePhoto(MultipartFile multipartFile) {
          if (multipartFile == null || multipartFile.isEmpty()) {
-             throw new InvalidPhotoException(INVALID_PHOTO_PROVIDED_MESSAGE);
+             throw InvalidPhotoException.ofEmptyPhoto();
          }
 
          try(InputStream inputStream = multipartFile.getInputStream()) {
              String mimeType = tika.detect(inputStream);
 
              if(!acceptedImageTypes.contains(mimeType)) {
-                 throw InvalidPhotoException.invalidType(mimeType, acceptedImageTypes);
+                 throw InvalidPhotoException.ofPhotoWithInvalidExtension(mimeType, acceptedImageTypes);
              }
 
          } catch (IOException e) {
-             throw new InvalidPhotoException(INVALID_PHOTO_PROVIDED_MESSAGE);
+             throw InvalidPhotoException.ofInvalidPhoto(multipartFile.getOriginalFilename());
          }
      }
 
@@ -155,7 +210,7 @@ public class FirebasePhotoService implements PhotoService {
                     .urlExpiresAt(LocalDateTime.now().plusSeconds(expirationSeconds))
                     .build();
         } catch(IOException e) {
-            throw new InvalidPhotoException(INVALID_PHOTO_PROVIDED_MESSAGE);
+            throw InvalidPhotoException.ofInvalidPhoto(file.getOriginalFilename());
         }
     }
 

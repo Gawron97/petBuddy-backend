@@ -7,6 +7,7 @@ import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
@@ -19,9 +20,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -70,23 +73,32 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexInfoDTO addCaretaker(
-            @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
-            Principal principal
+            @RequestBody @Valid CreateCaretakerDTO caretakerDTO,
+            Principal principal,
+            List<MultipartFile> newOfferPhotos // TODO: will be null if not provided?
     ) {
-        return caretakerService.addCaretaker(caretakerDTO, principal.getName());
+        return caretakerService.addCaretaker(caretakerDTO, principal.getName(), newOfferPhotos);
     }
 
     @PutMapping("/edit")
     @Operation(
             summary = "Edit caretaker profile",
-            description = "Edit caretaker profile if it does exists"
+            description = """
+                    Edit caretaker profile if it does exists.
+                    
+                    Param newOfferPhotos adds new photos to caretaker profile.
+                    
+                    Param currentOfferBlobs should contain blobs of photos that are currently in caretaker profile.
+                    Blobs not included in this set will be removed. Not providing any blobs will remove all photos.
+                    """
     )
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexInfoDTO editCaretaker(
             @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
-            Principal principal
+            Principal principal,
+            List<MultipartFile> newOfferPhotos // TODO: will be null if not provided?
     ) {
-        return caretakerService.editCaretaker(caretakerDTO, principal.getName());
+        return caretakerService.editCaretaker(caretakerDTO, principal.getName(), newOfferPhotos);
     }
 
     @SecurityRequirements
