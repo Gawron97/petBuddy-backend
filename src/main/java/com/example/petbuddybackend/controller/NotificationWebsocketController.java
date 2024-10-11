@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 /**
@@ -23,6 +24,9 @@ public class NotificationWebsocketController {
     @Value("${url.notification.topic.base}")
     private String NOTIFICATION_BASE_URL;
 
+    @Value("${header-name.timezone}")
+    private String TIMEZONE_HEADER_NAME;
+
     @EventListener
     public void handleSubscription(SessionSubscribeEvent event) {
 
@@ -34,9 +38,25 @@ public class NotificationWebsocketController {
         }
 
         String userEmail = accessor.getUser().getName();
+        String sessionId = accessor.getSessionId();
+        String zoneId = HeaderUtils.getNativeHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class);
+
+        websocketNotificationService.storeUserTimeZoneWithSession(sessionId, zoneId);
 
         log.info("User {} subscribed to {} with number of sessions: {}",
                 userEmail, destination, websocketNotificationService.getNumberOfSessions(userEmail));
+
+    }
+
+    @EventListener
+    public void handleSessionDisconnect(SessionDisconnectEvent event) {
+
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String sessionId = accessor.getSessionId();
+
+        websocketNotificationService.removeUserSessionWithTimeZone(sessionId);
+
+        log.info("Session {} disconnected", sessionId);
 
     }
 
