@@ -89,6 +89,10 @@ public class ChatController {
                 message,
                 TimeUtils.getOrSystemDefault(acceptTimeZone)
         );
+        // notificationService.sendNotificationOfUnseenChatRooms(
+        //       chatService.getReceiverEmail(principalUsername),
+        //       chatService.getNumberOfUnseenChatRooms(principalUsername)
+        // );
     }
 
     @PreAuthorize("isAuthenticated()")

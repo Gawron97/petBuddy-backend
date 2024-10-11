@@ -62,6 +62,10 @@ public class ChatWebSocketController {
 
         chatSessionService.patchMetadata(chatId, principalUsername, sessionId, headers);
         chatSessionService.sendNotifications(chatId, new ChatNotificationMessage(messageDTO), callback);
+        // notificationService.sendNotificationOfUnseenChatRooms(
+        //       chatService.getReceiverEmail(principalUsername),
+        //       chatService.getNumberOfUnseenChatRooms(principalUsername)
+        // );
         log.debug("Send message triggered by session id: {}", sessionId);
     }
 
@@ -85,7 +89,10 @@ public class ChatWebSocketController {
         chatService.updateLastMessageSeen(chatId, username);
         chatSessionService.subscribe(chatId, username, sessionId, TimeUtils.getOrSystemDefault(timeZone), subscriptionId);
         chatSessionService.sendNotifications(chatId, new ChatNotificationJoined(chatId, username));
-
+        // notificationService.sendNotificationOfUnseenChatRooms(
+        //       principalUsername,
+        //       chatService.getNumberOfUnseenChatRooms(principalUsername)
+        // );
         log.debug("Subscribe triggered by session: {}, at destination: {}", sessionId, destination);
     }
 

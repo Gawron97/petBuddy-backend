@@ -31,6 +31,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
         config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
+        // for notifications client need to subscribe to /user/topic/notification
+        // notifications will be send to /user/{username}/topic/notification to all sessions of user
     }
 
     @Override
