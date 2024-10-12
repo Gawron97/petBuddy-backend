@@ -131,10 +131,10 @@ public class CaretakerController {
             Principal principal,
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role,
-            @RequestPart Set<@NotNull String> currentOfferBlobs,
+            @RequestPart Set<@NotNull String> offerBlobsToKeep,
             @RequestPart List<@NotNull MultipartFile> newOfferPhotos
     ) {
-        return caretakerService.patchOfferPhotos(principal.getName(), currentOfferBlobs, newOfferPhotos);
+        return caretakerService.patchOfferPhotos(principal.getName(), offerBlobsToKeep, newOfferPhotos);
     }
 
     @SecurityRequirements
