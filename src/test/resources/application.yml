@@ -45,6 +45,10 @@ url:
     topic:
       base: "/topic/session"
       pattern: "/topic/session/%s"
+  notification:
+    topic:
+      base: "/user/topic/notification"
+      pattern: "/topic/notification"
 
 
 firebase:
