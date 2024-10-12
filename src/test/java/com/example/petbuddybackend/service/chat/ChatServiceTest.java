@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +38,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 @SpringBootTest
 public class ChatServiceTest {
@@ -59,11 +61,11 @@ public class ChatServiceTest {
     @Autowired
     private CaretakerRepository caretakerRepository;
 
-    private ChatRoom chatRoom;
-    private Client client;
-    private Client otherClientWithCaretakerAccount;
-    private Caretaker caretaker;
-    private Caretaker otherCaretaker;
+    private static ChatRoom chatRoom;
+    private static Client client;
+    private static Client otherClientWithCaretakerAccount;
+    private static Caretaker caretaker;
+    private static Caretaker otherCaretaker;
 
     @BeforeEach
     void setUp() {
@@ -511,11 +513,51 @@ public class ChatServiceTest {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("provideValidUserAndParticipant")
+    void getChatRoomWithParticipant_shouldSucceed(
+            String username,
+            Role role,
+            String participantUsername
+    ) {
+        ChatRoomDTO chatRoomDTO = chatService.getChatRoomWithParticipant(username, role, participantUsername, ZoneId.systemDefault());
+        assertEquals(chatRoom.getId(), chatRoomDTO.getId());
+        assertEquals(participantUsername, chatRoomDTO.getChatterEmail());
+        assertNotNull(chatRoomDTO.getLastMessageCreatedAt());
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideInvalidUserAndParticipant")
+    void getChatRoomWithParticipant_userIsNotParticipant_shouldThrowNotFoundException(
+            String username,
+            Role role,
+            String participantUsername
+    ) {
+        assertThrows(
+                NotFoundException.class,
+                () -> chatService.getChatRoomWithParticipant(username, role, participantUsername, ZoneId.systemDefault())
+        );
+    }
+
     private static Stream<String> provideTimeZones() {
         return Stream.of(
             "UTC",
             "Europe/Warsaw",
             "Asia/Tokyo"
+        );
+    }
+
+    private static Stream<Arguments> provideValidUserAndParticipant() {
+        return Stream.of(
+                Arguments.of(client.getEmail(), Role.CLIENT, caretaker.getEmail()),
+                Arguments.of(caretaker.getEmail(), Role.CARETAKER, client.getEmail())
+        );
+    }
+
+    private static Stream<Arguments> provideInvalidUserAndParticipant() {
+        return Stream.of(
+                Arguments.of(client.getEmail(), Role.CARETAKER, caretaker.getEmail()),
+                Arguments.of(caretaker.getEmail(), Role.CLIENT, client.getEmail())
         );
     }
 }

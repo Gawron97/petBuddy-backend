@@ -75,4 +75,16 @@ public class ChatMapperTest {
 
         assertEquals(warsawZone, newZone);
     }
+
+    @Test
+    void mapToChatRoomDTO_shouldNotLeaveNullFields() {
+        ChatRoomDTO mappedChatRoom = mapper.mapToChatRoomDTO(
+                1L,
+                MockUserProvider.createMockAppUser(),
+                chatMessage,
+                true,
+                ZoneId.systemDefault()
+        );
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(mappedChatRoom));
+    }
 }
