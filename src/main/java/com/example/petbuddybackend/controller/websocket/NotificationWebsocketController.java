@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.controller;
+package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
 import com.example.petbuddybackend.utils.header.HeaderUtils;

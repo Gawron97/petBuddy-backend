@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.controller;
+package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;

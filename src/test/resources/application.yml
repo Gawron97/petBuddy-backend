@@ -26,8 +26,8 @@ logging:
       example:
         petbuddybackend:
           controller:
-            ChatWebSocketController: debug
-            WebSocketController: debug
+            com.example.petbuddybackend.controller.websocket.ChatWebSocketController: debug
+            com.example.petbuddybackend.controller.websocket.WebSocketController: debug
 
 server:
   port: 8081

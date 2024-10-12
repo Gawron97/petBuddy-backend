@@ -165,9 +165,7 @@
 
                             <!-- Excludes for classes covered by websocket tests -->
                             <exclude>com/example/petbuddybackend/filter/SubscriptionInterceptor.class</exclude>
-                            <exclude>com/example/petbuddybackend/controller/WebSocketController.class</exclude>
-                            <exclude>com/example/petbuddybackend/controller/ChatWebSocketController.class</exclude>
-                            <exclude>com/example/petbuddybackend/controller/SessionWebSocketController.class</exclude>
+                            <exclude>com/example/petbuddybackend/controller/websocket/**</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
