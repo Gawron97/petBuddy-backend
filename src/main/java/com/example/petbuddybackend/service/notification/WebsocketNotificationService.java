@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.service.notification;
 
 import com.example.petbuddybackend.dto.notification.NotificationDTO;
-import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.notification.Notification;
 import com.example.petbuddybackend.service.mapper.NotificationMapper;
 import com.example.petbuddybackend.utils.time.TimeUtils;
@@ -43,24 +42,30 @@ public class WebsocketNotificationService {
         if(isUserConnected(userEmail)) {
             Set<SimpSession> userSessions = getUserSessions(userEmail);
             for(SimpSession session : userSessions) {
-                ZoneId timeZone = sessionsTimeZone.getOrDefault(session.getId(), ZoneId.systemDefault());
-                NotificationDTO notificationToSend = convertNotificationWithMessageTimezone(notification, timeZone);
-                simpMessagingTemplate.convertAndSendToUser(
-                        userEmail,
-                        NOTIFICATION_BASE_URL,
-                        notificationToSend,
-                        createHeaders(session.getId())
-                );
+                synchronized (sessionsTimeZone) {
+                    ZoneId timeZone = sessionsTimeZone.getOrDefault(session.getId(), ZoneId.systemDefault());
+                    NotificationDTO notificationToSend = convertNotificationWithMessageTimezone(notification, timeZone);
+                    simpMessagingTemplate.convertAndSendToUser(
+                            userEmail,
+                            NOTIFICATION_BASE_URL,
+                            notificationToSend,
+                            createHeaders(session.getId())
+                    );
+                }
             }
         }
     }
 
     public void storeUserTimeZoneWithSession(String sessionId, String zoneId) {
-        sessionsTimeZone.put(sessionId, TimeUtils.getOrSystemDefault(zoneId));
+        synchronized (sessionsTimeZone) {
+            sessionsTimeZone.put(sessionId, TimeUtils.getOrSystemDefault(zoneId));
+        }
     }
 
     public void removeUserSessionWithTimeZone(String sessionId) {
-        sessionsTimeZone.remove(sessionId);
+        synchronized (sessionsTimeZone) {
+            sessionsTimeZone.remove(sessionId);
+        }
     }
 
     private NotificationDTO convertNotificationWithMessageTimezone(Notification notification, ZoneId timeZone) {

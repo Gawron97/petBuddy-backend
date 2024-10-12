@@ -3,14 +3,17 @@ package com.example.petbuddybackend.controller.websocket;
 import com.example.petbuddybackend.dto.notification.NotificationDTO;
 import com.example.petbuddybackend.entity.notification.Notification;
 import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
+import com.example.petbuddybackend.testutils.websocket.WebsocketUtils;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +25,7 @@ import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
@@ -33,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ActiveProfiles("test-security-inject-user")
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class NotificationWebsocketControllerTest {
 
@@ -85,7 +90,7 @@ public class NotificationWebsocketControllerTest {
         StompSession stompSession = connectToWebsocket();
 
         // Subscribe to notification topic
-        StompSession.Subscription subscription = subscribeToNotificationTopic();
+        StompSession.Subscription subscription = subscribeToNotificationTopic(stompSession);
 
         // Check if session is opened
         assertEquals(1, websocketNotificationService.getNumberOfSessions(USER_EMAIL));
@@ -96,18 +101,30 @@ public class NotificationWebsocketControllerTest {
     }
 
     @Test
+    @SneakyThrows
     void testNotificationFlow() {
 
         // Connect to websocket
         StompSession stompSession = connectToWebsocket();
 
         // Subscribe to notification topic
-        StompSession.Subscription subscription = subscribeToNotificationTopic();
+        StompSession.Subscription subscription = subscribeToNotificationTopic(stompSession);
 
         // Send message
         Caretaker caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
         Notification notification = PersistenceUtils.addCaretakerNotification(caretakerNotificationRepository, caretaker);
-        websocketNotificationService.
+        websocketNotificationService.sendNotification(
+                USER_EMAIL,
+                notification
+        );
+
+        // Check if message was received
+        NotificationDTO receivedNotification = blockingQueue.poll(1, TimeUnit.SECONDS);
+        assertEquals(notification.getId(), receivedNotification.notificationId());
+        assertEquals(notification.getObjectId(), receivedNotification.objectId());
+        assertEquals(notification.getObjectType(), receivedNotification.objectType());
+        assertEquals(notification.getMessage(), receivedNotification.message());
+        assertEquals(Role.CARETAKER, receivedNotification.receiverProfile());
 
     }
 
@@ -119,12 +136,16 @@ public class NotificationWebsocketControllerTest {
         ).get(1, TimeUnit.SECONDS);
     }
 
-    private StompSession.Subscription subscribeToNotificationTopic() {
-        StompHeaders headers = createHeaders();
-        return stompSession.subscribe(headers, new DefaultStompFrameHandler());
+    private StompSession.Subscription subscribeToNotificationTopic(StompSession stompSession) {
+        StompHeaders headers = createHeaders(stompSession);
+        return WebsocketUtils.subscribeToTopic(
+                stompSession,
+                headers,
+                new DefaultStompFrameHandler()
+        );
     }
 
-    private StompHeaders createHeaders() {
+    private StompHeaders createHeaders(StompSession stompSession) {
         StompHeaders headers = new StompHeaders();
         headers.setDestination(SUBSCRIBE_TOPIC);
         headers.setSession(stompSession.getSessionId());

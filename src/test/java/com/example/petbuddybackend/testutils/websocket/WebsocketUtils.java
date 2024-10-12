@@ -1,10 +1,7 @@
 package com.example.petbuddybackend.testutils.websocket;
 
-import com.example.petbuddybackend.controller.websocket.ChatWebSocketIntegrationTest;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationConnected;
-import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
 import lombok.SneakyThrows;
+import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
@@ -24,12 +21,10 @@ public class WebsocketUtils {
 
     public static StompSession.Subscription subscribeToTopic(
             StompSession stompSession,
-            ChatNotificationConnected chatMessageConnected,
+            StompHeaders headers,
+            StompFrameHandler stompFrameHandler
     ) {
-        NoSecurityInjectUserConfig.injectedUsername = chatMessageConnected.getConnectingUserEmail();
-        String destinationFormated = String.format(SUBSCRIPTION_URL_PATTERN, 1L, chatMessageConnected.getSessionId());
-        StompHeaders headers = createHeaders(destinationFormated, timeZone, role);
-        return stompSession.subscribe(headers, new ChatWebSocketIntegrationTest.ChatNotificationFrameHandler());
+        return stompSession.subscribe(headers, stompFrameHandler);
     }
 
 }

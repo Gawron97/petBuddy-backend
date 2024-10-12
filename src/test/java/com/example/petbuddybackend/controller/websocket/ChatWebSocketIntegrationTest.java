@@ -6,6 +6,7 @@ import com.example.petbuddybackend.dto.chat.notification.*;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
+import com.example.petbuddybackend.testutils.websocket.WebsocketUtils;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -279,9 +280,13 @@ public class ChatWebSocketIntegrationTest {
             Role role
     ) {
         NoSecurityInjectUserConfig.injectedUsername = chatMessageConnected.getConnectingUserEmail();
-        String destinationFormated = String.format(SUBSCRIPTION_URL_PATTERN, 1L, chatMessageConnected.getSessionId());
-        StompHeaders headers = createHeaders(destinationFormated, timeZone, role);
-        return stompSession.subscribe(headers, new ChatNotificationFrameHandler());
+        String destinationFormatted = String.format(SUBSCRIPTION_URL_PATTERN, 1L, chatMessageConnected.getSessionId());
+        StompHeaders headers = createHeaders(destinationFormatted, timeZone, role);
+        return WebsocketUtils.subscribeToTopic(
+                stompSession,
+                headers,
+                new ChatNotificationFrameHandler()
+        );
     }
 
     private List<Transport> createTransportClient() {
