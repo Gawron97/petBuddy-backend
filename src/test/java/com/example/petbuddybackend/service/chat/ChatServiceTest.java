@@ -38,10 +38,14 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 @SpringBootTest
 public class ChatServiceTest {
+
+    private static Client client;
+    private static Client otherClientWithCaretakerAccount;
+    private static Caretaker caretaker;
+    private static Caretaker otherCaretaker;
 
     @Autowired
     private ChatRoomRepository chatRepository;
@@ -61,11 +65,7 @@ public class ChatServiceTest {
     @Autowired
     private CaretakerRepository caretakerRepository;
 
-    private static ChatRoom chatRoom;
-    private static Client client;
-    private static Client otherClientWithCaretakerAccount;
-    private static Caretaker caretaker;
-    private static Caretaker otherCaretaker;
+    private ChatRoom chatRoom;
 
     @BeforeEach
     void setUp() {
