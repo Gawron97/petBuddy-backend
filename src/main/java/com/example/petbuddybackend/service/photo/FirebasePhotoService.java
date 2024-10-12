@@ -73,6 +73,10 @@ public class FirebasePhotoService implements PhotoService {
     @Override
     @Transactional
     public List<PhotoLink> uploadPhotos(List<MultipartFile> multipartFiles) {
+        if(multipartFiles.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         multipartFiles.forEach(this::validatePhoto);
         List<PhotoLink> uploadedPhotos = new ArrayList<>(multipartFiles.size());
 

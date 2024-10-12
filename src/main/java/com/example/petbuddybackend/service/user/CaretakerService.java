@@ -108,7 +108,6 @@ public class CaretakerService {
     }
 
 
-    // TODO: test add/delete photos on addCaretaker, editCaretaker, editphotos
     @Transactional
     public CaretakerComplexInfoDTO addCaretaker(
             CreateCaretakerDTO createCaretakerDTO,
@@ -133,19 +132,19 @@ public class CaretakerService {
         Caretaker caretaker = getCaretakerByEmail(email);
         caretakerMapper.updateCaretakerFromDTO(caretaker, modifyCaretakerDTO);
 
-        applyOfferPhotoPatch(caretaker, modifyCaretakerDTO.offerBlobsToKeep(), newOfferPhotos);
+        applyOfferPhotosPatch(caretaker, modifyCaretakerDTO.offerBlobsToKeep(), newOfferPhotos);
         renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
     @Transactional
-    public List<PhotoLinkDTO> applyOfferPhotoPatch(
+    public List<PhotoLinkDTO> patchOfferPhotos(
             String email,
             Set<String> offerBlobsToKeep,
             List<MultipartFile> newOfferPhotos
     ) {
         Caretaker caretaker = getCaretakerByEmail(email);
-        applyOfferPhotoPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
+        applyOfferPhotosPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
         renewCaretakerPictures(caretaker);
 
         return caretakerRepository.save(caretaker).getOfferPhotos().stream()
@@ -153,7 +152,7 @@ public class CaretakerService {
                 .toList();
     }
 
-    private void applyOfferPhotoPatch(Caretaker caretaker, Set<String> blobsToKeep, List<MultipartFile> newPhotos) {
+    private void applyOfferPhotosPatch(Caretaker caretaker, Set<String> blobsToKeep, List<MultipartFile> newPhotos) {
         List<PhotoLink> currentPhotos = caretaker.getOfferPhotos();
 
         int currentPhotosSize = currentPhotos.size();

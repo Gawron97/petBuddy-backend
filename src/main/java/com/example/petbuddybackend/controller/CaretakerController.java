@@ -134,7 +134,7 @@ public class CaretakerController {
             @RequestPart Set<@NotNull String> currentOfferBlobs,
             @RequestPart List<@NotNull MultipartFile> newOfferPhotos
     ) {
-        return caretakerService.applyOfferPhotoPatch(principal.getName(), currentOfferBlobs, newOfferPhotos);
+        return caretakerService.patchOfferPhotos(principal.getName(), currentOfferBlobs, newOfferPhotos);
     }
 
     @SecurityRequirements

@@ -296,7 +296,7 @@ public class CaretakerControllerTest {
         PhotoLinkDTO secondPhoto = new PhotoLinkDTO(blob2, url2);
         List<PhotoLinkDTO> expectedOutput = List.of(firstPhoto, secondPhoto);
 
-        when(caretakerService.applyOfferPhotoPatch(eq(CARETAKER_EMAIL), eq(currentOfferBlobs), any()))
+        when(caretakerService.patchOfferPhotos(eq(CARETAKER_EMAIL), eq(currentOfferBlobs), any()))
                 .thenReturn(expectedOutput);
 
 
