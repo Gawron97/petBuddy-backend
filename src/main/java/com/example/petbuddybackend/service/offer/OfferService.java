@@ -67,6 +67,32 @@ public class OfferService {
     }
 
     @Transactional
+    public OfferDTO addConfigurationsForOffer(Long offerId, List<ModifyConfigurationDTO> configurations, String caretakerEmail) {
+
+        Offer offer = getOffer(offerId);
+        assertOfferIsModifyingByOwnerCaretaker(offer, caretakerEmail);
+
+        List<OfferConfiguration> offerConfigurations = createAdditionalConfigurationsForOffer(configurations, offer);
+
+        offer.getOfferConfigurations().addAll(offerConfigurations);
+        return offerMapper.mapToOfferDTO(offerRepository.save(offer));
+
+    }
+
+    @Transactional
+    public OfferDTO addAmenitiesForOffer(Long offerId, Set<String> amenities, String caretakerEmail) {
+
+        Offer offer = getOffer(offerId);
+        assertOfferIsModifyingByOwnerCaretaker(offer, caretakerEmail);
+
+        Set<AnimalAmenity> animalAmenities = createAdditionalAnimalAmenitiesForOffer(amenities, offer);
+
+        offer.getAnimalAmenities().addAll(animalAmenities);
+        return offerMapper.mapToOfferDTO(offerRepository.save(offer));
+
+    }
+
+    @Transactional
     public OfferDTO deleteConfiguration(Long configurationId, String userEmail) {
 
         OfferConfiguration offerConfiguration = getOfferConfiguration(configurationId);
@@ -150,10 +176,13 @@ public class OfferService {
         List<OfferConfiguration> newOfferConfigurations = new ArrayList<>();
         for(ModifyConfigurationDTO offerConfiguration : offerConfigurations) {
             OfferConfiguration configuration = createConfiguration(offerConfiguration, offer);
-            checkForDuplicateConfiguration(Stream.concat(
-                    Optional.ofNullable(offer.getOfferConfigurations()).orElse(Collections.emptyList()).stream(),
-                    newOfferConfigurations.stream()
-            ).toList(), configuration);
+            checkForDuplicateConfiguration(
+                    Stream.concat(
+                        Optional.ofNullable(offer.getOfferConfigurations()).orElse(Collections.emptyList()).stream(),
+                        newOfferConfigurations.stream()
+                    ).toList(),
+                    configuration
+            );
 
             newOfferConfigurations.add(configuration);
         }
@@ -235,7 +264,7 @@ public class OfferService {
 
     }
 
-    private Set<AnimalAmenity> createAdditionalAnimalAmenitiesForOffer(List<String> animalAmenities, Offer modifiyngOffer) {
+    private Set<AnimalAmenity> createAdditionalAnimalAmenitiesForOffer(Set<String> animalAmenities, Offer modifiyngOffer) {
 
         List<AnimalAmenity> newAnimalAmenities = new ArrayList<>();
         for(String animalAmenity : animalAmenities) {
@@ -355,4 +384,5 @@ public class OfferService {
             }
         }
     }
+
 }

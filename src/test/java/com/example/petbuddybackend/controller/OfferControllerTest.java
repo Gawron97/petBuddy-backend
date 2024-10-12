@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -84,6 +85,22 @@ public class OfferControllerTest {
         }
         """;
 
+    private final static String ADD_CONFIGURATIONS_FOR_OFFER = """
+        [
+            {
+                "description": "New Configuration",
+                "dailyPrice": 20.0,
+                "selectedOptions": {
+                    "SIZE": ["SMALL"]
+                }
+            }
+        ]
+        """;
+
+    private final static String ADD_AMENITIES_FOR_OFFER = """
+        ["AMENITY1", "AMENITY2"]
+        """;
+
     @Test
     @WithMockUser
     void addOffer_ShouldReturnCreatedOffer() throws Exception {
@@ -112,6 +129,62 @@ public class OfferControllerTest {
                 .andExpect(jsonPath("$.offerConfigurations[0].selectedOptions.SIZE[0]").value("BIG"));
 
         verify(offerService, times(1)).addOrEditOffer(any(ModifyOfferDTO.class), anyString());
+    }
+
+    @Test
+    @WithMockUser
+    void addConfigurationsForOffer_ShouldReturnUpdatedOffer() throws Exception {
+        // Given
+        OfferDTO offerDTO = OfferDTO.builder()
+                .description("Test Offer with new configurations")
+                .offerConfigurations(List.of(
+                        OfferConfigurationDTO.builder()
+                                .description("New Configuration")
+                                .dailyPrice(BigDecimal.valueOf(20.0))
+                                .selectedOptions(Map.of("SIZE", List.of("SMALL")))
+                                .build()
+                ))
+                .build();
+
+        when(offerService.addConfigurationsForOffer(anyLong(), anyList(), anyString())).thenReturn(offerDTO);
+
+
+        // When and Then
+        mockMvc.perform(post("/api/caretaker/offer/1/add-configurations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ADD_CONFIGURATIONS_FOR_OFFER)
+                        .header(roleHeaderName, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Offer with new configurations"))
+                .andExpect(jsonPath("$.offerConfigurations[0].description").value("New Configuration"))
+                .andExpect(jsonPath("$.offerConfigurations[0].dailyPrice").value(20.0))
+                .andExpect(jsonPath("$.offerConfigurations[0].selectedOptions.SIZE[0]").value("SMALL"));
+
+        verify(offerService, times(1)).addConfigurationsForOffer(anyLong(), anyList(), anyString());
+    }
+
+    @Test
+    @WithMockUser
+    void addAmenitiesForOffer_ShouldReturnUpdatedOfferWithNewAmenities() throws Exception {
+        // Given
+        OfferDTO offerDTO = OfferDTO.builder()
+                .description("Test Offer with new amenities")
+                .animalAmenities(List.of("toys", "garden"))
+                .build();
+
+        when(offerService.addAmenitiesForOffer(anyLong(), anySet(), anyString())).thenReturn(offerDTO);
+
+        // When and Then
+        mockMvc.perform(post("/api/caretaker/offer/1/add-amenities")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ADD_AMENITIES_FOR_OFFER)
+                        .header(roleHeaderName, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Offer with new amenities"))
+                .andExpect(jsonPath("$.animalAmenities[0]").value("toys"))
+                .andExpect(jsonPath("$.animalAmenities[1]").value("garden"));
+
+        verify(offerService, times(1)).addAmenitiesForOffer(anyLong(), anySet(), anyString());
     }
 
     @Test

@@ -26,6 +26,7 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
+import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.AvailabilityDatesOverlappingException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import org.junit.jupiter.api.AfterEach;
@@ -187,7 +188,7 @@ public class OfferServiceIntegrationTest {
                                                         .build()
                                         ))
                                 )
-                                .animalAmenities(new ArrayList<>(List.of("garden")))
+                                .animalAmenities(new HashSet<>(List.of("garden")))
                                 .build(),
                         true , // Expected to be an existing offer
                         2, // Expected number of configurations after addition
@@ -197,7 +198,7 @@ public class OfferServiceIntegrationTest {
                         ModifyOfferDTO.builder()
                                 .description("Third Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
-                                .animalAmenities(new ArrayList<>(List.of("garden")))
+                                .animalAmenities(new HashSet<>(List.of("garden")))
                                 .build(),
                         true , // Expected to be an existing offer
                         1, // Expected number of configurations after addition
@@ -206,6 +207,155 @@ public class OfferServiceIntegrationTest {
         );
     }
 
+    @Test
+    @Transactional
+    void addConfigurationsForOffer_shouldAddConfigurationsProperly() {
+
+        //Given
+        List<ModifyConfigurationDTO> configurationsToAdd = List.of(
+                ModifyConfigurationDTO.builder()
+                        .description("Second Description")
+                        .dailyPrice(BigDecimal.valueOf(20.0))
+                        .selectedOptions(new HashMap<>(
+                                Map.of(
+                                        "SIZE", new ArrayList<>(List.of("SMALL"))
+                                )
+                        ))
+                        .build(),
+                ModifyConfigurationDTO.builder()
+                        .description("Third Description")
+                        .dailyPrice(BigDecimal.valueOf(30.0))
+                        .selectedOptions(new HashMap<>(
+                                Map.of(
+                                        "SIZE", new ArrayList<>(List.of("SMALL")),
+                                        "SEX", new ArrayList<>(List.of("SHE"))
+                                )
+                        ))
+                        .build()
+        );
+
+        //When
+        OfferDTO resultOfferDTO = offerService.addConfigurationsForOffer(
+                existingOffer.getId(),
+                configurationsToAdd,
+                caretakerWithComplexOffer.getEmail()
+        );
+
+        //Then
+        assertNotNull(resultOfferDTO);
+        Offer offerAfterAddition = offerRepository.findById(resultOfferDTO.id()).orElseThrow();
+        assertEquals(3, offerAfterAddition.getOfferConfigurations().size());
+
+    }
+
+    @Test
+    @Transactional
+    void addConfigurationsForOffer_whenAddingByNotOwner_ShouldThrowUnauthorizedException() {
+
+        //Given
+        List<ModifyConfigurationDTO> configurationsToAdd = List.of();
+
+        //When Then
+        assertThrows(UnauthorizedException.class,
+                () -> offerService.addConfigurationsForOffer(
+                        existingOffer.getId(),
+                        configurationsToAdd,
+                        "badEmail"
+                ));
+
+    }
+
+    @Test
+    @Transactional
+    void addConfigurationsForOffer_whenAddingDuplicateConfiguration_shouldThrowOfferConfigurationDuplicatedException() {
+
+        //Given
+        List<ModifyConfigurationDTO> configurationsToAdd = List.of(
+                ModifyConfigurationDTO.builder()
+                        .description("Second Description")
+                        .dailyPrice(BigDecimal.valueOf(20.0))
+                        .selectedOptions(new HashMap<>(
+                                Map.of(
+                                        "SIZE", new ArrayList<>(List.of("SMALL"))
+                                )
+                        ))
+                        .build(),
+                ModifyConfigurationDTO.builder()
+                        .description("Third Description")
+                        .dailyPrice(BigDecimal.valueOf(30.0))
+                        .selectedOptions(new HashMap<>(
+                                Map.of(
+                                        "SIZE", new ArrayList<>(List.of("BIG")),
+                                        "SEX", new ArrayList<>(List.of("MALE"))
+                                )
+                        ))
+                        .build()
+        );
+
+        //When Then
+        assertThrows(OfferConfigurationDuplicatedException.class,
+                () -> offerService.addConfigurationsForOffer(
+                        existingOffer.getId(),
+                        configurationsToAdd,
+                        caretakerWithComplexOffer.getEmail()
+                ));
+
+    }
+
+    @Test
+    @Transactional
+    void addAmenitiesForOffer_ShouldAddAmenitiesProperly() {
+
+        //Given
+        Set<String> amenitiesToAdd = Set.of("garden");
+
+        //When
+        OfferDTO resultOfferDTO = offerService.addAmenitiesForOffer(
+                existingOffer.getId(),
+                amenitiesToAdd,
+                caretakerWithComplexOffer.getEmail()
+        );
+
+        //Then
+        assertNotNull(resultOfferDTO);
+        Offer offerAfterAddition = offerRepository.findById(resultOfferDTO.id()).orElseThrow();
+        assertEquals(2, offerAfterAddition.getAnimalAmenities().size());
+
+    }
+
+    @Test
+    @Transactional
+    void addAmenitiesForOffer_whenAddingByNotOwner_ShouldThrowUnauthorizedException() {
+
+        //Given
+        Set<String> amenitiesToAdd = Set.of("garden");
+
+        //When Then
+        assertThrows(UnauthorizedException.class,
+                () -> offerService.addAmenitiesForOffer(
+                        existingOffer.getId(),
+                        amenitiesToAdd,
+                        "badEmail"
+                ));
+
+    }
+
+    @Test
+    @Transactional
+    void addAmenitiesForOffer_whenAddingDuplicateAmenity_ShouldThrowAnimalAmenityDuplicatedInOfferException() {
+
+        //Given
+        Set<String> amenitiesToAdd = Set.of("toys", "garden");
+
+        //When Then
+        assertThrows(AnimalAmenityDuplicatedInOfferException.class,
+                () -> offerService.addAmenitiesForOffer(
+                        existingOffer.getId(),
+                        amenitiesToAdd,
+                        caretakerWithComplexOffer.getEmail()
+                ));
+
+    }
 
     @ParameterizedTest
     @MethodSource("provideEditConfigurationScenarios")
@@ -338,7 +488,7 @@ public class OfferServiceIntegrationTest {
                         ModifyOfferDTO.builder()
                                 .description("Third Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
-                                .animalAmenities(new ArrayList<>(List.of("not found amenity")))
+                                .animalAmenities(new HashSet<>(List.of("not found amenity")))
                                 .build(),
                         true , // Expected to be an existing offer
                         NotFoundException.class
