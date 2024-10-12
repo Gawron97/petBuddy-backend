@@ -2,12 +2,11 @@ package com.example.petbuddybackend.service.notification;
 
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.notification.ClientNotification;
+import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
 import com.example.petbuddybackend.repository.notification.ClientNotificationRepository;
-import com.example.petbuddybackend.repository.notification.NotificationRepository;
-import com.example.petbuddybackend.service.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +16,10 @@ public class NotificationService {
 
     private final CaretakerNotificationRepository caretakerNotificationRepository;
     private final ClientNotificationRepository clientNotificationRepository;
-    private final NotificationRepository notificationRepository;
     private final WebsocketNotificationService websocketNotificationService;
 
 
-    public void addNotificationForCaretakerAndSend(Long objectId, String objectType, Caretaker caretaker, String message) {
+    public void addNotificationForCaretakerAndSend(Long objectId, ObjectType objectType, Caretaker caretaker, String message) {
         CaretakerNotification notification = createCaretakerNotification(objectId, objectType, caretaker, message);
         CaretakerNotification savedNotification = caretakerNotificationRepository.save(notification);
         websocketNotificationService.sendNotification(
@@ -30,7 +28,7 @@ public class NotificationService {
         );
     }
 
-    public void addNotificationForClientAndSend(Long objectId, String objectType, Client client, String message) {
+    public void addNotificationForClientAndSend(Long objectId, ObjectType objectType, Client client, String message) {
         ClientNotification notification = createClientNotification(objectId, objectType, client, message);
         ClientNotification savedNotification = clientNotificationRepository.save(notification);
         websocketNotificationService.sendNotification(
@@ -39,7 +37,7 @@ public class NotificationService {
         );
     }
 
-    private CaretakerNotification createCaretakerNotification(Long objectId, String objectType, Caretaker caretaker, String message) {
+    private CaretakerNotification createCaretakerNotification(Long objectId, ObjectType objectType, Caretaker caretaker, String message) {
         return CaretakerNotification.builder()
                 .objectId(objectId)
                 .objectType(objectType)
@@ -48,7 +46,7 @@ public class NotificationService {
                 .build();
     }
 
-    private ClientNotification createClientNotification(Long objectId, String objectType, Client client, String message) {
+    private ClientNotification createClientNotification(Long objectId, ObjectType objectType, Client client, String message) {
         return ClientNotification.builder()
                 .objectId(objectId)
                 .objectType(objectType)

@@ -24,10 +24,12 @@ public class Notification {
     @Column(nullable = false)
     private Long objectId;
 
-    private String objectType;
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ObjectType objectType;
 
     @Column(nullable = false, updatable = false)
-    ZonedDateTime createdAt;
+    private ZonedDateTime createdAt;
 
     @Column(nullable = false, length = 4000)
     private String message;

@@ -1,5 +1,7 @@
 package com.example.petbuddybackend.dto.notification;
 
+import com.example.petbuddybackend.entity.notification.ObjectType;
+import com.example.petbuddybackend.entity.user.Role;
 import lombok.Builder;
 
 import java.time.ZonedDateTime;
@@ -8,9 +10,10 @@ import java.time.ZonedDateTime;
 public record NotificationDTO(
         Long notificationId,
         Long objectId,
-        String objectType,
+        ObjectType objectType,
         ZonedDateTime createdAt,
         String message,
+        Role receiverProfile,
         boolean isRead
 ) {
 }

@@ -43,7 +43,7 @@ public class NotificationWebsocketController {
 
         websocketNotificationService.storeUserTimeZoneWithSession(sessionId, zoneId);
 
-        log.info("User {} subscribed to {} with number of sessions: {}",
+        log.debug("User {} subscribed to {} with number of sessions: {}",
                 userEmail, destination, websocketNotificationService.getNumberOfSessions(userEmail));
 
     }
@@ -56,7 +56,7 @@ public class NotificationWebsocketController {
 
         websocketNotificationService.removeUserSessionWithTimeZone(sessionId);
 
-        log.info("Session {} disconnected", sessionId);
+        log.debug("Session {} disconnected", sessionId);
 
     }
 

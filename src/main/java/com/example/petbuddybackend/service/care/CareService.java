@@ -7,6 +7,7 @@ import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
+import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.service.animal.AnimalService;
@@ -33,19 +34,19 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class CareService {
 
-    private final CareRepository careRepository;
-    private final AnimalService animalService;
-    private final CaretakerService caretakerService;
-    private final ClientService clientService;
-    private final NotificationService notificationService;
-    private final CareMapper careMapper = CareMapper.INSTANCE;
-
     private static final String RESERVATION_MESSAGE = "You received new reservation";
     private static final String UPDATE_RESERVATION_MESSAGE = "Your reservation has been modified";
     private static final String RESERVATION_ACCEPTED_BY_CARETAKER_MESSAGE = "Your reservation has been accepted by caretaker";
     private static final String RESERVATION_REJECTED_BY_CARETAKER_MESSAGE = "Your reservation has been rejected by caretaker";
     private static final String RESERVATION_ACCEPTED_BY_CLIENT_MESSAGE = "Reservation has been accepted by client";
     private static final String RESERVATION_CANCELLED_BY_CLIENT_MESSAGE = "Reservation has been cancelled by client";
+    
+    private final CareRepository careRepository;
+    private final AnimalService animalService;
+    private final CaretakerService caretakerService;
+    private final ClientService clientService;
+    private final NotificationService notificationService;
+    private final CareMapper careMapper = CareMapper.INSTANCE;
 
     public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, ZoneId timeZone) {
 
@@ -63,7 +64,7 @@ public class CareService {
         Care savedCare = careRepository.save(care);
         notificationService.addNotificationForCaretakerAndSend(
                 savedCare.getId(),
-                savedCare.getClass().getSimpleName(),
+                ObjectType.CARE,
                 savedCare.getCaretaker(),
                 RESERVATION_MESSAGE
         );
@@ -83,7 +84,7 @@ public class CareService {
         Care savedCare = careRepository.save(care);
         notificationService.addNotificationForClientAndSend(
                 savedCare.getId(),
-                savedCare.getClass().getSimpleName(),
+                ObjectType.CARE,
                 savedCare.getClient(),
                 UPDATE_RESERVATION_MESSAGE
         );
@@ -104,7 +105,7 @@ public class CareService {
         Care savedCare = careRepository.save(care);
         notificationService.addNotificationForClientAndSend(
                 savedCare.getId(),
-                savedCare.getClass().getSimpleName(),
+                ObjectType.CARE,
                 savedCare.getClient(),
                 RESERVATION_ACCEPTED_BY_CARETAKER_MESSAGE
         );
@@ -121,7 +122,7 @@ public class CareService {
         Care savedCare = careRepository.save(care);
         notificationService.addNotificationForCaretakerAndSend(
                 savedCare.getId(),
-                savedCare.getClass().getSimpleName(),
+                ObjectType.CARE,
                 savedCare.getCaretaker(),
                 RESERVATION_ACCEPTED_BY_CLIENT_MESSAGE
         );
@@ -139,7 +140,7 @@ public class CareService {
         Care savedCare = careRepository.save(care);
         notificationService.addNotificationForClientAndSend(
                 savedCare.getId(),
-                savedCare.getClass().getSimpleName(),
+                ObjectType.CARE,
                 savedCare.getClient(),
                 RESERVATION_REJECTED_BY_CARETAKER_MESSAGE
         );
@@ -158,7 +159,7 @@ public class CareService {
         Care savedCare = careRepository.save(care);
         notificationService.addNotificationForCaretakerAndSend(
                 savedCare.getId(),
-                savedCare.getClass().getSimpleName(),
+                ObjectType.CARE,
                 savedCare.getCaretaker(),
                 RESERVATION_CANCELLED_BY_CLIENT_MESSAGE
         );
