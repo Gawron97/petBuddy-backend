@@ -301,7 +301,7 @@ public class CaretakerControllerTest {
 
 
         MockMultipartFile offerBlobsMultipart = new MockMultipartFile(
-                "currentOfferBlobs",
+                "offerBlobsToKeep",
                 "empty-photo.jpg",
                 MediaType.APPLICATION_JSON_VALUE,
                 "[]".getBytes(StandardCharsets.UTF_8)
