@@ -28,6 +28,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
+import org.springframework.web.socket.sockjs.client.SockJsClient;
 
 import java.lang.reflect.Type;
 import java.util.concurrent.BlockingQueue;
@@ -73,7 +74,7 @@ public class NotificationWebsocketControllerTest {
     public void setUp() throws Exception {
         blockingQueue = new LinkedBlockingQueue<>();
 
-        stompClient = new WebSocketStompClient(new StandardWebSocketClient());
+        stompClient = new WebSocketStompClient(new SockJsClient(WebsocketUtils.createTransportClient()));
 
         stompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
@@ -126,6 +127,8 @@ public class NotificationWebsocketControllerTest {
         assertEquals(notification.getMessage(), receivedNotification.message());
         assertEquals(Role.CARETAKER, receivedNotification.receiverProfile());
 
+        // Close session
+        stompSession.disconnect();
     }
 
     @SneakyThrows

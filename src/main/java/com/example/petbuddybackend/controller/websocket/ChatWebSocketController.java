@@ -84,6 +84,7 @@ public class ChatWebSocketController {
         String username = HeaderUtils.getUser(accessor);
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
         String sessionId = accessor.getSessionId();
+        System.out.println("Subscribtion sessionId: " + sessionId);
         String subscriptionId = accessor.getSubscriptionId();
 
         chatService.updateLastMessageSeen(chatId, username);

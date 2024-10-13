@@ -87,7 +87,7 @@ public class ChatWebSocketIntegrationTest {
         leaveBlockingQueue = new LinkedBlockingDeque<>();
         connectedBlockingQueue = new LinkedBlockingDeque<>();
 
-        stompClient = new WebSocketStompClient(new SockJsClient(createTransportClient()));
+        stompClient = new WebSocketStompClient(new SockJsClient(WebsocketUtils.createTransportClient()));
         stompClient.setMessageConverter(messageConverter);
 
         when(chatService.createMessage(any(), any(), any(), any()))

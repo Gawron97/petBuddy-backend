@@ -19,6 +19,7 @@ public class WebSocketController {
     public void handleConnect(SessionConnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         context.setSessionId(accessor.getSessionId());
+        System.out.println("Connect sessionId: " + accessor.getSessionId());
         log.debug("Session with id: {} created", accessor.getSessionId());
     }
 }

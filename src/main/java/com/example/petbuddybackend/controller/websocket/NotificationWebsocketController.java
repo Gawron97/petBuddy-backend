@@ -39,6 +39,7 @@ public class NotificationWebsocketController {
 
         String userEmail = accessor.getUser().getName();
         String sessionId = accessor.getSessionId();
+        System.out.println("Subscribtion sessionId: " + sessionId);
         String zoneId = HeaderUtils.getNativeHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class);
 
         websocketNotificationService.storeUserTimeZoneWithSession(sessionId, zoneId);
