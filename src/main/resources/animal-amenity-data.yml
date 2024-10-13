@@ -6,3 +6,5 @@ animal-amenity-data:
       amenity: toys
     - animalType: DOG
       amenity: toys
+    - animalType: DOG
+      amenity: garden
