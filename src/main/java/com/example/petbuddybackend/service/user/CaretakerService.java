@@ -6,7 +6,6 @@ import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -110,7 +108,7 @@ public class CaretakerService {
 
     @Transactional
     public CaretakerComplexInfoDTO addCaretaker(
-            CreateCaretakerDTO createCaretakerDTO,
+            ModifyCaretakerDTO createCaretakerDTO,
             String email,
             List<MultipartFile> newOfferPhotos
     ) {
@@ -127,18 +125,19 @@ public class CaretakerService {
     public CaretakerComplexInfoDTO editCaretaker(
             ModifyCaretakerDTO modifyCaretakerDTO,
             String email,
+            Set<String> offerBlobsToKeep,
             List<MultipartFile> newOfferPhotos
     ) {
         Caretaker caretaker = getCaretakerByEmail(email);
         caretakerMapper.updateCaretakerFromDTO(caretaker, modifyCaretakerDTO);
 
-        applyOfferPhotosPatch(caretaker, modifyCaretakerDTO.offerBlobsToKeep(), newOfferPhotos);
+        applyOfferPhotosPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
         renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
     @Transactional
-    public List<PhotoLinkDTO> patchOfferPhotos(
+    public List<PhotoLinkDTO> putOfferPhotos(
             String email,
             Set<String> offerBlobsToKeep,
             List<MultipartFile> newOfferPhotos
@@ -155,23 +154,11 @@ public class CaretakerService {
     private void applyOfferPhotosPatch(Caretaker caretaker, Set<String> blobsToKeep, List<MultipartFile> newPhotos) {
         List<PhotoLink> currentPhotos = caretaker.getOfferPhotos();
 
-        int currentPhotosSize = currentPhotos.size();
-        int photosToKeepSize = Math.min(currentPhotosSize, blobsToKeep.size() + newPhotos.size());
-        int photosToRemoveSize = Math.max(0, currentPhotosSize - photosToKeepSize);
+        List<PhotoLink> photosToRemove = currentPhotos.stream()
+                .filter(photo -> !blobsToKeep.contains(photo.getBlob()))
+                .toList();
 
-        List<PhotoLink> photosToKeep = new ArrayList<>(photosToKeepSize);
-        List<PhotoLink> photosToRemove = new ArrayList<>(photosToRemoveSize);
-
-        currentPhotos.forEach(photo -> {
-            if(blobsToKeep.contains(photo.getBlob())) {
-                photosToKeep.add(photo);
-            } else {
-                photosToRemove.add(photo);
-            }
-        });
-
-        caretaker.getOfferPhotos().clear();
-        caretaker.getOfferPhotos().addAll(photosToKeep);
+        caretaker.getOfferPhotos().removeAll(photosToRemove);
         caretaker.getOfferPhotos().addAll(photoService.uploadPhotos(newPhotos));
         photoService.deletePhotos(photosToRemove);
     }

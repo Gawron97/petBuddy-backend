@@ -1211,7 +1211,7 @@ public class CaretakerServiceIntegrationTest {
         //Given
         AppUser appUser = PersistenceUtils.addAppUser(appUserRepository);
 
-        CreateCaretakerDTO caretakerToCreate = CreateCaretakerDTO.builder()
+        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
                 .phoneNumber("123456789")
                 .description("description")
                 .address(
@@ -1249,7 +1249,7 @@ public class CaretakerServiceIntegrationTest {
     void addCaretaker_whenUserNotExists_shouldThrowException() {
 
         //Given
-        CreateCaretakerDTO caretakerToCreate = CreateCaretakerDTO.builder()
+        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
                 .phoneNumber("123456789")
                 .description("description")
                 .address(
@@ -1305,13 +1305,13 @@ public class CaretakerServiceIntegrationTest {
                                 .apartmentNumber("150SD")
                                 .build()
                 )
-                .offerBlobsToKeep(Collections.emptySet())
                 .build();
 
         //When
         CaretakerComplexInfoDTO result = caretakerService.editCaretaker(
                 caretakerToCreate,
                 caretakerWithComplexOffer.getEmail(),
+                Collections.emptySet(),
                 Collections.emptyList()
         );
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
@@ -1371,13 +1371,13 @@ public class CaretakerServiceIntegrationTest {
                                 .apartmentNumber("150SD")
                                 .build()
                 )
-                .offerBlobsToKeep(Collections.emptySet())
                 .build();
 
         //When
         CaretakerComplexInfoDTO result = caretakerService.editCaretaker(
                 caretakerToCreate,
                 caretakerWithComplexOffer.getEmail(),
+                Collections.emptySet(),
                 Collections.emptyList()
         );
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);

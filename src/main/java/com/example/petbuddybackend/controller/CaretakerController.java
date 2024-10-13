@@ -8,7 +8,6 @@ import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.CaretakerService;
@@ -32,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -73,7 +73,7 @@ public class CaretakerController {
         return caretakerService.getCaretaker(caretakerEmail);
     }
 
-    @PostMapping(value = "/add", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Add caretaker profile",
             description = "Add caretaker profile if it does not exists"
@@ -86,13 +86,17 @@ public class CaretakerController {
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexInfoDTO addCaretaker(
             Principal principal,
-            @RequestPart @Valid CreateCaretakerDTO caretakerData,
-            @RequestPart List<@NotNull MultipartFile> newOfferPhotos
+            @RequestPart @Valid ModifyCaretakerDTO caretakerData,
+            @RequestPart(required = false) Optional<List<@NotNull MultipartFile>> newOfferPhotos
     ) {
-        return caretakerService.addCaretaker(caretakerData, principal.getName(), newOfferPhotos);
+        return caretakerService.addCaretaker(
+                caretakerData,
+                principal.getName(),
+                newOfferPhotos.orElse(Collections.emptyList())
+        );
     }
 
-    @PutMapping(value = "/edit", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PutMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Edit caretaker profile",
             description = """
@@ -110,9 +114,15 @@ public class CaretakerController {
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role,
             @RequestPart @Valid ModifyCaretakerDTO caretakerData,
-            @RequestPart List<@NotNull MultipartFile> newOfferPhotos
+            @RequestPart(required = false) Optional<List<@NotNull MultipartFile>> newOfferPhotos,
+            @RequestPart(required = false) Optional<Set<@NotNull String>> offerBlobsToKeep
     ) {
-        return caretakerService.editCaretaker(caretakerData, principal.getName(), newOfferPhotos);
+        return caretakerService.editCaretaker(
+                caretakerData,
+                principal.getName(),
+                offerBlobsToKeep.orElse(Collections.emptySet()),
+                newOfferPhotos.orElse(Collections.emptyList())
+        );
     }
 
     @PutMapping(value = "/offer-photo", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -131,10 +141,14 @@ public class CaretakerController {
             Principal principal,
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role,
-            @RequestPart Set<@NotNull String> offerBlobsToKeep,
-            @RequestPart List<@NotNull MultipartFile> newOfferPhotos
+            @RequestPart(required = false) Optional<Set<@NotNull String>> offerBlobsToKeep,
+            @RequestPart(required = false) Optional<List<@NotNull MultipartFile>> newOfferPhotos
     ) {
-        return caretakerService.patchOfferPhotos(principal.getName(), offerBlobsToKeep, newOfferPhotos);
+        return caretakerService.putOfferPhotos(
+                principal.getName(),
+                offerBlobsToKeep.orElse(Collections.emptySet()),
+                newOfferPhotos.orElse(Collections.emptyList())
+        );
     }
 
     @SecurityRequirements

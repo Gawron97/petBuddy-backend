@@ -225,7 +225,7 @@ public class CaretakerControllerTest {
     void addCaretaker_shouldReturnCreatedCaretaker() throws Exception {
         // When
         String json = createRequestBody();
-        CreateCaretakerDTO dto = gson.fromJson(json, CreateCaretakerDTO.class);
+        ModifyCaretakerDTO dto = gson.fromJson(json, ModifyCaretakerDTO.class);
         CaretakerComplexInfoDTO resultDTO = createRequestResponse();
 
         MockMultipartFile caretakerData = getMockMultipartFile(json);
@@ -260,14 +260,21 @@ public class CaretakerControllerTest {
 
         MockMultipartFile caretakerData = getMockMultipartFile(json);
         MockMultipartFile newOfferPhotos = getMockMultipartPhotoFile();
+        MockMultipartFile offerBlobsMultipart = new MockMultipartFile(
+                "offerBlobsToKeep",
+                "empty-photo.jpg",
+                MediaType.APPLICATION_JSON_VALUE,
+                "[]".getBytes(StandardCharsets.UTF_8)
+        );
 
         // When
-        when(caretakerService.editCaretaker(eq(dto), eq(CARETAKER_EMAIL), any()))
+        when(caretakerService.editCaretaker(eq(dto), eq(CARETAKER_EMAIL), any(), any()))
                 .thenReturn(resultDTO);
 
         // Then
         mockMvc.perform(multipart(HttpMethod.PUT, "/api/caretaker/edit")
                         .file(caretakerData)
+                        .file(offerBlobsMultipart)
                         .file(newOfferPhotos)
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk())
@@ -296,7 +303,7 @@ public class CaretakerControllerTest {
         PhotoLinkDTO secondPhoto = new PhotoLinkDTO(blob2, url2);
         List<PhotoLinkDTO> expectedOutput = List.of(firstPhoto, secondPhoto);
 
-        when(caretakerService.patchOfferPhotos(eq(CARETAKER_EMAIL), eq(currentOfferBlobs), any()))
+        when(caretakerService.putOfferPhotos(eq(CARETAKER_EMAIL), eq(currentOfferBlobs), any()))
                 .thenReturn(expectedOutput);
 
 

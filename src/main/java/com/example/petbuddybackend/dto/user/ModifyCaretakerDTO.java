@@ -6,13 +6,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
-import java.util.Set;
-
 @Builder
 public record ModifyCaretakerDTO(
         @NotBlank String phoneNumber,
         String description,
-        @NotNull @Valid AddressDTO address,
-        @NotNull Set<String> offerBlobsToKeep
+        @NotNull @Valid AddressDTO address
 ) {
 }

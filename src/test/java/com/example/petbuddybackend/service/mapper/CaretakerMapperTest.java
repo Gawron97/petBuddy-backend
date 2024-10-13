@@ -3,7 +3,6 @@ package com.example.petbuddybackend.service.mapper;
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.CreateCaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -14,6 +13,7 @@ import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,23 +38,25 @@ public class CaretakerMapperTest {
     }
 
     @Test
-    void mapToCaretaker_shouldNotLeaveNullFields() {
+    void mapToCaretaker_shouldNotLeaveNullFields_andShouldAssignListInsteadOfCopying() {
         AppUser accountData = MockUserProvider.createMockAppUser();
         AddressDTO addressDTO = AddressMapper.INSTANCE.mapToAddressDTO(MockUserProvider.createMockAddress());
 
-        CreateCaretakerDTO dto = CreateCaretakerDTO.builder()
+        ModifyCaretakerDTO dto = ModifyCaretakerDTO.builder()
                         .phoneNumber("12345678")
                         .description("description")
                         .address(addressDTO)
                         .build();
 
-        Caretaker caretakerMappingResult = mapper.mapToCaretaker(dto, accountData, new ArrayList<>());
+        List<PhotoLink> offerPhotos = new ArrayList<>();
+        Caretaker caretakerMappingResult = mapper.mapToCaretaker(dto, accountData, offerPhotos);
 
         // Set calculated fields to pass the test
         caretakerMappingResult.setAvgRating(4.5f);
         caretakerMappingResult.setNumberOfRatings(2);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerMappingResult));
+        assertSame(caretakerMappingResult.getOfferPhotos(), offerPhotos);
     }
 
     @Test

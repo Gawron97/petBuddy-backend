@@ -43,7 +43,7 @@ public class CaretakerServiceTest {
 
         // Then
         assertThrows(NotFoundException.class,
-                () -> caretakerService.patchOfferPhotos(notCaretakerEmail, Collections.emptySet(), Collections.emptyList()));
+                () -> caretakerService.putOfferPhotos(notCaretakerEmail, Collections.emptySet(), Collections.emptyList()));
     }
 
     @Test
@@ -73,7 +73,7 @@ public class CaretakerServiceTest {
                 .thenReturn(caretakerWithPhoto);
 
         List<PhotoLinkDTO> patchedPhotos =
-                caretakerService.patchOfferPhotos(caretaker.getEmail(), Set.of(blob1), List.of(photo));
+                caretakerService.putOfferPhotos(caretaker.getEmail(), Set.of(blob1), List.of(photo));
 
         // Then
         assertFalse(patchedPhotos.isEmpty());
