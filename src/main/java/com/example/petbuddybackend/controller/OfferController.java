@@ -8,7 +8,6 @@ import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.offer.OfferService;
 import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
-import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
