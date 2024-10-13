@@ -36,7 +36,6 @@ public class OfferController {
     @PreAuthorize("isAuthenticated()")
     public OfferDTO addOrEditOffer(@RequestBody @Valid ModifyOfferDTO offer,
                                    Principal principal,
-
                                    @AcceptRole(acceptRole = Role.CARETAKER)
                                    @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.addOrEditOffer(offer, principal.getName());
@@ -54,7 +53,6 @@ public class OfferController {
     public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
                                                    @RequestBody @Valid ModifyConfigurationDTO configuration,
                                                    Principal principal,
-
                                                    @AcceptRole(acceptRole = Role.CARETAKER)
                                                    @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.editConfiguration(configurationId, configuration, principal.getName());
@@ -68,7 +66,6 @@ public class OfferController {
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteConfiguration(@PathVariable Long configurationId,
                                         Principal principal,
-
                                         @AcceptRole(acceptRole = Role.CARETAKER)
                                         @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.deleteConfiguration(configurationId, principal.getName());
@@ -80,7 +77,6 @@ public class OfferController {
     public OfferDTO deleteAmenitiesFromOffer(@RequestBody List<String> amenities,
                                              @PathVariable Long offerId,
                                              Principal principal,
-
                                              @AcceptRole(acceptRole = Role.CARETAKER)
                                              @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.deleteAmenitiesFromOffer(amenities, principal.getName(), offerId);
@@ -95,7 +91,6 @@ public class OfferController {
     public List<OfferDTO> setAvailabilityForOffers(
             @RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability,
             Principal principal,
-
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.setAvailabilityForOffers(createOffersAvailability, principal.getName());
