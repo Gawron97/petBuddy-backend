@@ -22,4 +22,4 @@ jobs:
         cache: maven
 
     - name: Build and check coverage
-      run: mvn -B clean verify --file pom.xml
+      run: mvn -B verify --file pom.xml
