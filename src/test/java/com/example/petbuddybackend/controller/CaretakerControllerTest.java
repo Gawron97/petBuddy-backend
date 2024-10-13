@@ -236,7 +236,7 @@ public class CaretakerControllerTest {
                 .thenReturn(resultDTO);
 
         // Then
-        mockMvc.perform(multipart(HttpMethod.POST, "/api/caretaker/add")
+        mockMvc.perform(multipart(HttpMethod.POST, "/api/caretaker")
                         .file(caretakerData)
                         .file(newOfferPhotos))
                 .andExpect(status().isOk())
@@ -272,7 +272,7 @@ public class CaretakerControllerTest {
                 .thenReturn(resultDTO);
 
         // Then
-        mockMvc.perform(multipart(HttpMethod.PUT, "/api/caretaker/edit")
+        mockMvc.perform(multipart(HttpMethod.PUT, "/api/caretaker")
                         .file(caretakerData)
                         .file(offerBlobsMultipart)
                         .file(newOfferPhotos)
