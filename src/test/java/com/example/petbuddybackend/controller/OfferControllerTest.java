@@ -150,7 +150,7 @@ public class OfferControllerTest {
 
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/1/add-configurations")
+        mockMvc.perform(post("/api/caretaker/offer/1/configurations")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ADD_CONFIGURATIONS_FOR_OFFER)
                         .header(roleHeaderName, Role.CARETAKER))
@@ -175,7 +175,7 @@ public class OfferControllerTest {
         when(offerService.addAmenitiesForOffer(anyLong(), anySet(), anyString())).thenReturn(offerDTO);
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/1/add-amenities")
+        mockMvc.perform(post("/api/caretaker/offer/1/amenities")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ADD_AMENITIES_FOR_OFFER)
                         .header(roleHeaderName, Role.CARETAKER))

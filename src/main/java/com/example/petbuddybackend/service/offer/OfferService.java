@@ -178,7 +178,7 @@ public class OfferService {
             OfferConfiguration configuration = createConfiguration(offerConfiguration, offer);
             checkForDuplicateConfiguration(
                     Stream.concat(
-                        Optional.ofNullable(offer.getOfferConfigurations()).orElse(Collections.emptyList()).stream(),
+                        offer.getOfferConfigurations().stream(),
                         newOfferConfigurations.stream()
                     ).toList(),
                     configuration
@@ -271,7 +271,7 @@ public class OfferService {
             AnimalAmenity newAnimalAmenity = animalService.getAnimalAmenity(animalAmenity, modifiyngOffer.getAnimal().getAnimalType());
             checkDuplicateForAnimalAmenity(
                     Stream.concat(
-                            Optional.ofNullable(modifiyngOffer.getAnimalAmenities()).orElse(Collections.emptySet()).stream(),
+                            modifiyngOffer.getAnimalAmenities().stream(),
                             newAnimalAmenities.stream()
                     ).toList(), newAnimalAmenity
             );

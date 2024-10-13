@@ -50,7 +50,7 @@ public class OfferController {
             description = "Adds configurations for offer. If configuration already exists, it will throw exception." +
                     " If configuration does not exists, it will be added."
     )
-    @PostMapping("/{offerId}/add-configurations")
+    @PostMapping("/{offerId}/configurations")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO addConfigurationsForOffer(@PathVariable Long offerId,
                                               @RequestBody List<@Valid ModifyConfigurationDTO> configurations,
@@ -69,7 +69,7 @@ public class OfferController {
             description = "Adds amenities for offer. If amenity already exists, it will throw exception." +
                     " If amenity does not exists, it will be added."
     )
-    @PostMapping("/{offerId}/add-amenities")
+    @PostMapping("/{offerId}/amenities")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO addAmenitiesForOffer(@PathVariable Long offerId,
                                               @RequestBody Set<String> amenities,
