@@ -30,4 +30,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
           AND m.sender.email != :clientEmail
         """)
     void updateUnseenMessagesOfClient(Long chatRoomId, String clientEmail);
+
+    ChatMessage findFirstByChatRoom_IdOrderByCreatedAtDesc(Long chatRoomId);
 }

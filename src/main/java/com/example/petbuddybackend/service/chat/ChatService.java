@@ -35,6 +35,7 @@ public class ChatService {
     private static final String PARTICIPATE_EXCEPTION_MESSAGE = "User with email: %s is not in chat of id %s";
     private static final String CHAT_PARTICIPANTS_ALREADY_EXIST_MESSAGE = "Chat between client: \"%s\" and caretaker \"%s\" already exists";
     private static final String SENT_TO_YOURSELF_MESSAGE = "Unable to send message to yourself";
+    private static final String INVALID_USER_ROLE_MESSAGE = "Invalid user role: %s";
 
     private final ClientService clientService;
     private final CaretakerService caretakerService;
@@ -146,6 +147,44 @@ public class ChatService {
         };
     }
 
+    @Transactional(readOnly = true)
+    public ChatRoomDTO getChatRoomWithParticipant(
+            String username,
+            Role userRole,
+            String participantUsername,
+            ZoneId timeZone
+    ) {
+        ChatRoom chatRoom;
+        AppUser chatter;
+
+        switch(userRole) {
+            case CLIENT:
+                chatRoom = getByClientEmailAndCaretakerEmail(username, participantUsername);
+                chatter = chatRoom.getCaretaker().getAccountData();
+                break;
+            case CARETAKER:
+                chatRoom = getByClientEmailAndCaretakerEmail(participantUsername, username);
+                chatter = chatRoom.getClient().getAccountData();
+                break;
+            default:
+                throw new UnsupportedOperationException(String.format(INVALID_USER_ROLE_MESSAGE, userRole));
+        }
+
+        ChatMessage lastMessage = chatMessageRepository.findFirstByChatRoom_IdOrderByCreatedAtDesc(chatRoom.getId());
+        boolean isSeenByPrincipal = messageSeenByPrincipal(username, lastMessage);
+        return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, lastMessage, isSeenByPrincipal, timeZone);
+    }
+
+    private boolean messageSeenByPrincipal(String username, ChatMessage lastMessage) {
+        String senderEmail = lastMessage.getSender().getEmail();
+
+        if(senderEmail.equals(username)) {
+            return true;
+        }
+
+        return lastMessage.getSeenByRecipient();
+    }
+
     private ChatMessageDTO createChatRoomWithMessageForClientSender(
             String clientSenderEmail,
             String caretakerReceiverEmail,
@@ -234,6 +273,14 @@ public class ChatService {
         if(chatRepository.existsByClient_EmailAndCaretaker_Email(clientEmail, caretakerEmail)) {
             throw new ChatAlreadyExistsException(String.format(CHAT_PARTICIPANTS_ALREADY_EXIST_MESSAGE, clientEmail, caretakerEmail));
         }
+    }
+
+    private ChatRoom getByClientEmailAndCaretakerEmail(String clientEmail, String caretakerEmail) {
+        return chatRoomRepository.findByClient_EmailAndCaretaker_Email(clientEmail, caretakerEmail)
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(
+                        CHAT,
+                        String.format("client: %s, caretaker: %s", clientEmail, caretakerEmail))
+                );
     }
 
     private void checkUserInChat(Long chatId, String email) {
