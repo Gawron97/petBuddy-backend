@@ -7,7 +7,6 @@ import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.offer.OfferService;
-import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
 import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -38,7 +37,6 @@ public class OfferController {
     public OfferDTO addOrEditOffer(@RequestBody @Valid ModifyOfferDTO offer,
                                    Principal principal,
 
-                                   @RoleParameter
                                    @AcceptRole(acceptRole = Role.CARETAKER)
                                    @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.addOrEditOffer(offer, principal.getName());
@@ -57,9 +55,8 @@ public class OfferController {
                                                    @RequestBody @Valid ModifyConfigurationDTO configuration,
                                                    Principal principal,
 
-                                                   @RoleParameter
-                                                       @AcceptRole(acceptRole = Role.CARETAKER)
-                                                       @RequestHeader(value = "${header-name.role}") Role role) {
+                                                   @AcceptRole(acceptRole = Role.CARETAKER)
+                                                   @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.editConfiguration(configurationId, configuration, principal.getName());
     }
 
@@ -72,9 +69,8 @@ public class OfferController {
     public OfferDTO deleteConfiguration(@PathVariable Long configurationId,
                                         Principal principal,
 
-                                        @RoleParameter
-                                            @AcceptRole(acceptRole = Role.CARETAKER)
-                                            @RequestHeader(value = "${header-name.role}") Role role) {
+                                        @AcceptRole(acceptRole = Role.CARETAKER)
+                                        @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.deleteConfiguration(configurationId, principal.getName());
     }
 
@@ -85,9 +81,8 @@ public class OfferController {
                                              @PathVariable Long offerId,
                                              Principal principal,
 
-                                             @RoleParameter
-                                                 @AcceptRole(acceptRole = Role.CARETAKER)
-                                                 @RequestHeader(value = "${header-name.role}") Role role) {
+                                             @AcceptRole(acceptRole = Role.CARETAKER)
+                                             @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.deleteAmenitiesFromOffer(amenities, principal.getName(), offerId);
     }
 
@@ -101,7 +96,6 @@ public class OfferController {
             @RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability,
             Principal principal,
 
-            @RoleParameter
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.setAvailabilityForOffers(createOffersAvailability, principal.getName());
