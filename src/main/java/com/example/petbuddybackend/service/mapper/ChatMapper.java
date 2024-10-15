@@ -3,6 +3,7 @@ package com.example.petbuddybackend.service.mapper;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
+import com.example.petbuddybackend.entity.user.AppUser;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -32,8 +33,24 @@ public interface ChatMapper {
     @Mapping(target = "lastMessageCreatedAt", source = "lastMessageCreatedAt", qualifiedByName = "mapToZonedDateTime")
     ChatRoomDTO mapTimeZone(ChatRoomDTO chatRoom, @Context ZoneId zoneId);
 
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "chatterEmail", source = "chatter.email")
+    @Mapping(target = "chatterName", source = "chatter.name")
+    @Mapping(target = "chatterSurname", source = "chatter.surname")
+    @Mapping(target = "lastMessageSendBy", source = "lastMessage.sender.email")
+    @Mapping(target = "lastMessage", source = "lastMessage.content")
+    @Mapping(target = "lastMessageCreatedAt", source = "lastMessage.createdAt", qualifiedByName = "mapToZonedDateTime")
+    ChatRoomDTO mapToChatRoomDTO(
+            Long id,
+            AppUser chatter,
+            ChatMessage lastMessage,
+            boolean seenByPrincipal,
+            @Context ZoneId zoneId
+    );
+
     @Named("mapToZonedDateTime")
     default ZonedDateTime mapToZonedDateTime(ZonedDateTime date, @Context ZoneId zoneId) {
         return date.withZoneSameInstant(zoneId);
     }
+
 }

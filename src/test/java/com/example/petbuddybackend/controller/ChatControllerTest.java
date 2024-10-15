@@ -46,6 +46,7 @@ public class ChatControllerTest {
 
     private Page<ChatMessageDTO> expectedMessagePage;
     private Page<ChatRoomDTO> expectedChatRoomPage;
+    private ChatRoomDTO expectedChatRoom;
     private ChatMessageDTO expectedMessage;
 
     @BeforeEach
@@ -68,7 +69,7 @@ public class ChatControllerTest {
                 PageRequest.of(0, 10), chatMessageDTOs.size()
         );
 
-        ChatRoomDTO chatRoomDTO1 = ChatRoomDTO.builder()
+        expectedChatRoom = ChatRoomDTO.builder()
                 .id(1L)
                 .chatterEmail("chatter1")
                 .chatterName("name1")
@@ -78,7 +79,7 @@ public class ChatControllerTest {
                 .build();
 
         expectedChatRoomPage = new PageImpl<>(
-                List.of(chatRoomDTO1),
+                List.of(expectedChatRoom),
                 PageRequest.of(0, 10), 1
         );
     }
@@ -128,6 +129,21 @@ public class ChatControllerTest {
                         .param("page", "0")
                         .param("size", "10")
                         .content("{ \"content\": \"message\" }")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER.name())
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("1"));
+    }
+
+    @Test
+    @WithMockUser
+    void getChatRoom_shouldSucceed() throws Exception {
+        when(chatService.getChatRoomWithParticipant(any(), any(), any(), any()))
+                .thenReturn(expectedChatRoom);
+
+        mockMvc.perform(get("/api/chat/caretaker@example.com")
                         .header(ROLE_HEADER_NAME, Role.CARETAKER.name())
                         .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
                         .contentType(MediaType.APPLICATION_JSON)

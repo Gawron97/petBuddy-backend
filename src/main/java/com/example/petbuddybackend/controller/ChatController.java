@@ -65,7 +65,7 @@ public class ChatController {
             summary = "Send chat message and initialize chat room with given user",
             description =
                     """
-                    Creates a new chat room with the given user and sends the first message to him. This is the 
+                    Creates a new chat room with the given user and sends the first message to him. This is the
                     first step of the communication between a Caretaker and a Client. After this step, websocket 
                     endpoint should be used instead of this endpoint.
                     """
@@ -93,6 +93,35 @@ public class ChatController {
         //       chatService.getReceiverEmail(principalUsername),
         //       chatService.getNumberOfUnseenChatRooms(principalUsername)
         // );
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{participantEmail}")
+    @Operation(
+            summary = "Get chat room with given user",
+            description =
+                    """
+                    Retrieves a chat room with the given user and based on the user role.
+                    For example, if header role specifies a Caretaker, the API will look for chat room where
+                    principal is a Caretaker and the chatter is a Client.
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved chat room"),
+            @ApiResponse(responseCode = "404", description = "Message receiver not found")
+    })
+    public ChatRoomDTO getChatRoom(
+            Principal principal,
+            @PathVariable String participantEmail,
+            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone,
+            @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole
+    ) {
+        return chatService.getChatRoomWithParticipant(
+                principal.getName(),
+                acceptRole,
+                participantEmail,
+                TimeUtils.getOrSystemDefault(acceptTimeZone)
+        );
     }
 
     @PreAuthorize("isAuthenticated()")

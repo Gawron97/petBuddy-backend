@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,6 +43,44 @@ public class OfferController {
                                    @AcceptRole(acceptRole = Role.CARETAKER)
                                    @RequestHeader(value = "${header-name.role}") Role role) {
         return offerService.addOrEditOffer(offer, principal.getName());
+    }
+
+    @Operation(
+            summary = "Add configurations for offer",
+            description = "Adds configurations for offer. If configuration already exists, it will throw exception." +
+                    " If configuration does not exists, it will be added."
+    )
+    @PostMapping("/{offerId}/configurations")
+    @PreAuthorize("isAuthenticated()")
+    public OfferDTO addConfigurationsForOffer(@PathVariable Long offerId,
+                                              @RequestBody List<@Valid ModifyConfigurationDTO> configurations,
+                                              Principal principal,
+
+                                              @RoleParameter
+                                              @AcceptRole(acceptRole = Role.CARETAKER)
+                                              @RequestHeader(value = "${header-name.role}") Role role) {
+
+        return offerService.addConfigurationsForOffer(offerId, configurations, principal.getName());
+
+    }
+
+    @Operation(
+            summary = "Add amenities for offer",
+            description = "Adds amenities for offer. If amenity already exists, it will throw exception." +
+                    " If amenity does not exists, it will be added."
+    )
+    @PostMapping("/{offerId}/amenities")
+    @PreAuthorize("isAuthenticated()")
+    public OfferDTO addAmenitiesForOffer(@PathVariable Long offerId,
+                                              @RequestBody Set<String> amenities,
+                                              Principal principal,
+
+                                              @RoleParameter
+                                              @AcceptRole(acceptRole = Role.CARETAKER)
+                                              @RequestHeader(value = "${header-name.role}") Role role) {
+
+        return offerService.addAmenitiesForOffer(offerId, amenities, principal.getName());
+
     }
 
     @Operation(

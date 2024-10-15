@@ -84,7 +84,6 @@ public class ChatWebSocketController {
         String username = HeaderUtils.getUser(accessor);
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
         String sessionId = accessor.getSessionId();
-        System.out.println("Subscribtion sessionId: " + sessionId);
         String subscriptionId = accessor.getSubscriptionId();
 
         chatService.updateLastMessageSeen(chatId, username);
@@ -94,7 +93,12 @@ public class ChatWebSocketController {
         //       principalUsername,
         //       chatService.getNumberOfUnseenChatRooms(principalUsername)
         // );
-        log.debug("Subscribe triggered by session: {}, at destination: {}", sessionId, destination);
+        log.debug(
+                "Event subscribe at {}; sessionId: {}; user: {}",
+                URL_CHAT_TOPIC_BASE,
+                accessor.getSessionId(),
+                accessor.getUser() == null ? "null" : accessor.getUser().getName()
+        );
     }
 
     @EventListener
@@ -114,7 +118,12 @@ public class ChatWebSocketController {
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
         chatSessionService.unsubscribe(chatId, username, sessionId, subscriptionId);
 
-        log.debug("Unsubscribe triggered by session: {}, at destination: {}", sessionId, destination);
+        log.debug(
+                "Event unsubscribe at {}; sessionId: {}; user: {}",
+                URL_CHAT_TOPIC_BASE,
+                accessor.getSessionId(),
+                accessor.getUser() == null ? "null" : accessor.getUser().getName()
+        );
     }
 
     @EventListener
@@ -129,6 +138,11 @@ public class ChatWebSocketController {
         Long chatId = sessionContext.getChatId();
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
 
-        log.debug("Disconnect triggered by session: {}", accessor.getSessionId());
+        log.debug(
+                "Event disconnect from {}; sessionId: {}; user: {}",
+                URL_CHAT_TOPIC_BASE,
+                accessor.getSessionId(),
+                accessor.getUser() == null ? "null" : accessor.getUser().getName()
+        );
     }
 }

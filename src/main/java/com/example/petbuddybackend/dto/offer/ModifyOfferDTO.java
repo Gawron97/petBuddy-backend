@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.util.List;
+import java.util.Set;
 
 @Builder
 public record ModifyOfferDTO(
@@ -15,6 +16,6 @@ public record ModifyOfferDTO(
         @Valid
         AnimalDTO animal,
         List<@Valid ModifyConfigurationDTO> offerConfigurations,
-        List<String> animalAmenities
+        Set<String> animalAmenities
 ) {
 }
