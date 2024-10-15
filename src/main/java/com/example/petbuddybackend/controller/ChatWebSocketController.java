@@ -86,7 +86,12 @@ public class ChatWebSocketController {
         chatSessionService.subscribe(chatId, username, sessionId, TimeUtils.getOrSystemDefault(timeZone), subscriptionId);
         chatSessionService.sendNotifications(chatId, new ChatNotificationJoined(chatId, username));
 
-        log.debug("Subscribe triggered by session: {}, at destination: {}", sessionId, destination);
+        log.debug(
+                "Event subscribe at {}; sessionId: {}; user: {}",
+                URL_CHAT_TOPIC_BASE,
+                accessor.getSessionId(),
+                accessor.getUser() == null ? "null" : accessor.getUser().getName()
+        );
     }
 
     @EventListener
@@ -106,7 +111,12 @@ public class ChatWebSocketController {
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
         chatSessionService.unsubscribe(chatId, username, sessionId, subscriptionId);
 
-        log.debug("Unsubscribe triggered by session: {}, at destination: {}", sessionId, destination);
+        log.debug(
+                "Event unsubscribe at {}; sessionId: {}; user: {}",
+                URL_CHAT_TOPIC_BASE,
+                accessor.getSessionId(),
+                accessor.getUser() == null ? "null" : accessor.getUser().getName()
+        );
     }
 
     @EventListener
@@ -121,6 +131,11 @@ public class ChatWebSocketController {
         Long chatId = sessionContext.getChatId();
         chatSessionService.sendNotifications(chatId, new ChatNotificationLeft(chatId, username));
 
-        log.debug("Disconnect triggered by session: {}", accessor.getSessionId());
+        log.debug(
+                "Event disconnect from {}; sessionId: {}; user: {}",
+                URL_CHAT_TOPIC_BASE,
+                accessor.getSessionId(),
+                accessor.getUser() == null ? "null" : accessor.getUser().getName()
+        );
     }
 }
