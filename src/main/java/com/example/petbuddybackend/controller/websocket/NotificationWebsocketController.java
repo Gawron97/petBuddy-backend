@@ -39,13 +39,12 @@ public class NotificationWebsocketController {
 
         String userEmail = accessor.getUser().getName();
         String sessionId = accessor.getSessionId();
-        System.out.println("Subscribtion sessionId: " + sessionId);
         String zoneId = HeaderUtils.getNativeHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class);
 
         websocketNotificationService.storeUserTimeZoneWithSession(sessionId, zoneId);
 
-        log.debug("User {} subscribed to {} with number of sessions: {}",
-                userEmail, destination, websocketNotificationService.getNumberOfSessions(userEmail));
+        log.debug("User {} subscribed to {} with sessionId: {} with number of sessions: {}",
+                userEmail, destination, sessionId, websocketNotificationService.getNumberOfSessions(userEmail));
 
     }
 

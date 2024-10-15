@@ -39,6 +39,11 @@ keycloak:
 logging:
   level:
     root: INFO
+    com:
+      example:
+        petbuddybackend:
+          controller:
+            websocket: DEBUG
 
 server:
   port: 8081
