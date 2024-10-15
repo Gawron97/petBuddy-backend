@@ -9,6 +9,7 @@ import com.example.petbuddybackend.utils.exception.throweable.general.IllegalAct
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
+import com.example.petbuddybackend.utils.exception.throweable.user.AlreadyBlockedException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidWebSocketHeaderException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +82,12 @@ public class CustomExceptionAdvice {
     @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(code = HttpStatus.UNAUTHORIZED)
     public ApiExceptionResponse handleUnauthorizedException(UnauthorizedException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(AlreadyBlockedException.class)
+    @ResponseStatus(code = HttpStatus.CONFLICT)
+    public ApiExceptionResponse handleBlockActionAlreadyPerformed(AlreadyBlockedException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 }
