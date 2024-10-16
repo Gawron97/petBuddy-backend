@@ -13,6 +13,7 @@ import com.example.petbuddybackend.service.animal.AnimalService;
 import com.example.petbuddybackend.service.mapper.CareMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
+import com.example.petbuddybackend.service.user.UserService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CareSpecificationUtils;
@@ -32,18 +33,22 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class CareService {
 
+    private static final String CLIENT_MISMATCH_MESSAGE = "Client can only make reservation for themselves";
+
     private final CareRepository careRepository;
     private final AnimalService animalService;
     private final CaretakerService caretakerService;
     private final ClientService clientService;
+    private final UserService userService;
     private final CareMapper careMapper = CareMapper.INSTANCE;
 
+    // TODO: remove check if principal is client
     public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, ZoneId timeZone) {
-
-        assertLoggedInUserIsClient(createCare.clientEmail(), clientEmail,
-                "Client can only make reservation for themselves");
+        assertLoggedInUserIsClient(createCare.clientEmail(), clientEmail, CLIENT_MISMATCH_MESSAGE);
         assertClientIsNotCaretaker(createCare.clientEmail(), createCare.caretakerEmail());
         assertEndCareDateIsAfterStartCareDate(createCare.careStart(), createCare.careEnd());
+        userService.assertNotBlockedByAny(clientEmail, createCare.caretakerEmail());
+
         Set<AnimalAttribute> animalAttributes = new HashSet<>();
         if(CollectionUtil.isNotEmpty(createCare.animalAttributeIds())) {
             animalAttributes = animalService.getAnimalAttributes(createCare.animalAttributeIds());

@@ -15,6 +15,7 @@ import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.user.AlreadyBlockedException;
+import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -119,7 +120,7 @@ public class UserService {
 
     public void blockUser(String blockerUsername, String blockedUsername) {
         assertDoesNotBlockSelf(blockerUsername, blockedUsername);
-        assertIsNotBlocked(blockerUsername, blockedUsername);
+        assertNotAlreadyBlocked(blockerUsername, blockedUsername);
 
         Block block = new Block(blockerUsername, blockedUsername);
         blockRepository.save(block);
@@ -141,7 +142,18 @@ public class UserService {
         return blockRepository.existsById(new BlockId(blockerUsername, blockedUsername));
     }
 
-    private void assertIsNotBlocked(String blockerUsername, String blockedUsername) {
+    public void assertNotBlockedByAny(String firstUsername, String secondUsername) {
+        assertNotBlocked(firstUsername, secondUsername);
+        assertNotBlocked(secondUsername, firstUsername);
+    }
+
+    private void assertNotBlocked(String firstUsername, String secondUsername) {
+        if(isBlocked(firstUsername, secondUsername)) {
+            throw new BlockedException(firstUsername, secondUsername);
+        }
+    }
+
+    private void assertNotAlreadyBlocked(String blockerUsername, String blockedUsername) {
         if(isBlocked(blockerUsername, blockedUsername)) {
             throw new AlreadyBlockedException(USER_ALREADY_BLOCKED_MESSAGE);
         }
