@@ -10,6 +10,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -116,6 +118,18 @@ public class GeneralAdvice {
     @ExceptionHandler(MissingServletRequestPartException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMissingServletRequestPartException(MissingServletRequestPartException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    @ResponseStatus(code = HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    public ApiExceptionResponse handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
+        return new ApiExceptionResponse(e, e.getBody().getDetail());
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(code = HttpStatus.METHOD_NOT_ALLOWED)
+    public ApiExceptionResponse handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 }

@@ -8,6 +8,7 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
@@ -105,10 +106,15 @@ public final class MockUserProvider {
         return user;
     }
 
-    public static PhotoLink createMockPhotoLink() {
+    public static PhotoLink createMockPhotoLink(String blob) {
         return PhotoLink.builder()
-                .blob("blobexample")
+                .blob(blob)
                 .url("http://example.com")
+                .urlExpiresAt(LocalDateTime.now().plusDays(1))
                 .build();
+    }
+
+    public static PhotoLink createMockPhotoLink() {
+        return createMockPhotoLink("blobexample");
     }
 }

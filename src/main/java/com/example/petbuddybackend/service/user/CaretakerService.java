@@ -2,10 +2,12 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
+import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -14,7 +16,9 @@ import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
+import com.example.petbuddybackend.service.mapper.PhotoMapper;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
+import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
@@ -24,7 +28,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -39,8 +45,10 @@ public class CaretakerService {
     private final RatingRepository ratingRepository;
     private final CaretakerMapper caretakerMapper = CaretakerMapper.INSTANCE;
     private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
+    private final PhotoMapper photoMapper = PhotoMapper.INSTANCE;
 
     private final UserService userService;
+    private final PhotoService photoService;
 
     @Transactional(readOnly = true)
     public Page<CaretakerDTO> getCaretakers(Pageable pageable,
@@ -49,13 +57,13 @@ public class CaretakerService {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
         return caretakerRepository.findAll(spec, pageable)
-                .map(this::renewCaretakerProfilePicture)
+                .map(this::renewCaretakerPictures)
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
     public CaretakerComplexInfoDTO getCaretaker(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
-        renewCaretakerProfilePicture(caretaker);
+        renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretaker);
     }
 
@@ -97,27 +105,71 @@ public class CaretakerService {
         return ratingMapper.mapToRatingResponse(rating);
     }
 
-    public CaretakerComplexInfoDTO addCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
+
+    @Transactional
+    public CaretakerComplexInfoDTO addCaretaker(
+            ModifyCaretakerDTO createCaretakerDTO,
+            String email,
+            List<MultipartFile> newOfferPhotos
+    ) {
         assertCaretakerNotExists(email);
         AppUser appUser = userService.getAppUser(email);
-        Caretaker caretaker = caretakerMapper.mapToCaretaker(caretakerDTO, appUser);
+        List<PhotoLink> uploadedOfferPhotos = photoService.uploadPhotos(newOfferPhotos);
+        Caretaker caretaker = caretakerMapper.mapToCaretaker(createCaretakerDTO, appUser, uploadedOfferPhotos);
 
-        renewCaretakerProfilePicture(caretaker);
+        renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
-    public CaretakerComplexInfoDTO editCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
-        AppUser appUser = userService.getAppUser(email);
-        Caretaker caretaker = getCaretakerByEmail(appUser.getEmail());
+    @Transactional
+    public CaretakerComplexInfoDTO editCaretaker(
+            ModifyCaretakerDTO modifyCaretakerDTO,
+            String email,
+            Set<String> offerBlobsToKeep,
+            List<MultipartFile> newOfferPhotos
+    ) {
+        Caretaker caretaker = getCaretakerByEmail(email);
+        caretakerMapper.updateCaretakerFromDTO(caretaker, modifyCaretakerDTO);
 
-        renewCaretakerProfilePicture(caretaker);
-        caretakerMapper.updateCaretakerFromDTO(caretakerDTO, caretaker);
+        applyOfferPhotosPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
+        renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
     }
 
-    private Caretaker renewCaretakerProfilePicture(Caretaker caretaker) {
-        userService.renewProfilePicture(caretaker.getAccountData());
-        return caretaker;
+    @Transactional
+    public List<PhotoLinkDTO> putOfferPhotos(
+            String email,
+            Set<String> offerBlobsToKeep,
+            List<MultipartFile> newOfferPhotos
+    ) {
+        Caretaker caretaker = getCaretakerByEmail(email);
+        applyOfferPhotosPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
+        renewCaretakerPictures(caretaker);
+
+        return caretakerRepository.save(caretaker).getOfferPhotos().stream()
+                .map(photoMapper::mapToPhotoLinkDTO)
+                .toList();
+    }
+
+    private void applyOfferPhotosPatch(Caretaker caretaker, Set<String> blobsToKeep, List<MultipartFile> newPhotos) {
+        List<PhotoLink> currentPhotos = caretaker.getOfferPhotos();
+
+        List<PhotoLink> photosToRemove = currentPhotos.stream()
+                .filter(photo -> !blobsToKeep.contains(photo.getBlob()))
+                .toList();
+
+        caretaker.getOfferPhotos().removeAll(photosToRemove);
+        caretaker.getOfferPhotos().addAll(photoService.uploadPhotos(newPhotos));
+        photoService.deletePhotos(photosToRemove);
+    }
+
+    private Caretaker renewCaretakerPictures(Caretaker caretaker) {
+        AppUser appUser = caretaker.getAccountData();
+        List<PhotoLink> userPhotos = caretaker.getOfferPhotos();
+
+        userService.renewProfilePicture(appUser);
+        photoService.updatePhotoExpirations(userPhotos);
+        return caretakerRepository.save(caretaker);
     }
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
