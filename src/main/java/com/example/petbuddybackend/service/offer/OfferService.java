@@ -70,8 +70,6 @@ public class OfferService {
     public OfferDTO deleteOffer(Long offerId, String caretakerEmail) {
         Offer offer = getOffer(offerId);
         assertOfferIsModifyingByOwnerCaretaker(offer, caretakerEmail);
-        Caretaker caretaker = offer.getCaretaker();
-        caretaker.getOffers().remove(offer);
         offerRepository.delete(offer);
         return offerMapper.mapToOfferDTO(offer);
     }

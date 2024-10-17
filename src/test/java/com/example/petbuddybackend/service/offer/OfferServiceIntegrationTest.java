@@ -37,8 +37,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -78,6 +80,9 @@ public class OfferServiceIntegrationTest {
 
     @Autowired
     private AvailabilityRepository availabilityRepository;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     private Caretaker caretakerWithComplexOffer;
     private Animal animalInComplexOffer;
@@ -208,20 +213,24 @@ public class OfferServiceIntegrationTest {
     }
 
     @Test
-    @Transactional
     void deleteOffer_ShouldDeleteOffer() {
 
         // Given
         Long offerId = existingOffer.getId();
 
         // When
-        OfferDTO resultOfferDTO = offerService.deleteOffer(offerId, caretakerWithComplexOffer.getEmail());
+        transactionTemplate.execute(status -> {
+            offerService.deleteOffer(offerId, caretakerWithComplexOffer.getEmail());
+            return null;
+        });
 
         // Then
-        assertNotNull(resultOfferDTO);
+        transactionTemplate.execute(statys -> {
+            caretakerWithComplexOffer = caretakerRepository.findById(caretakerWithComplexOffer.getEmail()).orElseThrow();
+            assertEquals(0, caretakerWithComplexOffer.getOffers().size());
+            return null;
+        });
 
-        caretakerWithComplexOffer = caretakerRepository.findById(caretakerWithComplexOffer.getEmail()).orElseThrow();
-        assertEquals(0, caretakerWithComplexOffer.getOffers().size());
     }
 
     @Test
