@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.controller;
+package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
@@ -85,7 +85,6 @@ public class ChatWebSocketController {
         chatService.updateLastMessageSeen(chatId, username);
         chatSessionService.subscribe(chatId, username, sessionId, TimeUtils.getOrSystemDefault(timeZone), subscriptionId);
         chatSessionService.sendNotifications(chatId, new ChatNotificationJoined(chatId, username));
-
         log.debug(
                 "Event subscribe at {}; sessionId: {}; user: {}",
                 URL_CHAT_TOPIC_BASE,

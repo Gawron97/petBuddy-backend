@@ -26,8 +26,7 @@ logging:
       example:
         petbuddybackend:
           controller:
-            ChatWebSocketController: debug
-            WebSocketController: debug
+            websocket: DEBUG
 
 server:
   port: 8081
@@ -45,6 +44,10 @@ url:
     topic:
       base: "/topic/session"
       pattern: "/topic/session/%s"
+  notification:
+    topic:
+      base: "/user/topic/notification"
+      pattern: "/topic/notification"
 
 
 firebase:
@@ -59,3 +62,10 @@ firebase:
     expiration:
       max-seconds: 21600
       threshold-seconds: 2300
+
+notification:
+  message:
+    reservation: "%s just make a new reservation %d for your services"
+    update_reservation: "%s just update the reservation %d"
+    accepted_reservation: "Your reservation for care %d has been accepted by %s"
+    rejected_reservation: "Your reservation for care %d has been rejected by %s"
