@@ -68,6 +68,9 @@ public class NotificationWebsocketControllerTest {
     @Autowired
     private CaretakerNotificationRepository caretakerNotificationRepository;
 
+    @Autowired
+    private MappingJackson2MessageConverter messageConverter;
+
     @LocalServerPort
     private int port;
 
@@ -80,7 +83,7 @@ public class NotificationWebsocketControllerTest {
 
         stompClient = new WebSocketStompClient(new SockJsClient(WebsocketUtils.createTransportClient()));
 
-        stompClient.setMessageConverter(new MappingJackson2MessageConverter());
+        stompClient.setMessageConverter(messageConverter);
 
         ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
         taskScheduler.afterPropertiesSet();
