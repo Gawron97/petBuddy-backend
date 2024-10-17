@@ -133,6 +133,34 @@ public class OfferControllerTest {
 
     @Test
     @WithMockUser
+    void deleteOffer_ShouldReturnCreatedOffer() throws Exception {
+        // Given
+        OfferDTO offerDTO = OfferDTO.builder()
+                .id(1L)
+                .description("Test Offer")
+                .offerConfigurations(
+                        List.of(OfferConfigurationDTO.builder()
+                                .description("Test Configuration")
+                                .selectedOptions(Map.of("SIZE", List.of("BIG")))
+                                .build()
+                        ))
+                .build();
+        when(offerService.deleteOffer(anyLong(), anyString())).thenReturn(offerDTO);
+
+        // When and Then
+        mockMvc.perform(delete("/api/caretaker/offer/" + 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(roleHeaderName, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Offer"))
+                .andExpect(jsonPath("$.offerConfigurations[0].description").value("Test Configuration"))
+                .andExpect(jsonPath("$.offerConfigurations[0].selectedOptions.SIZE[0]").value("BIG"));
+
+        verify(offerService, times(1)).deleteOffer(anyLong(), anyString());
+    }
+
+    @Test
+    @WithMockUser
     void addConfigurationsForOffer_ShouldReturnUpdatedOffer() throws Exception {
         // Given
         OfferDTO offerDTO = OfferDTO.builder()

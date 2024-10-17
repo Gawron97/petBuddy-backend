@@ -209,6 +209,35 @@ public class OfferServiceIntegrationTest {
 
     @Test
     @Transactional
+    void deleteOffer_ShouldDeleteOffer() {
+
+        // Given
+        Long offerId = existingOffer.getId();
+
+        // When
+        OfferDTO resultOfferDTO = offerService.deleteOffer(offerId, caretakerWithComplexOffer.getEmail());
+
+        // Then
+        assertNotNull(resultOfferDTO);
+
+        caretakerWithComplexOffer = caretakerRepository.findById(caretakerWithComplexOffer.getEmail()).orElseThrow();
+        assertEquals(0, caretakerWithComplexOffer.getOffers().size());
+    }
+
+    @Test
+    void deleteOffer_whenCaretakerIsNotOwner_ShouldThrowUnauthorizedException() {
+
+        // Given
+        Long offerId = existingOffer.getId();
+
+        // When Then
+        assertThrows(UnauthorizedException.class,
+                () -> offerService.deleteOffer(offerId, "badEmail"));
+
+    }
+
+    @Test
+    @Transactional
     void addConfigurationsForOffer_shouldAddConfigurationsProperly() {
 
         //Given

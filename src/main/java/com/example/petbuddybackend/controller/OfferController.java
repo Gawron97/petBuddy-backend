@@ -45,6 +45,17 @@ public class OfferController {
         return offerService.addOrEditOffer(offer, principal.getName());
     }
 
+    @DeleteMapping("/{offerId}")
+    @PreAuthorize("isAuthenticated()")
+    public OfferDTO deleteOffer(@PathVariable Long offerId,
+                                Principal principal,
+
+                                @RoleParameter
+                                @AcceptRole(acceptRole = Role.CARETAKER)
+                                @RequestHeader(value = "${header-name.role}") Role role) {
+        return offerService.deleteOffer(offerId, principal.getName());
+    }
+
     @Operation(
             summary = "Add configurations for offer",
             description = "Adds configurations for offer. If configuration already exists, it will throw exception." +
