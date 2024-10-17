@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
+import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
 /**
  * Controller purpose is to log information about subscription of /user/topic/notification
@@ -58,6 +59,21 @@ public class NotificationWebsocketController {
         websocketNotificationService.removeUserSessionWithTimeZone(sessionId);
 
         log.debug("Session {} disconnected", sessionId);
+
+    }
+
+    @EventListener
+    public void handleUnsubscribeSession(SessionUnsubscribeEvent event) {
+
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        String destination = accessor.getDestination();
+        String sessionId = accessor.getSessionId();
+
+        if(!HeaderUtils.destinationStartsWith(NOTIFICATION_BASE_URL, destination)) {
+            return;
+        }
+
+        websocketNotificationService.removeUserSessionWithTimeZone(sessionId);
 
     }
 
