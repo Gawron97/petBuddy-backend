@@ -1,13 +1,11 @@
 package com.example.petbuddybackend.service.offer;
 
 
+import com.example.petbuddybackend.dto.animal.AnimalDTO;
 import com.example.petbuddybackend.dto.availability.AvailabilityRangeDTO;
 import com.example.petbuddybackend.dto.availability.CreateOffersAvailabilityDTO;
 import com.example.petbuddybackend.dto.offer.ModifyConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.ModifyOfferDTO;
-import com.example.petbuddybackend.repository.availability.AvailabilityRepository;
-import com.example.petbuddybackend.testconfig.TestDataConfiguration;
-import com.example.petbuddybackend.dto.animal.AnimalDTO;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
@@ -19,14 +17,15 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.availability.AvailabilityRepository;
 import com.example.petbuddybackend.repository.offer.OfferConfigurationRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
-import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.AvailabilityDatesOverlappingException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import org.junit.jupiter.api.AfterEach;
@@ -193,7 +192,7 @@ public class OfferServiceIntegrationTest {
                                                         .build()
                                         ))
                                 )
-                                .animalAmenities(new HashSet<>(List.of("garden")))
+                                .animalAmenities(new HashSet<>(List.of("garden", "toys")))
                                 .build(),
                         true , // Expected to be an existing offer
                         2, // Expected number of configurations after addition
@@ -342,37 +341,37 @@ public class OfferServiceIntegrationTest {
 
     @Test
     @Transactional
-    void addAmenitiesForOffer_ShouldAddAmenitiesProperly() {
+    void setAmenitiesForOffer_ShouldAddAmenitiesProperly() {
 
         //Given
-        Set<String> amenitiesToAdd = Set.of("garden");
+        Set<String> amenitiesToSet = Set.of("garden");
 
         //When
-        OfferDTO resultOfferDTO = offerService.addAmenitiesForOffer(
+        OfferDTO resultOfferDTO = offerService.setAmenitiesForOffer(
                 existingOffer.getId(),
-                amenitiesToAdd,
+                amenitiesToSet,
                 caretakerWithComplexOffer.getEmail()
         );
 
         //Then
         assertNotNull(resultOfferDTO);
         Offer offerAfterAddition = offerRepository.findById(resultOfferDTO.id()).orElseThrow();
-        assertEquals(2, offerAfterAddition.getAnimalAmenities().size());
+        assertEquals(1, offerAfterAddition.getAnimalAmenities().size());
 
     }
 
     @Test
     @Transactional
-    void addAmenitiesForOffer_whenAddingByNotOwner_ShouldThrowUnauthorizedException() {
+    void setAmenitiesForOffer_whenAddingByNotOwner_ShouldThrowUnauthorizedException() {
 
         //Given
-        Set<String> amenitiesToAdd = Set.of("garden");
+        Set<String> amenitiesToSet = Set.of("garden");
 
         //When Then
         assertThrows(UnauthorizedException.class,
-                () -> offerService.addAmenitiesForOffer(
+                () -> offerService.setAmenitiesForOffer(
                         existingOffer.getId(),
-                        amenitiesToAdd,
+                        amenitiesToSet,
                         "badEmail"
                 ));
 
@@ -380,18 +379,22 @@ public class OfferServiceIntegrationTest {
 
     @Test
     @Transactional
-    void addAmenitiesForOffer_whenAddingDuplicateAmenity_ShouldThrowAnimalAmenityDuplicatedInOfferException() {
+    void setAmenitiesForOffer_whenAddingDuplicateAmenity_ShouldSkipDuplicatedAmenityAndAddUnique() {
 
         //Given
-        Set<String> amenitiesToAdd = Set.of("toys", "garden");
+        Set<String> amenitiesToSet = Set.of("toys", "garden");
 
-        //When Then
-        assertThrows(AnimalAmenityDuplicatedInOfferException.class,
-                () -> offerService.addAmenitiesForOffer(
-                        existingOffer.getId(),
-                        amenitiesToAdd,
-                        caretakerWithComplexOffer.getEmail()
-                ));
+        //When
+        OfferDTO resultOfferDTO = offerService.setAmenitiesForOffer(
+                existingOffer.getId(),
+                amenitiesToSet,
+                caretakerWithComplexOffer.getEmail()
+        );
+
+        //Then
+        assertNotNull(resultOfferDTO);
+        Offer offerAfterAddition = offerRepository.findById(resultOfferDTO.id()).orElseThrow();
+        assertEquals(2, offerAfterAddition.getAnimalAmenities().size());
 
     }
 
