@@ -120,6 +120,9 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public RatingResponse rateCaretaker(
+            @RequestHeader(value = "${header-name.role}")
+            @AcceptRole(acceptRole = Role.CLIENT)
+            Role role,
             @PathVariable String caretakerEmail,
             @RequestBody @Valid RatingRequest ratingDTO,
             Principal principal
@@ -139,82 +142,12 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public RatingResponse deleteRating(
+            @RequestHeader(value = "${header-name.role}")
+            @AcceptRole(acceptRole = Role.CLIENT)
+            Role role,
             @PathVariable String caretakerEmail,
             Principal principal
     ) {
         return caretakerService.deleteRating(caretakerEmail, principal.getName());
-    }
-
-    @PatchMapping("/care/{careId}")
-    @Operation(
-            summary = "Update a care",
-            description = "Updates an existing care with new data. " +
-                    "The reservation must be in the PENDING status for caretaker to edit." +
-                    "After editing client status changes to PENDING and need to accept new changes."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Care edited successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request data"),
-            @ApiResponse(responseCode = "403", description = "Authorized caretaker can only edit care"),
-            @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
-    })
-    @PreAuthorize("isAuthenticated()")
-    public CareDTO updateCare(
-            @RequestHeader(value = "${header-name.role}")
-            @AcceptRole(acceptRole = Role.CARETAKER)
-            Role role,
-            @PathVariable Long careId,
-            @RequestBody @Valid UpdateCareDTO updateCare,
-            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
-            Principal principal
-    ) {
-        return careService.updateCare(careId, updateCare, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
-    }
-
-    @PostMapping("/care/{careId}/accept")
-    @Operation(
-            summary = "Accept a care by caretaker",
-            description = "Accepts a care by caretaker. " +
-                    "The care must be in the PENDING status for caretaker and ACCEPT status for client to accept." +
-                    "When successful both statuses changes to AWAITING_PAYMENT."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Care accepted by caretaker successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request data"),
-            @ApiResponse(responseCode = "403", description = "Authorized caretaker can only accept care"),
-            @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
-    })
-    @PreAuthorize("isAuthenticated()")
-    public CareDTO acceptCareByCaretaker(
-            @RequestHeader(value = "${header-name.role}")
-            @AcceptRole(acceptRole = Role.CARETAKER)
-            Role role,
-            @PathVariable Long careId,
-            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
-            Principal principal) {
-        return careService.acceptCareByCaretaker(careId, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
-    }
-
-    @PostMapping("/care/{careId}/reject")
-    @Operation(
-            summary = "Reject a care by caretaker",
-            description = "Rejects a care by caretaker. " +
-                    "The care cannot be accepted by caretaker to reject."
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Care rejected by caretaker successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request data"),
-            @ApiResponse(responseCode = "403", description = "Authorized caretaker can only reject care"),
-            @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
-    })
-    @PreAuthorize("isAuthenticated()")
-    public CareDTO rejectCareByCaretaker(
-            @RequestHeader(value = "${header-name.role}")
-            @AcceptRole(acceptRole = Role.CARETAKER)
-            Role role,
-            @PathVariable Long careId,
-            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
-            Principal principal) {
-        return careService.rejectCareByCaretaker(careId, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
 }
