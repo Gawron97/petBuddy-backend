@@ -67,6 +67,14 @@ public class OfferService {
     }
 
     @Transactional
+    public OfferDTO deleteOffer(Long offerId, String caretakerEmail) {
+        Offer offer = getOffer(offerId);
+        assertOfferIsModifyingByOwnerCaretaker(offer, caretakerEmail);
+        offerRepository.delete(offer);
+        return offerMapper.mapToOfferDTO(offer);
+    }
+
+    @Transactional
     public OfferDTO addConfigurationsForOffer(Long offerId, List<ModifyConfigurationDTO> configurations, String caretakerEmail) {
 
         Offer offer = getOffer(offerId);
@@ -384,5 +392,4 @@ public class OfferService {
             }
         }
     }
-
 }
