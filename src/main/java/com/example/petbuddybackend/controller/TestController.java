@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +14,6 @@ import java.util.List;
 @RequestMapping("/api/test")
 @RequiredArgsConstructor
 public class TestController {
-
-    private final WebsocketNotificationService websocketNotificationService;
 
     @GetMapping
     public List<String> test() {
