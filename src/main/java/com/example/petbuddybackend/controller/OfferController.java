@@ -67,7 +67,6 @@ public class OfferController {
                                               @RequestBody List<@Valid ModifyConfigurationDTO> configurations,
                                               Principal principal,
 
-                                              @RoleParameter
                                               @AcceptRole(acceptRole = Role.CARETAKER)
                                               @RequestHeader(value = "${header-name.role}") Role role) {
 
