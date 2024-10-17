@@ -135,7 +135,7 @@ public class OfferController {
             summary = "Set availability for offers",
             description = "Set availability for offers. If there was availability set before, it will be replaced."
     )
-    @PutMapping("/set-availability")
+    @PutMapping("/availability")
     @PreAuthorize("isAuthenticated()")
     public List<OfferDTO> setAvailabilityForOffers(
             @RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability,

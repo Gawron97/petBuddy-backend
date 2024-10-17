@@ -241,7 +241,7 @@ public class OfferControllerTest {
         when(offerService.setAvailabilityForOffers(any(), any())).thenReturn(List.of(offerDTO));
 
         // When and Then
-        mockMvc.perform(put("/api/caretaker/offer/set-availability")
+        mockMvc.perform(put("/api/caretaker/offer/availability")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_OFFERS_AVAILABILITY_BODY,
                                 1,
