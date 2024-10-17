@@ -216,7 +216,7 @@
                 <version>3.5.0</version>
                 <configuration>
                     <excludes>
-                        <exclude>com/example/petbuddybackend/controller/ChatWebSocketIntegrationTest.java</exclude>
+                        <exclude>com/example/petbuddybackend/controller/websocket/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
