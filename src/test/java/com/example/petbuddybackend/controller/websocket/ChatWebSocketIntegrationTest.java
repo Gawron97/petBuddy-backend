@@ -12,6 +12,7 @@ import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSeri
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -95,6 +96,11 @@ public class ChatWebSocketIntegrationTest {
 
         when(chatService.createCallbackMessageSeen(any(), any()))
                 .thenReturn(u -> {});
+    }
+
+    @AfterEach
+    public void tearDown() {
+        stompClient.stop();
     }
 
     @Test

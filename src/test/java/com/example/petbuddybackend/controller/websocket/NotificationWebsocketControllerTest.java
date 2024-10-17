@@ -8,6 +8,7 @@ import com.example.petbuddybackend.repository.notification.CaretakerNotification
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
+import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.websocket.WebsocketUtils;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
@@ -15,6 +16,7 @@ import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSeri
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,8 +49,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class NotificationWebsocketControllerTest {
 
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
-    private final String USER_EMAIL = "testuser";
-    private final String TIMEZONE = "Europe/Warsaw";
+    private static final String USER_EMAIL = NoSecurityInjectUserConfig.injectedUsername;
+    private static final String TIMEZONE = "Europe/Warsaw";
+    private static final int TIMEOUT_SECONDS = 2;
 
     @Value("${url.notification.topic.base}")
     private String SUBSCRIBE_TOPIC;
@@ -91,14 +94,20 @@ public class NotificationWebsocketControllerTest {
 
     }
 
+    @AfterEach
+    public void tearDown() {
+        stompClient.stop();
+    }
+
     @Test
-    void subscribeNotificationTopic_shouldOpenSessionForUser() {
+    void subscribeNotificationTopic_shouldOpenSessionForUser() throws InterruptedException {
 
         // Connect to websocket
         StompSession stompSession = connectToWebsocket();
 
         // Subscribe to notification topic
         StompSession.Subscription subscription = subscribeToNotificationTopic(stompSession);
+        Thread.sleep(100);
 
         // Check if session is opened
         assertEquals(1, websocketNotificationService.getNumberOfSessions(USER_EMAIL));
@@ -129,7 +138,7 @@ public class NotificationWebsocketControllerTest {
         );
 
         // Check if message was received
-        NotificationDTO receivedNotification = blockingQueue.poll(1, TimeUnit.SECONDS);
+        NotificationDTO receivedNotification = blockingQueue.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertEquals(notification.getId(), receivedNotification.notificationId());
         assertEquals(notification.getObjectId(), receivedNotification.objectId());
         assertEquals(notification.getObjectType(), receivedNotification.objectType());
@@ -147,7 +156,7 @@ public class NotificationWebsocketControllerTest {
         return stompClient.connectAsync(
                 String.format(WEBSOCKET_URL_PATTERN, port),
                 new StompSessionHandlerAdapter() {}
-        ).get(2, TimeUnit.SECONDS);
+        ).get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     private StompSession.Subscription subscribeToNotificationTopic(StompSession stompSession) {
