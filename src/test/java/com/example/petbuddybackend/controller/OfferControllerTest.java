@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -175,7 +174,7 @@ public class OfferControllerTest {
         when(offerService.setAmenitiesForOffer(anyLong(), anySet(), anyString())).thenReturn(offerDTO);
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/1/amenities")
+        mockMvc.perform(put("/api/caretaker/offer/1/amenities")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(ADD_AMENITIES_FOR_OFFER)
                         .header(roleHeaderName, Role.CARETAKER))
@@ -195,7 +194,7 @@ public class OfferControllerTest {
         when(offerService.editConfiguration(anyLong(), any(ModifyConfigurationDTO.class), any())).thenReturn(configDTO);
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/configuration/1")
+        mockMvc.perform(put("/api/caretaker/offer/configuration/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_OR_UPDATE_CONFIGURATION, "Updated Configuration"))
                         .header(roleHeaderName, Role.CARETAKER))
@@ -242,7 +241,7 @@ public class OfferControllerTest {
         when(offerService.setAvailabilityForOffers(any(), any())).thenReturn(List.of(offerDTO));
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/set-availability")
+        mockMvc.perform(put("/api/caretaker/offer/set-availability")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_OFFERS_AVAILABILITY_BODY,
                                 1,

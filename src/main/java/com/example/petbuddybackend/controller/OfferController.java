@@ -31,8 +31,8 @@ public class OfferController {
             description = "Add offer if it does not exists," +
                     " also can edit offer if it exists. Editing only support adding new configurations or amenities" +
                     " when provide amenity or configuration that already exists throws error" +
-                    " For editing or removing configuration use /configuration/{configurationId}/edit" +
-                    " or /configuration/{configurationId}/delete endpoints."
+                    " For editing or removing configuration use /configuration/{configurationId}" +
+                    " or /configuration/{configurationId} endpoints."
     )
     @PostMapping("/add-or-edit")
     @PreAuthorize("isAuthenticated()")
@@ -70,7 +70,7 @@ public class OfferController {
                     " only new amenities will be added. If amenity does exists in offer, but not provided in request," +
                     " it will be removed."
     )
-    @PostMapping("/{offerId}/amenities")
+    @PutMapping("/{offerId}/amenities")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO setAmenitiesForOffer(@PathVariable Long offerId,
                                               @RequestBody Set<String> amenities,
@@ -91,7 +91,7 @@ public class OfferController {
                     " exists in configuration, it will be removed. If option provided but not exists in configuration," +
                     " it will be added"
     )
-    @PostMapping("/configuration/{configurationId}")
+    @PutMapping("/configuration/{configurationId}")
     @PreAuthorize("isAuthenticated()")
     public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
                                                    @RequestBody @Valid ModifyConfigurationDTO configuration,
@@ -135,7 +135,7 @@ public class OfferController {
             summary = "Set availability for offers",
             description = "Set availability for offers. If there was availability set before, it will be replaced."
     )
-    @PostMapping("/set-availability")
+    @PutMapping("/set-availability")
     @PreAuthorize("isAuthenticated()")
     public List<OfferDTO> setAvailabilityForOffers(
             @RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability,
