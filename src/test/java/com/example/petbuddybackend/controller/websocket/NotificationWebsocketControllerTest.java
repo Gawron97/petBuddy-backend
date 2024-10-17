@@ -115,8 +115,6 @@ public class NotificationWebsocketControllerTest {
         // Close session
         subscription.unsubscribe();
         stompSession.disconnect();
-        stompClient.stop();
-
     }
 
     @Test
@@ -148,7 +146,6 @@ public class NotificationWebsocketControllerTest {
         // Close session
         subscription.unsubscribe();
         stompSession.disconnect();
-        stompClient.stop();
     }
 
     @SneakyThrows
