@@ -42,31 +42,25 @@ public class WebsocketNotificationService {
         if(isUserConnected(userEmail)) {
             Set<SimpSession> userSessions = getUserSessions(userEmail);
             for(SimpSession session : userSessions) {
-                synchronized (sessionsTimeZone) {
-                    ZoneId timeZone = sessionsTimeZone.getOrDefault(session.getId(), ZoneId.systemDefault());
-                    System.out.println("Timezone: " + timeZone);
-                    NotificationDTO notificationToSend = convertNotificationWithMessageTimezone(notification, timeZone);
-                    simpMessagingTemplate.convertAndSendToUser(
-                            userEmail,
-                            NOTIFICATION_BASE_URL,
-                            notificationToSend,
-                            createHeaders(session.getId())
-                    );
-                }
+                ZoneId timeZone = sessionsTimeZone.getOrDefault(session.getId(), ZoneId.systemDefault());
+                System.out.println("Timezone: " + timeZone);
+                NotificationDTO notificationToSend = convertNotificationWithMessageTimezone(notification, timeZone);
+                simpMessagingTemplate.convertAndSendToUser(
+                        userEmail,
+                        NOTIFICATION_BASE_URL,
+                        notificationToSend,
+                        createHeaders(session.getId())
+                );
             }
         }
     }
 
     public void storeUserTimeZoneWithSession(String sessionId, String zoneId) {
-        synchronized (sessionsTimeZone) {
-            sessionsTimeZone.put(sessionId, TimeUtils.getOrSystemDefault(zoneId));
-        }
+        sessionsTimeZone.put(sessionId, TimeUtils.getOrSystemDefault(zoneId));
     }
 
     public void removeUserSessionWithTimeZone(String sessionId) {
-        synchronized (sessionsTimeZone) {
-            sessionsTimeZone.remove(sessionId);
-        }
+        sessionsTimeZone.remove(sessionId);
     }
 
     private NotificationDTO convertNotificationWithMessageTimezone(Notification notification, ZoneId timeZone) {

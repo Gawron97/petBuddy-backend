@@ -10,7 +10,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       dialect: org.hibernate.dialect.PostgreSQL94Dialect
       hibernate:
@@ -87,3 +87,10 @@ firebase:
     expiration:
       max-seconds: 21600        # 6 hours
       threshold-seconds: 2300   # 0.5 hour
+
+notification:
+  message:
+    reservation: "%s just make a new reservation %d for your services"
+    update_reservation: "%s just update the reservation %d"
+    accepted_reservation: "Your reservation for care %d has been accepted by %s"
+    rejected_reservation: "Your reservation for care %d has been rejected by %s"

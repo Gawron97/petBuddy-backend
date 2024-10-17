@@ -20,6 +20,7 @@ import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundEx
 import com.example.petbuddybackend.utils.specification.CareSpecificationUtils;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.common.util.CollectionUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,12 +35,17 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class CareService {
 
-    private static final String RESERVATION_MESSAGE = "You received new reservation";
-    private static final String UPDATE_RESERVATION_MESSAGE = "Your reservation has been modified";
-    private static final String RESERVATION_ACCEPTED_BY_CARETAKER_MESSAGE = "Your reservation has been accepted by caretaker";
-    private static final String RESERVATION_REJECTED_BY_CARETAKER_MESSAGE = "Your reservation has been rejected by caretaker";
-    private static final String RESERVATION_ACCEPTED_BY_CLIENT_MESSAGE = "Reservation has been accepted by client";
-    private static final String RESERVATION_CANCELLED_BY_CLIENT_MESSAGE = "Reservation has been cancelled by client";
+    @Value("${notification.message.reservation}")
+    private String reservationMessage;
+
+    @Value("${notification.message.update_reservation}")
+    private String updateReservationMessage;
+
+    @Value("${notification.message.accepted_reservation}")
+    private String acceptReservationMessage;
+
+    @Value("${notification.message.rejected_reservation}")
+    private String rejectReservationMessage;
     
     private final CareRepository careRepository;
     private final AnimalService animalService;
@@ -66,7 +72,7 @@ public class CareService {
                 savedCare.getId(),
                 ObjectType.CARE,
                 savedCare.getCaretaker(),
-                RESERVATION_MESSAGE
+                String.format(reservationMessage, care.getClient().getEmail(), savedCare.getId())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
 
@@ -86,7 +92,7 @@ public class CareService {
                 savedCare.getId(),
                 ObjectType.CARE,
                 savedCare.getClient(),
-                UPDATE_RESERVATION_MESSAGE
+                String.format(updateReservationMessage, care.getCaretaker().getEmail(), savedCare.getId())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
 
@@ -107,7 +113,7 @@ public class CareService {
                 savedCare.getId(),
                 ObjectType.CARE,
                 savedCare.getClient(),
-                RESERVATION_ACCEPTED_BY_CARETAKER_MESSAGE
+                String.format(acceptReservationMessage, savedCare.getId(), care.getCaretaker().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
     }
@@ -124,7 +130,7 @@ public class CareService {
                 savedCare.getId(),
                 ObjectType.CARE,
                 savedCare.getCaretaker(),
-                RESERVATION_ACCEPTED_BY_CLIENT_MESSAGE
+                String.format(acceptReservationMessage, savedCare.getId(), care.getClient().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
     }
@@ -142,7 +148,7 @@ public class CareService {
                 savedCare.getId(),
                 ObjectType.CARE,
                 savedCare.getClient(),
-                RESERVATION_REJECTED_BY_CARETAKER_MESSAGE
+                String.format(rejectReservationMessage, savedCare.getId(), care.getCaretaker().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
 
@@ -161,7 +167,7 @@ public class CareService {
                 savedCare.getId(),
                 ObjectType.CARE,
                 savedCare.getCaretaker(),
-                RESERVATION_CANCELLED_BY_CLIENT_MESSAGE
+                String.format(rejectReservationMessage, savedCare.getId(), care.getClient().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
 

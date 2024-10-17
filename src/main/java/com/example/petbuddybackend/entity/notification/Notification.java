@@ -31,7 +31,7 @@ public class Notification {
     @Column(nullable = false, updatable = false)
     private ZonedDateTime createdAt;
 
-    @Column(nullable = false, length = 4000)
+    @Column(nullable = false, length = 100)
     private String message;
 
     @Column(nullable = false)
