@@ -165,14 +165,14 @@ public class OfferControllerTest {
 
     @Test
     @WithMockUser
-    void addAmenitiesForOffer_ShouldReturnUpdatedOfferWithNewAmenities() throws Exception {
+    void setAmenitiesForOffer_ShouldReturnUpdatedOfferWithNewAmenities() throws Exception {
         // Given
         OfferDTO offerDTO = OfferDTO.builder()
                 .description("Test Offer with new amenities")
                 .animalAmenities(List.of("toys", "garden"))
                 .build();
 
-        when(offerService.addAmenitiesForOffer(anyLong(), anySet(), anyString())).thenReturn(offerDTO);
+        when(offerService.setAmenitiesForOffer(anyLong(), anySet(), anyString())).thenReturn(offerDTO);
 
         // When and Then
         mockMvc.perform(post("/api/caretaker/offer/1/amenities")
@@ -184,7 +184,7 @@ public class OfferControllerTest {
                 .andExpect(jsonPath("$.animalAmenities[0]").value("toys"))
                 .andExpect(jsonPath("$.animalAmenities[1]").value("garden"));
 
-        verify(offerService, times(1)).addAmenitiesForOffer(anyLong(), anySet(), anyString());
+        verify(offerService, times(1)).setAmenitiesForOffer(anyLong(), anySet(), anyString());
     }
 
     @Test
@@ -195,7 +195,7 @@ public class OfferControllerTest {
         when(offerService.editConfiguration(anyLong(), any(ModifyConfigurationDTO.class), any())).thenReturn(configDTO);
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/configuration/1/edit")
+        mockMvc.perform(post("/api/caretaker/offer/configuration/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_OR_UPDATE_CONFIGURATION, "Updated Configuration"))
                         .header(roleHeaderName, Role.CARETAKER))
@@ -213,7 +213,7 @@ public class OfferControllerTest {
         when(offerService.deleteConfiguration(anyLong(), any())).thenReturn(offerDTO);
 
         // When and Then
-        mockMvc.perform(delete("/api/caretaker/offer/configuration/1/delete")
+        mockMvc.perform(delete("/api/caretaker/offer/configuration/1")
                         .header(roleHeaderName, Role.CARETAKER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Deleted Configuration"));
@@ -271,7 +271,7 @@ public class OfferControllerTest {
         when(offerService.deleteAmenitiesFromOffer(anyList(), any(), any())).thenReturn(offer);
 
         //When Then
-        mockMvc.perform(post("/api/caretaker/offer/1/amenities-delete")
+        mockMvc.perform(delete("/api/caretaker/offer/1/amenities")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"AMENITY1\", \"AMENITY2\"]")
                 .header(roleHeaderName, Role.CARETAKER))

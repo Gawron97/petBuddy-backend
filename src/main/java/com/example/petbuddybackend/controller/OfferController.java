@@ -65,13 +65,14 @@ public class OfferController {
     }
 
     @Operation(
-            summary = "Add amenities for offer",
-            description = "Adds amenities for offer. If amenity already exists, it will throw exception." +
-                    " If amenity does not exists, it will be added."
+            summary = "Set amenities for offer",
+            description = "Set amenities for offer. If provided amenity already exists in offer it will be skipped," +
+                    " only new amenities will be added. If amenity does exists in offer, but not provided in request," +
+                    " it will be removed."
     )
     @PostMapping("/{offerId}/amenities")
     @PreAuthorize("isAuthenticated()")
-    public OfferDTO addAmenitiesForOffer(@PathVariable Long offerId,
+    public OfferDTO setAmenitiesForOffer(@PathVariable Long offerId,
                                               @RequestBody Set<String> amenities,
                                               Principal principal,
 
@@ -79,7 +80,7 @@ public class OfferController {
                                               @AcceptRole(acceptRole = Role.CARETAKER)
                                               @RequestHeader(value = "${header-name.role}") Role role) {
 
-        return offerService.addAmenitiesForOffer(offerId, amenities, principal.getName());
+        return offerService.setAmenitiesForOffer(offerId, amenities, principal.getName());
 
     }
 
@@ -90,7 +91,7 @@ public class OfferController {
                     " exists in configuration, it will be removed. If option provided but not exists in configuration," +
                     " it will be added"
     )
-    @PostMapping("/configuration/{configurationId}/edit")
+    @PostMapping("/configuration/{configurationId}")
     @PreAuthorize("isAuthenticated()")
     public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
                                                    @RequestBody @Valid ModifyConfigurationDTO configuration,
@@ -106,7 +107,7 @@ public class OfferController {
             summary = "Delete configuration",
             description = "Deletes configuration from offer"
     )
-    @DeleteMapping("/configuration/{configurationId}/delete")
+    @DeleteMapping("/configuration/{configurationId}")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteConfiguration(@PathVariable Long configurationId,
                                         Principal principal,
@@ -118,7 +119,7 @@ public class OfferController {
     }
 
     @Operation(summary = "Delete amenities from offer")
-    @PostMapping("/{offerId}/amenities-delete")
+    @DeleteMapping("/{offerId}/amenities")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteAmenitiesFromOffer(@RequestBody List<String> amenities,
                                              @PathVariable Long offerId,

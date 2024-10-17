@@ -21,7 +21,6 @@ import com.example.petbuddybackend.service.mapper.OfferMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
-import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.AvailabilityDatesOverlappingException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import lombok.RequiredArgsConstructor;
@@ -80,14 +79,16 @@ public class OfferService {
     }
 
     @Transactional
-    public OfferDTO addAmenitiesForOffer(Long offerId, Set<String> amenities, String caretakerEmail) {
+    public OfferDTO setAmenitiesForOffer(Long offerId, Set<String> amenities, String caretakerEmail) {
 
         Offer offer = getOffer(offerId);
         assertOfferIsModifyingByOwnerCaretaker(offer, caretakerEmail);
 
-        Set<AnimalAmenity> animalAmenities = createAdditionalAnimalAmenitiesForOffer(amenities, offer);
+        Set<AnimalAmenity> newAnimalAmenities = createAdditionalAnimalAmenitiesForOffer(amenities, offer);
 
-        offer.getAnimalAmenities().addAll(animalAmenities);
+        Set<AnimalAmenity> animalAmenitiesInOffer = offer.getAnimalAmenities();
+        removeNotProvidedAnimalAmenities(animalAmenitiesInOffer, amenities);
+        animalAmenitiesInOffer.addAll(newAnimalAmenities);
         return offerMapper.mapToOfferDTO(offerRepository.save(offer));
 
     }
@@ -148,6 +149,10 @@ public class OfferService {
                 .stream()
                 .map(offerMapper::mapToOfferDTO)
                 .toList();
+    }
+
+    private void removeNotProvidedAnimalAmenities(Set<AnimalAmenity> animalAmenitiesInOffer, Set<String> amenities) {
+        animalAmenitiesInOffer.removeIf(animalAmenity -> !amenities.contains(animalAmenity.getAmenity().getName()));
     }
 
     private Offer getOrCreateOffer(String caretakerEmail, String animalType, Caretaker caretaker,
@@ -266,29 +271,25 @@ public class OfferService {
 
     private Set<AnimalAmenity> createAdditionalAnimalAmenitiesForOffer(Set<String> animalAmenities, Offer modifiyngOffer) {
 
-        List<AnimalAmenity> newAnimalAmenities = new ArrayList<>();
+        Set<AnimalAmenity> newAnimalAmenities = new HashSet<>();
         for(String animalAmenity : animalAmenities) {
             AnimalAmenity newAnimalAmenity = animalService.getAnimalAmenity(animalAmenity, modifiyngOffer.getAnimal().getAnimalType());
-            checkDuplicateForAnimalAmenity(
+            if(!checkDuplicateForAnimalAmenity(
                     Stream.concat(
                             modifiyngOffer.getAnimalAmenities().stream(),
                             newAnimalAmenities.stream()
                     ).toList(), newAnimalAmenity
-            );
-            newAnimalAmenities.add(newAnimalAmenity);
+            )) {
+                newAnimalAmenities.add(newAnimalAmenity);
+            }
         }
 
         return new HashSet<>(newAnimalAmenities);
 
     }
 
-    private void checkDuplicateForAnimalAmenity(List<AnimalAmenity> oldAnimalAmenities, AnimalAmenity animalAmenity) {
-        if(oldAnimalAmenities.stream().anyMatch(oldAnimalAmenity -> oldAnimalAmenity.equals(animalAmenity))) {
-            throw new AnimalAmenityDuplicatedInOfferException(MessageFormat.format(
-                    "Animal amenity with name {0} already exists in offer",
-                    animalAmenity.getAmenity().getName()
-            ));
-        }
+    private boolean checkDuplicateForAnimalAmenity(List<AnimalAmenity> oldAnimalAmenities, AnimalAmenity animalAmenity) {
+        return oldAnimalAmenities.stream().anyMatch(oldAnimalAmenity -> oldAnimalAmenity.equals(animalAmenity));
     }
 
     private OfferConfiguration getOfferConfiguration(Long id) {
