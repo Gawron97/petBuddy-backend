@@ -10,6 +10,8 @@ import com.example.petbuddybackend.repository.notification.ClientNotificationRep
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -19,8 +21,10 @@ public class NotificationService {
     private final WebsocketNotificationService websocketNotificationService;
 
 
-    public void addNotificationForCaretakerAndSend(Long objectId, ObjectType objectType, Caretaker caretaker, String message) {
-        CaretakerNotification notification = createCaretakerNotification(objectId, objectType, caretaker, message);
+    public void addNotificationForCaretakerAndSend(Long objectId, ObjectType objectType, Caretaker caretaker,
+                                                   String messageKey, Set<String> args) {
+        CaretakerNotification notification = createCaretakerNotification(objectId, objectType, caretaker,
+                messageKey, args);
         CaretakerNotification savedNotification = caretakerNotificationRepository.save(notification);
         websocketNotificationService.sendNotification(
                 caretaker.getEmail(),
@@ -28,8 +32,9 @@ public class NotificationService {
         );
     }
 
-    public void addNotificationForClientAndSend(Long objectId, ObjectType objectType, Client client, String message) {
-        ClientNotification notification = createClientNotification(objectId, objectType, client, message);
+    public void addNotificationForClientAndSend(Long objectId, ObjectType objectType, Client client,
+                                                String messageKey, Set<String> args) {
+        ClientNotification notification = createClientNotification(objectId, objectType, client, messageKey, args);
         ClientNotification savedNotification = clientNotificationRepository.save(notification);
         websocketNotificationService.sendNotification(
                 client.getEmail(),
@@ -37,20 +42,24 @@ public class NotificationService {
         );
     }
 
-    private CaretakerNotification createCaretakerNotification(Long objectId, ObjectType objectType, Caretaker caretaker, String message) {
+    private CaretakerNotification createCaretakerNotification(Long objectId, ObjectType objectType, Caretaker caretaker,
+                                                              String messageKey, Set<String> args) {
         return CaretakerNotification.builder()
                 .objectId(objectId)
                 .objectType(objectType)
-                .message(message)
+                .messageKey(messageKey)
+                .args(args)
                 .caretaker(caretaker)
                 .build();
     }
 
-    private ClientNotification createClientNotification(Long objectId, ObjectType objectType, Client client, String message) {
+    private ClientNotification createClientNotification(Long objectId, ObjectType objectType, Client client,
+                                                        String messageKey, Set<String> args) {
         return ClientNotification.builder()
                 .objectId(objectId)
                 .objectType(objectType)
-                .message(message)
+                .messageKey(messageKey)
+                .args(args)
                 .client(client)
                 .build();
     }

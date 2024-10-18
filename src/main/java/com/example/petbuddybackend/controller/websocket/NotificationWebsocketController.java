@@ -28,6 +28,9 @@ public class NotificationWebsocketController {
     @Value("${header-name.timezone}")
     private String TIMEZONE_HEADER_NAME;
 
+    @Value("${header-name.language}")
+    private String LANGUAGE_HEADER_NAME;
+
     @EventListener
     public void handleSubscription(SessionSubscribeEvent event) {
 
@@ -42,8 +45,11 @@ public class NotificationWebsocketController {
         String sessionId = accessor.getSessionId();
         String zoneId = HeaderUtils.getOptionalNativeHeaderSingleValue(accessor, TIMEZONE_HEADER_NAME, String.class)
                 .orElse(null);
+        String language = HeaderUtils.getOptionalNativeHeaderSingleValue(accessor, LANGUAGE_HEADER_NAME, String.class)
+                .orElse(null);
 
         websocketNotificationService.storeUserTimeZoneWithSession(sessionId, zoneId);
+        websocketNotificationService.storeUserLocaleWithSession(sessionId, language);
 
         log.debug("User {} subscribed to {} with sessionId: {} with number of sessions: {}",
                 userEmail, destination, sessionId, websocketNotificationService.getNumberOfSessions(userEmail));
@@ -57,6 +63,7 @@ public class NotificationWebsocketController {
         String sessionId = accessor.getSessionId();
 
         websocketNotificationService.removeUserSessionWithTimeZone(sessionId);
+        websocketNotificationService.removeUserSessionWithLocale(sessionId);
 
         log.debug("Session {} disconnected", sessionId);
 
@@ -74,6 +81,7 @@ public class NotificationWebsocketController {
         }
 
         websocketNotificationService.removeUserSessionWithTimeZone(sessionId);
+        websocketNotificationService.removeUserSessionWithLocale(sessionId);
 
     }
 

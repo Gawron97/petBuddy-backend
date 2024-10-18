@@ -137,11 +137,10 @@ public class NotificationWebsocketControllerTest {
 
         // Check if message was received
         NotificationDTO receivedNotification = blockingQueue.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertEquals(notification.getId(), receivedNotification.notificationId());
-        assertEquals(notification.getObjectId(), receivedNotification.objectId());
-        assertEquals(notification.getObjectType(), receivedNotification.objectType());
-        assertEquals(notification.getMessage(), receivedNotification.message());
-        assertEquals(Role.CARETAKER, receivedNotification.receiverProfile());
+        assertEquals(notification.getId(), receivedNotification.getNotificationId());
+        assertEquals(notification.getObjectId(), receivedNotification.getObjectId());
+        assertEquals(notification.getObjectType(), receivedNotification.getObjectType());
+        assertEquals(Role.CARETAKER, receivedNotification.getReceiverProfile());
 
         // Close session
         subscription.unsubscribe();

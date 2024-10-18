@@ -55,6 +55,7 @@ springdoc:
 header-name:
   timezone: "Accept-Timezone"
   role: "Accept-Role"
+  language: "Accept-Language"
 
 url:
   chat:
@@ -82,10 +83,3 @@ firebase:
     expiration:
       max-seconds: 21600        # 6 hours
       threshold-seconds: 2300   # 0.5 hour
-
-notification:
-  message:
-    reservation: "%s just make a new reservation %d for your services"
-    update_reservation: "%s just update the reservation %d"
-    accepted_reservation: "Your reservation for care %d has been accepted by %s"
-    rejected_reservation: "Your reservation for care %d has been rejected by %s"
