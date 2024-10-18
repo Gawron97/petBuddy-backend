@@ -21,7 +21,7 @@ public record AvailabilityRangeDTO(
         LocalDate availableFrom,
 
         @Future
-        @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
+        @JsonFormat(pattern = TimeUtils.DATE_FORMAT)
         @NotNull
         LocalDate availableTo
 ) {

@@ -36,13 +36,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -594,16 +593,16 @@ public class OfferServiceIntegrationTest {
                 .offerIds(List.of(existingOffer.getId()))
                 .availabilityRanges(List.of(
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(1))
-                                .availableTo(ZonedDateTime.now().plusDays(10))
+                                .availableFrom(LocalDate.now().plusDays(1))
+                                .availableTo(LocalDate.now().plusDays(10))
                                 .build(),
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(10))
-                                .availableTo(ZonedDateTime.now().plusDays(20))
+                                .availableFrom(LocalDate.now().plusDays(10))
+                                .availableTo(LocalDate.now().plusDays(20))
                                 .build(),
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(25))
-                                .availableTo(ZonedDateTime.now().plusDays(45))
+                                .availableFrom(LocalDate.now().plusDays(25))
+                                .availableTo(LocalDate.now().plusDays(45))
                                 .build()
                 ))
                 .build();
@@ -630,16 +629,16 @@ public class OfferServiceIntegrationTest {
                 .offerIds(List.of(existingOffer.getId(), anotherOffer.getId()))
                 .availabilityRanges(List.of(
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(1))
-                                .availableTo(ZonedDateTime.now().plusDays(10))
+                                .availableFrom(LocalDate.now().plusDays(1))
+                                .availableTo(LocalDate.now().plusDays(10))
                                 .build(),
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(10))
-                                .availableTo(ZonedDateTime.now().plusDays(20))
+                                .availableFrom(LocalDate.now().plusDays(10))
+                                .availableTo(LocalDate.now().plusDays(20))
                                 .build(),
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(25))
-                                .availableTo(ZonedDateTime.now().plusDays(45))
+                                .availableFrom(LocalDate.now().plusDays(25))
+                                .availableTo(LocalDate.now().plusDays(45))
                                 .build()
                 ))
                 .build();
@@ -665,16 +664,16 @@ public class OfferServiceIntegrationTest {
                 .offerIds(List.of(existingOffer.getId()))
                 .availabilityRanges(List.of(
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(1))
-                                .availableTo(ZonedDateTime.now().plusDays(10))
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(10))
                                 .build(),
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(10))
-                                .availableTo(ZonedDateTime.now().plusDays(20))
+                                .availableFrom(LocalDate.now().plusDays(10))
+                                .availableTo(LocalDate.now().plusDays(20))
                                 .build(),
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(25))
-                                .availableTo(ZonedDateTime.now().plusDays(45))
+                                .availableFrom(LocalDate.now().plusDays(25))
+                                .availableTo(LocalDate.now().plusDays(45))
                                 .build()
                 ))
                 .build();
@@ -688,6 +687,25 @@ public class OfferServiceIntegrationTest {
 
         availabilityRepository.deleteAll();
 
+    }
+
+    @Test
+    @Transactional
+    void setEmptyAvailabilityForOffers_WhenOfferAlreadyHaveAvailabilities_ShouldReplaceAvailabilityForOffer() {
+        // Given
+        PersistenceUtils.setAvailabilitiesForOffer(offerRepository, existingOffer);
+
+        CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
+                .offerIds(List.of(existingOffer.getId()))
+                .availabilityRanges(List.of())
+                .build();
+
+        // When
+        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, caretakerWithComplexOffer.getEmail());
+
+        // Then
+        Offer offerAfterAvailabilitySet = offerRepository.findById(existingOffer.getId()).orElseThrow();
+        assertEquals(0, offerAfterAvailabilitySet.getAvailabilities().size());
     }
 
     @ParameterizedTest
@@ -711,48 +729,48 @@ public class OfferServiceIntegrationTest {
                 Arguments.of(
                         List.of(
                                 AvailabilityRangeDTO.builder()
-                                        .availableFrom(ZonedDateTime.now().plusDays(1))
-                                        .availableTo(ZonedDateTime.now().plusDays(10))
+                                        .availableFrom(LocalDate.now().plusDays(1))
+                                        .availableTo(LocalDate.now().plusDays(10))
                                         .build(),
                                 AvailabilityRangeDTO.builder()
-                                        .availableFrom(ZonedDateTime.now().plusDays(5))
-                                        .availableTo(ZonedDateTime.now().plusDays(20))
+                                        .availableFrom(LocalDate.now().plusDays(5))
+                                        .availableTo(LocalDate.now().plusDays(20))
                                         .build()
                         )
                 ),
                 Arguments.of(
                         List.of(
                                 AvailabilityRangeDTO.builder()
-                                        .availableFrom(ZonedDateTime.now().plusDays(5))
-                                        .availableTo(ZonedDateTime.now().plusDays(10))
+                                        .availableFrom(LocalDate.now().plusDays(5))
+                                        .availableTo(LocalDate.now().plusDays(10))
                                         .build(),
                                 AvailabilityRangeDTO.builder()
-                                        .availableFrom(ZonedDateTime.now().plusDays(2))
-                                        .availableTo(ZonedDateTime.now().plusDays(7))
+                                        .availableFrom(LocalDate.now().plusDays(2))
+                                        .availableTo(LocalDate.now().plusDays(7))
                                         .build()
                         )
                 ),
                 Arguments.of(
                         List.of(
                                 AvailabilityRangeDTO.builder()
-                                        .availableFrom(ZonedDateTime.now().plusDays(5))
-                                        .availableTo(ZonedDateTime.now().plusDays(10))
+                                        .availableFrom(LocalDate.now().plusDays(5))
+                                        .availableTo(LocalDate.now().plusDays(10))
                                         .build(),
                                 AvailabilityRangeDTO.builder()
-                                        .availableFrom(ZonedDateTime.now().plusDays(6))
-                                        .availableTo(ZonedDateTime.now().plusDays(7))
+                                        .availableFrom(LocalDate.now().plusDays(6))
+                                        .availableTo(LocalDate.now().plusDays(7))
                                         .build()
                         )
                 ),
                 Arguments.of(
                         List.of(
                                 AvailabilityRangeDTO.builder()
-                                        .availableFrom(ZonedDateTime.now().plusDays(5))
-                                        .availableTo(ZonedDateTime.now().plusDays(10))
+                                        .availableFrom(LocalDate.now().plusDays(5))
+                                        .availableTo(LocalDate.now().plusDays(10))
                                         .build(),
                                 AvailabilityRangeDTO.builder()
-                                        .availableFrom(ZonedDateTime.now().plusDays(1))
-                                        .availableTo(ZonedDateTime.now().plusDays(15))
+                                        .availableFrom(LocalDate.now().plusDays(1))
+                                        .availableTo(LocalDate.now().plusDays(15))
                                         .build()
                         )
                 )
@@ -768,16 +786,16 @@ public class OfferServiceIntegrationTest {
                 .offerIds(List.of(existingOffer.getId()))
                 .availabilityRanges(List.of(
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(1))
-                                .availableTo(ZonedDateTime.now().plusDays(10))
+                                .availableFrom(LocalDate.now().plusDays(1))
+                                .availableTo(LocalDate.now().plusDays(10))
                                 .build(),
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(10))
-                                .availableTo(ZonedDateTime.now().plusDays(20))
+                                .availableFrom(LocalDate.now().plusDays(10))
+                                .availableTo(LocalDate.now().plusDays(20))
                                 .build(),
                         AvailabilityRangeDTO.builder()
-                                .availableFrom(ZonedDateTime.now().plusDays(25))
-                                .availableTo(ZonedDateTime.now().plusDays(45))
+                                .availableFrom(LocalDate.now().plusDays(25))
+                                .availableTo(LocalDate.now().plusDays(45))
                                 .build()
                 ))
                 .build();
