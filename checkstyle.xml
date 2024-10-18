@@ -7,6 +7,10 @@
 
     <property name="severity" value="warning"/>
 
+    <module name="LineLength">
+        <property name="max" value="120"/>
+    </module>
+
     <module name="TreeWalker">
 
         <module name="TypeName"/>
@@ -15,11 +19,10 @@
         <module name="LocalVariableName"/>
         <module name="PackageName"/>
         <module name="ConstantName"/>
+        <module name="WhitespaceAround"/>
+        <module name="EmptyLineSeparator"/>
+        <module name="MagicNumber"/>
 
-    </module>
-
-    <module name="LineLength">
-        <property name="max" value="120"/>
     </module>
 
 </module>
