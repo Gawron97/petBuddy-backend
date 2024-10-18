@@ -147,7 +147,7 @@ public class OfferService {
     public List<OfferDTO> setAvailabilityForOffers(CreateOffersAvailabilityDTO createOffersAvailability,
                                                    String caretakerEmail) {
 
-        assertAvailabilityRangesNotOverlapping(createOffersAvailability.availabilityRanges());
+        assertAvailabilityRangesNotOverlapping(new ArrayList<>(createOffersAvailability.availabilityRanges()));
         List<Offer> modifiedOffers = createOffersAvailability.offerIds()
                 .stream()
                 .map(offerId -> setAvailabilityForOffer(offerId, createOffersAvailability.availabilityRanges(), caretakerEmail))
@@ -296,7 +296,7 @@ public class OfferService {
 
     }
 
-    private Set<Availability> createAdditionalAvailabilitiesForOffer(List<AvailabilityRangeDTO> availabilityRanges,
+    private Set<Availability> createAdditionalAvailabilitiesForOffer(Set<AvailabilityRangeDTO> availabilityRanges,
                                                                      Offer offer) {
 
         Set<Availability> newAvailabilities = new HashSet<>();
@@ -348,7 +348,7 @@ public class OfferService {
         }
     }
 
-    private Offer setAvailabilityForOffer(Long offerId, List<AvailabilityRangeDTO> availabilityRanges, String caretakerEmail) {
+    private Offer setAvailabilityForOffer(Long offerId, Set<AvailabilityRangeDTO> availabilityRanges, String caretakerEmail) {
 
         Offer offerToModify = getOffer(offerId);
         assertOfferIsModifyingByOwnerCaretaker(offerToModify, caretakerEmail);
@@ -360,14 +360,20 @@ public class OfferService {
         Set<Availability> availabilities = createAdditionalAvailabilitiesForOffer(availabilityRanges, offerToModify);
 
         Set<Availability> availabilitiesInOffer = offerToModify.getAvailabilities();
-        removeNotProvidedAvailabilities(availabilities, availabilitiesInOffer);
+        removeNotProvidedAvailabilities(availabilitiesInOffer, availabilityRanges);
         availabilitiesInOffer.addAll(availabilities);
         return offerToModify;
     }
 
     private void removeNotProvidedAvailabilities(Set<Availability> availabilitiesInOffer,
-                                                 Set<Availability> availabilities) {
-        availabilitiesInOffer.removeIf(availability -> !availabilities.contains(availability));
+                                                 Set<AvailabilityRangeDTO> availabilities) {
+        availabilitiesInOffer.removeIf(availability ->
+                availabilities
+                        .stream()
+                        .anyMatch(availabilityRange ->
+                                availability.getAvailableFrom().equals(availabilityRange.availableFrom()) &&
+                                        availability.getAvailableTo().equals(availabilityRange.availableTo())
+        ));
     }
 
     private Offer getOffer(Long offerId) {

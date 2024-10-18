@@ -11,6 +11,7 @@ import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -591,7 +592,7 @@ public class OfferServiceIntegrationTest {
         // Given
         CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
                 .offerIds(List.of(existingOffer.getId()))
-                .availabilityRanges(List.of(
+                .availabilityRanges(Set.of(
                         AvailabilityRangeDTO.builder()
                                 .availableFrom(LocalDate.now().plusDays(1))
                                 .availableTo(LocalDate.now().plusDays(10))
@@ -627,7 +628,7 @@ public class OfferServiceIntegrationTest {
 
         CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
                 .offerIds(List.of(existingOffer.getId(), anotherOffer.getId()))
-                .availabilityRanges(List.of(
+                .availabilityRanges(Set.of(
                         AvailabilityRangeDTO.builder()
                                 .availableFrom(LocalDate.now().plusDays(1))
                                 .availableTo(LocalDate.now().plusDays(10))
@@ -658,11 +659,21 @@ public class OfferServiceIntegrationTest {
     void setAvailabilityForOffers_WhenOfferAlreadyHaveAvailabilities_ShouldReplaceAvailabilityForOffer() {
 
         // Given
-        PersistenceUtils.setAvailabilitiesForOffer(offerRepository, existingOffer);
+        PersistenceUtils.setAvailabilitiesForOffer(offerRepository, existingOffer,
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(10))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(LocalDate.now().plusDays(22))
+                                .availableTo(LocalDate.now().plusDays(24))
+                                .build()
+                ));
 
         CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
                 .offerIds(List.of(existingOffer.getId()))
-                .availabilityRanges(List.of(
+                .availabilityRanges(Set.of(
                         AvailabilityRangeDTO.builder()
                                 .availableFrom(LocalDate.now().plusDays(5))
                                 .availableTo(LocalDate.now().plusDays(10))
@@ -697,7 +708,7 @@ public class OfferServiceIntegrationTest {
 
         CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
                 .offerIds(List.of(existingOffer.getId()))
-                .availabilityRanges(List.of())
+                .availabilityRanges(Set.of())
                 .build();
 
         // When
@@ -712,7 +723,7 @@ public class OfferServiceIntegrationTest {
     @Transactional
     @MethodSource("provideIncorrectAvailabilityRanges")
     void setAvailabilityForOffers_whenProvidedAvailabilityRangesOverlapping_ShouldThrowIllegalArgumentException(
-            List<AvailabilityRangeDTO> availabilityRanges) {
+            Set<AvailabilityRangeDTO> availabilityRanges) {
 
         CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
                 .offerIds(List.of(existingOffer.getId()))
@@ -727,7 +738,7 @@ public class OfferServiceIntegrationTest {
     static Stream<Arguments> provideIncorrectAvailabilityRanges() {
         return Stream.of(
                 Arguments.of(
-                        List.of(
+                        Set.of(
                                 AvailabilityRangeDTO.builder()
                                         .availableFrom(LocalDate.now().plusDays(1))
                                         .availableTo(LocalDate.now().plusDays(10))
@@ -739,7 +750,7 @@ public class OfferServiceIntegrationTest {
                         )
                 ),
                 Arguments.of(
-                        List.of(
+                        Set.of(
                                 AvailabilityRangeDTO.builder()
                                         .availableFrom(LocalDate.now().plusDays(5))
                                         .availableTo(LocalDate.now().plusDays(10))
@@ -751,7 +762,7 @@ public class OfferServiceIntegrationTest {
                         )
                 ),
                 Arguments.of(
-                        List.of(
+                        Set.of(
                                 AvailabilityRangeDTO.builder()
                                         .availableFrom(LocalDate.now().plusDays(5))
                                         .availableTo(LocalDate.now().plusDays(10))
@@ -763,7 +774,7 @@ public class OfferServiceIntegrationTest {
                         )
                 ),
                 Arguments.of(
-                        List.of(
+                        Set.of(
                                 AvailabilityRangeDTO.builder()
                                         .availableFrom(LocalDate.now().plusDays(5))
                                         .availableTo(LocalDate.now().plusDays(10))
@@ -784,7 +795,7 @@ public class OfferServiceIntegrationTest {
         // Given
         CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
                 .offerIds(List.of(existingOffer.getId()))
-                .availabilityRanges(List.of(
+                .availabilityRanges(Set.of(
                         AvailabilityRangeDTO.builder()
                                 .availableFrom(LocalDate.now().plusDays(1))
                                 .availableTo(LocalDate.now().plusDays(10))
