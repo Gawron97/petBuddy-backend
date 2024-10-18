@@ -20,8 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -255,12 +254,12 @@ public class OfferControllerTest {
         // Given
         List<AvailabilityRangeDTO> availabilityRanges = List.of(
                 AvailabilityRangeDTO.builder()
-                        .availableFrom(ZonedDateTime.of(2027, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                        .availableTo(ZonedDateTime.of(2027, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                        .availableFrom(LocalDate.of(2027, 1, 1))
+                        .availableTo(LocalDate.of(2027, 1, 10))
                         .build(),
                 AvailabilityRangeDTO.builder()
-                        .availableFrom(ZonedDateTime.of(2027, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
-                        .availableTo(ZonedDateTime.of(2027, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
+                        .availableFrom(LocalDate.of(2027, 1, 10))
+                        .availableTo(LocalDate.of(2027, 1, 20))
                         .build()
         );
         OfferDTO offerDTO = OfferDTO.builder()
@@ -273,10 +272,10 @@ public class OfferControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_OFFERS_AVAILABILITY_BODY,
                                 1,
-                                "2027-01-01 00:00:00.000 +0000",
-                                "2027-01-10 00:00:00.000 +0000",
-                                "2027-01-10 00:00:00.000 +0000",
-                                "2027-01-20 00:00:00.000 +0000"
+                                "2027-01-01",
+                                "2027-01-10",
+                                "2027-01-10",
+                                "2027-01-20"
                         ))
                         .header(roleHeaderName, Role.CARETAKER))
                 .andExpect(status().isOk())

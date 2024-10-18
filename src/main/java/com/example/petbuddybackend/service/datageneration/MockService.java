@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -449,15 +448,15 @@ public class MockService {
 
     private Availability createMockAvailability(Offer offer) {
 
-        LocalDateTime availableFrom = getRandomDateBetween(LocalDate.now(),
-                LocalDate.now().plusDays(180));
+        LocalDate availableFrom = getRandomDateBetween(LocalDate.now(),
+                LocalDate.now().plusDays(180)).toLocalDate();
 
-        LocalDateTime availableTo = getRandomDateBetween(availableFrom.toLocalDate(),
-                availableFrom.toLocalDate().plusDays(15));
+        LocalDate availableTo = getRandomDateBetween(availableFrom,
+                availableFrom.plusDays(15)).toLocalDate();
 
         return Availability.builder()
-                .availableFrom(availableFrom.atZone(ZoneId.systemDefault()))
-                .availableTo(availableTo.atZone(ZoneId.systemDefault()))
+                .availableFrom(availableFrom)
+                .availableTo(availableTo)
                 .offer(offer)
                 .build();
     }

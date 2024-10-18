@@ -16,7 +16,7 @@ import java.util.Set;
         @DateRangeField(startDateField = "minCreatedTime", endDateField = "maxCreatedTime"),
         @DateRangeField(startDateField = "minCareStart", endDateField = "maxCareStart"),
         @DateRangeField(startDateField = "minCareEnd", endDateField = "maxCareEnd")
-}, message = "Max created time must be after min created time")
+}, message = "Max created time must be after or equal to min created time")
 public record CareSearchCriteria(
         @Schema(
                 description = "Filters by animal types in cares",

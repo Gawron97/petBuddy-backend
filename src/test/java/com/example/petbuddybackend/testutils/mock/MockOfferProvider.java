@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import org.keycloak.common.util.CollectionUtil;
 
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -203,12 +203,12 @@ public final class MockOfferProvider {
     public static Offer setMockAvailabilitiesToOffer(Offer offer) {
 
         return setAvailabilitiesToOffer(offer, Set.of(
-                createMockAvailability(offer, ZonedDateTime.now().plusDays(1), ZonedDateTime.now().plusDays(2)),
-                createMockAvailability(offer, ZonedDateTime.now().plusDays(5), ZonedDateTime.now().plusDays(10))
+                createMockAvailability(offer, LocalDate.now().plusDays(1), LocalDate.now().plusDays(2)),
+                createMockAvailability(offer, LocalDate.now().plusDays(5), LocalDate.now().plusDays(10))
         ));
     }
 
-    public static Availability createMockAvailability(Offer offer, ZonedDateTime availableFrom, ZonedDateTime availableTo) {
+    public static Availability createMockAvailability(Offer offer, LocalDate availableFrom, LocalDate availableTo) {
         return Availability.builder()
                 .offer(offer)
                 .availableFrom(availableFrom)
