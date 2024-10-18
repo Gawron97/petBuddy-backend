@@ -370,7 +370,7 @@ public class OfferService {
         availabilitiesInOffer.removeIf(availability ->
                 availabilities
                         .stream()
-                        .anyMatch(availabilityRange ->
+                        .noneMatch(availabilityRange ->
                                 availability.getAvailableFrom().equals(availabilityRange.availableFrom()) &&
                                         availability.getAvailableTo().equals(availabilityRange.availableTo())
         ));
