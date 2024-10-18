@@ -702,6 +702,48 @@ public class OfferServiceIntegrationTest {
 
     @Test
     @Transactional
+    void setAvailabilityForOffers_WhenOfferHasTheSameAvailabilities_ShouldStayOldAvailabilities() {
+
+        // Given
+        PersistenceUtils.setAvailabilitiesForOffer(offerRepository, existingOffer,
+                Set.of(
+                        Availability.builder()
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(10))
+                                .build(),
+                        Availability.builder()
+                                .availableFrom(LocalDate.now().plusDays(22))
+                                .availableTo(LocalDate.now().plusDays(24))
+                                .build()
+                ));
+
+        CreateOffersAvailabilityDTO createOffersAvailabilityDTO = CreateOffersAvailabilityDTO.builder()
+                .offerIds(List.of(existingOffer.getId()))
+                .availabilityRanges(Set.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(22))
+                                .availableTo(LocalDate.now().plusDays(24))
+                                .build()
+                ))
+                .build();
+
+        // When
+        offerService.setAvailabilityForOffers(createOffersAvailabilityDTO, caretakerWithComplexOffer.getEmail());
+
+        // Then
+        Offer offerAfterAvailabilitySet = offerRepository.findById(existingOffer.getId()).orElseThrow();
+        assertEquals(2, offerAfterAvailabilitySet.getAvailabilities().size());
+
+        availabilityRepository.deleteAll();
+
+    }
+
+    @Test
+    @Transactional
     void setEmptyAvailabilityForOffers_WhenOfferAlreadyHaveAvailabilities_ShouldReplaceAvailabilityForOffer() {
         // Given
         PersistenceUtils.setAvailabilitiesForOffer(offerRepository, existingOffer);
