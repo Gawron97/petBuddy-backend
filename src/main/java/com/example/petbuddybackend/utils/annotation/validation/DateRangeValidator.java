@@ -71,7 +71,7 @@ public class DateRangeValidator implements ConstraintValidator<DateRange, Object
         Comparable<Object> startDateComparable = (Comparable<Object>) startDate;
         Comparable<Object> endDateComparable = (Comparable<Object>) endDate;
 
-        return startDateComparable.compareTo(endDateComparable) < 0;
+        return startDateComparable.compareTo(endDateComparable) <= 0;
     }
 
 

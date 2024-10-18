@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @Builder
 @DateRange(fields = {
         @DateRangeField(startDateField = "careStart", endDateField = "careEnd")
-}, message = "End date of care must be after start date")
+}, message = "End date of care must be after or same as start date")
 public record UpdateCareDTO(
         @NotNull
         @Future

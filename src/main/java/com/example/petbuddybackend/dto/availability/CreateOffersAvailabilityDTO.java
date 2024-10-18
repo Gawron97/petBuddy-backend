@@ -11,7 +11,6 @@ public record CreateOffersAvailabilityDTO(
         @NotEmpty
         List<Long> offerIds,
 
-        @NotEmpty
         List<@Valid AvailabilityRangeDTO> availabilityRanges
 ) {
 }
