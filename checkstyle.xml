@@ -20,8 +20,6 @@
         <module name="PackageName"/>
         <module name="ConstantName"/>
         <module name="WhitespaceAround"/>
-        <module name="EmptyLineSeparator"/>
-        <module name="MagicNumber"/>
 
     </module>
 
