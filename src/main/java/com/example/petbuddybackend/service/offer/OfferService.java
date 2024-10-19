@@ -147,7 +147,7 @@ public class OfferService {
     public List<OfferDTO> setAvailabilityForOffers(CreateOffersAvailabilityDTO createOffersAvailability,
                                                    String caretakerEmail) {
 
-        assertAvailabilityRangesNotOverlapping(new ArrayList<>(createOffersAvailability.availabilityRanges()));
+        assertAvailabilityRangesNotOverlapping(createOffersAvailability.availabilityRanges());
         List<Offer> modifiedOffers = createOffersAvailability.offerIds()
                 .stream()
                 .map(offerId -> setAvailabilityForOffer(offerId, createOffersAvailability.availabilityRanges(), caretakerEmail))
@@ -402,13 +402,13 @@ public class OfferService {
 
     }
 
-    private void assertAvailabilityRangesNotOverlapping(List<AvailabilityRangeDTO> availabilityRanges) {
+    private void assertAvailabilityRangesNotOverlapping(Set<AvailabilityRangeDTO> availabilityRanges) {
         List<AvailabilityRangeDTO> sortedRanges = new ArrayList<>(availabilityRanges);
         sortedRanges.sort(Comparator.comparing(AvailabilityRangeDTO::availableFrom));
 
         for(int i = 1; i < availabilityRanges.size(); i++) {
-            AvailabilityRangeDTO previous = availabilityRanges.get(i - 1);
-            AvailabilityRangeDTO current = availabilityRanges.get(i);
+            AvailabilityRangeDTO previous = sortedRanges.get(i - 1);
+            AvailabilityRangeDTO current = sortedRanges.get(i);
 
             if (previous.overlaps(current)) {
                 throw new AvailabilityDatesOverlappingException(
