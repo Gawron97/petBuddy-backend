@@ -777,57 +777,65 @@ public class OfferServiceIntegrationTest {
 
     }
 
-    static Stream<Arguments> provideIncorrectAvailabilityRanges() {
-        return Stream.of(
-                Arguments.of(
-                        Set.of(
-                                AvailabilityRangeDTO.builder()
-                                        .availableFrom(LocalDate.now().plusDays(1))
-                                        .availableTo(LocalDate.now().plusDays(10))
-                                        .build(),
-                                AvailabilityRangeDTO.builder()
-                                        .availableFrom(LocalDate.now().plusDays(5))
-                                        .availableTo(LocalDate.now().plusDays(20))
-                                        .build()
-                        )
+    static Stream<LinkedHashSet<AvailabilityRangeDTO>> provideIncorrectAvailabilityRanges() {
+        Stream<List<AvailabilityRangeDTO>> streamOfSets = Stream.of(
+                List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(1))
+                                .availableTo(LocalDate.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(20))
+                                .build()
                 ),
-                Arguments.of(
-                        Set.of(
-                                AvailabilityRangeDTO.builder()
-                                        .availableFrom(LocalDate.now().plusDays(5))
-                                        .availableTo(LocalDate.now().plusDays(10))
-                                        .build(),
-                                AvailabilityRangeDTO.builder()
-                                        .availableFrom(LocalDate.now().plusDays(2))
-                                        .availableTo(LocalDate.now().plusDays(7))
-                                        .build()
-                        )
+                List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(2))
+                                .availableTo(LocalDate.now().plusDays(7))
+                                .build()
                 ),
-                Arguments.of(
-                        Set.of(
-                                AvailabilityRangeDTO.builder()
-                                        .availableFrom(LocalDate.now().plusDays(5))
-                                        .availableTo(LocalDate.now().plusDays(10))
-                                        .build(),
-                                AvailabilityRangeDTO.builder()
-                                        .availableFrom(LocalDate.now().plusDays(6))
-                                        .availableTo(LocalDate.now().plusDays(7))
-                                        .build()
-                        )
+                List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(6))
+                                .availableTo(LocalDate.now().plusDays(7))
+                                .build()
                 ),
-                Arguments.of(
-                        Set.of(
-                                AvailabilityRangeDTO.builder()
-                                        .availableFrom(LocalDate.now().plusDays(5))
-                                        .availableTo(LocalDate.now().plusDays(10))
-                                        .build(),
-                                AvailabilityRangeDTO.builder()
-                                        .availableFrom(LocalDate.now().plusDays(1))
-                                        .availableTo(LocalDate.now().plusDays(15))
-                                        .build()
-                        )
+                List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(1))
+                                .availableTo(LocalDate.now().plusDays(15))
+                                .build()
+                ),
+                List.of(
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(5))
+                                .availableTo(LocalDate.now().plusDays(10))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(50))
+                                .availableTo(LocalDate.now().plusDays(51))
+                                .build(),
+                        AvailabilityRangeDTO.builder()
+                                .availableFrom(LocalDate.now().plusDays(1))
+                                .availableTo(LocalDate.now().plusDays(6))
+                                .build()
                 )
         );
+
+        return streamOfSets.map(LinkedHashSet::new);
     }
 
     @Test
