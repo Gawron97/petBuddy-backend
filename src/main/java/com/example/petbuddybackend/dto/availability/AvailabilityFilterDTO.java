@@ -8,21 +8,21 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 @Builder
 @DateRange(fields = {
         @DateRangeField(startDateField = "availableFrom", endDateField = "availableTo")
-}, message = "Available from must be before available to")
+}, message = "Available from must be before or equal to available to")
 public record AvailabilityFilterDTO(
         @NotNull
         @Future
-        @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
-        ZonedDateTime availableFrom,
+        @JsonFormat(pattern = TimeUtils.DATE_FORMAT)
+        LocalDate availableFrom,
 
         @NotNull
         @Future
-        @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
-        ZonedDateTime availableTo
+        @JsonFormat(pattern = TimeUtils.DATE_FORMAT)
+        LocalDate availableTo
 ) {
 }

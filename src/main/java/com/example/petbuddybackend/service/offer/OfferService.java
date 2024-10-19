@@ -296,6 +296,29 @@ public class OfferService {
 
     }
 
+    private Set<Availability> createAdditionalAvailabilitiesForOffer(Set<AvailabilityRangeDTO> availabilityRanges,
+                                                                     Offer offer) {
+
+        Set<Availability> newAvailabilities = new HashSet<>();
+        for(AvailabilityRangeDTO availabilityRange : availabilityRanges) {
+            Availability newAvailability = createAvailability(availabilityRange, offer);
+            if(!checkDuplicateForAvailabilitiesInOffer(
+                    Stream.concat(
+                            offer.getAvailabilities().stream(),
+                            newAvailabilities.stream()
+                    ).toList(), newAvailability
+            )) {
+                newAvailabilities.add(newAvailability);
+            }
+        }
+        return newAvailabilities;
+    }
+
+    private boolean checkDuplicateForAvailabilitiesInOffer(List<Availability> oldAvailabilities,
+                                                           Availability newAvailability) {
+        return oldAvailabilities.stream().anyMatch(oldAvailability -> oldAvailability.equals(newAvailability));
+    }
+
     private boolean checkDuplicateForAnimalAmenity(List<AnimalAmenity> oldAnimalAmenities, AnimalAmenity animalAmenity) {
         return oldAnimalAmenities.stream().anyMatch(oldAnimalAmenity -> oldAnimalAmenity.equals(animalAmenity));
     }
@@ -325,26 +348,37 @@ public class OfferService {
         }
     }
 
-    private Offer setAvailabilityForOffer(Long offerId, List<AvailabilityRangeDTO> availabilityRanges, String caretakerEmail) {
+    private Offer setAvailabilityForOffer(Long offerId, Set<AvailabilityRangeDTO> availabilityRanges, String caretakerEmail) {
 
         Offer offerToModify = getOffer(offerId);
         assertOfferIsModifyingByOwnerCaretaker(offerToModify, caretakerEmail);
-        Set<Availability> availabilities = createAvailabilities(availabilityRanges, offerToModify);
+        if(availabilityRanges.isEmpty()) {
+            offerToModify.getAvailabilities().clear();
+            return offerToModify;
+        }
 
-        replaceAvailabilitiesInOffer(offerToModify, availabilities);
+        Set<Availability> availabilities = createAdditionalAvailabilitiesForOffer(availabilityRanges, offerToModify);
 
+        Set<Availability> availabilitiesInOffer = offerToModify.getAvailabilities();
+        removeNotProvidedAvailabilities(availabilitiesInOffer, availabilityRanges);
+        availabilitiesInOffer.addAll(availabilities);
         return offerToModify;
+    }
+
+    private void removeNotProvidedAvailabilities(Set<Availability> availabilitiesInOffer,
+                                                 Set<AvailabilityRangeDTO> availabilities) {
+        availabilitiesInOffer.removeIf(availability ->
+                availabilities
+                        .stream()
+                        .noneMatch(availabilityRange ->
+                                availability.getAvailableFrom().equals(availabilityRange.availableFrom()) &&
+                                        availability.getAvailableTo().equals(availabilityRange.availableTo())
+        ));
     }
 
     private Offer getOffer(Long offerId) {
         return offerRepository.findById(offerId)
                 .orElseThrow(() -> new NotFoundException("Offer with id " + offerId + " not found"));
-    }
-
-    private void replaceAvailabilitiesInOffer(Offer offerToModify, Set<Availability> availabilities) {
-        Set<Availability> availabilitiesFromOffer = offerToModify.getAvailabilities();
-        availabilitiesFromOffer.clear();
-        availabilitiesFromOffer.addAll(availabilities);
     }
 
     private void assertOffersAreModifyingByOwnerCaretaker(List<Offer> offers, String caretakerEmail) {
@@ -358,12 +392,6 @@ public class OfferService {
         }
     }
 
-    private Set<Availability> createAvailabilities(List<AvailabilityRangeDTO> availabilityRanges, Offer offer) {
-        return availabilityRanges.stream()
-                .map(availabilityRange -> createAvailability(availabilityRange, offer))
-                .collect(Collectors.toSet());
-    }
-
     private Availability createAvailability(AvailabilityRangeDTO availabilityRange, Offer offer) {
 
         return Availability.builder()
@@ -374,13 +402,13 @@ public class OfferService {
 
     }
 
-    private void assertAvailabilityRangesNotOverlapping(List<AvailabilityRangeDTO> availabilityRanges) {
+    private void assertAvailabilityRangesNotOverlapping(Set<AvailabilityRangeDTO> availabilityRanges) {
         List<AvailabilityRangeDTO> sortedRanges = new ArrayList<>(availabilityRanges);
         sortedRanges.sort(Comparator.comparing(AvailabilityRangeDTO::availableFrom));
 
         for(int i = 1; i < availabilityRanges.size(); i++) {
-            AvailabilityRangeDTO previous = availabilityRanges.get(i - 1);
-            AvailabilityRangeDTO current = availabilityRanges.get(i);
+            AvailabilityRangeDTO previous = sortedRanges.get(i - 1);
+            AvailabilityRangeDTO current = sortedRanges.get(i);
 
             if (previous.overlaps(current)) {
                 throw new AvailabilityDatesOverlappingException(
