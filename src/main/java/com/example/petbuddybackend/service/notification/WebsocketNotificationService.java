@@ -6,7 +6,6 @@ import com.example.petbuddybackend.service.mapper.NotificationMapper;
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
@@ -29,7 +28,6 @@ public class WebsocketNotificationService {
 
     private final SimpUserRegistry simpUserRegistry;
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final MessageSource messageSource;
     private final NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
     @Value("${url.notification.topic.pattern}")
@@ -50,7 +48,6 @@ public class WebsocketNotificationService {
                 Locale locale = sessionsLocale.getOrDefault(session.getId(), Locale.getDefault());
 
                 NotificationDTO notificationToSend = convertNotificationWithMessageTimezone(notification, timeZone);
-                translateMessageInNotification(notification, locale, notificationToSend);
                 simpMessagingTemplate.convertAndSendToUser(
                         userEmail,
                         NOTIFICATION_BASE_URL,
@@ -69,29 +66,8 @@ public class WebsocketNotificationService {
         sessionsTimeZone.remove(sessionId);
     }
 
-    public void storeUserLocaleWithSession(String sessionId, String language) {
-        Locale userLocale = language != null
-                ? Locale.forLanguageTag(language)
-                : Locale.getDefault();
-        sessionsLocale.put(sessionId, userLocale);
-    }
-
-    public void removeUserSessionWithLocale(String sessionId) {
-        sessionsLocale.remove(sessionId);
-    }
-
     private NotificationDTO convertNotificationWithMessageTimezone(Notification notification, ZoneId timeZone) {
         return notificationMapper.mapToNotificationDTO(notification, timeZone);
-    }
-
-    private void translateMessageInNotification(Notification notification, Locale locale,
-                                                NotificationDTO notificationToSend) {
-        String translatedMessage = messageSource.getMessage(
-                notification.getMessageKey(),
-                notification.getArgs().toArray(),
-                locale
-        );
-        notificationToSend.setMessage(translatedMessage);
     }
 
     private MessageHeaders createHeaders(String sessionId) {

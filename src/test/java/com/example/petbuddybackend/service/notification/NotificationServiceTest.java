@@ -19,6 +19,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -68,14 +70,16 @@ public class NotificationServiceTest {
     void testAddNotificationForCaretakerAndSend_shouldAddNotificationAndSend() {
 
         //Given When
-        notificationService.addNotificationForCaretakerAndSend(1L, ObjectType.CARE, caretaker, "message");
+        notificationService.addNotificationForCaretakerAndSend(1L, ObjectType.CARE, caretaker,
+                "messageKey", Set.of("clientEmail"));
 
         //Then
         CaretakerNotification notification = caretakerNotificationRepository.findAll().get(0);
         assertNotNull(notification);
         assertEquals(1L, notification.getObjectId());
         assertEquals(ObjectType.CARE, notification.getObjectType());
-        assertEquals("message", notification.getMessage());
+        assertEquals("messageKey", notification.getMessageKey());
+        assertEquals(Set.of("clientEmail"), notification.getArgs());
         assertEquals(caretaker, notification.getCaretaker());
         assertFalse(notification.isRead());
 
@@ -88,14 +92,16 @@ public class NotificationServiceTest {
     void testAddNotificationForClientAndSend_shouldAddNotificationAndSend() {
 
         //Given When
-        notificationService.addNotificationForClientAndSend(1L, ObjectType.CARE, client, "message");
+        notificationService.addNotificationForClientAndSend(1L, ObjectType.CARE, client,
+                "messageKey", Set.of("caretakerEmail"));
 
         //Then
         ClientNotification notification = clientNotificationRepository.findAll().get(0);
         assertNotNull(notification);
         assertEquals(1L, notification.getObjectId());
         assertEquals(ObjectType.CARE, notification.getObjectType());
-        assertEquals("message", notification.getMessage());
+        assertEquals("messageKey", notification.getMessageKey());
+        assertEquals(Set.of("caretakerEmail"), notification.getArgs());
         assertEquals(client, notification.getClient());
         assertFalse(notification.isRead());
 

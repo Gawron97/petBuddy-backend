@@ -35,16 +35,16 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class CareService {
 
-    @Value("${notification.message.reservation}")
+    @Value("${notification.care.reservation}")
     private String reservationMessage;
 
-    @Value("${notification.message.update_reservation}")
+    @Value("${notification.care.update_reservation}")
     private String updateReservationMessage;
 
-    @Value("${notification.message.accepted_reservation}")
+    @Value("${notification.care.accepted_reservation}")
     private String acceptReservationMessage;
 
-    @Value("${notification.message.rejected_reservation}")
+    @Value("${notification.care.rejected_reservation}")
     private String rejectReservationMessage;
     
     private final CareRepository careRepository;
@@ -73,7 +73,7 @@ public class CareService {
                 ObjectType.CARE,
                 savedCare.getCaretaker(),
                 "message.care.reservation",
-                Set.of(care.getClient().getEmail(), String.valueOf(savedCare.getId()))
+                Set.of(care.getClient().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
 
@@ -94,7 +94,7 @@ public class CareService {
                 ObjectType.CARE,
                 savedCare.getClient(),
                 "message.care.update_reservation",
-                Set.of(care.getCaretaker().getEmail(), String.valueOf(savedCare.getId()))
+                Set.of(care.getCaretaker().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
 
@@ -116,7 +116,7 @@ public class CareService {
                 ObjectType.CARE,
                 savedCare.getClient(),
                 "message.care.accepted_reservation",
-                Set.of(String.valueOf(savedCare.getId()), care.getCaretaker().getEmail())
+                Set.of(care.getCaretaker().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
     }
@@ -134,7 +134,7 @@ public class CareService {
                 ObjectType.CARE,
                 savedCare.getCaretaker(),
                 "message.care.accepted_reservation",
-                Set.of(String.valueOf(savedCare.getId()), care.getClient().getEmail())
+                Set.of(care.getClient().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
     }
@@ -153,7 +153,7 @@ public class CareService {
                 ObjectType.CARE,
                 savedCare.getClient(),
                 "message.care.rejected_reservation",
-                Set.of(String.valueOf(savedCare.getId()), care.getCaretaker().getEmail())
+                Set.of(care.getCaretaker().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
 
@@ -173,7 +173,7 @@ public class CareService {
                 ObjectType.CARE,
                 savedCare.getCaretaker(),
                 "message.care.rejected_reservation",
-                Set.of(String.valueOf(savedCare.getId()), care.getClient().getEmail())
+                Set.of(care.getClient().getEmail())
         );
         return careMapper.mapToCareDTO(savedCare, timeZone);
 

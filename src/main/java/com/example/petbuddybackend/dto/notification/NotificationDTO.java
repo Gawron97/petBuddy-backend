@@ -3,19 +3,19 @@ package com.example.petbuddybackend.dto.notification;
 import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Role;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 @Builder
-@Getter @Setter
-public class NotificationDTO {
-    private Long notificationId;
-    private Long objectId;
-    private ObjectType objectType;
-    private ZonedDateTime createdAt;
-    private String message;
-    private Role receiverProfile;
-    private boolean isRead;
+public record NotificationDTO(
+        Long notificationId,
+        Long objectId,
+        ObjectType objectType,
+        ZonedDateTime createdAt,
+        String messageKey,
+        Set<String> args,
+        Role receiverProfile,
+        boolean isRead
+) {
 }
