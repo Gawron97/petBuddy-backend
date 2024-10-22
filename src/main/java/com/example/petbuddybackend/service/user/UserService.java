@@ -6,12 +6,14 @@ import com.example.petbuddybackend.entity.block.Block;
 import com.example.petbuddybackend.entity.block.BlockId;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.block.BlockRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.UserMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
+import com.example.petbuddybackend.utils.exception.throweable.InvalidRoleException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.user.AlreadyBlockedException;
@@ -145,6 +147,25 @@ public class UserService {
     public void assertNotBlockedByAny(String firstUsername, String secondUsername) {
         assertNotBlocked(firstUsername, secondUsername);
         assertNotBlocked(secondUsername, firstUsername);
+    }
+
+    public void assertHasRole(String clientEmail, Role role) {
+        if(role == Role.CARETAKER && isCaretaker(clientEmail)) {
+            return;
+        }
+        if(role == Role.CLIENT && isClient(clientEmail)) {
+            return;
+        }
+
+        throw new InvalidRoleException(role);
+    }
+
+    public boolean isClient(String email) {
+        return clientRepository.existsById(email);
+    }
+
+    public boolean isCaretaker(String email) {
+        return caretakerRepository.existsById(email);
     }
 
     private void assertNotBlocked(String firstUsername, String secondUsername) {

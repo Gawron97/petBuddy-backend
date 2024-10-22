@@ -10,7 +10,7 @@ import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundEx
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +39,10 @@ public class AnimalService {
     }
 
     public Set<AnimalAttribute> getAnimalAttributes(List<Long> animalAttributeIds) {
-        return new HashSet<>(animalAttributeRepository.findAllById(animalAttributeIds));
+        if(animalAttributeIds == null || animalAttributeIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        return animalAttributeRepository.findDistinctByIdIn(animalAttributeIds);
     }
 }

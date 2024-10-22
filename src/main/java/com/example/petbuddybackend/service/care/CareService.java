@@ -8,9 +8,12 @@ import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.notification.ObjectType;
+import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.service.animal.AnimalService;
+import com.example.petbuddybackend.service.care.state.CareStateMachine;
 import com.example.petbuddybackend.service.mapper.CareMapper;
 import com.example.petbuddybackend.service.notification.NotificationService;
 import com.example.petbuddybackend.service.user.CaretakerService;
@@ -20,7 +23,6 @@ import com.example.petbuddybackend.utils.exception.throweable.general.IllegalAct
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CareSpecificationUtils;
 import lombok.RequiredArgsConstructor;
-import org.keycloak.common.util.CollectionUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,14 +31,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CareService {
-
-    private static final String CLIENT_MISMATCH_MESSAGE = "Client can only make reservation for themselves";
 
     @Value("${notification.message.reservation}")
     private String reservationMessage;
@@ -57,125 +58,63 @@ public class CareService {
     private final UserService userService;
     private final NotificationService notificationService;
     private final CareMapper careMapper = CareMapper.INSTANCE;
+    private final CareStateMachine careStateMachine;
 
-    // TODO: remove check if principal is client
-    public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, ZoneId timeZone) {
-        assertLoggedInUserIsClient(createCare.clientEmail(), clientEmail, CLIENT_MISMATCH_MESSAGE);
-        assertClientIsNotCaretaker(createCare.clientEmail(), createCare.caretakerEmail());
+    public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail, ZoneId timeZone) {
+        userService.assertHasRole(clientEmail, Role.CLIENT);
+        userService.assertHasRole(caretakerEmail, Role.CARETAKER);
         assertEndCareDateIsAfterStartCareDate(createCare.careStart(), createCare.careEnd());
-        userService.assertNotBlockedByAny(clientEmail, createCare.caretakerEmail());
+        userService.assertNotBlockedByAny(clientEmail, caretakerEmail);
 
-        Set<AnimalAttribute> animalAttributes = new HashSet<>();
-        if(CollectionUtil.isNotEmpty(createCare.animalAttributeIds())) {
-            animalAttributes = animalService.getAnimalAttributes(createCare.animalAttributeIds());
-            assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());
-        }
+        Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributes(createCare.animalAttributeIds());
+        assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());
 
-        Care care = createCare(createCare, animalAttributes);
-        Care savedCare = careRepository.save(care);
-        notificationService.addNotificationForCaretakerAndSend(
-                savedCare.getId(),
-                ObjectType.CARE,
-                savedCare.getCaretaker(),
-                String.format(reservationMessage, care.getClient().getEmail(), savedCare.getId())
-        );
-        return careMapper.mapToCareDTO(savedCare, timeZone);
-
+        Care care = careRepository.save(createCare(clientEmail, caretakerEmail, createCare, animalAttributes));
+        sendCaretakerCareNotification(care, reservationMessage);
+        return careMapper.mapToCareDTO(care, timeZone);
     }
 
-    public CareDTO updateCare(Long careId, UpdateCareDTO updateCare, String userEmail, ZoneId timeZone) {
-
-        Care care = getCare(careId);
-        assertLoggedInUserIsCaretaker(care.getCaretaker().getEmail(), userEmail, "Only caretaker can edit care");
+    public CareDTO updateCare(Long careId, UpdateCareDTO updateCare, String caretakerEmail, ZoneId timeZone) {
+        Care care = getCareOfCaretaker(careId, caretakerEmail);
         assertCareIsNotTerminated(care);
-        assertCaretakerStatusIsPending(care, "Cannot update accepted care");
         assertEndCareDateIsAfterStartCareDate(updateCare.careStart(), updateCare.careEnd());
+
         careMapper.updateCareFromDTO(updateCare, care);
         care.setClientStatus(CareStatus.PENDING);
+
         Care savedCare = careRepository.save(care);
-        notificationService.addNotificationForClientAndSend(
-                savedCare.getId(),
-                ObjectType.CARE,
-                savedCare.getClient(),
-                String.format(updateReservationMessage, care.getCaretaker().getEmail(), savedCare.getId())
-        );
-        return careMapper.mapToCareDTO(savedCare, timeZone);
-
-    }
-
-    public CareDTO acceptCareByCaretaker(Long careId, String userEmail, ZoneId timeZone) {
-
-        Care care = getCare(careId);
-        assertLoggedInUserIsCaretaker(care.getCaretaker().getEmail(), userEmail,
-                "Only caretaker can change caretaker status");
-        assertCareIsNotTerminated(care);
-        assertCaretakerStatusIsPending(care, "Care already accepted");
-        assertClientStatusIsAccepted(care);
-        care.setCaretakerStatus(CareStatus.AWAITING_PAYMENT);
-        care.setClientStatus(CareStatus.AWAITING_PAYMENT);
-        Care savedCare = careRepository.save(care);
-        notificationService.addNotificationForClientAndSend(
-                savedCare.getId(),
-                ObjectType.CARE,
-                savedCare.getClient(),
-                String.format(acceptReservationMessage, savedCare.getId(), care.getCaretaker().getEmail())
-        );
+        sendClientCareNotification(savedCare, updateReservationMessage);
         return careMapper.mapToCareDTO(savedCare, timeZone);
     }
 
-    public CareDTO acceptCareByClient(Long careId, String userEmail, ZoneId timeZone) {
+    public CareDTO clientChangeCareStatus(Long careId, String clientEmail, ZoneId timeZone, CareStatus newStatus) {
+        userService.assertHasRole(clientEmail, Role.CLIENT);
+        Care care = getCareOfClient(careId, clientEmail);
 
-        Care care =  getCare(careId);
-        assertLoggedInUserIsClient(care.getClient().getEmail(), userEmail, "Only client can change client status");
-        assertCareIsNotTerminated(care);
-        assertClientStatusIsPending(care, "Care already accepted");
-        care.setClientStatus(CareStatus.ACCEPTED);
-        Care savedCare = careRepository.save(care);
-        notificationService.addNotificationForCaretakerAndSend(
-                savedCare.getId(),
-                ObjectType.CARE,
-                savedCare.getCaretaker(),
-                String.format(acceptReservationMessage, savedCare.getId(), care.getClient().getEmail())
-        );
-        return careMapper.mapToCareDTO(savedCare, timeZone);
+        CareStatus currentStatus =  care.getClientStatus();
+
+        if(!currentStatus.equals(newStatus)) {
+            careStateMachine.transition(care, Role.CLIENT, newStatus);
+            care = careRepository.save(care);
+            sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
+        }
+
+        return careMapper.mapToCareDTO(care, timeZone);
     }
 
-    public CareDTO rejectCareByCaretaker(Long careId, String userEmail, ZoneId timeZone) {
+    public CareDTO caretakerChangeCareStatus(Long careId, String clientEmail, ZoneId timeZone, CareStatus newStatus) {
+        userService.assertHasRole(clientEmail, Role.CARETAKER);
+        Care care = getCareOfCaretaker(careId, clientEmail);
 
-        Care care = getCare(careId);
-        assertLoggedInUserIsCaretaker(care.getCaretaker().getEmail(), userEmail,
-                "Only caretaker can change caretaker status");
-        assertCareIsNotTerminated(care);
-        assertCaretakerStatusIsPending(care, "Cannot reject already accepted care");
-        care.setCaretakerStatus(CareStatus.CANCELLED);
-        Care savedCare = careRepository.save(care);
-        notificationService.addNotificationForClientAndSend(
-                savedCare.getId(),
-                ObjectType.CARE,
-                savedCare.getClient(),
-                String.format(rejectReservationMessage, savedCare.getId(), care.getCaretaker().getEmail())
-        );
-        return careMapper.mapToCareDTO(savedCare, timeZone);
+        CareStatus currentStatus = care.getCaretakerStatus();
 
-    }
+        if(!currentStatus.equals(newStatus)) {
+            careStateMachine.transition(care, Role.CARETAKER, newStatus);
+            care = careRepository.save(care);
+            sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
+        }
 
-    public CareDTO cancelCareByClient(Long careId, String userEmail, ZoneId timeZone) {
-
-        Care care = getCare(careId);
-        assertLoggedInUserIsClient(care.getClient().getEmail(), userEmail,
-                "Only client can change client status");
-        assertCareIsNotTerminated(care);
-        assertCaretakerStatusIsPending(care, "Cannot cancel care accepted by caretaker");
-        care.setClientStatus(CareStatus.CANCELLED);
-        Care savedCare = careRepository.save(care);
-        notificationService.addNotificationForCaretakerAndSend(
-                savedCare.getId(),
-                ObjectType.CARE,
-                savedCare.getCaretaker(),
-                String.format(rejectReservationMessage, savedCare.getId(), care.getClient().getEmail())
-        );
-        return careMapper.mapToCareDTO(savedCare, timeZone);
-
+        return careMapper.mapToCareDTO(care, timeZone);
     }
 
     public Page<CareDTO> getCares(Pageable pageable, CareSearchCriteria filters, Set<String> emails,
@@ -190,8 +129,42 @@ public class CareService {
 
     }
 
-    private Care createCare(CreateCareDTO createCare, Set<AnimalAttribute> animalAttributes) {
+    private String getNotificationOnStatusChange(CareStatus status) {
+        return switch(status) {
+            case ACCEPTED -> acceptReservationMessage;
+            case CANCELLED -> rejectReservationMessage;
+            default -> throw new IllegalActionException("Invalid status");
+        };
+    }
 
+    private void sendClientCareNotification(Care care, String message) {
+        Client client = care.getClient();
+
+        notificationService.addNotificationForClientAndSend(
+                care.getId(),
+                ObjectType.CARE,
+                client,
+                String.format(message, client.getEmail(), care.getId())
+        );
+    }
+
+    private void sendCaretakerCareNotification(Care care, String message) {
+        Caretaker caretaker = care.getCaretaker();
+
+        notificationService.addNotificationForCaretakerAndSend(
+                care.getId(),
+                ObjectType.CARE,
+                caretaker,
+                String.format(message, caretaker.getEmail(), care.getId())
+        );
+    }
+
+    private Care createCare(
+            String clientEmail,
+            String caretakerEmail,
+            CreateCareDTO createCare,
+            Set<AnimalAttribute> animalAttributes
+    ) {
         return Care.builder()
                 .caretakerStatus(CareStatus.PENDING)
                 .clientStatus(CareStatus.ACCEPTED)
@@ -201,26 +174,9 @@ public class CareService {
                 .dailyPrice(createCare.dailyPrice())
                 .animal(animalService.getAnimal(createCare.animalType()))
                 .animalAttributes(animalAttributes)
-                .caretaker(caretakerService.getCaretakerByEmail(createCare.caretakerEmail()))
-                .client(clientService.getClientByEmail(createCare.clientEmail()))
+                .client(clientService.getClientByEmail(clientEmail))
+                .caretaker(caretakerService.getCaretakerByEmail(caretakerEmail))
                 .build();
-
-    }
-
-    private void assertLoggedInUserIsClient(String clientEmail,
-                                            String userEmail, String message) {
-
-        if(!clientEmail.equals(userEmail)) {
-            throw new IllegalActionException(message);
-        }
-
-    }
-
-    private void assertClientIsNotCaretaker(String clientEmail, String caretakerEmail) {
-
-        if(clientEmail.equals(caretakerEmail)) {
-            throw new IllegalActionException("Client cannot make reservation for care from his offer");
-        }
 
     }
 
@@ -231,9 +187,15 @@ public class CareService {
     }
 
     private void assertAnimalAttributesMatchAnimalType(Set<AnimalAttribute> animalAttributes, String animalType) {
-        if(animalAttributes.stream()
-                .anyMatch(animalAttribute -> !animalAttribute.getAnimal().getAnimalType().equals(animalType))) {
-            throw new IllegalActionException("Animal attributes must match animal type");
+        List<AnimalAttribute> mismatchedAttributes = animalAttributes.stream()
+                .filter(animalAttribute -> !animalAttribute.getAnimal().getAnimalType().equals(animalType))
+                .toList();
+
+        if (!mismatchedAttributes.isEmpty()) {
+            String mismatches = mismatchedAttributes.stream()
+                    .map(animalAttribute -> animalAttribute.getAnimal().getAnimalType() + " (attribute: " + animalAttribute + ")")
+                    .collect(Collectors.joining(", "));
+            throw new IllegalActionException("Animal attributes must match animal type. Mismatches: " + mismatches);
         }
     }
 
@@ -254,33 +216,31 @@ public class CareService {
         }
     }
 
-    private void assertCaretakerStatusIsPending(Care care, String message) {
-        if(!care.getCaretakerStatus().equals(CareStatus.PENDING)) {
-            throw new IllegalActionException(message);
+    /**
+     * Get care of id and check if the caretakerEmail is owner o the returned care
+     * */
+    private Care getCareOfCaretaker(Long careId, String caretakerEmail) {
+        Care care = careRepository.findById(careId)
+                .orElseThrow(() -> NotFoundException.withFormattedMessage("Care", careId.toString()));
+
+        if(!care.getCaretaker().getEmail().equals(caretakerEmail)) {
+            throw new IllegalActionException("Caretaker is not owner of the care");
         }
+
+        return care;
     }
 
-    private void assertClientStatusIsPending(Care care, String message) {
-        if(!care.getClientStatus().equals(CareStatus.PENDING)) {
-            throw new IllegalActionException(message);
+    /**
+     * Get care of id and check if the clientEmail is the one issuing the care
+     * */
+    private Care getCareOfClient(Long careId, String clientEmail) {
+        Care care = careRepository.findById(careId)
+                .orElseThrow(() -> NotFoundException.withFormattedMessage("Care", careId.toString()));
+
+        if(!care.getClient().getEmail().equals(clientEmail)) {
+            throw new IllegalActionException("Client is not owner of the care");
         }
-    }
 
-    private void assertLoggedInUserIsCaretaker(String caretakerEmail, String userEmail, String message) {
-        if(!caretakerEmail.equals(userEmail)) {
-            throw new IllegalActionException(message);
-        }
+        return care;
     }
-
-    private Care getCare(Long careId) {
-        return careRepository.findById(careId)
-                .orElseThrow(() -> new NotFoundException("Care not found"));
-    }
-
-    private void assertClientStatusIsAccepted(Care care) {
-        if(!care.getClientStatus().equals(CareStatus.ACCEPTED)) {
-            throw new IllegalActionException("Client need to first accept care");
-        }
-    }
-
 }

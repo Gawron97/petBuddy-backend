@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.throweable.InvalidRoleException;
+import com.example.petbuddybackend.utils.exception.throweable.StateTransitionException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.InvalidMessageReceiverException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
@@ -95,6 +97,18 @@ public class CustomExceptionAdvice {
     @ExceptionHandler(BlockedException.class)
     @ResponseStatus(code = HttpStatus.FORBIDDEN)
     public ApiExceptionResponse handleBlockedException(BlockedException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRoleException.class)
+    @ResponseStatus(code = HttpStatus.FORBIDDEN)
+    public ApiExceptionResponse handleInvalidRoleException(InvalidRoleException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(StateTransitionException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ApiExceptionResponse handleStateTransitionException(StateTransitionException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 }

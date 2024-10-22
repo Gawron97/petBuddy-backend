@@ -31,8 +31,7 @@ public record CreateCareDTO(
         BigDecimal dailyPrice,
 
         @NotBlank String animalType,
-        List<Long> animalAttributeIds,
-        @NotBlank String caretakerEmail
+        List<Long> animalAttributeIds
 ) {
         public CreateCareDTO {
                 if(animalAttributeIds == null) {
