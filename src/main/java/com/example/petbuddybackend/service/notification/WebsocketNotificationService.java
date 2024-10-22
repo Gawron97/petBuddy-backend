@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,7 +33,6 @@ public class WebsocketNotificationService {
     private String NOTIFICATION_BASE_URL;
 
     private final Map<String, ZoneId> sessionsTimeZone = new ConcurrentHashMap<>();
-    private final Map<String, Locale> sessionsLocale = new ConcurrentHashMap<>();
 
     public Integer getNumberOfSessions(String userEmail) {
         return getUserSessions(userEmail).size();
@@ -45,7 +43,6 @@ public class WebsocketNotificationService {
             Set<SimpSession> userSessions = getUserSessions(userEmail);
             for(SimpSession session : userSessions) {
                 ZoneId timeZone = sessionsTimeZone.getOrDefault(session.getId(), ZoneId.systemDefault());
-                Locale locale = sessionsLocale.getOrDefault(session.getId(), Locale.getDefault());
 
                 NotificationDTO notificationToSend = convertNotificationWithMessageTimezone(notification, timeZone);
                 simpMessagingTemplate.convertAndSendToUser(
