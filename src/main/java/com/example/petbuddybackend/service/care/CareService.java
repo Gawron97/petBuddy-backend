@@ -62,7 +62,7 @@ public class CareService {
         assertEndCareDateIsAfterStartCareDate(createCare.careStart(), createCare.careEnd());
         Set<AnimalAttribute> animalAttributes = new HashSet<>();
         if(CollectionUtil.isNotEmpty(createCare.animalAttributeIds())) {
-            animalAttributes = animalService.getAnimalAttributes(createCare.animalAttributeIds());
+            animalAttributes = animalService.getAnimalAttributesOfAnimal(createCare.animalAttributeIds());
             assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());
         }
 

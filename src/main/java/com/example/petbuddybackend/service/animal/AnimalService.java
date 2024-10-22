@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,8 +31,13 @@ public class AnimalService {
     }
 
     public AnimalAttribute getAnimalAttribute(String animalType, String attributeName, String attributeValue) {
-        return animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(animalType, attributeName, attributeValue)
-                .orElseThrow(() -> new NotFoundException("Animal attribute with name " + attributeName + " and value " + attributeValue + " not found"));
+        return animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
+                animalType,
+                attributeName,
+                attributeValue
+                )
+                .orElseThrow(() -> new NotFoundException("Animal attribute with name " +
+                        attributeName + " and value " + attributeValue + " not found"));
     }
 
     public Animal getAnimal(String animalType) {
@@ -38,7 +45,31 @@ public class AnimalService {
                 .orElseThrow(() -> new NotFoundException("Animal with type " + animalType + " not found"));
     }
 
-    public Set<AnimalAttribute> getAnimalAttributes(List<Long> animalAttributeIds) {
+    public Set<AnimalAttribute> getAnimalAttributesOfAnimal(List<Long> animalAttributeIds) {
         return new HashSet<>(animalAttributeRepository.findAllById(animalAttributeIds));
     }
+
+    public Map<String, List<String>> getAnimalAttributesOfAnimal(String animalType) {
+        return animalAttributeRepository.findAllByAnimal_AnimalType(animalType)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        AnimalAttribute::getAttributeName,
+                        Collectors.mapping(AnimalAttribute::getAttributeValue, Collectors.toList())
+                ));
+    }
+
+    public Set<String> getAnimals() {
+        return animalRepository.findAll()
+                .stream()
+                .map(Animal::getAnimalType)
+                .collect(Collectors.toSet());
+    }
+
+    public Set<String> getAmenitiesForAnimal(String animalType) {
+        return animalAmenityRepository.findAllByAnimal_AnimalType(animalType)
+                .stream()
+                .map(animalAmenity -> animalAmenity.getAmenity().getName())
+                .collect(Collectors.toSet());
+    }
+
 }
