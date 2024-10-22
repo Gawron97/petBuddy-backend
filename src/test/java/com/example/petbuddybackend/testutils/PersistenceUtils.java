@@ -8,6 +8,7 @@ import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
+import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.offer.OfferConfiguration;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -17,6 +18,7 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
+import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
+import static com.example.petbuddybackend.testutils.mock.MockNotificationProvider.createMockCaretakerNotification;
 import static com.example.petbuddybackend.testutils.mock.MockOfferProvider.*;
 import static com.example.petbuddybackend.testutils.mock.MockRatingProvider.createMockRatingForCaretaker;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
@@ -251,6 +254,12 @@ public class PersistenceUtils {
                                                        Set<Caretaker> caretakers) {
         client.getFollowingCaretakers().addAll(caretakers);
         clientRepository.saveAndFlush(client);
+    }
+
+    public static CaretakerNotification addCaretakerNotification(CaretakerNotificationRepository caretakerNotificationRepository,
+                                                                 Caretaker caretaker) {
+        CaretakerNotification notification = createMockCaretakerNotification(caretaker);
+        return caretakerNotificationRepository.saveAndFlush(notification);
     }
 
 }

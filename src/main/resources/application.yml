@@ -10,7 +10,7 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     properties:
       dialect: org.hibernate.dialect.PostgreSQL94Dialect
       hibernate:
@@ -65,6 +65,10 @@ url:
     topic:
       base: "/topic/session"
       pattern: "/topic/session/%s"
+  notification:
+    topic:
+      base: "/user/topic/notification"
+      pattern: "/topic/notification"
 
 firebase:
   key:
@@ -76,5 +80,12 @@ firebase:
   photo:
     directory: ${FIREBASE_PHOTO_DIRECTORY}
     expiration:
-      max-seconds: 6        # 6 hours
-      threshold-seconds: 1   # 0.5 hour
+      max-seconds: 21600        # 6 hours
+      threshold-seconds: 2300   # 0.5 hour
+
+notification:
+  message:
+    reservation: "%s just make a new reservation %d for your services"
+    update_reservation: "%s just update the reservation %d"
+    accepted_reservation: "Your reservation for care %d has been accepted by %s"
+    rejected_reservation: "Your reservation for care %d has been rejected by %s"

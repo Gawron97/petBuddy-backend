@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.entity.user;
 
+import com.example.petbuddybackend.entity.notification.ClientNotification;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import jakarta.persistence.*;
@@ -38,6 +39,10 @@ public class Client {
     )
     @Builder.Default
     private Set<Caretaker> followingCaretakers = new HashSet<>();
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<ClientNotification> notifications = new HashSet<>();
 
     @PrePersist
     @PreUpdate

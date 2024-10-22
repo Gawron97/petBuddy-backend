@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
-import com.example.petbuddybackend.utils.exception.throweable.offer.AnimalAmenityDuplicatedInOfferException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.AvailabilityDatesOverlappingException;
 import com.example.petbuddybackend.utils.exception.throweable.offer.OfferConfigurationDuplicatedException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,12 +23,6 @@ public class ApiExceptionAdvice {
     @ExceptionHandler(OfferConfigurationDuplicatedException.class)
     @ResponseStatus(code = HttpStatus.CONFLICT)
     public ApiExceptionResponse handleOfferConfigurationAlreadyExistsException(OfferConfigurationDuplicatedException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
-    }
-
-    @ExceptionHandler(AnimalAmenityDuplicatedInOfferException.class)
-    @ResponseStatus(code = HttpStatus.CONFLICT)
-    public ApiExceptionResponse handleAnimalAmenityAlreadySelectedInOfferException(AnimalAmenityDuplicatedInOfferException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 

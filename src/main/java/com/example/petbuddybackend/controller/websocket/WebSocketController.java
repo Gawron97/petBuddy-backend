@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.controller;
+package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.service.chat.session.context.WebSocketSessionContext;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +19,11 @@ public class WebSocketController {
     public void handleConnect(SessionConnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         context.setSessionId(accessor.getSessionId());
-        log.debug("Session with id: {} created", accessor.getSessionId());
+
+        log.debug(
+                "Event connect; sessionId: {}; user: {}",
+                accessor.getSessionId(),
+                accessor.getUser() == null ? "null" : accessor.getUser().getName()
+        );
     }
 }

@@ -165,9 +165,7 @@
 
                             <!-- Excludes for classes covered by websocket tests -->
                             <exclude>com/example/petbuddybackend/filter/SubscriptionInterceptor.class</exclude>
-                            <exclude>com/example/petbuddybackend/controller/WebSocketController.class</exclude>
-                            <exclude>com/example/petbuddybackend/controller/ChatWebSocketController.class</exclude>
-                            <exclude>com/example/petbuddybackend/controller/SessionWebSocketController.class</exclude>
+                            <exclude>com/example/petbuddybackend/controller/websocket/**</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
@@ -214,11 +212,31 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <consoleOutput>true</consoleOutput>
+                    <failOnViolation>true</failOnViolation>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>checkstyle-validation</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.0</version>
                 <configuration>
                     <excludes>
-                        <exclude>com/example/petbuddybackend/controller/ChatWebSocketIntegrationTest.java</exclude>
+                        <exclude>com/example/petbuddybackend/controller/websocket/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
