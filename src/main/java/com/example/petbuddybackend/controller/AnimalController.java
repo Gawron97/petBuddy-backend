@@ -22,7 +22,7 @@ public class AnimalController {
 
     @SecurityRequirements
     @Operation(summary = "Get animal attributes for specified animal type")
-    @GetMapping("attributes/{animalType}")
+    @GetMapping("{animalType}/attributes")
     public Map<String, List<String>> getAnimalAttributes(@PathVariable String animalType) {
         return animalService.getAnimalAttributesOfAnimal(animalType);
     }
@@ -36,7 +36,7 @@ public class AnimalController {
 
     @SecurityRequirements
     @Operation(summary = "Get amenities available for specified animal type")
-    @GetMapping("amenities/{animalType}")
+    @GetMapping("{animalType}/amenities")
     public Set<String> getAmenities(@PathVariable String animalType) {
         return animalService.getAmenitiesForAnimal(animalType);
     }

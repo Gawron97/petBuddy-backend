@@ -69,6 +69,7 @@ public class AnimalServiceIntegrationTest {
     void getAnimalAttributesOfAnimal() {
         Map<String, List<String>> result = animalService.getAnimalAttributesOfAnimal("DOG");
         assertNotNull(result);
+        assertFalse(result.isEmpty());
     }
 
     @Test

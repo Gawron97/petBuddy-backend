@@ -31,7 +31,7 @@ public class AnimalControllerTest {
 
         when(animalService.getAnimalAttributesOfAnimal("dog")).thenReturn(new HashMap<>());
 
-        mockMvc.perform(get("/api/animal/attributes/{animalType}", "dog"))
+        mockMvc.perform(get("/api/animal/{animalType}/attributes", "dog"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isMap());
 
@@ -53,7 +53,7 @@ public class AnimalControllerTest {
 
         when(animalService.getAmenitiesForAnimal("dog")).thenReturn(new HashSet<>());
 
-        mockMvc.perform(get("/api/animal/amenities/{animalType}", "dog"))
+        mockMvc.perform(get("/api/animal/{animalType}/amenities", "dog"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
 

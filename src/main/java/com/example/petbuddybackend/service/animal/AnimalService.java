@@ -25,14 +25,14 @@ public class AnimalService {
     private final AnimalAmenityRepository animalAmenityRepository;
 
     public AnimalAmenity getAnimalAmenity(String amenityName, String animalType) {
-        return animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType(amenityName, animalType)
+        return animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType(amenityName, animalType.toUpperCase())
                 .orElseThrow(() -> new NotFoundException("Animal amenity with name " + amenityName + " and animal type "
                         + animalType + " not found"));
     }
 
     public AnimalAttribute getAnimalAttribute(String animalType, String attributeName, String attributeValue) {
         return animalAttributeRepository.findByAnimal_AnimalTypeAndAttributeNameAndAttributeValue(
-                animalType,
+                animalType.toUpperCase(),
                 attributeName,
                 attributeValue
                 )
@@ -41,8 +41,9 @@ public class AnimalService {
     }
 
     public Animal getAnimal(String animalType) {
-        return animalRepository.findById(animalType)
-                .orElseThrow(() -> new NotFoundException("Animal with type " + animalType + " not found"));
+        return animalRepository.findById(animalType.toUpperCase())
+                .orElseThrow(() -> new NotFoundException("Animal with type " + animalType.toUpperCase()
+                        + " not found"));
     }
 
     public Set<AnimalAttribute> getAnimalAttributesOfAnimal(List<Long> animalAttributeIds) {
@@ -50,7 +51,7 @@ public class AnimalService {
     }
 
     public Map<String, List<String>> getAnimalAttributesOfAnimal(String animalType) {
-        return animalAttributeRepository.findAllByAnimal_AnimalType(animalType)
+        return animalAttributeRepository.findAllByAnimal_AnimalType(animalType.toUpperCase())
                 .stream()
                 .collect(Collectors.groupingBy(
                         AnimalAttribute::getAttributeName,
@@ -66,7 +67,7 @@ public class AnimalService {
     }
 
     public Set<String> getAmenitiesForAnimal(String animalType) {
-        return animalAmenityRepository.findAllByAnimal_AnimalType(animalType)
+        return animalAmenityRepository.findAllByAnimal_AnimalType(animalType.toUpperCase())
                 .stream()
                 .map(animalAmenity -> animalAmenity.getAmenity().getName())
                 .collect(Collectors.toSet());
