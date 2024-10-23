@@ -171,4 +171,46 @@ public class NotificationServiceTest {
 
     }
 
+    @Test
+    void testMarkNotificationAsRead_shouldMarkNotificationAsRead() {
+
+        //Given
+        Long notificationId = transactionTemplate.execute(status -> {
+            CaretakerNotification notification = PersistenceUtils.addCaretakerNotification(
+                    caretakerNotificationRepository, caretaker
+            );
+            return notification.getId();
+        });
+
+        //When
+        transactionTemplate.execute(status -> {
+            NotificationDTO result = notificationService.markNotificationAsRead(
+                    notificationId,
+                    Role.CARETAKER,
+                    ZoneId.systemDefault()
+            );
+            assertEquals(Role.CARETAKER, result.receiverProfile());
+            return null;
+        });
+
+        transactionTemplate.execute(status -> {
+            CaretakerNotification notification = caretakerNotificationRepository.findById(notificationId).get();
+            assertTrue(notification.isRead());
+            return null;
+        });
+    }
+
+    @Test
+    void testMarkNotificationAsRead_shouldThrowExceptionWhenNotificationNotFound() {
+
+        //When Then
+        assertThrows(IllegalArgumentException.class,
+                () -> notificationService.markNotificationAsRead(
+                        1L,
+                        Role.CARETAKER,
+                        ZoneId.systemDefault()
+                )
+        );
+    }
+
 }

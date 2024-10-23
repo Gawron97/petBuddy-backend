@@ -1,9 +1,12 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.entity.user.Role;
+import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
 import com.example.petbuddybackend.service.notification.NotificationService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,8 +39,16 @@ public class NotificationControllerTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private CaretakerNotificationRepository caretakerNotificationRepository;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
     @Test
-    @WithMockUser(roles = "caretakerEmail")
+    @WithMockUser("caretakerEmail")
     void getUnreadNotifications_shouldReturnProperAnswer() throws Exception {
 
         when(notificationService.getUnreadNotifications(any(), any(), any(), any()))
@@ -50,5 +61,18 @@ public class NotificationControllerTest {
                 .andExpect(jsonPath("$.content").isArray());
 
     }
+
+//    @Test
+//    void markNotificationAsRead_shouldReturnProperAnswer() throws Exception {
+//
+//        when(notificationService.markNotificationAsRead(eq(1L), eq(Role.CARETAKER), any()))
+//                .thenReturn(null);
+//        when(caretakerNotificationRepository.findById(1L)).thenReturn(Optional.of(new CaretakerNotification()));
+//
+//        mockMvc.perform(patch("/api/notifications/1")
+//                        .header(TIMEZONE_HEADER_NAME, "UTC")
+//                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+//                .andExpect(status().isOk());
+//    }
 
 }
