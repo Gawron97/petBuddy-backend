@@ -43,7 +43,7 @@ public class WebsocketNotificationService {
             Set<SimpSession> userSessions = getUserSessions(userEmail);
             for(SimpSession session : userSessions) {
                 ZoneId timeZone = sessionsTimeZone.getOrDefault(session.getId(), ZoneId.systemDefault());
-                System.out.println("Timezone: " + timeZone);
+
                 NotificationDTO notificationToSend = convertNotificationWithMessageTimezone(notification, timeZone);
                 simpMessagingTemplate.convertAndSendToUser(
                         userEmail,

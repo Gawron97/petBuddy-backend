@@ -2,9 +2,7 @@ package com.example.petbuddybackend.service.notification;
 
 import com.example.petbuddybackend.dto.notification.NotificationDTO;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
-import com.example.petbuddybackend.entity.notification.Notification;
 import com.example.petbuddybackend.entity.user.Role;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.user.*;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.messaging.simp.user.SimpSession;
+import org.springframework.messaging.simp.user.SimpUser;
+import org.springframework.messaging.simp.user.SimpUserRegistry;
 
 import java.lang.reflect.Field;
 import java.time.ZoneId;
@@ -24,7 +23,8 @@ import java.util.Set;
 
 import static com.example.petbuddybackend.testutils.mock.MockNotificationProvider.createMockCaretakerNotification;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
@@ -80,7 +80,8 @@ public class WebsocketNotificationServiceTest {
         assertEquals(userEmail, userCaptor.getValue());
         assertEquals(NOTIFICATION_BASE_URL, destinationCaptor.getValue());
         assertEquals(notification.getId(), notificationDTOCaptor.getValue().notificationId());
-        assertEquals(notification.getMessage(), notificationDTOCaptor.getValue().message());
+        assertEquals(notification.getMessageKey(), notificationDTOCaptor.getValue().messageKey());
+        assertEquals(notification.getArgs(), notificationDTOCaptor.getValue().args());
         assertEquals(notification.getObjectId(), notificationDTOCaptor.getValue().objectId());
         assertEquals(notification.getObjectType(), notificationDTOCaptor.getValue().objectType());
         assertEquals(Role.CARETAKER, notificationDTOCaptor.getValue().receiverProfile());

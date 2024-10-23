@@ -8,6 +8,7 @@ import com.example.petbuddybackend.entity.user.Client;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class MockNotificationProvider {
@@ -16,7 +17,8 @@ public final class MockNotificationProvider {
         return CaretakerNotification.builder()
                 .objectId(1L)
                 .objectType(ObjectType.CARE)
-                .message("Test notification message")
+                .messageKey("care_reservation")
+                .args(Set.of("clientEmail"))
                 .createdAt(ZonedDateTime.now())
                 .isRead(false)
                 .caretaker(caretaker)
@@ -27,7 +29,8 @@ public final class MockNotificationProvider {
         return ClientNotification.builder()
                 .objectId(1L)
                 .objectType(ObjectType.CARE)
-                .message("Test notification message")
+                .messageKey("care_update")
+                .args(Set.of("caretakerEmail"))
                 .createdAt(ZonedDateTime.now())
                 .isRead(false)
                 .client(client)

@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 @MappedSuperclass
 @Getter
@@ -32,7 +33,10 @@ public class Notification {
     private ZonedDateTime createdAt;
 
     @Column(nullable = false, length = 100)
-    private String message;
+    private String messageKey;
+
+    @ElementCollection
+    private Set<String> args;
 
     @Column(nullable = false)
     private boolean isRead;
