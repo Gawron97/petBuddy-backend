@@ -11,7 +11,6 @@ import com.example.petbuddybackend.utils.provider.resources.AnimalProvider;
 import com.example.petbuddybackend.utils.resourcestructure.AmenityConfig;
 import com.example.petbuddybackend.utils.resourcestructure.AnimalAttributeConfig;
 import com.example.petbuddybackend.utils.resourcestructure.AnimalConfig;
-import com.github.javafaker.Faker;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -23,8 +22,6 @@ import java.util.List;
 @Profile("dev | test")
 @RequiredArgsConstructor
 public class NecessaryDataService {
-
-    private final Faker faker = new Faker();
 
     private final AnimalProvider animalProvider;
     private final AnimalAttributeProvider animalAttributeProvider;
@@ -65,8 +62,10 @@ public class NecessaryDataService {
                                 getAnimal(animalAttributeConfig.animalType(), animals));
                     } catch (IllegalArgumentException e) {
                         throw new IllegalArgumentException(
-                                MessageFormat.format("Animal {0} not found during generating animal attribute {1}",
-                                        animalAttributeConfig.animalType(), animalAttributeConfig));
+                                MessageFormat.format(
+                                        "Animal {0} not found during generating animal attribute {1}",
+                                        animalAttributeConfig.animalType(), animalAttributeConfig
+                                ));
                     }
                 })
                 .toList();
@@ -111,8 +110,12 @@ public class NecessaryDataService {
                         );
                     } catch (IllegalArgumentException e) {
                         throw new IllegalArgumentException(
-                                MessageFormat.format("Animal {0} or Amenity {1} not found during generating animal amenity {2}",
-                                        animalAmenityConfig.animalType(), animalAmenityConfig.amenity(), animalAmenityConfig));
+                                MessageFormat.format(
+                                        "Animal {0} or Amenity {1} not found during generating animal amenity {2}",
+                                        animalAmenityConfig.animalType(),
+                                        animalAmenityConfig.amenity(),
+                                        animalAmenityConfig
+                                ));
                     }
                 })
                 .toList();
