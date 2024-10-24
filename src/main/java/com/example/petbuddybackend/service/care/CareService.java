@@ -23,7 +23,6 @@ import com.example.petbuddybackend.utils.exception.throweable.general.IllegalAct
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CareSpecificationUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,17 +44,11 @@ public class CareService {
     private static final String CARE = "Care";
     private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
 
-    @Value("${notification.care.reservation}")
-    private String reservationMessage;
-
-    @Value("${notification.care.update_reservation}")
-    private String updateReservationMessage;
-
-    @Value("${notification.care.accepted_reservation}")
-    private String acceptReservationMessage;
-
-    @Value("${notification.care.rejected_reservation}")
-    private String rejectReservationMessage;
+    private static final String RESERVATION_MESSAGE = "message.care.reservation";
+    private static final String UPDATE_RESERVATION_MESSAGE = "message.care.update_reservation";
+    private static final String ACCEPT_RESERVATION_MESSAGE = "message.care.accepted_reservation";
+    private static final String REJECT_RESERVATION_MESSAGE = "message.care.rejected_reservation";
+    public static final String ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE = "Animal attributes must match animal type. Mismatches: %s";
 
     private final CareRepository careRepository;
     private final AnimalService animalService;
@@ -78,7 +71,7 @@ public class CareService {
         Care care = careRepository.save(
                 createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes));
 
-        sendCaretakerCareNotification(care, String.format(reservationMessage, caretakerEmail, care.getId()));
+        sendCaretakerCareNotification(care, RESERVATION_MESSAGE);
         return careMapper.mapToCareDTO(care, timeZone);
     }
 
@@ -90,7 +83,7 @@ public class CareService {
         careMapper.updateCareFromDTO(updateCare, care);
 
         Care savedCare = careRepository.save(care);
-        sendClientCareNotification(savedCare, String.format(updateReservationMessage, caretakerEmail, care.getId()));
+        sendClientCareNotification(savedCare, UPDATE_RESERVATION_MESSAGE);
         return careMapper.mapToCareDTO(savedCare, timeZone);
     }
 
@@ -100,7 +93,7 @@ public class CareService {
 
         careStateMachine.transition(care, Role.CLIENT, newStatus);
         care = careRepository.save(care);
-        sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus, careId, clientEmail));
+        sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
 
         return careMapper.mapToCareDTO(care, timeZone);
     }
@@ -111,7 +104,7 @@ public class CareService {
 
         careStateMachine.transition(care, Role.CARETAKER, newStatus);
         care = careRepository.save(care);
-        sendClientCareNotification(care, getNotificationOnStatusChange(newStatus, careId, clientEmail));
+        sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
 
         return careMapper.mapToCareDTO(care, timeZone);
     }
@@ -129,11 +122,11 @@ public class CareService {
 
     }
 
-    private String getNotificationOnStatusChange(CareStatus status, Long careId, String email) {
+    private String getNotificationOnStatusChange(CareStatus status) {
         return switch(status) {
-            case ACCEPTED -> acceptReservationMessage;
-            case CANCELLED -> rejectReservationMessage;
-            default -> throw new UnsupportedOperationException("Invalid status: " + status.name());
+            case ACCEPTED -> ACCEPT_RESERVATION_MESSAGE;
+            case CANCELLED -> REJECT_RESERVATION_MESSAGE;
+            default -> throw new UnsupportedOperationException("Unsupported status: " + status.name());
         };
     }
 
@@ -141,10 +134,7 @@ public class CareService {
         Client client = care.getClient();
 
         notificationService.addNotificationForClientAndSend(
-                care.getId(),
-                ObjectType.CARE,
-                client,
-                String.format(message, client.getEmail(), care.getId().toString())
+                care.getId(), ObjectType.CARE, client, message, Set.of(client.getEmail())
         );
     }
 
@@ -152,10 +142,7 @@ public class CareService {
         Caretaker caretaker = care.getCaretaker();
 
         notificationService.addNotificationForCaretakerAndSend(
-                care.getId(),
-                ObjectType.CARE,
-                caretaker,
-                message
+                care.getId(), ObjectType.CARE, caretaker, message, Set.of(caretaker.getEmail())
         );
     }
 
@@ -203,7 +190,7 @@ public class CareService {
                 )
                 .collect(Collectors.joining(", "));
 
-        throw new IllegalActionException("Animal attributes must match animal type. Mismatches: " + mismatches);
+        throw new IllegalActionException(String.format(ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE, mismatches));
     }
 
     /**
