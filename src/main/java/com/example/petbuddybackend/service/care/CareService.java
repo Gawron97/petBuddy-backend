@@ -62,7 +62,7 @@ public class CareService {
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
         userService.assertNotBlockedByAny(clientEmail, caretakerEmail);
 
-        Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributes(createCare.animalAttributeIds());
+        Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributesOfAnimal(createCare.animalAttributeIds());
         assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());
 
         Care care = careRepository.save(

@@ -15,4 +15,6 @@ public interface AnimalAttributeRepository extends JpaRepository<AnimalAttribute
 
     Set<AnimalAttribute> findDistinctByIdIn(List<Long> animalAttributeIds);
 
+    List<AnimalAttribute> findAllByAnimal_AnimalType(String animalType);
+
 }
