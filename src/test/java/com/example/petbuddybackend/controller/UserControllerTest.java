@@ -19,8 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -114,5 +113,39 @@ public class UserControllerTest {
         mockMvc.perform(delete("/api/user/profile-picture")
                         .with(user(USERNAME)))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(USERNAME)
+    void blockUser_shouldBlockUserSuccessfully() throws Exception {
+        // Given
+        String usernameToBlock = "otheruser";
+
+        // When
+        doNothing().when(userService).blockUser(USERNAME, usernameToBlock);
+
+        // Then
+        mockMvc.perform(post("/api/user/block/{username}", usernameToBlock)
+                        .with(user(USERNAME)))
+                .andExpect(status().isOk());
+
+        verify(userService).blockUser(USERNAME, usernameToBlock);
+    }
+
+    @Test
+    @WithMockUser(USERNAME)
+    void unblockUser_shouldUnblockUserSuccessfully() throws Exception {
+        // Given
+        String usernameToUnblock = "otheruser";
+
+        // When
+        doNothing().when(userService).unblockUser(USERNAME, usernameToUnblock);
+
+        // Then
+        mockMvc.perform(delete("/api/user/block/{username}", usernameToUnblock)
+                        .with(user(USERNAME)))
+                .andExpect(status().isOk());
+
+        verify(userService).unblockUser(USERNAME, usernameToUnblock);
     }
 }

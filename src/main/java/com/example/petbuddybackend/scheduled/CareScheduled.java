@@ -3,13 +3,12 @@ package com.example.petbuddybackend.scheduled;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.repository.care.CareRepository;
+import com.example.petbuddybackend.service.care.state.CareStateMachine;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.text.MessageFormat;
-import java.time.LocalDate;
 import java.util.List;
 
 @Configuration
@@ -18,22 +17,17 @@ import java.util.List;
 public class CareScheduled {
 
     private final CareRepository careRepository;
+    private final CareStateMachine careStateMachine;
 
     @Scheduled(cron = "0 1 0 * * *")
     public void terminateCares() {
+        List<CareStatus> obsoleteStatuses = List.of(CareStatus.CANCELLED, CareStatus.OUTDATED, CareStatus.PAID);
 
-        List<Care> cares = careRepository.findAllByCaretakerStatusNotInOrClientStatusNotIn(
-                List.of(CareStatus.CANCELLED, CareStatus.OUTDATED, CareStatus.PAID),
-                List.of(CareStatus.CANCELLED, CareStatus.OUTDATED, CareStatus.PAID));
-        log.info(MessageFormat.format("Terminating cares from potential: {0}", cares.size()));
-        cares.forEach(care -> {
-            if(care.getCareStart().isAfter(LocalDate.now()) || care.getCareStart().isEqual(LocalDate.now())) {
-                care.setCaretakerStatus(CareStatus.OUTDATED);
-                care.setClientStatus(CareStatus.OUTDATED);
-            }
-            careRepository.save(care);
-        });
+        List<Care> obsoleteCares = careRepository
+                .findAllByCaretakerStatusNotInOrClientStatusNotIn(obsoleteStatuses, obsoleteStatuses);
 
+        log.info("Terminating cares from potential: {}", obsoleteCares.size());
+        obsoleteCares.forEach(care -> careStateMachine.transitionBothRoles(care, CareStatus.OUTDATED));
+        careRepository.saveAll(obsoleteCares);
     }
-
 }

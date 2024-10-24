@@ -3,106 +3,56 @@ package com.example.petbuddybackend.scheduled;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.repository.care.CareRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.petbuddybackend.testutils.mock.MockAnimalProvider.createMockAnimal;
-import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
-import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest
 public class CareScheduledTest {
 
-    @InjectMocks
+    @Autowired
     private CareScheduled careScheduled;
 
-    @Mock
+    @MockBean
     private CareRepository careRepository;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void terminateCares_shouldTerminateProperCares() {
 
         // Given
-        List<Care> cares = getMockCares();
-        cares.get(0).setClientStatus(CareStatus.CANCELLED);
-        cares.get(1).setClientStatus(CareStatus.OUTDATED);
-        cares.get(1).setCaretakerStatus(CareStatus.OUTDATED);
-        cares.get(2).setClientStatus(CareStatus.PAID);
-        cares.get(4).setCareStart(LocalDate.now());
+        List<Care> obsoleteMockCares = new ArrayList<>();
+        List<CareStatus> statusesToObsolete = List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.AWAITING_PAYMENT);
+
+        for(CareStatus clientStatus: statusesToObsolete) {
+            for(CareStatus caretakerStatus: statusesToObsolete) {
+                Care care = Care.builder()
+                        .clientStatus(clientStatus)
+                        .caretakerStatus(caretakerStatus)
+                        .build();
+
+                obsoleteMockCares.add(care);
+            }
+        }
 
         // When
-        when(careRepository.findAllByCaretakerStatusNotInOrClientStatusNotIn(any(), any())).thenReturn(List.of(
-                cares.get(3),
-                cares.get(4)
-        ));
+        when(careRepository.findAllByCaretakerStatusNotInOrClientStatusNotIn(any(), any()))
+                .thenReturn(obsoleteMockCares);
 
         // Then
         careScheduled.terminateCares();
+        verify(careRepository, times(1)).saveAll(eq(obsoleteMockCares));
 
-        verify(careRepository, times(2)).save(any(Care.class));
-
+        obsoleteMockCares.forEach(care -> {
+            assertEquals(CareStatus.OUTDATED, care.getClientStatus());
+            assertEquals(CareStatus.OUTDATED, care.getCaretakerStatus());
+        });
     }
-
-    private List<Care> getMockCares() {
-        return List.of(
-                createMockCare(
-                        createMockCaretaker(
-                                "name", "surname", "email1", createMockAddress()
-                        ),
-                        createMockClient(
-                                "name", "surname", "email2"
-                        ),
-                        createMockAnimal("DOG")
-                ),
-                createMockCare(
-                        createMockCaretaker(
-                                "name", "surname", "email3", createMockAddress()
-                        ),
-                        createMockClient(
-                                "name", "surname", "email4"
-                        ),
-                        createMockAnimal("DOG")
-                ),
-                createMockCare(
-                        createMockCaretaker(
-                                "name", "surname", "email5", createMockAddress()
-                        ),
-                        createMockClient(
-                                "name", "surname", "email6"
-                        ),
-                        createMockAnimal("DOG")
-                ),
-                createMockCare(
-                        createMockCaretaker(
-                                "name", "surname", "email7", createMockAddress()
-                        ),
-                        createMockClient(
-                                "name", "surname", "email8"
-                        ),
-                        createMockAnimal("DOG")
-                ),
-                createMockCare(
-                        createMockCaretaker(
-                                "name", "surname", "email9", createMockAddress()
-                        ),
-                        createMockClient(
-                                "name", "surname", "email10"
-                        ),
-                        createMockAnimal("DOG")
-                )
-        );
-    }
-
 }

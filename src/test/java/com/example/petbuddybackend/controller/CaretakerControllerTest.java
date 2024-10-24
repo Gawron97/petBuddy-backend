@@ -3,6 +3,7 @@ package com.example.petbuddybackend.controller;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -38,6 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CaretakerControllerTest {
 
     private static final String RATING_BODY = "{\"rating\": %d, \"comment\": \"%s\"}";
+
+    @Value("${header-name.role}")
+    private String ROLE_HEADER_NAME;
 
     @MockBean
     private CaretakerService caretakerService;
@@ -87,7 +92,8 @@ public class CaretakerControllerTest {
         mockMvc.perform(post("/api/caretaker/1/rating")
                         .content(body)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CLIENT))
                 .andExpect(expectedResponse);
     }
 
@@ -96,7 +102,8 @@ public class CaretakerControllerTest {
     void deleteRating() throws Exception {
         mockMvc.perform(delete("/api/caretaker/1/rating")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CLIENT))
                 .andExpect(status().isOk());
     }
 

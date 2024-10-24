@@ -38,6 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = TestDataConfiguration.class)
 public class CareControllerIntegrationTest {
 
+    public static final String CLIENT_EMAIL = "clientEmail";
+    public static final String CARETAKER_EMAIL = "caretakerEmail";
     @Value("${header-name.timezone}")
     private String TIMEZONE_HEADER_NAME;
 
@@ -99,10 +101,10 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void makeReservation_ShouldReturnCreatedCare() throws Exception {
         // When and Then
-        mockMvc.perform(post("/api/care/reservation")
+        mockMvc.perform(post("/api/care/{caretakerEmail}", CARETAKER_EMAIL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_CARE_BODY,
                                 LocalDate.now().plusDays(2),
@@ -111,8 +113,9 @@ public class CareControllerIntegrationTest {
                                 new BigDecimal("50.00"),
                                 "DOG",
                                 "",
-                                "caretakerEmail",
-                                "clientEmail")))
+                                CARETAKER_EMAIL,
+                                CLIENT_EMAIL))
+                        .header(ROLE_HEADER_NAME, Role.CLIENT))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.ACCEPTED.name()))
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.PENDING.name()))
@@ -121,15 +124,15 @@ public class CareControllerIntegrationTest {
                 .andExpect(jsonPath("$.description").value("Test care description"))
                 .andExpect(jsonPath("$.dailyPrice").value(50.00))
                 .andExpect(jsonPath("$.animalType").value("DOG"))
-                .andExpect(jsonPath("$.caretakerEmail").value("caretakerEmail"))
-                .andExpect(jsonPath("$.clientEmail").value("clientEmail"));
+                .andExpect(jsonPath("$.caretakerEmail").value(CARETAKER_EMAIL))
+                .andExpect(jsonPath("$.clientEmail").value(CLIENT_EMAIL));
     }
 
     @Test
     @WithMockUser(username = "anotherClient")
     void makeReservation_WhenClientEmailMismatch_ThenThrowIllegalActionException() throws Exception {
         // When and Then
-        mockMvc.perform(post("/api/care/reservation")
+        mockMvc.perform(post("/api/care/{caretakerEmail}", CARETAKER_EMAIL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
                         .content(String.format(CREATE_CARE_BODY,
@@ -139,8 +142,8 @@ public class CareControllerIntegrationTest {
                                 new BigDecimal("50.00"),
                                 "DOG",
                                 "",
-                                "caretakerEmail",
-                                "clientEmail")))
+                                CARETAKER_EMAIL,
+                                CLIENT_EMAIL)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -148,7 +151,7 @@ public class CareControllerIntegrationTest {
     @WithMockUser(username = "email")
     void makeReservation_WhenClientEmailEqualsCaretakerEmail_ThenThrowIllegalActionException() throws Exception {
         // When and Then
-        mockMvc.perform(post("/api/care/reservation")
+        mockMvc.perform(post("/api/care/{caretakerEmail}", CARETAKER_EMAIL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_CARE_BODY,
                                 LocalDate.now().plusDays(2),
@@ -163,10 +166,10 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void makeReservation_WhenEndDateIsAfterStartDate_ThenThrowIllegalActionException() throws Exception {
         // When and Then
-        mockMvc.perform(post("/api/care/reservation")
+        mockMvc.perform(post("/api/care/{caretakerEmail}", CARETAKER_EMAIL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_CARE_BODY,
                                 LocalDate.now().plusDays(8),
@@ -175,21 +178,22 @@ public class CareControllerIntegrationTest {
                                 new BigDecimal("50.00"),
                                 "DOG",
                                 "",
-                                "caretakerEmail",
-                                "clientEmail")))
+                                CARETAKER_EMAIL,
+                                CLIENT_EMAIL)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void updateCare_ShouldUpdateCareProperly() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(patch("/api/care/" + careId + "/update")
+        mockMvc.perform(patch("/api/care/{careId}", careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER)
                         .content(String.format(UPDATE_CARE_BODY,
                                 LocalDate.now().plusDays(3),
                                 LocalDate.now().plusDays(8),
@@ -197,24 +201,24 @@ public class CareControllerIntegrationTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.PENDING.name()))
-                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.PENDING.name()))
+                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.ACCEPTED.name()))
                 .andExpect(jsonPath("$.careStart").value(LocalDate.now().plusDays(3).toString()))
                 .andExpect(jsonPath("$.careEnd").value(LocalDate.now().plusDays(8).toString()))
                 .andExpect(jsonPath("$.description").value("Test care description"))
                 .andExpect(jsonPath("$.dailyPrice").value(60.00))
                 .andExpect(jsonPath("$.animalType").value("DOG"))
-                .andExpect(jsonPath("$.caretakerEmail").value("caretakerEmail"))
-                .andExpect(jsonPath("$.clientEmail").value("clientEmail"));
+                .andExpect(jsonPath("$.caretakerEmail").value(CARETAKER_EMAIL))
+                .andExpect(jsonPath("$.clientEmail").value(CLIENT_EMAIL));
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void updateCare_WhenClientTriesToEdit_ShouldThrowIllegalActionException() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(patch("/api/care/" + careId + "/update")
+        mockMvc.perform(patch("/api/care/{careId}", careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARE_BODY,
                                 LocalDate.now().plusDays(3),
@@ -225,7 +229,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void updateCare_WhenCareIsCancelled_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -233,7 +237,7 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(patch("/api/care/" + careId + "/update")
+        mockMvc.perform(patch("/api/care/{careId}", careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARE_BODY,
                                 LocalDate.now().plusDays(3),
@@ -244,7 +248,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void updateCare_WhenCareIsAcceptedByCaretaker_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -252,7 +256,7 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(patch("/api/care/" + careId + "/update")
+        mockMvc.perform(patch("/api/care/{careId}", careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARE_BODY,
                                 LocalDate.now().plusDays(3),
@@ -263,13 +267,13 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void updateCare_WhenEndDateIsBeforeStartDate_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(patch("/api/care/" + careId + "/update")
+        mockMvc.perform(patch("/api/care/{careId}" , careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARE_BODY,
                                 LocalDate.now().plusDays(9),
@@ -280,32 +284,33 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void acceptCareByCaretaker_ShouldReturnAcceptedCare() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-accept")
-                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw"))
+        mockMvc.perform(post("/api/care/{careId}/accept", careId)
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.AWAITING_PAYMENT.name()))
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.AWAITING_PAYMENT.name()));
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void acceptCareByCaretaker_WhenUserIsNotCaretaker_ShouldThrowIllegalActionException() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-accept"))
+        mockMvc.perform(post("/api/care/{careId}/accept", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void acceptCareByCaretaker_WhenCareIsTerminated_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -313,12 +318,12 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-accept"))
+        mockMvc.perform(post("/api/care/{careId}", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void acceptCareByCaretaker_WhenCaretakerStatusIsNotPending_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -326,12 +331,12 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-accept"))
+        mockMvc.perform(post("/api/care/{careId}/accept", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void acceptCareByCaretaker_WhenClientStatusIsNotAccepted_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -339,12 +344,12 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-accept"))
+        mockMvc.perform(post("/api/care/{careId}/accept", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void acceptCareByClient_ShouldReturnAcceptedCare() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -352,7 +357,8 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-accept"))
+        mockMvc.perform(post("/api/care/{careId}/accept", careId)
+                        .header(ROLE_HEADER_NAME, Role.CLIENT))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.ACCEPTED.name()))
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.PENDING.name()));
@@ -367,13 +373,13 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-accept")
+        mockMvc.perform(post("/api/care/{careId}/accept", careId)
                         .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void acceptCareByClient_WhenCareIsTerminated_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -381,12 +387,12 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-accept"))
+        mockMvc.perform(post("/api/care/{careId}/accept", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void acceptCareByClient_WhenClientStatusIsAlreadyAccepted_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -394,36 +400,37 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-accept"))
+        mockMvc.perform(post("/api/care/{careId}/accept", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void rejectCareByCaretaker_ShouldReturnRejectedCare() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-reject")
-                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw"))
+        mockMvc.perform(post("/api/care/{careId}/reject", careId)
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.CANCELLED.name()));
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void rejectCareByCaretaker_WhenLoggedUserIsClient_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-reject"))
+        mockMvc.perform(post("/api/care/{careId}/reject", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void rejectCareByCaretaker_WhenCareIsTerminated_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -431,12 +438,12 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-reject"))
+        mockMvc.perform(post("/api/care/{careId}/reject", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void rejectCareByCaretaker_WhenCaretakerStatusIsNotPending_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -444,18 +451,19 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/caretaker-reject"))
+        mockMvc.perform(post("/api/care/{careId}/reject", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void cancelCareByClient_ShouldReturnCancelledCare() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-cancel"))
+        mockMvc.perform(post("/api/care/{careId}/reject", careId)
+                        .header(ROLE_HEADER_NAME, Role.CLIENT))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.CANCELLED.name()));
     }
@@ -467,13 +475,13 @@ public class CareControllerIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-cancel")
+        mockMvc.perform(post("/api/care/{careId}/reject", careId)
                         .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void cancelCareByClient_WhenCareIsTerminated_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -481,12 +489,12 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-cancel"))
+        mockMvc.perform(post("/api/care/{careId}/reject", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void cancelCareByClient_WhenCareIsAlreadyAcceptedByCaretaker_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -494,12 +502,12 @@ public class CareControllerIntegrationTest {
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
-        mockMvc.perform(post("/api/care/" + careId + "/client-cancel"))
+        mockMvc.perform(post("/api/care/{careId}/reject", careId))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void getCares_whenRoleIsCaretaker_ShouldReturnProperCares() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -515,12 +523,12 @@ public class CareControllerIntegrationTest {
                 .andExpect(jsonPath("$.content[0].description").value("Test care description"))
                 .andExpect(jsonPath("$.content[0].dailyPrice").value(50.00))
                 .andExpect(jsonPath("$.content[0].animalType").value("DOG"))
-                .andExpect(jsonPath("$.content[0].caretakerEmail").value("caretakerEmail"))
-                .andExpect(jsonPath("$.content[0].clientEmail").value("clientEmail"));
+                .andExpect(jsonPath("$.content[0].caretakerEmail").value(CARETAKER_EMAIL))
+                .andExpect(jsonPath("$.content[0].clientEmail").value(CLIENT_EMAIL));
     }
 
     @Test
-    @WithMockUser(username = "clientEmail")
+    @WithMockUser(username = CLIENT_EMAIL)
     void getCaretakerCares_whenRoleIsClient_ShouldReturnProperCares() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -536,12 +544,12 @@ public class CareControllerIntegrationTest {
                 .andExpect(jsonPath("$.content[0].description").value("Test care description"))
                 .andExpect(jsonPath("$.content[0].dailyPrice").value(50.00))
                 .andExpect(jsonPath("$.content[0].animalType").value("DOG"))
-                .andExpect(jsonPath("$.content[0].caretakerEmail").value("caretakerEmail"))
-                .andExpect(jsonPath("$.content[0].clientEmail").value("clientEmail"));
+                .andExpect(jsonPath("$.content[0].caretakerEmail").value(CARETAKER_EMAIL))
+                .andExpect(jsonPath("$.content[0].clientEmail").value(CLIENT_EMAIL));
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void getCaretakerCares_whenRoleIsNotProvided_ShouldThrowBadRequest() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -552,7 +560,7 @@ public class CareControllerIntegrationTest {
     }
 
     @Test
-    @WithMockUser(username = "caretakerEmail")
+    @WithMockUser(username = CARETAKER_EMAIL)
     void getCaretakerCares_whenDatesInvalid_ShouldThrowDateRangeException() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
