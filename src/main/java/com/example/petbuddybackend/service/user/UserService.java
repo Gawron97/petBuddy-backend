@@ -33,7 +33,6 @@ public class UserService {
     private static final String USER = "User";
     private static final String USER_CANNOT_BLOCK_HIMSELF_MESSAGE = "User cannot block himself";
     private static final String USER_ALREADY_BLOCKED_MESSAGE = "User %s is already blocked";
-    private static final String USER_NOT_BLOCKED_MESSAGE = "User %s was not blocked in the first place or does not exist";
 
     private final AppUserRepository userRepository;
     private final ClientRepository clientRepository;
@@ -137,7 +136,7 @@ public class UserService {
 
     public Block getBlock(String blockerUsername, String blockedUsername) {
         return blockRepository.findById(new BlockId(blockerUsername, blockedUsername))
-                .orElseThrow(() -> new NotFoundException(String.format(USER_NOT_BLOCKED_MESSAGE, blockedUsername)));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage("Block", blockedUsername));
     }
 
     public boolean isBlocked(String blockerUsername, String blockedUsername) {
