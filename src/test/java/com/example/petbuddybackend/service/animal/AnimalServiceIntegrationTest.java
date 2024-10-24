@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.service.animal;
 
+import com.example.petbuddybackend.dto.animal.AnimalComplexInfoDTO;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -84,6 +86,14 @@ public class AnimalServiceIntegrationTest {
         Set<String> amenities = animalService.getAmenitiesForAnimal("DOG");
         assertNotNull(amenities);
         assertFalse(amenities.isEmpty());
+    }
+
+    @Test
+    @Transactional
+    void getAnimalsWithAttributesAndAmenities() {
+        List<AnimalComplexInfoDTO> animalsWithAttributesAndAmenities = animalService.getAnimalsWithAttributesAndAmenities();
+        assertNotNull(animalsWithAttributesAndAmenities);
+        assertFalse(animalsWithAttributesAndAmenities.isEmpty());
     }
 
 }

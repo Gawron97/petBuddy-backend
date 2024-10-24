@@ -1,14 +1,17 @@
 package com.example.petbuddybackend.service.animal;
 
+import com.example.petbuddybackend.dto.animal.AnimalComplexInfoDTO;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.service.mapper.AnimalMapper;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +26,10 @@ public class AnimalService {
     private final AnimalRepository animalRepository;
     private final AnimalAttributeRepository animalAttributeRepository;
     private final AnimalAmenityRepository animalAmenityRepository;
+
+    private final AnimalMapper animalMapper = AnimalMapper.INSTANCE;
+
+    private static final String ANIMAL = "Animal";
 
     public AnimalAmenity getAnimalAmenity(String amenityName, String animalType) {
         return animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType(amenityName, animalType.toUpperCase())
@@ -42,8 +49,7 @@ public class AnimalService {
 
     public Animal getAnimal(String animalType) {
         return animalRepository.findById(animalType.toUpperCase())
-                .orElseThrow(() -> new NotFoundException("Animal with type " + animalType.toUpperCase()
-                        + " not found"));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(ANIMAL, animalType));
     }
 
     public Set<AnimalAttribute> getAnimalAttributesOfAnimal(List<Long> animalAttributeIds) {
@@ -73,4 +79,12 @@ public class AnimalService {
                 .collect(Collectors.toSet());
     }
 
+    @Transactional(readOnly = true)
+    public List<AnimalComplexInfoDTO> getAnimalsWithAttributesAndAmenities() {
+        return animalRepository
+                .findAll()
+                .stream()
+                .map(animalMapper::mapToAnimalComplexInfoDTO)
+                .toList();
+    }
 }

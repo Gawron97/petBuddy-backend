@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.animal.AnimalComplexInfoDTO;
 import com.example.petbuddybackend.service.animal.AnimalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -39,6 +40,13 @@ public class AnimalController {
     @GetMapping("{animalType}/amenities")
     public Set<String> getAmenities(@PathVariable String animalType) {
         return animalService.getAmenitiesForAnimal(animalType);
+    }
+
+    @SecurityRequirements
+    @Operation(summary = "Get all animals with attributes and amenities")
+    @GetMapping("/complex")
+    public List<AnimalComplexInfoDTO> getAnimalsWithAttributesAndAmenities() {
+        return animalService.getAnimalsWithAttributesAndAmenities();
     }
 
 }

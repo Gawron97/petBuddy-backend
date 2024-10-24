@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -54,6 +55,17 @@ public class AnimalControllerTest {
         when(animalService.getAmenitiesForAnimal("dog")).thenReturn(new HashSet<>());
 
         mockMvc.perform(get("/api/animal/{animalType}/amenities", "dog"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray());
+
+    }
+
+    @Test
+    void getAnimalComplex_shouldReturnProperAnswer() throws Exception {
+
+        when(animalService.getAnimalsWithAttributesAndAmenities()).thenReturn(new ArrayList<>());
+
+        mockMvc.perform(get("/api/animal/complex"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
 
