@@ -3,12 +3,14 @@ package com.example.petbuddybackend.service.notification;
 import com.example.petbuddybackend.dto.notification.NotificationDTO;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.notification.ClientNotification;
+import com.example.petbuddybackend.entity.notification.Notification;
 import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
 import com.example.petbuddybackend.repository.notification.ClientNotificationRepository;
+import com.example.petbuddybackend.repository.notification.NotificationRepository;
 import com.example.petbuddybackend.service.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +26,7 @@ public class NotificationService {
 
     private final CaretakerNotificationRepository caretakerNotificationRepository;
     private final ClientNotificationRepository clientNotificationRepository;
+    private final NotificationRepository notificationRepository;
     private final WebsocketNotificationService websocketNotificationService;
 
     private final NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
@@ -54,6 +57,21 @@ public class NotificationService {
         return userRole == Role.CARETAKER
                 ? getCaretakerUnreadNotifications(pageable, userEmail, timezone)
                 : getClientUnreadNotifications(pageable, userEmail, timezone);
+    }
+
+    public NotificationDTO markNotificationAsRead(Long notificationId, Role role, ZoneId timezone) {
+        Notification notification = getNotification(role, notificationId);
+
+        notification.setRead(true);
+        return notificationMapper.mapToNotificationDTO(notificationRepository.save(notification), timezone);
+    }
+
+    private Notification getNotification(Role role, Long id) {
+        return role == Role.CARETAKER
+                ? caretakerNotificationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Caretaker notification with id " + id + " not found"))
+                : clientNotificationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Client notification with id " + id + " not found"));
     }
 
     private Page<NotificationDTO> getCaretakerUnreadNotifications(Pageable pageable, String caretakerEmail,
@@ -97,5 +115,4 @@ public class NotificationService {
                 .client(client)
                 .build();
     }
-
 }

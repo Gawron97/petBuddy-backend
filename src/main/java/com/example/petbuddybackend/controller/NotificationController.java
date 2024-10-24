@@ -50,4 +50,15 @@ public class NotificationController {
         );
     }
 
+    @Operation(summary = "Mark notification as read")
+    @PatchMapping("/{notificationId}")
+    @PreAuthorize("isAuthenticated()")
+    public NotificationDTO markNotificationAsRead(@PathVariable Long notificationId,
+                                                  @RoleParameter
+                                                  @RequestHeader(value = "${header-name.role}") Role role,
+                                                  @TimeZoneParameter
+                                                  @RequestHeader(value = "${header-name.timezone}") String timezone) {
+        return notificationService.markNotificationAsRead(notificationId, role, TimeUtils.getOrSystemDefault(timezone));
+    }
+
 }
