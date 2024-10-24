@@ -18,4 +18,8 @@ public class StateTransitionException extends RuntimeException {
                 transition.role().name())
         );
     }
+
+    public StateTransitionException(String message) {
+        super(message);
+    }
 }

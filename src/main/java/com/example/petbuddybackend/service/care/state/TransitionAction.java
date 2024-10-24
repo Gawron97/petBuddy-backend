@@ -18,11 +18,6 @@ public class TransitionAction {
     private final Predicate<Care> prerequisite;
     private final BiConsumer<Care, CareStatus> onSuccess;
 
-    public TransitionAction() {
-        this.prerequisite = care -> true;
-        this.onSuccess = (care, newStatus) -> {};
-    }
-
     public TransitionAction(BiConsumer<Care, CareStatus> onSuccess) {
         this.prerequisite = c -> true;
         this.onSuccess = onSuccess;

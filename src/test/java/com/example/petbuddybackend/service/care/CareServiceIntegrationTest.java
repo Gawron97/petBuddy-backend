@@ -1,7 +1,6 @@
 package com.example.petbuddybackend.service.care;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
-import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.care.CareDTO;
@@ -18,6 +17,8 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
+import com.example.petbuddybackend.utils.exception.throweable.InvalidRoleException;
+import com.example.petbuddybackend.utils.exception.throweable.StateTransitionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,12 +96,10 @@ public class CareServiceIntegrationTest {
                 .dailyPrice(new BigDecimal("10.00"))
                 .animalType("DOG")
                 .animalAttributeIds(new ArrayList<>())
-                .caretakerEmail(caretaker.getEmail())
-                .clientEmail(client.getEmail())
                 .build();
 
         // When
-        CareDTO result = careService.makeReservation(createCareDTO, client.getEmail(), ZoneId.systemDefault());
+        CareDTO result = careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care care = careRepository.findById(result.id()).orElseThrow();
@@ -119,30 +118,24 @@ public class CareServiceIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("parametrizedForMakeReservation")
-    void makeReservation_ShouldThrowIllegalActionException(CreateCareDTO createCare, String userEmail,
-                                                           Class expectedExceptionClass) {
+    void makeReservation_ShouldThrowIllegalActionException(
+            CreateCareDTO createCare,
+            String userEmail,
+            String caretakerEmail,
+            Class<? extends Throwable> expectedExceptionClass
+    ) {
 
         // When Then
-       assertThrows(expectedExceptionClass, () -> careService.makeReservation(createCare, userEmail, ZoneId.systemDefault()));
+       assertThrows(expectedExceptionClass,
+               () -> careService.makeReservation(createCare, userEmail, caretakerEmail, ZoneId.systemDefault()));
 
     }
 
     static Stream<Arguments> parametrizedForMakeReservation() {
+        String clientEmail = "clientEmail";
+        String caretakerEmail = "caretakerEmail";
+
         return Stream.of(
-                Arguments.of(
-                        CreateCareDTO.builder()
-                        .careStart(LocalDate.now().plusDays(1))
-                        .careEnd(LocalDate.now().plusDays(5))
-                        .description("Description")
-                        .dailyPrice(new BigDecimal("10.00"))
-                        .animalType("DOG")
-                        .animalAttributeIds(new ArrayList<>())
-                        .caretakerEmail("caretakerEmail")
-                        .clientEmail("clientEmail")
-                        .build(),
-                        "wrongEmail",
-                        IllegalActionException.class
-                        ),
                 Arguments.of(
                         CreateCareDTO.builder()
                                 .careStart(LocalDate.now().plusDays(1))
@@ -151,11 +144,23 @@ public class CareServiceIntegrationTest {
                                 .dailyPrice(new BigDecimal("10.00"))
                                 .animalType("DOG")
                                 .animalAttributeIds(new ArrayList<>())
-                                .caretakerEmail("caretakerEmail")
-                                .clientEmail("clientEmail")
                                 .build(),
-                        "caretakerEmail",
-                        IllegalActionException.class
+                        "wrongEmail",
+                        caretakerEmail,
+                        InvalidRoleException.class
+                ),
+                Arguments.of(
+                        CreateCareDTO.builder()
+                                .careStart(LocalDate.now().plusDays(1))
+                                .careEnd(LocalDate.now().plusDays(5))
+                                .description("Description")
+                                .dailyPrice(new BigDecimal("10.00"))
+                                .animalType("DOG")
+                                .animalAttributeIds(new ArrayList<>())
+                                .build(),
+                        caretakerEmail,
+                        caretakerEmail,
+                        InvalidRoleException.class
                 ),
                 Arguments.of(
                         CreateCareDTO.builder()
@@ -165,13 +170,11 @@ public class CareServiceIntegrationTest {
                                 .dailyPrice(new BigDecimal("10.00"))
                                 .animalType("DOG")
                                 .animalAttributeIds(new ArrayList<>())
-                                .caretakerEmail("caretakerEmail")
-                                .clientEmail("clientEmail")
                                 .build(),
-                        "clientEmail",
-                        IllegalActionException.class
+                        clientEmail,
+                        clientEmail,
+                        InvalidRoleException.class
                 )
-
         );
     }
 
@@ -260,13 +263,13 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
+        assertThrows(StateTransitionException.class,
                 () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
 
     @Test
-    void updateCare_WhenCaretakerStatusIsAccepted_ShouldThrowIllegalActionException() {
+    void updateCare_WhenCaretakerStatusIsAccepted_ShouldThrowStateTransitionException() {
 
         // Given
         UpdateCareDTO updateCare = UpdateCareDTO.builder()
@@ -280,7 +283,7 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
+        assertThrows(StateTransitionException.class,
                 () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail(), ZoneId.systemDefault()));
 
     }
@@ -292,7 +295,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault());
+        CareDTO result = careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED);
 
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
@@ -303,14 +306,14 @@ public class CareServiceIntegrationTest {
     }
 
     @Test
-    void acceptCareByCaretaker_WhenLoggedUserIsClient_ShouldThrowIllegalActionException() {
+    void acceptCareByCaretaker_WhenLoggedUserIsClient_ShouldThrowIllegalInvalidRoleException() {
 
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByCaretaker(care.getId(), client.getEmail(), ZoneId.systemDefault()));
+        assertThrows(InvalidRoleException.class,
+                () -> careService.caretakerChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
 
     }
 
@@ -323,8 +326,8 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
+        assertThrows(StateTransitionException.class,
+                () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
 
     }
 
@@ -337,8 +340,8 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
+        assertThrows(StateTransitionException.class,
+                () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
 
     }
 
@@ -351,8 +354,8 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
+        assertThrows(StateTransitionException.class,
+                () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
 
     }
 
@@ -365,7 +368,7 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When
-        CareDTO result = careService.acceptCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault());
+        CareDTO result = careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED);
 
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
@@ -375,19 +378,19 @@ public class CareServiceIntegrationTest {
     }
 
     @Test
-    void acceptCareByClient_WhenLoggedUserIsCaretaker_ShouldThrowIllegalActionException() {
+    void acceptCareByClient_WhenLoggedUserIsCaretaker_ShouldThrowInvalidRoleException() {
 
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByClient(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
+        assertThrows(InvalidRoleException.class,
+                () -> careService.clientChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
 
     }
 
     @Test
-    void acceptCareByClient_WhenCareIsTerminated_ShouldThrowIllegalActionException() {
+    void acceptCareByClient_WhenCareIsTerminated_ShouldThrowInvalidRoleException() {
 
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
@@ -395,8 +398,8 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault()));
+        assertThrows(StateTransitionException.class,
+                () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
 
     }
 
@@ -409,8 +412,8 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.acceptCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault()));
+        assertThrows(StateTransitionException.class,
+                () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
 
     }
 
@@ -421,7 +424,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault());
+        CareDTO result = careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED);
 
         // Then
         Care rejectedCare = careRepository.findById(result.id()).orElseThrow();
@@ -437,8 +440,8 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.rejectCareByCaretaker(care.getId(), client.getEmail(), ZoneId.systemDefault()));
+        assertThrows(InvalidRoleException.class,
+                () -> careService.caretakerChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED));
 
     }
 
@@ -447,26 +450,12 @@ public class CareServiceIntegrationTest {
 
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
-        care.setClientStatus(CareStatus.OUTDATED);
-        careRepository.save(care);
+        care.setCaretakerStatus(CareStatus.OUTDATED);
+        careRepository.saveAndFlush(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
-
-    }
-
-    @Test
-    void rejectCareByCaretaker_WhenCaretakerStatusIsAccepted_ShouldThrowIllegalActionException() {
-
-        // Given
-        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
-        care.setCaretakerStatus(CareStatus.ACCEPTED);
-        careRepository.save(care);
-
-        // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.rejectCareByCaretaker(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
+        assertThrows(StateTransitionException.class,
+                () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED));
 
     }
 
@@ -477,7 +466,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.cancelCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault());
+        CareDTO result = careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED);
 
         // Then
         Care cancelledCare = careRepository.findById(result.id()).orElseThrow();
@@ -493,8 +482,8 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.cancelCareByClient(care.getId(), caretaker.getEmail(), ZoneId.systemDefault()));
+        assertThrows(InvalidRoleException.class,
+                () -> careService.clientChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED));
 
     }
 
@@ -507,22 +496,8 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.cancelCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault()));
-
-    }
-
-    @Test
-    void cancelCareByClient_WhenCaretakerStatusIsAccepted_ShouldThrowIllegalActionException() {
-
-        // Given
-        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
-        care.setCaretakerStatus(CareStatus.ACCEPTED);
-        careRepository.save(care);
-
-        // When Then
-        assertThrows(IllegalActionException.class,
-                () -> careService.cancelCareByClient(care.getId(), client.getEmail(), ZoneId.systemDefault()));
+        assertThrows(StateTransitionException.class,
+                () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED));
 
     }
 

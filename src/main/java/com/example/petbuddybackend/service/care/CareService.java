@@ -39,6 +39,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CareService {
 
+    private static final String ATTRIBUTE_MISMATCH_FORMAT = "%s (attribute: %s)";
+    private static final String BAD_CARE_RANGE_DATE_MESSAGE = "End care date must be after start care date";
+    private static final String CARETAKER_NOT_OWNER_MESSAGE = "Caretaker is not owner of the care";
+    private static final String CARE = "Care";
+    private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
+
     @Value("${notification.message.reservation}")
     private String reservationMessage;
 
@@ -69,21 +75,22 @@ public class CareService {
         Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributes(createCare.animalAttributeIds());
         assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());
 
-        Care care = careRepository.save(createCare(clientEmail, caretakerEmail, createCare, animalAttributes));
-        sendCaretakerCareNotification(care, reservationMessage);
+        Care care = careRepository.save(
+                createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes));
+
+        sendCaretakerCareNotification(care, String.format(reservationMessage, caretakerEmail, care.getId()));
         return careMapper.mapToCareDTO(care, timeZone);
     }
 
     public CareDTO updateCare(Long careId, UpdateCareDTO updateCare, String caretakerEmail, ZoneId timeZone) {
         Care care = getCareOfCaretaker(careId, caretakerEmail);
-        assertCareIsNotTerminated(care);
         assertEndCareDateIsAfterStartCareDate(updateCare.careStart(), updateCare.careEnd());
 
+        careStateMachine.transitionToEditCare(care);
         careMapper.updateCareFromDTO(updateCare, care);
-        care.setClientStatus(CareStatus.PENDING);
 
         Care savedCare = careRepository.save(care);
-        sendClientCareNotification(savedCare, updateReservationMessage);
+        sendClientCareNotification(savedCare, String.format(updateReservationMessage, caretakerEmail, care.getId()));
         return careMapper.mapToCareDTO(savedCare, timeZone);
     }
 
@@ -91,13 +98,9 @@ public class CareService {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         Care care = getCareOfClient(careId, clientEmail);
 
-        CareStatus currentStatus =  care.getClientStatus();
-
-        if(!currentStatus.equals(newStatus)) {
-            careStateMachine.transition(care, Role.CLIENT, newStatus);
-            care = careRepository.save(care);
-            sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
-        }
+        careStateMachine.transition(care, Role.CLIENT, newStatus);
+        care = careRepository.save(care);
+        sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus, careId, clientEmail));
 
         return careMapper.mapToCareDTO(care, timeZone);
     }
@@ -106,13 +109,9 @@ public class CareService {
         userService.assertHasRole(clientEmail, Role.CARETAKER);
         Care care = getCareOfCaretaker(careId, clientEmail);
 
-        CareStatus currentStatus = care.getCaretakerStatus();
-
-        if(!currentStatus.equals(newStatus)) {
-            careStateMachine.transition(care, Role.CARETAKER, newStatus);
-            care = careRepository.save(care);
-            sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
-        }
+        careStateMachine.transition(care, Role.CARETAKER, newStatus);
+        care = careRepository.save(care);
+        sendClientCareNotification(care, getNotificationOnStatusChange(newStatus, careId, clientEmail));
 
         return careMapper.mapToCareDTO(care, timeZone);
     }
@@ -129,11 +128,11 @@ public class CareService {
 
     }
 
-    private String getNotificationOnStatusChange(CareStatus status) {
+    private String getNotificationOnStatusChange(CareStatus status, Long careId, String email) {
         return switch(status) {
-            case ACCEPTED -> acceptReservationMessage;
-            case CANCELLED -> rejectReservationMessage;
-            default -> throw new IllegalActionException("Invalid status");
+            case ACCEPTED -> String.format(acceptReservationMessage, careId, email);
+            case CANCELLED -> String.format(rejectReservationMessage, careId, email);
+            default -> throw new UnsupportedOperationException("Invalid status: " + status.name());
         };
     }
 
@@ -144,7 +143,7 @@ public class CareService {
                 care.getId(),
                 ObjectType.CARE,
                 client,
-                String.format(message, client.getEmail(), care.getId())
+                String.format(message, client.getEmail(), care.getId().toString())
         );
     }
 
@@ -155,11 +154,11 @@ public class CareService {
                 care.getId(),
                 ObjectType.CARE,
                 caretaker,
-                String.format(message, caretaker.getEmail(), care.getId())
+                message
         );
     }
 
-    private Care createCare(
+    private Care createCareFromReservation(
             String clientEmail,
             String caretakerEmail,
             CreateCareDTO createCare,
@@ -182,7 +181,7 @@ public class CareService {
 
     private void assertEndCareDateIsAfterStartCareDate(LocalDate careStart, LocalDate careEnd) {
         if(careEnd.isBefore(careStart)) {
-            throw new IllegalActionException("End care date must be after start care date");
+            throw new IllegalActionException(BAD_CARE_RANGE_DATE_MESSAGE);
         }
     }
 
@@ -191,29 +190,19 @@ public class CareService {
                 .filter(animalAttribute -> !animalAttribute.getAnimal().getAnimalType().equals(animalType))
                 .toList();
 
-        if (!mismatchedAttributes.isEmpty()) {
-            String mismatches = mismatchedAttributes.stream()
-                    .map(animalAttribute -> animalAttribute.getAnimal().getAnimalType() + " (attribute: " + animalAttribute + ")")
-                    .collect(Collectors.joining(", "));
-            throw new IllegalActionException("Animal attributes must match animal type. Mismatches: " + mismatches);
+        if (mismatchedAttributes.isEmpty()) {
+            return;
         }
-    }
 
-    private void assertCareIsNotTerminated(Care care) {
-        assertCareNotCancelled(care);
-        assertCareNotOutdated(care);
-    }
+        String mismatches = mismatchedAttributes.stream()
+                .map(animalAttribute -> String.format(
+                        ATTRIBUTE_MISMATCH_FORMAT,
+                        animalAttribute.getAnimal().getAnimalType(),
+                        animalAttribute)
+                )
+                .collect(Collectors.joining(", "));
 
-    private void assertCareNotOutdated(Care care) {
-        if(care.getClientStatus().equals(CareStatus.OUTDATED) || care.getCaretakerStatus().equals(CareStatus.OUTDATED)) {
-            throw new IllegalActionException("Care already outdated");
-        }
-    }
-
-    private void assertCareNotCancelled(Care care) {
-        if(care.getClientStatus().equals(CareStatus.CANCELLED) || care.getCaretakerStatus().equals(CareStatus.CANCELLED)) {
-            throw new IllegalActionException("Care already cancelled");
-        }
+        throw new IllegalActionException("Animal attributes must match animal type. Mismatches: " + mismatches);
     }
 
     /**
@@ -221,10 +210,10 @@ public class CareService {
      * */
     private Care getCareOfCaretaker(Long careId, String caretakerEmail) {
         Care care = careRepository.findById(careId)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage("Care", careId.toString()));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
 
         if(!care.getCaretaker().getEmail().equals(caretakerEmail)) {
-            throw new IllegalActionException("Caretaker is not owner of the care");
+            throw new IllegalActionException(CARETAKER_NOT_OWNER_MESSAGE);
         }
 
         return care;
@@ -235,10 +224,10 @@ public class CareService {
      * */
     private Care getCareOfClient(Long careId, String clientEmail) {
         Care care = careRepository.findById(careId)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage("Care", careId.toString()));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
 
         if(!care.getClient().getEmail().equals(clientEmail)) {
-            throw new IllegalActionException("Client is not owner of the care");
+            throw new IllegalActionException(CLIENT_NOT_OWNER_MESSAGE);
         }
 
         return care;
