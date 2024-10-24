@@ -3,7 +3,6 @@ package com.example.petbuddybackend.controller;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.service.care.CareService;
 import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
 import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
@@ -21,7 +20,6 @@ import java.util.Set;
 public class ClientController {
 
     private final ClientService clientService;
-    private final CareService careService;
 
     @Operation(summary = "Get client data")
     @GetMapping
