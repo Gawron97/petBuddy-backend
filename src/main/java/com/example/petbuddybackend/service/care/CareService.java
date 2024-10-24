@@ -45,16 +45,16 @@ public class CareService {
     private static final String CARE = "Care";
     private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
 
-    @Value("${notification.message.reservation}")
+    @Value("${notification.care.reservation}")
     private String reservationMessage;
 
-    @Value("${notification.message.update_reservation}")
+    @Value("${notification.care.update_reservation}")
     private String updateReservationMessage;
 
-    @Value("${notification.message.accepted_reservation}")
+    @Value("${notification.care.accepted_reservation}")
     private String acceptReservationMessage;
 
-    @Value("${notification.message.rejected_reservation}")
+    @Value("${notification.care.rejected_reservation}")
     private String rejectReservationMessage;
 
     private final CareRepository careRepository;
@@ -116,6 +116,7 @@ public class CareService {
         return careMapper.mapToCareDTO(care, timeZone);
     }
 
+
     public Page<CareDTO> getCares(Pageable pageable, CareSearchCriteria filters, Set<String> emails,
                                   String userEmail, Role selectedProfile, ZoneId zoneId) {
 
@@ -130,8 +131,8 @@ public class CareService {
 
     private String getNotificationOnStatusChange(CareStatus status, Long careId, String email) {
         return switch(status) {
-            case ACCEPTED -> String.format(acceptReservationMessage, careId, email);
-            case CANCELLED -> String.format(rejectReservationMessage, careId, email);
+            case ACCEPTED -> acceptReservationMessage;
+            case CANCELLED -> rejectReservationMessage;
             default -> throw new UnsupportedOperationException("Invalid status: " + status.name());
         };
     }

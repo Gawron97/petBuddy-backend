@@ -140,7 +140,6 @@ public class NotificationWebsocketControllerTest {
         assertEquals(notification.getId(), receivedNotification.notificationId());
         assertEquals(notification.getObjectId(), receivedNotification.objectId());
         assertEquals(notification.getObjectType(), receivedNotification.objectType());
-        assertEquals(notification.getMessage(), receivedNotification.message());
         assertEquals(Role.CARETAKER, receivedNotification.receiverProfile());
 
         // Close session

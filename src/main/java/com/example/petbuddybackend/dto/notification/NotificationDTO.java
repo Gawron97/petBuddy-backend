@@ -5,6 +5,7 @@ import com.example.petbuddybackend.entity.user.Role;
 import lombok.Builder;
 
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 @Builder
 public record NotificationDTO(
@@ -12,7 +13,8 @@ public record NotificationDTO(
         Long objectId,
         ObjectType objectType,
         ZonedDateTime createdAt,
-        String message,
+        String messageKey,
+        Set<String> args,
         Role receiverProfile,
         boolean isRead
 ) {
