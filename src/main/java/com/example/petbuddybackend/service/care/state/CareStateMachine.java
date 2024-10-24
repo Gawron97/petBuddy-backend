@@ -19,8 +19,18 @@ public final class CareStateMachine {
         initGlobalTransitions(transitionManager);
     }
 
-    public Care transition(Care care, Role role, CareStatus statusToTransition) {
-        return transitionManager.transition(care, role, statusToTransition);
+    /**
+     * Transition state related to role
+     * */
+    public Care transition(Role role, Care care, CareStatus statusToTransition) {
+        return transitionManager.transition(role, care, statusToTransition);
+    }
+
+    /**
+     * Transition for both roles
+     * */
+    public Care transitionBothRoles(Care care, CareStatus statusToTransition) {
+        return transitionManager.transitionBothRoles(care, statusToTransition);
     }
 
     public void transitionToEditCare(Care care) {
@@ -32,14 +42,15 @@ public final class CareStateMachine {
         }
 
         if(!caretakerStatus.equals(CareStatus.PENDING)) {
-            throw new StateTransitionException(new Transition(Role.CARETAKER, caretakerStatus, CareStatus.PENDING));
+            throw new StateTransitionException(new RoleTransition(Role.CARETAKER, caretakerStatus, CareStatus.PENDING));
         }
 
         if(!(clientStatus.equals(CareStatus.ACCEPTED) || clientStatus.equals(CareStatus.PENDING))) {
-            throw new StateTransitionException(new Transition(Role.CLIENT, clientStatus, CareStatus.PENDING));
+            throw new StateTransitionException(new RoleTransition(Role.CLIENT, clientStatus, CareStatus.PENDING));
         }
 
-        setBothStatuses(care, CareStatus.PENDING);
+        care.setCaretakerStatus(CareStatus.ACCEPTED);
+        care.setClientStatus(CareStatus.PENDING);
     }
 
     private void initClientTransitions(TransitionManager transitionManager) {
@@ -66,9 +77,9 @@ public final class CareStateMachine {
 
     private void initGlobalTransitions(TransitionManager transitionManager) {
         // Obsolete care
-        transitionManager.addTransition(null, CareStatus.PENDING, CareStatus.OUTDATED, this::setBothStatuses);
-        transitionManager.addTransition(null, CareStatus.ACCEPTED, CareStatus.OUTDATED, this::setBothStatuses);
-        transitionManager.addTransition(null, CareStatus.AWAITING_PAYMENT, CareStatus.OUTDATED, this::setBothStatuses);
+        transitionManager.addTransition(CareStatus.PENDING, CareStatus.OUTDATED, this::setBothStatuses);
+        transitionManager.addTransition(CareStatus.ACCEPTED, CareStatus.OUTDATED, this::setBothStatuses);
+        transitionManager.addTransition(CareStatus.AWAITING_PAYMENT, CareStatus.OUTDATED, this::setBothStatuses);
     }
 
     private boolean clientShouldBeAccepted(Care care) {
@@ -86,7 +97,7 @@ public final class CareStateMachine {
     }
 
     private void awaitPaymentOnAccept(Care care) {
-        if(care.getCaretakerStatus() == CareStatus.ACCEPTED) {
+        if(care.getCaretakerStatus() == CareStatus.ACCEPTED && care.getClientStatus() == CareStatus.ACCEPTED) {
             care.setClientStatus(CareStatus.AWAITING_PAYMENT);
             care.setCaretakerStatus(CareStatus.AWAITING_PAYMENT);
         }

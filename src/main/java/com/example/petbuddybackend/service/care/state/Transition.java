@@ -1,7 +1,14 @@
 package com.example.petbuddybackend.service.care.state;
 
 import com.example.petbuddybackend.entity.care.CareStatus;
-import com.example.petbuddybackend.entity.user.Role;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record Transition(Role role, CareStatus fromStatus, CareStatus toStatus) {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Transition {
+    private CareStatus fromStatus;
+    private CareStatus toStatus;
 }

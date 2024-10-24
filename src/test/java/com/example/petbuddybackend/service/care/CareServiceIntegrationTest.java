@@ -180,15 +180,12 @@ public class CareServiceIntegrationTest {
 
     @Test
     void updateCare_ShouldReturnProperUpdatedCare() {
-
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+        care.setClientStatus(CareStatus.ACCEPTED);
+        care.setCaretakerStatus(CareStatus.PENDING);
 
-        UpdateCareDTO updateCareDTO = UpdateCareDTO.builder()
-                .careStart(LocalDate.now().plusDays(3))
-                .careEnd(LocalDate.now().plusDays(9))
-                .dailyPrice(new BigDecimal("20.00"))
-                .build();
+        UpdateCareDTO updateCareDTO = createUpdateCareDTO(3, 9, "20.00");
 
         // When
         CareDTO result = careService.updateCare(care.getId(), updateCareDTO, caretaker.getEmail(), ZoneId.systemDefault());
@@ -199,7 +196,8 @@ public class CareServiceIntegrationTest {
         assertEquals(new BigDecimal("20.00"), updatedCare.getDailyPrice());
         assertEquals(LocalDate.now().plusDays(3), updatedCare.getCareStart());
         assertEquals(LocalDate.now().plusDays(9), updatedCare.getCareEnd());
-
+        assertEquals(CareStatus.ACCEPTED, updatedCare.getCaretakerStatus());
+        assertEquals(CareStatus.PENDING, updatedCare.getClientStatus());
     }
 
     @ParameterizedTest
@@ -218,33 +216,15 @@ public class CareServiceIntegrationTest {
     static Stream<Arguments> parametrizedForUpdateCare() {
         return Stream.of(
                 Arguments.of(
-                        UpdateCareDTO.builder()
-                                .careStart(LocalDate.now().plusDays(1))
-                                .careEnd(LocalDate.now().plusDays(5))
-                                .dailyPrice(new BigDecimal("10.00"))
-                                .build(),
+                        createUpdateCareDTO(1, 5, "10.00"),
                         "wrongEmail",
                         IllegalActionException.class
                 ),
                 Arguments.of(
-                        UpdateCareDTO.builder()
-                                .careStart(LocalDate.now().plusDays(1))
-                                .careEnd(LocalDate.now().plusDays(5))
-                                .dailyPrice(new BigDecimal("10.00"))
-                                .build(),
+                        createUpdateCareDTO(1, 5, "10.00"),
                         "clientEmail",
                         IllegalActionException.class
-                ),
-                Arguments.of(
-                        UpdateCareDTO.builder()
-                                .careStart(LocalDate.now().plusDays(7))
-                                .careEnd(LocalDate.now().plusDays(5))
-                                .dailyPrice(new BigDecimal("10.00"))
-                                .build(),
-                        "caretakerEmail",
-                        IllegalActionException.class
                 )
-
         );
     }
 
@@ -252,11 +232,7 @@ public class CareServiceIntegrationTest {
     void updateCare_WhenCareIsTerminated_ShouldThrowIllegalActionException() {
 
         // Given
-        UpdateCareDTO updateCare = UpdateCareDTO.builder()
-                .careStart(LocalDate.now().plusDays(1))
-                .careEnd(LocalDate.now().plusDays(5))
-                .dailyPrice(new BigDecimal("10.00"))
-                .build();
+        UpdateCareDTO updateCare = createUpdateCareDTO(1, 5, "10.00");
 
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
         care.setCaretakerStatus(CareStatus.OUTDATED);
@@ -272,11 +248,7 @@ public class CareServiceIntegrationTest {
     void updateCare_WhenCaretakerStatusIsAccepted_ShouldThrowStateTransitionException() {
 
         // Given
-        UpdateCareDTO updateCare = UpdateCareDTO.builder()
-                .careStart(LocalDate.now().plusDays(1))
-                .careEnd(LocalDate.now().plusDays(5))
-                .dailyPrice(new BigDecimal("10.00"))
-                .build();
+        UpdateCareDTO updateCare = createUpdateCareDTO(1, 5, "10.00");
 
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
         care.setCaretakerStatus(CareStatus.ACCEPTED);
@@ -522,10 +494,34 @@ public class CareServiceIntegrationTest {
 
         // Then
         assertEquals(expectedSize, result.getTotalElements());
-
     }
 
-    static Stream<Arguments> parameterProviderForGetCaretakerCares() {
+    @Test
+    void getCaretakerCares_sortingParamsShouldAlignWithDTO() {
+        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(Care.class);
+        fieldNames.addAll(List.of("animal_animalType", "caretaker_email", "client_email"));
+
+        for(String fieldName: fieldNames) {
+            assertDoesNotThrow(() -> careService.getCares(
+                    PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
+                    CareSearchCriteria.builder().build(),
+                    Set.of(),
+                    caretaker.getEmail(),
+                    Role.CARETAKER,
+                    ZoneId.systemDefault()
+            ));
+        }
+    }
+
+    private static UpdateCareDTO createUpdateCareDTO(int daysToAdd, int daysToAdd1, String val) {
+        return UpdateCareDTO.builder()
+                .careStart(LocalDate.now().plusDays(daysToAdd))
+                .careEnd(LocalDate.now().plusDays(daysToAdd1))
+                .dailyPrice(new BigDecimal(val))
+                .build();
+    }
+
+    private static Stream<Arguments> parameterProviderForGetCaretakerCares() {
         return Stream.of(
                 Arguments.of(
                         CareSearchCriteria.builder()
@@ -809,22 +805,4 @@ public class CareServiceIntegrationTest {
                 )
         );
     }
-
-    @Test
-    void getCaretakerCares_sortingParamsShouldAlignWithDTO() {
-        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(Care.class);
-        fieldNames.addAll(List.of("animal_animalType", "caretaker_email", "client_email"));
-
-        for(String fieldName: fieldNames) {
-            assertDoesNotThrow(() -> careService.getCares(
-                    PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
-                    CareSearchCriteria.builder().build(),
-                    Set.of(),
-                    caretaker.getEmail(),
-                    Role.CARETAKER,
-                    ZoneId.systemDefault()
-            ));
-        }
-    }
-
 }

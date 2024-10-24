@@ -201,7 +201,7 @@ public class CareControllerIntegrationTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.PENDING.name()))
-                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.PENDING.name()))
+                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.ACCEPTED.name()))
                 .andExpect(jsonPath("$.careStart").value(LocalDate.now().plusDays(3).toString()))
                 .andExpect(jsonPath("$.careEnd").value(LocalDate.now().plusDays(8).toString()))
                 .andExpect(jsonPath("$.description").value("Test care description"))

@@ -104,9 +104,13 @@ public class CareController {
     @PostMapping("/{careId}/accept")
     @Operation(
             summary = "Accept a care",
-            description = "Accepts a care. " +
-                    "The care must be in the PENDING status for caretaker and ACCEPT status for client to accept." +
-                    "When successful both statuses changes to AWAITING_PAYMENT."
+            description = """
+                    Caretaker accepts a reservation that client sends and client accepts the care that was edited by
+                    caretaker.
+                    
+                    The care must be in the PENDING status for caretaker and ACCEPT status for client to accept.
+                    When successful both statuses changes to AWAITING_PAYMENT.
+                    """
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Care accepted by caretaker successfully"),
@@ -115,7 +119,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public CareDTO acceptCareByCaretaker(
+    public CareDTO acceptCare(
             @RequestHeader(value = "${header-name.role}")
             @RoleParameter
             Role role,

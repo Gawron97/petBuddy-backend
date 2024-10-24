@@ -28,7 +28,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +38,6 @@ import java.util.stream.Collectors;
 public class CareService {
 
     private static final String ATTRIBUTE_MISMATCH_FORMAT = "%s (attribute: %s)";
-    private static final String BAD_CARE_RANGE_DATE_MESSAGE = "End care date must be after start care date";
     private static final String CARETAKER_NOT_OWNER_MESSAGE = "Caretaker is not owner of the care";
     private static final String CARE = "Care";
     private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
@@ -62,7 +60,6 @@ public class CareService {
     public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail, ZoneId timeZone) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
-        assertEndCareDateIsAfterStartCareDate(createCare.careStart(), createCare.careEnd());
         userService.assertNotBlockedByAny(clientEmail, caretakerEmail);
 
         Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributes(createCare.animalAttributeIds());
@@ -77,7 +74,6 @@ public class CareService {
 
     public CareDTO updateCare(Long careId, UpdateCareDTO updateCare, String caretakerEmail, ZoneId timeZone) {
         Care care = getCareOfCaretaker(careId, caretakerEmail);
-        assertEndCareDateIsAfterStartCareDate(updateCare.careStart(), updateCare.careEnd());
 
         careStateMachine.transitionToEditCare(care);
         careMapper.updateCareFromDTO(updateCare, care);
@@ -91,7 +87,7 @@ public class CareService {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         Care care = getCareOfClient(careId, clientEmail);
 
-        careStateMachine.transition(care, Role.CLIENT, newStatus);
+        careStateMachine.transition(Role.CLIENT, care, newStatus);
         care = careRepository.save(care);
         sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
 
@@ -102,7 +98,7 @@ public class CareService {
         userService.assertHasRole(clientEmail, Role.CARETAKER);
         Care care = getCareOfCaretaker(careId, clientEmail);
 
-        careStateMachine.transition(care, Role.CARETAKER, newStatus);
+        careStateMachine.transition(Role.CARETAKER, care, newStatus);
         care = careRepository.save(care);
         sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
 
@@ -164,13 +160,6 @@ public class CareService {
                 .client(clientService.getClientByEmail(clientEmail))
                 .caretaker(caretakerService.getCaretakerByEmail(caretakerEmail))
                 .build();
-
-    }
-
-    private void assertEndCareDateIsAfterStartCareDate(LocalDate careStart, LocalDate careEnd) {
-        if(careEnd.isBefore(careStart)) {
-            throw new IllegalActionException(BAD_CARE_RANGE_DATE_MESSAGE);
-        }
     }
 
     private void assertAnimalAttributesMatchAnimalType(Set<AnimalAttribute> animalAttributes, String animalType) {
