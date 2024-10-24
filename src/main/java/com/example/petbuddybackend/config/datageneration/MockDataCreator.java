@@ -102,22 +102,32 @@ public class MockDataCreator {
         // caretaker offers
         animals = animalRepository.findAll();
         animalAttributes = animalAttributeRepository.findAll();
-        offers = offerRepository.saveAllAndFlush(mockService.createMockOffers(caretakers, animals, CARETAKER_OFFER_COUNT));
+        offers = offerRepository.saveAllAndFlush(
+                mockService.createMockOffers(caretakers, animals, CARETAKER_OFFER_COUNT)
+        );
 
         // offers configurations
         offerConfigurationRepository.saveAllAndFlush(
-                        mockService.createMockOffersConfigurations(offers, CARETAKER_OFFER_CONFIGURATION_COUNT));
+                        mockService.createMockOffersConfigurations(offers, CARETAKER_OFFER_CONFIGURATION_COUNT)
+        );
 
         // offers configurations options
         caretakers = caretakerRepository.findAll();
         caretakers.get(0).getOffers().get(0).getOfferConfigurations(); // to fetch lazy lists
         offerOptionRepository.saveAllAndFlush(
-                mockService.createMockOfferConfigurationsOptionsForCaretakers(caretakers, animalAttributes, OPTIONS_IN_CONFIGURATION_COUNT));
+                mockService.createMockOfferConfigurationsOptionsForCaretakers(
+                        caretakers,
+                        animalAttributes,
+                        OPTIONS_IN_CONFIGURATION_COUNT
+                )
+        );
 
         // offers amenities
         offers = offerRepository.findAll();
         animalAmenities = animalAmenityRepository.findAll();
-        offerRepository.saveAllAndFlush(mockService.createMockOffersAmenities(offers, animalAmenities, ANIMAL_AMENITY_IN_OFFER_COUNT));
+        offerRepository.saveAllAndFlush(
+                mockService.createMockOffersAmenities(offers, animalAmenities, ANIMAL_AMENITY_IN_OFFER_COUNT)
+        );
 
         // offers availabilities
         offers = offerRepository.findAll();
@@ -131,12 +141,16 @@ public class MockDataCreator {
         // cares
         clients = clientRepository.findAll();
         caretakers = caretakerRepository.findAll();
-        careRepository.saveAllAndFlush(mockService.createMockCares(clients, caretakers, animals, animalAttributes, CARE_COUNT));
+        careRepository.saveAllAndFlush(
+                mockService.createMockCares(clients, caretakers, animals, animalAttributes, CARE_COUNT)
+        );
 
         // following caretakers
         clients = clientRepository.findAll();
         caretakers = caretakerRepository.findAll();
-        clientRepository.saveAllAndFlush(mockService.addFollowingCaretakersToClients(clients, caretakers, FOLLOWING_CARETAKERS_COUNT));
+        clientRepository.saveAllAndFlush(
+                mockService.addFollowingCaretakersToClients(clients, caretakers, FOLLOWING_CARETAKERS_COUNT)
+        );
 
         // clean cache
         log.info("Mock data created successfully!");
@@ -239,7 +253,7 @@ public class MockDataCreator {
 
         Long chatId = createdChatRoomDTO.getId();
 
-        for(int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             chatService.createMessage(
                     chatId,
                     client.getEmail(),
@@ -247,7 +261,7 @@ public class MockDataCreator {
                     Role.CLIENT
             );
         }
-        for(int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             chatService.createMessage(
                     chatId,
                     caretaker.getEmail(),

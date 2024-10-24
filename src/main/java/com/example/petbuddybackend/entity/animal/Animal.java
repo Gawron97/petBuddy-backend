@@ -5,6 +5,7 @@ import com.example.petbuddybackend.entity.offer.Offer;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter @Setter
@@ -21,12 +22,15 @@ public class Animal {
     private String animalType;
 
     @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<AnimalAttribute> animalAttributes;
+    @Builder.Default
+    private List<AnimalAttribute> animalAttributes = new ArrayList<>();
 
     @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<AnimalAmenity> animalFacilities;
+    @Builder.Default
+    private List<AnimalAmenity> animalAmenities = new ArrayList<>();
 
     @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY)
-    private List<Offer> offers;
+    @Builder.Default
+    private List<Offer> offers = new ArrayList<>();
 
 }
