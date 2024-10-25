@@ -14,6 +14,7 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -169,6 +170,48 @@ public class NotificationServiceTest {
             return null;
         });
 
+    }
+
+    @Test
+    void testMarkNotificationAsRead_shouldMarkNotificationAsRead() {
+
+        //Given
+        Long notificationId = transactionTemplate.execute(status -> {
+            CaretakerNotification notification = PersistenceUtils.addCaretakerNotification(
+                    caretakerNotificationRepository, caretaker
+            );
+            return notification.getId();
+        });
+
+        //When
+        transactionTemplate.execute(status -> {
+            NotificationDTO result = notificationService.markNotificationAsRead(
+                    notificationId,
+                    Role.CARETAKER,
+                    ZoneId.systemDefault()
+            );
+            assertEquals(Role.CARETAKER, result.receiverProfile());
+            return null;
+        });
+
+        transactionTemplate.execute(status -> {
+            CaretakerNotification notification = caretakerNotificationRepository.findById(notificationId).get();
+            assertTrue(notification.isRead());
+            return null;
+        });
+    }
+
+    @Test
+    void testMarkNotificationAsRead_shouldThrowExceptionWhenNotificationNotFound() {
+
+        //When Then
+        assertThrows(NotFoundException.class,
+                () -> notificationService.markNotificationAsRead(
+                        1L,
+                        Role.CARETAKER,
+                        ZoneId.systemDefault()
+                )
+        );
     }
 
 }

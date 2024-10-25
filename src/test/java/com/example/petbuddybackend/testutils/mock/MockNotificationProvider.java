@@ -15,6 +15,7 @@ public final class MockNotificationProvider {
 
     public static CaretakerNotification createMockCaretakerNotification(Caretaker caretaker) {
         return CaretakerNotification.builder()
+                .id(1L)
                 .objectId(1L)
                 .objectType(ObjectType.CARE)
                 .messageKey("care_reservation")
