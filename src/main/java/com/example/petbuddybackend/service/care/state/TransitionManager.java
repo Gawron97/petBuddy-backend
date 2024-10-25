@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class TransitionManager {
 
@@ -62,15 +63,18 @@ public class TransitionManager {
             throw new StateTransitionException(transitions);
         }
 
-        List<TransitionAction> transitionActions = transitions.stream()
-                .map(this.transitions::get)
-                .toList();
+        Map<Transition, TransitionAction> transitionActions = transitions.stream()
+                .distinct()
+                .collect(Collectors.toMap(t -> t, this.transitions::get));
 
-        if(transitionActions.stream().anyMatch(t -> !t.getPrerequisite().test(care))) {
+
+        if(transitionActions.values().stream().anyMatch(action -> !action.getPrerequisite().test(care))) {
             throw new StateTransitionException(transitions);
         }
 
-        transitionActions.forEach(t -> t.getOnSuccess().accept(care, transitions.get(0).getToStatus()));
+        transitionActions.forEach((transition, action) ->
+                action.getOnSuccess().accept(care, transition.getToStatus()));
+
         return care;
     }
 }
