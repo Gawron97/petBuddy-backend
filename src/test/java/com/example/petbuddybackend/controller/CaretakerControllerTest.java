@@ -133,7 +133,7 @@ public class CaretakerControllerTest {
 
         when(caretakerService.getCaretakers(any(), any(), any())).thenReturn(page);
 
-        mockMvc.perform(post("/api/caretaker")
+        mockMvc.perform(post("/api/caretaker/all")
                         .param("page", "0")
                         .param("size", "10")
                         .param("sort", "name,asc")
