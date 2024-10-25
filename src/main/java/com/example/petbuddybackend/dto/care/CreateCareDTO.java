@@ -7,6 +7,7 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 @Builder
@@ -30,8 +31,11 @@ public record CreateCareDTO(
         BigDecimal dailyPrice,
 
         @NotBlank String animalType,
-        List<Long> animalAttributeIds,
-        @NotBlank String caretakerEmail,
-        @NotBlank String clientEmail
-        ) {
+        List<Long> animalAttributeIds
+) {
+        public CreateCareDTO {
+                if(animalAttributeIds == null) {
+                        animalAttributeIds = Collections.emptyList();
+                }
+        }
 }

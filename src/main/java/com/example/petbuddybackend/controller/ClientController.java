@@ -67,5 +67,4 @@ public class ClientController {
 
         return clientService.getFollowedCaretakers(principal.getName());
     }
-
 }
