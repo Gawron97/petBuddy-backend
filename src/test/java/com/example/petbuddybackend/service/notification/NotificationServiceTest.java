@@ -14,6 +14,7 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -204,7 +205,7 @@ public class NotificationServiceTest {
     void testMarkNotificationAsRead_shouldThrowExceptionWhenNotificationNotFound() {
 
         //When Then
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(NotFoundException.class,
                 () -> notificationService.markNotificationAsRead(
                         1L,
                         Role.CARETAKER,

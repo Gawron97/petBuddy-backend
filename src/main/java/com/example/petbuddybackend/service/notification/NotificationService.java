@@ -12,6 +12,7 @@ import com.example.petbuddybackend.repository.notification.CaretakerNotification
 import com.example.petbuddybackend.repository.notification.ClientNotificationRepository;
 import com.example.petbuddybackend.repository.notification.NotificationRepository;
 import com.example.petbuddybackend.service.mapper.NotificationMapper;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +24,9 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
+
+    private final static String CARETAKER_NOTIFICATION = "Caretaker notification";
+    private final static String CLIENT_NOTIFICATION = "Client notification";
 
     private final CaretakerNotificationRepository caretakerNotificationRepository;
     private final ClientNotificationRepository clientNotificationRepository;
@@ -69,9 +73,9 @@ public class NotificationService {
     private Notification getNotification(Role role, Long id) {
         return role == Role.CARETAKER
                 ? caretakerNotificationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Caretaker notification with id " + id + " not found"))
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER_NOTIFICATION, id.toString()))
                 : clientNotificationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Client notification with id " + id + " not found"));
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CLIENT_NOTIFICATION, id.toString()));
     }
 
     private Page<NotificationDTO> getCaretakerUnreadNotifications(Pageable pageable, String caretakerEmail,

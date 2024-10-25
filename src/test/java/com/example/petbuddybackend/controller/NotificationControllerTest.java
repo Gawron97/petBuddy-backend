@@ -1,5 +1,7 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.notification.NotificationDTO;
+import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
 import com.example.petbuddybackend.service.notification.NotificationService;
@@ -16,10 +18,13 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,10 +42,10 @@ public class NotificationControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private NotificationService notificationService;
+    private CaretakerNotificationRepository caretakerNotificationRepository;
 
     @Mock
-    private CaretakerNotificationRepository caretakerNotificationRepository;
+    private NotificationService notificationService;
 
     @BeforeEach
     void setUp() {
@@ -62,17 +67,18 @@ public class NotificationControllerTest {
 
     }
 
-//    @Test
-//    void markNotificationAsRead_shouldReturnProperAnswer() throws Exception {
-//
-//        when(notificationService.markNotificationAsRead(eq(1L), eq(Role.CARETAKER), any()))
-//                .thenReturn(null);
-//        when(caretakerNotificationRepository.findById(1L)).thenReturn(Optional.of(new CaretakerNotification()));
-//
-//        mockMvc.perform(patch("/api/notifications/1")
-//                        .header(TIMEZONE_HEADER_NAME, "UTC")
-//                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
-//                .andExpect(status().isOk());
-//    }
+    @Test
+    @WithMockUser("caretakerEmail")
+    void markNotificationAsRead_shouldReturnProperAnswer() throws Exception {
+
+        when(notificationService.markNotificationAsRead(anyLong(), any(), any()))
+                .thenReturn(NotificationDTO.builder().build());
+        when(caretakerNotificationRepository.findById(anyLong())).thenReturn(Optional.of(new CaretakerNotification()));
+
+        mockMvc.perform(patch("/api/notifications/" + 1L)
+                        .header(TIMEZONE_HEADER_NAME, "UTC")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk());
+    }
 
 }
