@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -38,7 +37,7 @@ public class MockService {
     public List<AppUser> createMockAppUsers(int count) {
         List<AppUser> caretakers = new ArrayList<>(count);
 
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             caretakers.add(createAppUser());
         }
 
@@ -56,7 +55,7 @@ public class MockService {
     public List<Caretaker> createMockCaretakers(List<AppUser> users) {
         List<Caretaker> caretakers = new ArrayList<>();
 
-        for(AppUser user : users) {
+        for (AppUser user : users) {
             caretakers.add(createCaretaker(user));
         }
 
@@ -102,8 +101,8 @@ public class MockService {
     public List<Rating> createMockRatings(List<Caretaker> caretakers, List<Client> clients) {
         List<Rating> ratings = new ArrayList<>(caretakers.size() * clients.size());
 
-        for(Caretaker caretaker : caretakers) {
-            for(Client client : clients) {
+        for (Caretaker caretaker : caretakers) {
+            for (Client client : clients) {
                 ratings.add(createMockRating(caretaker, client));
             }
         }
@@ -121,7 +120,7 @@ public class MockService {
     public List<Client> createMockClients(List<AppUser> users) {
         List<Client> clients = new ArrayList<>();
 
-        for(AppUser user : users) {
+        for (AppUser user : users) {
             clients.add(createClient(user));
         }
 
@@ -131,7 +130,7 @@ public class MockService {
     public List<Offer> createMockOffers(List<Caretaker> caretakers, List<Animal> animals, int caretakerOfferCount) {
         List<Offer> offers = new ArrayList<>();
 
-        for(Caretaker caretaker : caretakers) {
+        for (Caretaker caretaker : caretakers) {
             offers.addAll(createCaretakerOffers(caretaker, animals, caretakerOfferCount));
         }
 
@@ -162,22 +161,23 @@ public class MockService {
     }
 
     private List<Animal> getSomeRandomUniqueAnimals(List<Animal> animals, int count) {
-        if(count > animals.size()) {
+        if (count > animals.size()) {
             return animals;
         }
 
         Set<Animal> uniqueAnimals = new HashSet<>();
-        while(uniqueAnimals.size() < count) {
+        while (uniqueAnimals.size() < count) {
             uniqueAnimals.add(animals.get(faker.random().nextInt(animals.size())));
         }
         return new ArrayList<>(uniqueAnimals);
 
     }
 
-    public List<OfferConfiguration> createMockOffersConfigurations(List<Offer> offers, int caretakerOfferConfigurationCount) {
+    public List<OfferConfiguration> createMockOffersConfigurations(List<Offer> offers,
+                                                                   int caretakerOfferConfigurationCount) {
         List<OfferConfiguration> offerConfigurations = new ArrayList<>();
 
-        for(Offer offer : offers) {
+        for (Offer offer : offers) {
             offerConfigurations.addAll(createMockOfferConfigurations(offer, caretakerOfferConfigurationCount));
         }
 
@@ -189,7 +189,7 @@ public class MockService {
 
         List<OfferConfiguration> offerConfigurations = new ArrayList<>();
 
-        for(int i = 0; i < caretakerOfferConfigurationCount; i++) {
+        for (int i = 0; i < caretakerOfferConfigurationCount; i++) {
             offerConfigurations.add(createMockOfferConfiguration(offer));
         }
         offer.getOfferConfigurations().addAll(offerConfigurations);
@@ -211,8 +211,14 @@ public class MockService {
                                                                                int optionsInConfigurationCount) {
         List<OfferOption> offerOptions = new ArrayList<>();
 
-        for(Caretaker caretaker : caretakers) {
-            offerOptions.addAll(createMockOffersConfigurationsOptions(caretaker.getOffers(), animalAttributes, optionsInConfigurationCount));
+        for (Caretaker caretaker : caretakers) {
+            offerOptions.addAll(
+                    createMockOffersConfigurationsOptions(
+                            caretaker.getOffers(),
+                            animalAttributes,
+                            optionsInConfigurationCount
+                    )
+            );
         }
         return offerOptions;
 
@@ -223,8 +229,10 @@ public class MockService {
                                                                     int optionsInConfigurationCount) {
         List<OfferOption> offerOptions = new ArrayList<>();
 
-        for(Offer offer : offers) {
-            offerOptions.addAll(createMockOfferConfigurationsOptions(offer, animalAttributes, optionsInConfigurationCount));
+        for (Offer offer : offers) {
+            offerOptions.addAll(
+                    createMockOfferConfigurationsOptions(offer, animalAttributes, optionsInConfigurationCount)
+            );
         }
 
         return offerOptions;
@@ -239,7 +247,7 @@ public class MockService {
         List<List<AnimalAttribute>> uniqueRandomListOfAnimalAttributes =
                 getSomeRandomUniqueListOfAnimalAttributes(animalAttributes, offer, optionsInConfigurationCount);
 
-        for(int i = 0; i < offer.getOfferConfigurations().size(); i++) {
+        for (int i = 0; i < offer.getOfferConfigurations().size(); i++) {
             OfferConfiguration offerConfiguration = offer.getOfferConfigurations().get(i);
             List<AnimalAttribute> uniqueRandomAnimalAttributes = uniqueRandomListOfAnimalAttributes.get(i);
 
@@ -254,7 +262,7 @@ public class MockService {
                                                                   List<AnimalAttribute> uniqueRandomAnimalAttributes) {
         List<OfferOption> offerOptions = new ArrayList<>();
 
-        for(AnimalAttribute animalAttribute : uniqueRandomAnimalAttributes) {
+        for (AnimalAttribute animalAttribute : uniqueRandomAnimalAttributes) {
             offerOptions.add(createMockOfferConfigurationOption(offerConfiguration, animalAttribute));
         }
         offerConfiguration.getOfferOptions().addAll(offerOptions);
@@ -263,7 +271,8 @@ public class MockService {
 
     }
 
-    private OfferOption createMockOfferConfigurationOption(OfferConfiguration offerConfiguration, AnimalAttribute animalAttribute) {
+    private OfferOption createMockOfferConfigurationOption(OfferConfiguration offerConfiguration,
+                                                           AnimalAttribute animalAttribute) {
         return OfferOption.builder()
                 .offerConfiguration(offerConfiguration)
                 .animalAttribute(animalAttribute)
@@ -279,7 +288,7 @@ public class MockService {
                 getAnimalAttributeForAnimalType(offer.getAnimal().getAnimalType(), animalAttributes);
 
         Set<List<AnimalAttribute>> uniqueListOfAnimalAttributes = new HashSet<>();
-        while(uniqueListOfAnimalAttributes.size() < offer.getOfferConfigurations().size()) {
+        while (uniqueListOfAnimalAttributes.size() < offer.getOfferConfigurations().size()) {
             uniqueListOfAnimalAttributes.add(
                     getSomeRandomUniqueAnimalAttributes(animalAttributesForAnimalType, optionsInConfigurationCount));
         }
@@ -290,45 +299,50 @@ public class MockService {
     private List<AnimalAttribute> getSomeRandomUniqueAnimalAttributes(List<AnimalAttribute> animalAttributes,
                                                                       int count) {
 
-        if(count > animalAttributes.size()) {
+        if (count > animalAttributes.size()) {
             return List.of(animalAttributes.get(faker.random().nextInt(animalAttributes.size())));
         }
 
         Set<AnimalAttribute> uniqueAnimalAttributes = new HashSet<>();
-        while(uniqueAnimalAttributes.size() < count) {
+        while (uniqueAnimalAttributes.size() < count) {
             uniqueAnimalAttributes.add(animalAttributes.get(faker.random().nextInt(animalAttributes.size())));
         }
         return uniqueAnimalAttributes.stream().sorted(Comparator.comparingLong(AnimalAttribute::getId)).toList();
 
     }
 
-    private List<AnimalAttribute> getAnimalAttributeForAnimalType(String animalType, List<AnimalAttribute> animalAttributes) {
+    private List<AnimalAttribute> getAnimalAttributeForAnimalType(String animalType,
+                                                                  List<AnimalAttribute> animalAttributes) {
         return animalAttributes.stream()
                 .filter(animalAttribute -> animalAttribute.getAnimal().getAnimalType().equals(animalType))
                 .toList();
     }
 
     public List<Offer> createMockOffersAmenities(List<Offer> offers, List<AnimalAmenity> animalAmenities,
-                                                 int ANIMAL_AMENITY_IN_OFFER_COUNT) {
+                                                 int animalAmenityInOfferCount) {
 
         return offers.stream()
                 .map(offer ->
                         createMockOfferAmenities(offer,
                                 getAnimalAmenitiesForAnimalType(offer.getAnimal().getAnimalType(), animalAmenities),
-                                ANIMAL_AMENITY_IN_OFFER_COUNT))
+                                animalAmenityInOfferCount))
                 .toList();
 
     }
 
     private Offer createMockOfferAmenities(Offer offer, List<AnimalAmenity> animalAmenities, int animalAmenityCount) {
 
-        Set<AnimalAmenity> uniqueRandomAnimalAmenities = getSomeRandomUniqueAnimalAmenities(animalAmenities, animalAmenityCount);
+        Set<AnimalAmenity> uniqueRandomAnimalAmenities = getSomeRandomUniqueAnimalAmenities(
+                animalAmenities,
+                animalAmenityCount
+        );
         offer.getAnimalAmenities().addAll(uniqueRandomAnimalAmenities);
         return offer;
 
     }
 
-    private List<AnimalAmenity> getAnimalAmenitiesForAnimalType(String animalType, List<AnimalAmenity> animalAmenities) {
+    private List<AnimalAmenity> getAnimalAmenitiesForAnimalType(String animalType,
+                                                                List<AnimalAmenity> animalAmenities) {
         return animalAmenities.stream()
                 .filter(animalAmenity -> animalAmenity.getAnimal().getAnimalType().equals(animalType))
                 .toList();
@@ -337,11 +351,11 @@ public class MockService {
     private Set<AnimalAmenity> getSomeRandomUniqueAnimalAmenities(List<AnimalAmenity> animalAmenities, int count) {
         Set<AnimalAmenity> amenities = new HashSet<>();
 
-        if(animalAmenities.size() < count) {
+        if (animalAmenities.size() < count) {
             return new HashSet<>(animalAmenities);
         }
 
-        while(amenities.size() < count) {
+        while (amenities.size() < count) {
             amenities.add(animalAmenities.get(faker.random().nextInt(animalAmenities.size())));
         }
 
@@ -352,7 +366,7 @@ public class MockService {
         count = count < 1 ? 2 : count;
         List<ChatMessage> messages = new ArrayList<>(count);
 
-        for(int i = 0; i < count / 2; i++) {
+        for (int i = 0; i < count / 2; i++) {
             messages.add(ChatMessage.builder()
                     .sender(client.getAccountData())
                     .content(faker.lorem().sentence())
@@ -360,7 +374,7 @@ public class MockService {
                     .build());
         }
 
-        for(int i = 0; i < count / 2; i++) {
+        for (int i = 0; i < count / 2; i++) {
             messages.add(ChatMessage.builder()
                     .sender(caretaker.getAccountData())
                     .content(faker.lorem().sentence())
@@ -375,19 +389,26 @@ public class MockService {
                                       List<AnimalAttribute> animalAttributes, int count) {
 
         List<Care> cares = new ArrayList<>();
-        for(int i = 0; i < count; i++) {
+        for (int i = 0; i < count; i++) {
             Client client = clients.get(faker.random().nextInt(clients.size()));
             Caretaker caretaker = caretakers.get(faker.random().nextInt(caretakers.size()));
             Animal animal = animals.get(faker.random().nextInt(animals.size()));
-            List<AnimalAttribute> availableAnimalAttributes = getAnimalAttributeForAnimalType(animal.getAnimalType(), animalAttributes);
+            List<AnimalAttribute> availableAnimalAttributes = getAnimalAttributeForAnimalType(
+                    animal.getAnimalType(),
+                    animalAttributes
+            );
             Set<AnimalAttribute> animalAttributesForCare =
-                    new HashSet<>(getSomeRandomUniqueAnimalAttributes(availableAnimalAttributes, faker.random().nextInt(availableAnimalAttributes.size())));
+                    new HashSet<>(getSomeRandomUniqueAnimalAttributes(
+                            availableAnimalAttributes,
+                            faker.random().nextInt(availableAnimalAttributes.size()))
+                    );
             cares.add(createMockCare(client, caretaker, animal, animalAttributesForCare));
         }
         return cares;
     }
 
-    private Care createMockCare(Client client, Caretaker caretaker, Animal animal, Set<AnimalAttribute> animalAttributesForCare) {
+    private Care createMockCare(Client client, Caretaker caretaker, Animal animal,
+                                Set<AnimalAttribute> animalAttributesForCare) {
 
         LocalDate careStart = getRandomDateBetween(
                 LocalDate.now(),
@@ -424,7 +445,7 @@ public class MockService {
     public Set<Availability> createMockAvailabilitiesForOffers(List<Offer> offers) {
 
         Set<Availability> availabilities = new HashSet<>();
-        for(Offer offer : offers) {
+        for (Offer offer : offers) {
             Set<Availability> availabilitiesForOffer = createMockAvailabilitiesForOffer(offer);
             offer.getAvailabilities().addAll(availabilitiesForOffer);
             availabilities.addAll(availabilitiesForOffer);
@@ -436,9 +457,9 @@ public class MockService {
 
         int availabilitiesCount = faker.random().nextInt(0, 10);
         Set<Availability> availabilities = new HashSet<>();
-        while(availabilities.size() < availabilitiesCount) {
+        while (availabilities.size() < availabilitiesCount) {
             Availability availability = createMockAvailability(offer);
-            if(!isOverLapping(availability, availabilities)) {
+            if (!isOverLapping(availability, availabilities)) {
                 availabilities.add(availability);
             }
         }
@@ -449,23 +470,23 @@ public class MockService {
 
     private Availability createMockAvailability(Offer offer) {
 
-        LocalDateTime availableFrom = getRandomDateBetween(LocalDate.now(),
-                LocalDate.now().plusDays(180));
+        LocalDate availableFrom = getRandomDateBetween(LocalDate.now(),
+                LocalDate.now().plusDays(180)).toLocalDate();
 
-        LocalDateTime availableTo = getRandomDateBetween(availableFrom.toLocalDate(),
-                availableFrom.toLocalDate().plusDays(15));
+        LocalDate availableTo = getRandomDateBetween(availableFrom,
+                availableFrom.plusDays(15)).toLocalDate();
 
         return Availability.builder()
-                .availableFrom(availableFrom.atZone(ZoneId.systemDefault()))
-                .availableTo(availableTo.atZone(ZoneId.systemDefault()))
+                .availableFrom(availableFrom)
+                .availableTo(availableTo)
                 .offer(offer)
                 .build();
     }
 
     private boolean isOverLapping(Availability availability, Set<Availability> availabilities) {
 
-        for(Availability existingAvailability : availabilities) {
-            if(availability.getAvailableFrom().isBefore(existingAvailability.getAvailableTo()) &&
+        for (Availability existingAvailability : availabilities) {
+            if (availability.getAvailableFrom().isBefore(existingAvailability.getAvailableTo()) &&
                     availability.getAvailableTo().isAfter(existingAvailability.getAvailableFrom())) {
                 return true;
             }
@@ -476,7 +497,7 @@ public class MockService {
 
     public List<Client> addFollowingCaretakersToClients(List<Client> clients, List<Caretaker> caretakers, int count) {
 
-        for(Client client: clients) {
+        for (Client client: clients) {
             addFollowingCaretakersToClient(client, caretakers, count);
         }
 
@@ -492,12 +513,12 @@ public class MockService {
     }
 
     private Set<Caretaker> getSomeRandomUniqueCaretakers(List<Caretaker> caretakers, int count) {
-        if(count >= caretakers.size()) {
+        if (count >= caretakers.size()) {
             return new HashSet<>(caretakers);
         }
 
         Set<Caretaker> uniqueCaretakers = new HashSet<>();
-        while(uniqueCaretakers.size() < count) {
+        while (uniqueCaretakers.size() < count) {
             uniqueCaretakers.add(caretakers.get(faker.random().nextInt(caretakers.size())));
         }
         return uniqueCaretakers;

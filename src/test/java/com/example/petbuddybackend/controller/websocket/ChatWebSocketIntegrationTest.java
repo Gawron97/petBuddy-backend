@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.controller;
+package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
@@ -6,11 +6,13 @@ import com.example.petbuddybackend.dto.chat.notification.*;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
+import com.example.petbuddybackend.testutils.websocket.WebsocketUtils;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,7 +88,7 @@ public class ChatWebSocketIntegrationTest {
         leaveBlockingQueue = new LinkedBlockingDeque<>();
         connectedBlockingQueue = new LinkedBlockingDeque<>();
 
-        stompClient = new WebSocketStompClient(new SockJsClient(createTransportClient()));
+        stompClient = new WebSocketStompClient(new SockJsClient(WebsocketUtils.createTransportClient()));
         stompClient.setMessageConverter(messageConverter);
 
         when(chatService.createMessage(any(), any(), any(), any()))
@@ -94,6 +96,11 @@ public class ChatWebSocketIntegrationTest {
 
         when(chatService.createCallbackMessageSeen(any(), any()))
                 .thenReturn(u -> {});
+    }
+
+    @AfterEach
+    public void tearDown() {
+        stompClient.stop();
     }
 
     @Test
@@ -279,9 +286,13 @@ public class ChatWebSocketIntegrationTest {
             Role role
     ) {
         NoSecurityInjectUserConfig.injectedUsername = chatMessageConnected.getConnectingUserEmail();
-        String destinationFormated = String.format(SUBSCRIPTION_URL_PATTERN, 1L, chatMessageConnected.getSessionId());
-        StompHeaders headers = createHeaders(destinationFormated, timeZone, role);
-        return stompSession.subscribe(headers, new ChatNotificationFrameHandler());
+        String destinationFormatted = String.format(SUBSCRIPTION_URL_PATTERN, 1L, chatMessageConnected.getSessionId());
+        StompHeaders headers = createHeaders(destinationFormatted, timeZone, role);
+        return WebsocketUtils.subscribeToTopic(
+                stompSession,
+                headers,
+                new ChatNotificationFrameHandler()
+        );
     }
 
     private List<Transport> createTransportClient() {

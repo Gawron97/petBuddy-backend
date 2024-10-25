@@ -7,12 +7,13 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 @Builder
 @DateRange(fields = {
         @DateRangeField(startDateField = "careStart", endDateField = "careEnd")
-}, message = "End date of care must be after start date")
+}, message = "End date of care must be after or same as start date")
 public record CreateCareDTO(
         @NotNull
         @Future
@@ -30,8 +31,11 @@ public record CreateCareDTO(
         BigDecimal dailyPrice,
 
         @NotBlank String animalType,
-        List<Long> animalAttributeIds,
-        @NotBlank String caretakerEmail,
-        @NotBlank String clientEmail
-        ) {
+        List<Long> animalAttributeIds
+) {
+        public CreateCareDTO {
+                if(animalAttributeIds == null) {
+                        animalAttributeIds = Collections.emptyList();
+                }
+        }
 }

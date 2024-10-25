@@ -63,4 +63,24 @@ public class UserController {
     public void deleteProfilePicture(Principal principal) {
         userService.deleteProfilePicture(principal.getName());
     }
+
+    @PostMapping("/block/{username}")
+    @Operation(
+            summary = "Block user",
+            description = "Blocks user with given username."
+    )
+    @PreAuthorize("isAuthenticated()")
+    public void blockUser(Principal principal, @PathVariable String username) {
+        userService.blockUser(principal.getName(), username);
+    }
+
+    @DeleteMapping("/block/{username}")
+    @Operation(
+            summary = "Unblock user",
+            description = "Unblocks user with given username."
+    )
+    @PreAuthorize("isAuthenticated()")
+    public void unblockUser(Principal principal, @PathVariable String username) {
+        userService.unblockUser(principal.getName(), username);
+    }
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,8 +31,8 @@ public class OfferController {
             description = "Add offer if it does not exists," +
                     " also can edit offer if it exists. Editing only support adding new configurations or amenities" +
                     " when provide amenity or configuration that already exists throws error" +
-                    " For editing or removing configuration use /configuration/{configurationId}/edit" +
-                    " or /configuration/{configurationId}/delete endpoints."
+                    " For editing or removing configuration use /configuration/{configurationId}" +
+                    " or /configuration/{configurationId} endpoints."
     )
     @PostMapping("/add-or-edit")
     @PreAuthorize("isAuthenticated()")
@@ -42,6 +43,55 @@ public class OfferController {
         return offerService.addOrEditOffer(offer, principal.getName());
     }
 
+    @DeleteMapping("/{offerId}")
+    @PreAuthorize("isAuthenticated()")
+    public OfferDTO deleteOffer(@PathVariable Long offerId,
+                                Principal principal,
+
+                                @RoleParameter
+                                @AcceptRole(acceptRole = Role.CARETAKER)
+                                @RequestHeader(value = "${header-name.role}") Role role) {
+        return offerService.deleteOffer(offerId, principal.getName());
+    }
+
+    @Operation(
+            summary = "Add configurations for offer",
+            description = "Adds configurations for offer. If configuration already exists, it will throw exception." +
+                    " If configuration does not exists, it will be added."
+    )
+    @PostMapping("/{offerId}/configurations")
+    @PreAuthorize("isAuthenticated()")
+    public OfferDTO addConfigurationsForOffer(@PathVariable Long offerId,
+                                              @RequestBody List<@Valid ModifyConfigurationDTO> configurations,
+                                              Principal principal,
+
+                                              @AcceptRole(acceptRole = Role.CARETAKER)
+                                              @RequestHeader(value = "${header-name.role}") Role role) {
+
+        return offerService.addConfigurationsForOffer(offerId, configurations, principal.getName());
+
+    }
+
+    @Operation(
+            summary = "Set amenities for offer",
+            description = "Set amenities for offer. If provided amenity already exists in offer it will be skipped," +
+                    " only new amenities will be added. If amenity does exists in offer, but not provided in request," +
+                    " it will be removed."
+    )
+    @PutMapping("/{offerId}/amenities")
+    @PreAuthorize("isAuthenticated()")
+    public OfferDTO setAmenitiesForOffer(@PathVariable Long offerId,
+                                              @RequestBody Set<String> amenities,
+                                              Principal principal,
+
+                                              @RoleParameter
+                                              @AcceptRole(acceptRole = Role.CARETAKER)
+                                              @RequestHeader(value = "${header-name.role}") Role role) {
+
+        return offerService.setAmenitiesForOffer(offerId, amenities, principal.getName());
+
+    }
+
     @Operation(
             summary = "Edit offer configuration",
             description = "Edits offer configuration by changing configuration data and selected options." +
@@ -49,7 +99,7 @@ public class OfferController {
                     " exists in configuration, it will be removed. If option provided but not exists in configuration," +
                     " it will be added"
     )
-    @PostMapping("/configuration/{configurationId}/edit")
+    @PutMapping("/configuration/{configurationId}")
     @PreAuthorize("isAuthenticated()")
     public OfferConfigurationDTO editConfiguration(@PathVariable Long configurationId,
                                                    @RequestBody @Valid ModifyConfigurationDTO configuration,
@@ -63,7 +113,7 @@ public class OfferController {
             summary = "Delete configuration",
             description = "Deletes configuration from offer"
     )
-    @DeleteMapping("/configuration/{configurationId}/delete")
+    @DeleteMapping("/configuration/{configurationId}")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteConfiguration(@PathVariable Long configurationId,
                                         Principal principal,
@@ -73,7 +123,7 @@ public class OfferController {
     }
 
     @Operation(summary = "Delete amenities from offer")
-    @PostMapping("/{offerId}/amenities-delete")
+    @DeleteMapping("/{offerId}/amenities")
     @PreAuthorize("isAuthenticated()")
     public OfferDTO deleteAmenitiesFromOffer(@RequestBody List<String> amenities,
                                              @PathVariable Long offerId,
@@ -87,7 +137,7 @@ public class OfferController {
             summary = "Set availability for offers",
             description = "Set availability for offers. If there was availability set before, it will be replaced."
     )
-    @PostMapping("/set-availability")
+    @PutMapping("/availability")
     @PreAuthorize("isAuthenticated()")
     public List<OfferDTO> setAvailabilityForOffers(
             @RequestBody @Valid CreateOffersAvailabilityDTO createOffersAvailability,

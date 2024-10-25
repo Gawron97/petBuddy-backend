@@ -47,6 +47,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -141,12 +142,12 @@ public class CaretakerServiceIntegrationTest {
                 ),
                 Set.of(
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 1, 1))
+                                .availableTo(LocalDate.of(2025, 1, 10))
                                 .build(),
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 2, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 2, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 2, 1))
+                                .availableTo(LocalDate.of(2025, 2, 10))
                                 .build()
                 ),
                 offerRepository
@@ -166,12 +167,12 @@ public class CaretakerServiceIntegrationTest {
                 ),
                 Set.of(
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 1, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 1, 15, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 1, 5))
+                                .availableTo(LocalDate.of(2025, 1, 15))
                                 .build(),
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 2, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 2, 15, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 2, 5))
+                                .availableTo(LocalDate.of(2025, 2, 15))
                                 .build()
                 ),
                 offerRepository
@@ -192,12 +193,12 @@ public class CaretakerServiceIntegrationTest {
                 Arrays.asList(),
                 Set.of(
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 1, 7, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 1, 7))
+                                .availableTo(LocalDate.of(2025, 1, 10))
                                 .build(),
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 2, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 2, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 2, 8))
+                                .availableTo(LocalDate.of(2025, 2, 10))
                                 .build()
                 ),
                 offerRepository
@@ -232,12 +233,12 @@ public class CaretakerServiceIntegrationTest {
                 Arrays.asList(),
                 Set.of(
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 3, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 3, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 3, 1))
+                                .availableTo(LocalDate.of(2025, 3, 10))
                                 .build(),
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 4, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 4, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 4, 1))
+                                .availableTo(LocalDate.of(2025, 4, 10))
                                 .build()
                 ),
                 offerRepository
@@ -288,8 +289,8 @@ public class CaretakerServiceIntegrationTest {
                 ),
                 Set.of(
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 1, 5, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 1, 1))
+                                .availableTo(LocalDate.of(2025, 1, 5))
                                 .build()
                 ),
                 offerRepository
@@ -315,8 +316,8 @@ public class CaretakerServiceIntegrationTest {
                 ),
                 Set.of(
                         Availability.builder()
-                                .availableFrom(ZonedDateTime.of(2025, 8, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                .availableTo(ZonedDateTime.of(2025, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                .availableFrom(LocalDate.of(2025, 8, 1))
+                                .availableTo(LocalDate.of(2025, 8, 10))
                                 .build()
                 ),
                 offerRepository
@@ -719,7 +720,7 @@ public class CaretakerServiceIntegrationTest {
                                                         .attributes(Map.of(
                                                                 "SIZE", Set.of("BIG", "SMALL"),
                                                                 "SEX", Set.of("MALE", "SHE")
-                                                                ))
+                                                        ))
                                                         .minPrice(null)
                                                         .maxPrice(null)
                                                         .build()
@@ -868,8 +869,8 @@ public class CaretakerServiceIntegrationTest {
                                         ))
                                         .availabilities(Set.of(
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2025, 1, 7, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2025, 1, 1))
+                                                        .availableTo(LocalDate.of(2025, 1, 7))
                                                         .build()
                                         ))
                                         .build()
@@ -890,12 +891,12 @@ public class CaretakerServiceIntegrationTest {
                                         ))
                                         .availabilities(Set.of(
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2025, 1, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2025, 1, 8))
+                                                        .availableTo(LocalDate.of(2025, 1, 10))
                                                         .build(),
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2028, 8, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2028, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2028, 8, 8))
+                                                        .availableTo(LocalDate.of(2028, 8, 10))
                                                         .build()
                                         ))
                                         .build(),
@@ -910,12 +911,12 @@ public class CaretakerServiceIntegrationTest {
                                         ))
                                         .availabilities(Set.of(
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2025, 1, 1))
+                                                        .availableTo(LocalDate.of(2025, 1, 10))
                                                         .build(),
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2028, 8, 8, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2028, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2028, 8, 8))
+                                                        .availableTo(LocalDate.of(2028, 8, 10))
                                                         .build()
                                         ))
                                         .build()
@@ -936,8 +937,8 @@ public class CaretakerServiceIntegrationTest {
                                         ))
                                         .availabilities(Set.of(
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2025, 1, 3, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2025, 1, 3))
+                                                        .availableTo(LocalDate.of(2025, 1, 10))
                                                         .build()
                                         ))
                                         .build()
@@ -958,8 +959,8 @@ public class CaretakerServiceIntegrationTest {
                                         ))
                                         .availabilities(Set.of(
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2025, 8, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2025, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2025, 8, 1))
+                                                        .availableTo(LocalDate.of(2025, 8, 10))
                                                         .build()
                                         ))
                                         .build(),
@@ -974,8 +975,8 @@ public class CaretakerServiceIntegrationTest {
                                         ))
                                         .availabilities(Set.of(
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2025, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2025, 1, 1))
+                                                        .availableTo(LocalDate.of(2025, 1, 10))
                                                         .build()
                                         ))
                                         .build()
@@ -996,12 +997,12 @@ public class CaretakerServiceIntegrationTest {
                                         ))
                                         .availabilities(Set.of(
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2025, 1, 7, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2025, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2025, 1, 7))
+                                                        .availableTo(LocalDate.of(2025, 1, 10))
                                                         .build(),
                                                 AvailabilityFilterDTO.builder()
-                                                        .availableFrom(ZonedDateTime.of(2025, 8, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                                                        .availableTo(ZonedDateTime.of(2025, 8, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                                                        .availableFrom(LocalDate.of(2025, 8, 1))
+                                                        .availableTo(LocalDate.of(2025, 8, 10))
                                                         .build()
                                         ))
                                         .build()

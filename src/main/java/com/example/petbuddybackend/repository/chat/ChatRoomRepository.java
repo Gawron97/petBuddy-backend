@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
@@ -15,6 +17,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     boolean existsByIdAndClient_Email(Long chatRoomId, String email);
 
     boolean existsByClient_EmailAndCaretaker_Email(String clientEmail, String caretakerEmail);
+
+    Optional<ChatRoom> findByClient_EmailAndCaretaker_Email(String clientEmail, String caretakerEmail);
 
     @Query("""
         SELECT new com.example.petbuddybackend.dto.chat.ChatRoomDTO(

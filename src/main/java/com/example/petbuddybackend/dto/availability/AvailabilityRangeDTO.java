@@ -8,22 +8,22 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 
 @Builder
 @DateRange(fields = {
         @DateRangeField(startDateField = "availableFrom", endDateField = "availableTo")
-}, message = "Available from must be before available to")
+}, message = "Available from must be before or equal to available to")
 public record AvailabilityRangeDTO(
         @Future
-        @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
+        @JsonFormat(pattern = TimeUtils.DATE_FORMAT)
         @NotNull
-        ZonedDateTime availableFrom,
+        LocalDate availableFrom,
 
         @Future
-        @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
+        @JsonFormat(pattern = TimeUtils.DATE_FORMAT)
         @NotNull
-        ZonedDateTime availableTo
+        LocalDate availableTo
 ) {
         public boolean overlaps(AvailabilityRangeDTO availabilityRangeDTO) {
                 return this.availableFrom.isBefore(availabilityRangeDTO.availableTo) &&

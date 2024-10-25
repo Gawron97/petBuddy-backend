@@ -19,15 +19,14 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -84,6 +83,22 @@ public class OfferControllerTest {
         }
         """;
 
+    private final static String ADD_CONFIGURATIONS_FOR_OFFER = """
+        [
+            {
+                "description": "New Configuration",
+                "dailyPrice": 20.0,
+                "selectedOptions": {
+                    "SIZE": ["SMALL"]
+                }
+            }
+        ]
+        """;
+
+    private final static String ADD_AMENITIES_FOR_OFFER = """
+        ["AMENITY1", "AMENITY2"]
+        """;
+
     @Test
     @WithMockUser
     void addOffer_ShouldReturnCreatedOffer() throws Exception {
@@ -116,13 +131,97 @@ public class OfferControllerTest {
 
     @Test
     @WithMockUser
+    void deleteOffer_ShouldReturnCreatedOffer() throws Exception {
+        // Given
+        OfferDTO offerDTO = OfferDTO.builder()
+                .id(1L)
+                .description("Test Offer")
+                .offerConfigurations(
+                        List.of(OfferConfigurationDTO.builder()
+                                .description("Test Configuration")
+                                .selectedOptions(Map.of("SIZE", List.of("BIG")))
+                                .build()
+                        ))
+                .build();
+        when(offerService.deleteOffer(anyLong(), anyString())).thenReturn(offerDTO);
+
+        // When and Then
+        mockMvc.perform(delete("/api/caretaker/offer/" + 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(roleHeaderName, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Offer"))
+                .andExpect(jsonPath("$.offerConfigurations[0].description").value("Test Configuration"))
+                .andExpect(jsonPath("$.offerConfigurations[0].selectedOptions.SIZE[0]").value("BIG"));
+
+        verify(offerService, times(1)).deleteOffer(anyLong(), anyString());
+    }
+
+    @Test
+    @WithMockUser
+    void addConfigurationsForOffer_ShouldReturnUpdatedOffer() throws Exception {
+        // Given
+        OfferDTO offerDTO = OfferDTO.builder()
+                .description("Test Offer with new configurations")
+                .offerConfigurations(List.of(
+                        OfferConfigurationDTO.builder()
+                                .description("New Configuration")
+                                .dailyPrice(BigDecimal.valueOf(20.0))
+                                .selectedOptions(Map.of("SIZE", List.of("SMALL")))
+                                .build()
+                ))
+                .build();
+
+        when(offerService.addConfigurationsForOffer(anyLong(), anyList(), anyString())).thenReturn(offerDTO);
+
+
+        // When and Then
+        mockMvc.perform(post("/api/caretaker/offer/1/configurations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ADD_CONFIGURATIONS_FOR_OFFER)
+                        .header(roleHeaderName, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Offer with new configurations"))
+                .andExpect(jsonPath("$.offerConfigurations[0].description").value("New Configuration"))
+                .andExpect(jsonPath("$.offerConfigurations[0].dailyPrice").value(20.0))
+                .andExpect(jsonPath("$.offerConfigurations[0].selectedOptions.SIZE[0]").value("SMALL"));
+
+        verify(offerService, times(1)).addConfigurationsForOffer(anyLong(), anyList(), anyString());
+    }
+
+    @Test
+    @WithMockUser
+    void setAmenitiesForOffer_ShouldReturnUpdatedOfferWithNewAmenities() throws Exception {
+        // Given
+        OfferDTO offerDTO = OfferDTO.builder()
+                .description("Test Offer with new amenities")
+                .animalAmenities(List.of("toys", "garden"))
+                .build();
+
+        when(offerService.setAmenitiesForOffer(anyLong(), anySet(), anyString())).thenReturn(offerDTO);
+
+        // When and Then
+        mockMvc.perform(put("/api/caretaker/offer/1/amenities")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(ADD_AMENITIES_FOR_OFFER)
+                        .header(roleHeaderName, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Test Offer with new amenities"))
+                .andExpect(jsonPath("$.animalAmenities[0]").value("toys"))
+                .andExpect(jsonPath("$.animalAmenities[1]").value("garden"));
+
+        verify(offerService, times(1)).setAmenitiesForOffer(anyLong(), anySet(), anyString());
+    }
+
+    @Test
+    @WithMockUser
     void editConfiguration_ShouldReturnUpdatedConfiguration() throws Exception {
         // Given
         OfferConfigurationDTO configDTO = OfferConfigurationDTO.builder().description("Updated Configuration").build();
         when(offerService.editConfiguration(anyLong(), any(ModifyConfigurationDTO.class), any())).thenReturn(configDTO);
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/configuration/1/edit")
+        mockMvc.perform(put("/api/caretaker/offer/configuration/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_OR_UPDATE_CONFIGURATION, "Updated Configuration"))
                         .header(roleHeaderName, Role.CARETAKER))
@@ -140,7 +239,7 @@ public class OfferControllerTest {
         when(offerService.deleteConfiguration(anyLong(), any())).thenReturn(offerDTO);
 
         // When and Then
-        mockMvc.perform(delete("/api/caretaker/offer/configuration/1/delete")
+        mockMvc.perform(delete("/api/caretaker/offer/configuration/1")
                         .header(roleHeaderName, Role.CARETAKER))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Deleted Configuration"));
@@ -155,12 +254,12 @@ public class OfferControllerTest {
         // Given
         List<AvailabilityRangeDTO> availabilityRanges = List.of(
                 AvailabilityRangeDTO.builder()
-                        .availableFrom(ZonedDateTime.of(2027, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault()))
-                        .availableTo(ZonedDateTime.of(2027, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
+                        .availableFrom(LocalDate.of(2027, 1, 1))
+                        .availableTo(LocalDate.of(2027, 1, 10))
                         .build(),
                 AvailabilityRangeDTO.builder()
-                        .availableFrom(ZonedDateTime.of(2027, 1, 10, 0, 0, 0, 0, ZoneId.systemDefault()))
-                        .availableTo(ZonedDateTime.of(2027, 1, 20, 0, 0, 0, 0, ZoneId.systemDefault()))
+                        .availableFrom(LocalDate.of(2027, 1, 10))
+                        .availableTo(LocalDate.of(2027, 1, 20))
                         .build()
         );
         OfferDTO offerDTO = OfferDTO.builder()
@@ -169,14 +268,14 @@ public class OfferControllerTest {
         when(offerService.setAvailabilityForOffers(any(), any())).thenReturn(List.of(offerDTO));
 
         // When and Then
-        mockMvc.perform(post("/api/caretaker/offer/set-availability")
+        mockMvc.perform(put("/api/caretaker/offer/availability")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(CREATE_OFFERS_AVAILABILITY_BODY,
                                 1,
-                                "2027-01-01 00:00:00.000 +0000",
-                                "2027-01-10 00:00:00.000 +0000",
-                                "2027-01-10 00:00:00.000 +0000",
-                                "2027-01-20 00:00:00.000 +0000"
+                                "2027-01-01",
+                                "2027-01-10",
+                                "2027-01-10",
+                                "2027-01-20"
                         ))
                         .header(roleHeaderName, Role.CARETAKER))
                 .andExpect(status().isOk())
@@ -198,7 +297,7 @@ public class OfferControllerTest {
         when(offerService.deleteAmenitiesFromOffer(anyList(), any(), any())).thenReturn(offer);
 
         //When Then
-        mockMvc.perform(post("/api/caretaker/offer/1/amenities-delete")
+        mockMvc.perform(delete("/api/caretaker/offer/1/amenities")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"AMENITY1\", \"AMENITY2\"]")
                 .header(roleHeaderName, Role.CARETAKER))

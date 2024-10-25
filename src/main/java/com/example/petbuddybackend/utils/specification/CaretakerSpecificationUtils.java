@@ -113,7 +113,7 @@ public final class CaretakerSpecificationUtils {
             List<Predicate> offerAnimalAndConfigurationsAndAmenitiesAndAvailabilityPredicates = new ArrayList<>();
 
             for (OfferFilterDTO offerFilter : offerFilters) {
-                offerAnimalAndConfigurationsAndAmenitiesAndAvailabilityPredicates.add(animalOfferMatches(root, query, cb, offerFilter));
+                offerAnimalAndConfigurationsAndAmenitiesAndAvailabilityPredicates.add(offerMatch(root, query, cb, offerFilter));
             }
 
             // The caretaker must have offers for all animals specified in the filters
@@ -121,10 +121,10 @@ public final class CaretakerSpecificationUtils {
         };
     }
 
-    private static Predicate animalOfferMatches(Root<Caretaker> root,
-                                                CriteriaQuery<?> query,
-                                                CriteriaBuilder cb,
-                                                OfferFilterDTO offerFilter) {
+    private static Predicate offerMatch(Root<Caretaker> root,
+                                        CriteriaQuery<?> query,
+                                        CriteriaBuilder cb,
+                                        OfferFilterDTO offerFilter) {
         Subquery<Long> offerSubquery = query.subquery(Long.class);
         Root<Offer> offerRoot = offerSubquery.from(Offer.class);
         offerSubquery.select(offerRoot.get(ID));

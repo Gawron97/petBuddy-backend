@@ -55,6 +55,7 @@ springdoc:
 header-name:
   timezone: "Accept-Timezone"
   role: "Accept-Role"
+  language: "Accept-Language"
 
 url:
   chat:
@@ -65,6 +66,10 @@ url:
     topic:
       base: "/topic/session"
       pattern: "/topic/session/%s"
+  notification:
+    topic:
+      base: "/user/topic/notification"
+      pattern: "/topic/notification"
 
 firebase:
   key:
@@ -78,3 +83,11 @@ firebase:
     expiration:
       max-seconds: 21600        # 6 hours
       threshold-seconds: 2300   # 0.5 hour
+
+
+notification:
+  care:
+    reservation: "care_reservation"
+    update_reservation: "care_update"
+    accepted_reservation: "care_accepted"
+    rejected_reservation: "care_rejected"
