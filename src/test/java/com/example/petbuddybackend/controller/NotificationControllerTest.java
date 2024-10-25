@@ -1,24 +1,22 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.notification.NotificationDTO;
-import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
 import com.example.petbuddybackend.service.notification.NotificationService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -41,23 +39,17 @@ public class NotificationControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Mock
-    private CaretakerNotificationRepository caretakerNotificationRepository;
-
-    @Mock
+    @MockBean
     private NotificationService notificationService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     @WithMockUser("caretakerEmail")
     void getUnreadNotifications_shouldReturnProperAnswer() throws Exception {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<NotificationDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         when(notificationService.getUnreadNotifications(any(), any(), any(), any()))
-                .thenReturn(new PageImpl<>(List.of()));
+                .thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/notifications")
                         .header(TIMEZONE_HEADER_NAME, "UTC")
@@ -70,15 +62,12 @@ public class NotificationControllerTest {
     @Test
     @WithMockUser("caretakerEmail")
     void markNotificationAsRead_shouldReturnProperAnswer() throws Exception {
-
         when(notificationService.markNotificationAsRead(anyLong(), any(), any()))
                 .thenReturn(NotificationDTO.builder().build());
-        when(caretakerNotificationRepository.findById(anyLong())).thenReturn(Optional.of(new CaretakerNotification()));
 
-        mockMvc.perform(patch("/api/notifications/" + 1L)
+        mockMvc.perform(patch("/api/notifications/{notificationId}", 1L)
                         .header(TIMEZONE_HEADER_NAME, "UTC")
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk());
     }
-
 }
