@@ -3,6 +3,7 @@ package com.example.petbuddybackend.controller;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.UserProfilesData;
+import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,9 @@ public class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private BlockService blockService;
 
     private AutoCloseable closeable;
 
@@ -122,14 +126,14 @@ public class UserControllerTest {
         String usernameToBlock = "otheruser";
 
         // When
-        doNothing().when(userService).blockUser(USERNAME, usernameToBlock);
+        doNothing().when(blockService).blockUser(USERNAME, usernameToBlock);
 
         // Then
         mockMvc.perform(post("/api/user/block/{username}", usernameToBlock)
                         .with(user(USERNAME)))
                 .andExpect(status().isOk());
 
-        verify(userService).blockUser(USERNAME, usernameToBlock);
+        verify(blockService).blockUser(USERNAME, usernameToBlock);
     }
 
     @Test
@@ -139,13 +143,13 @@ public class UserControllerTest {
         String usernameToUnblock = "otheruser";
 
         // When
-        doNothing().when(userService).unblockUser(USERNAME, usernameToUnblock);
+        doNothing().when(blockService).unblockUser(USERNAME, usernameToUnblock);
 
         // Then
         mockMvc.perform(delete("/api/user/block/{username}", usernameToUnblock)
                         .with(user(USERNAME)))
                 .andExpect(status().isOk());
 
-        verify(userService).unblockUser(USERNAME, usernameToUnblock);
+        verify(blockService).unblockUser(USERNAME, usernameToUnblock);
     }
 }

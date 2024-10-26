@@ -13,6 +13,7 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.service.animal.AnimalService;
+import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.care.state.CareStateMachine;
 import com.example.petbuddybackend.service.mapper.CareMapper;
 import com.example.petbuddybackend.service.notification.NotificationService;
@@ -56,11 +57,12 @@ public class CareService {
     private final NotificationService notificationService;
     private final CareMapper careMapper = CareMapper.INSTANCE;
     private final CareStateMachine careStateMachine;
+    private final BlockService blockService;
 
     public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail, ZoneId timeZone) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
-        userService.assertNotBlockedByAny(clientEmail, caretakerEmail);
+        blockService.assertNotBlockedByAny(clientEmail, caretakerEmail);
 
         Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributesOfAnimal(createCare.animalAttributeIds());
         assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());

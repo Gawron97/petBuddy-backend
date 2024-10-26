@@ -2,6 +2,7 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.UserProfilesData;
+import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,6 +21,7 @@ import java.security.Principal;
 public class UserController {
 
     private final UserService userService;
+    private final BlockService blockService;
 
     @Operation(
             summary = "Get user profile data",
@@ -71,7 +73,7 @@ public class UserController {
     )
     @PreAuthorize("isAuthenticated()")
     public void blockUser(Principal principal, @PathVariable String username) {
-        userService.blockUser(principal.getName(), username);
+        blockService.blockUser(principal.getName(), username);
     }
 
     @DeleteMapping("/block/{username}")
@@ -81,6 +83,6 @@ public class UserController {
     )
     @PreAuthorize("isAuthenticated()")
     public void unblockUser(Principal principal, @PathVariable String username) {
-        userService.unblockUser(principal.getName(), username);
+        blockService.unblockUser(principal.getName(), username);
     }
 }
