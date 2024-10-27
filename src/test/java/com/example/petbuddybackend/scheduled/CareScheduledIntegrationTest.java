@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.util.Pair;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -49,22 +50,26 @@ public class CareScheduledIntegrationTest {
     @Autowired
     private AnimalRepository animalRepository;
 
+    private Set<Pair<CareStatus, CareStatus>> testStatuses;
+    private Client client;
+    private Caretaker caretaker;
+
 
     @BeforeEach
     void setUp() {
-        Client client = PersistenceUtils.addClient(
+        client = PersistenceUtils.addClient(
                 appUserRepository,
                 clientRepository,
                 MockUserProvider.createMockClient()
         );
 
-        Caretaker caretaker = PersistenceUtils.addCaretaker(
+        caretaker = PersistenceUtils.addCaretaker(
                 caretakerRepository,
                 appUserRepository,
                 MockUserProvider.createMockCaretaker()
         );
 
-        Set<Pair<CareStatus, CareStatus>> testStatuses = Set.of(
+        testStatuses = Set.of(
                 // CareStatuses to be obsoleted
                 Pair.of(CareStatus.PENDING, CareStatus.PENDING),
                 Pair.of(CareStatus.PENDING, CareStatus.ACCEPTED),
@@ -75,19 +80,6 @@ public class CareScheduledIntegrationTest {
                 Pair.of(CareStatus.PAID, CareStatus.PAID),
                 Pair.of(CareStatus.CANCELLED, CareStatus.CANCELLED)
         );
-
-        Animal animal = animalRepository.findById("DOG").get();
-
-        List<Care> cares = testStatuses.stream()
-                .map(pair -> MockCareProvider.createMockCare(
-                        caretaker,
-                        client,
-                        animal,
-                        pair.getFirst(),
-                        pair.getSecond())
-                )
-                .map(care -> PersistenceUtils.addCare(careRepository, care ))
-                .toList();
     }
 
     @AfterEach
@@ -100,6 +92,10 @@ public class CareScheduledIntegrationTest {
 
     @Test
     void terminateCares_shouldTerminateProperCares() {
+        // Given
+        setupOutdatedCares();
+
+        // Then
         careScheduled.terminateCares();
 
         List<Care> cares = careRepository.findAll();
@@ -119,5 +115,61 @@ public class CareScheduledIntegrationTest {
         assertEquals(4, outdatedCares.size());
         assertEquals(1, paidCares.size());
         assertEquals(1, cancelledCares.size());
+    }
+
+    @Test
+    void terminateCares_shouldNotTerminateAnyNonOutdatedCare() {
+        // Given
+        setupNonOutdatedCares();
+
+        // Then
+        careScheduled.terminateCares();
+
+        List<Care> cares = careRepository.findAll();
+
+        List<Care> outdatedCares = cares.stream()
+                .filter(care -> care.getClientStatus() == CareStatus.OUTDATED)
+                .toList();
+
+        List<Care> paidCares = cares.stream()
+                .filter(care -> care.getClientStatus() == CareStatus.PAID)
+                .toList();
+
+        List<Care> cancelledCares = cares.stream()
+                .filter(care -> care.getClientStatus() == CareStatus.CANCELLED)
+                .toList();
+
+        assertEquals(0, outdatedCares.size());
+        assertEquals(1, paidCares.size());
+        assertEquals(1, cancelledCares.size());
+    }
+
+    private void setupOutdatedCares() {
+        Animal animal = animalRepository.findById("DOG").get();
+
+        testStatuses.stream()
+                .map(pair -> MockCareProvider.createMockCare(
+                        caretaker, client, animal, pair.getFirst(), pair.getSecond())
+                )
+                .map(care -> {
+                    care.setCareEnd(LocalDate.now().minusDays(1));
+                    return care;
+                })
+                .map(care -> PersistenceUtils.addCare(careRepository, care))
+                .toList();
+    }
+
+    private void setupNonOutdatedCares() {
+        Animal animal = animalRepository.findById("DOG").get();
+
+        testStatuses.stream()
+                .map(pair -> MockCareProvider.createMockCare(
+                        caretaker, client, animal, pair.getFirst(), pair.getSecond()))
+                .map(care -> {
+                    care.setCareEnd(LocalDate.now().plusDays(1));
+                    return care;
+                })
+                .map(care -> PersistenceUtils.addCare(careRepository, care))
+                .toList();
     }
 }

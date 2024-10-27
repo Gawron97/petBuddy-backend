@@ -75,7 +75,7 @@ public class UserController {
 
     @GetMapping("/block")
     @Operation(
-            summary = "Get users blocked by user",
+            summary = "Get users blocked by currently logged in user",
             description = "Returns users blocked by the principal sorted by blocked user email."
     )
     @PreAuthorize("isAuthenticated()")
@@ -92,7 +92,7 @@ public class UserController {
             summary = "Block user",
             description = """
                         # Description
-                        Blocks user with given username. Users blocked by the principal will not be able to interact 
+                        Blocks user with given username. Users blocked by the principal will not be able to interact
                         with each other. They will not be able to send messages and create reservations for cares.
                         
                         # Care state change
