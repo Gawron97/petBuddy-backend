@@ -131,7 +131,7 @@ public class UserControllerTest {
         // Then
         mockMvc.perform(post("/api/user/block/{username}", usernameToBlock)
                         .with(user(USERNAME)))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(blockService).blockUser(USERNAME, usernameToBlock);
     }
@@ -148,7 +148,7 @@ public class UserControllerTest {
         // Then
         mockMvc.perform(delete("/api/user/block/{username}", usernameToUnblock)
                         .with(user(USERNAME)))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(blockService).unblockUser(USERNAME, usernameToUnblock);
     }

@@ -151,9 +151,12 @@ public class PersistenceUtils {
         return chatRoom;
     }
 
-    public static Care addCare(CareRepository careRepository, Caretaker caretaker, Client client, Animal animal) {
-        Care care = createMockCare(caretaker, client, animal);
+    public static Care addCare(CareRepository careRepository, Care care) {
         return careRepository.saveAndFlush(care);
+    }
+
+    public static Care addCare(CareRepository careRepository, Caretaker caretaker, Client client, Animal animal) {
+        return addCare(careRepository, createMockCare(caretaker, client, animal));
     }
 
     public static Care addCare(CareRepository careRepository, Caretaker caretaker, Client client, Animal animal,
