@@ -34,13 +34,6 @@ public class CareStateMachine {
         return transitionManager.transition(role, care, statusToTransition);
     }
 
-    /**
-     * Transition for both roles
-     * */
-    public Care transitionBothRoles(Care care, CareStatus statusToTransition) {
-        return transitionManager.transitionBothRoles(care, statusToTransition);
-    }
-
     public void transitionToEditCare(Care care) {
         CareStatus clientStatus = care.getClientStatus();
         CareStatus caretakerStatus = care.getCaretakerStatus();
@@ -76,7 +69,6 @@ public class CareStateMachine {
         TransitionManager transitionManager = new TransitionManager();
         initClientTransitions(transitionManager);
         initCaretakerTransitions(transitionManager);
-        initGlobalTransitions(transitionManager);
         return transitionManager;
     }
 
@@ -100,17 +92,6 @@ public class CareStateMachine {
 
         // Pay care
         transitionManager.addTransition(Role.CARETAKER, CareStatus.AWAITING_PAYMENT, CareStatus.PAID, this::setBothStatuses);
-    }
-
-    private void initGlobalTransitions(TransitionManager transitionManager) {
-        // Obsolete care
-        for(CareStatus statusPrerequisite: globalStatusesThatCanBeCancelled) {
-            transitionManager.addTransition(statusPrerequisite, CareStatus.CANCELLED, this::setBothStatuses);
-        }
-
-        for(CareStatus statusPrerequisite: globalStatusesThatCanBeOutdated) {
-            transitionManager.addTransition(statusPrerequisite, CareStatus.OUTDATED, this::setBothStatuses);
-        }
     }
 
     private boolean clientShouldBeAccepted(Care care) {
