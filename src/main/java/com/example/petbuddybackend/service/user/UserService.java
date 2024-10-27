@@ -102,12 +102,14 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void renewProfilePicture(AppUser user) {
+    public AppUser renewProfilePicture(AppUser user) {
         PhotoLink photoLink = user.getProfilePicture();
 
         if(photoLink != null) {
             photoService.updatePhotoExpiration(photoLink);
         }
+
+        return user;
     }
 
     public void assertHasRole(String clientEmail, Role role) {

@@ -34,4 +34,9 @@ public final class PagingUtils {
                 pagingParams.getSize()
         );
     }
+
+    public static Pageable sortedBy(Pageable pageable, String propertyName) {
+        Sort sort = Sort.by(Sort.Order.asc(propertyName));
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+    }
 }

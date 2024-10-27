@@ -1,13 +1,20 @@
 package com.example.petbuddybackend.controller;
 
+import com.example.petbuddybackend.dto.paging.PagingParams;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.UserProfilesData;
 import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.user.UserService;
+import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -66,12 +73,34 @@ public class UserController {
         userService.deleteProfilePicture(principal.getName());
     }
 
+    @GetMapping("/block")
+    @Operation(
+            summary = "Get users blocked by user",
+            description = "Returns users blocked by the principal sorted by blocked user email."
+    )
+    @PreAuthorize("isAuthenticated()")
+    public Page<AccountDataDTO> getUsersBlockedByUser(
+            Principal principal,
+            @ParameterObject @ModelAttribute @Valid PagingParams pagingParams
+    ) {
+        Pageable pageable = PagingUtils.createPageable(pagingParams);
+        return blockService.getUsersBlockedByUserSortedByBlockedUsername(principal.getName(), pageable);
+    }
+
     @PostMapping("/block/{username}")
     @Operation(
             summary = "Block user",
-            description = "Blocks user with given username."
+            description = """
+                        # Description
+                        Blocks user with given username. Users blocked by the principal will not be able to interact 
+                        with each other. They will not be able to send messages and create reservations for cares.
+                        
+                        # Care state change
+                        All cares between users **will be cancelled** if the state permits.
+                        """
     )
     @PreAuthorize("isAuthenticated()")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void blockUser(Principal principal, @PathVariable String username) {
         blockService.blockUser(principal.getName(), username);
     }
@@ -82,6 +111,7 @@ public class UserController {
             description = "Unblocks user with given username."
     )
     @PreAuthorize("isAuthenticated()")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void unblockUser(Principal principal, @PathVariable String username) {
         blockService.unblockUser(principal.getName(), username);
     }

@@ -3,21 +3,29 @@ package com.example.petbuddybackend.service.care.state;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Role;
+import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.utils.exception.throweable.StateTransitionException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
-public final class CareStateMachine {
+@RequiredArgsConstructor
+public class CareStateMachine {
 
-    public static final String ACCEPTED_CARE_EDIT_MESSAGE = "Cannot edit care that has been accepted by caretaker";
-    private final TransitionManager transitionManager;
+    private static final String ACCEPTED_CARE_EDIT_MESSAGE = "Cannot edit care that has been accepted by caretaker";
 
-    public CareStateMachine() {
-        this.transitionManager = new TransitionManager();
-        initClientTransitions(transitionManager);
-        initCaretakerTransitions(transitionManager);
-        initGlobalTransitions(transitionManager);
-    }
+    private static final List<CareStatus> globalStatusesThatCanBeCancelled =
+            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.AWAITING_PAYMENT);
+
+    private static final List<CareStatus> globalStatusesThatCanBeOutdated =
+            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.AWAITING_PAYMENT);
+
+    private final TransitionManager transitionManager = initTransitionManager();
+    private final CareRepository careRepository;
+
 
     /**
      * Transition state related to role
@@ -53,6 +61,25 @@ public final class CareStateMachine {
         care.setClientStatus(CareStatus.PENDING);
     }
 
+    @Transactional
+    public void cancelCaresIfStatePermitsAndSave(String firstUsername, String secondUsername) {
+        cancelCaresOfClientAndCaretakerAndSave(firstUsername, secondUsername);
+        cancelCaresOfClientAndCaretakerAndSave(secondUsername, firstUsername);
+    }
+
+    @Transactional
+    public int outdateCaresIfStatePermitsAndSave() {
+        return careRepository.outdateCaresBetweenClientAndCaretaker(globalStatusesThatCanBeOutdated);
+    }
+
+    private TransitionManager initTransitionManager() {
+        TransitionManager transitionManager = new TransitionManager();
+        initClientTransitions(transitionManager);
+        initCaretakerTransitions(transitionManager);
+        initGlobalTransitions(transitionManager);
+        return transitionManager;
+    }
+
     private void initClientTransitions(TransitionManager transitionManager) {
         // Accept care
         transitionManager.addTransition(Role.CLIENT, CareStatus.PENDING, CareStatus.ACCEPTED, this::acceptAsClient);
@@ -77,9 +104,13 @@ public final class CareStateMachine {
 
     private void initGlobalTransitions(TransitionManager transitionManager) {
         // Obsolete care
-        transitionManager.addTransition(CareStatus.PENDING, CareStatus.OUTDATED, this::setBothStatuses);
-        transitionManager.addTransition(CareStatus.ACCEPTED, CareStatus.OUTDATED, this::setBothStatuses);
-        transitionManager.addTransition(CareStatus.AWAITING_PAYMENT, CareStatus.OUTDATED, this::setBothStatuses);
+        for(CareStatus statusPrerequisite: globalStatusesThatCanBeCancelled) {
+            transitionManager.addTransition(statusPrerequisite, CareStatus.CANCELLED, this::setBothStatuses);
+        }
+
+        for(CareStatus statusPrerequisite: globalStatusesThatCanBeOutdated) {
+            transitionManager.addTransition(statusPrerequisite, CareStatus.OUTDATED, this::setBothStatuses);
+        }
     }
 
     private boolean clientShouldBeAccepted(Care care) {
@@ -106,5 +137,13 @@ public final class CareStateMachine {
     private void setBothStatuses(Care care, CareStatus newStatus) {
         care.setClientStatus(newStatus);
         care.setCaretakerStatus(newStatus);
+    }
+
+    private void cancelCaresOfClientAndCaretakerAndSave(String clientEmail, String caretakerEmail) {
+        careRepository.cancelCaresBetweenClientAndCaretaker(
+                clientEmail,
+                caretakerEmail,
+                globalStatusesThatCanBeCancelled
+        );
     }
 }
