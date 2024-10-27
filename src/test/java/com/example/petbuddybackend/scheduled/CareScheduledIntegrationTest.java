@@ -152,7 +152,7 @@ public class CareScheduledIntegrationTest {
                         caretaker, client, animal, pair.getFirst(), pair.getSecond())
                 )
                 .map(care -> {
-                    care.setCareEnd(LocalDate.now().minusDays(1));
+                    care.setCareStart(LocalDate.now().minusDays(1));
                     return care;
                 })
                 .map(care -> PersistenceUtils.addCare(careRepository, care))
@@ -166,7 +166,7 @@ public class CareScheduledIntegrationTest {
                 .map(pair -> MockCareProvider.createMockCare(
                         caretaker, client, animal, pair.getFirst(), pair.getSecond()))
                 .map(care -> {
-                    care.setCareEnd(LocalDate.now().plusDays(1));
+                    care.setCareStart(LocalDate.now().plusDays(1));
                     return care;
                 })
                 .map(care -> PersistenceUtils.addCare(careRepository, care))

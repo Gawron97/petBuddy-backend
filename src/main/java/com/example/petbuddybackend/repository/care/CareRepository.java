@@ -47,7 +47,7 @@ public interface CareRepository extends JpaRepository<Care, Long>, JpaSpecificat
                 c.clientStatus = com.example.petbuddybackend.entity.care.CareStatus.OUTDATED
             WHERE c.caretakerStatus IN :statusesPrerequisites
             AND c.clientStatus IN :statusesPrerequisites
-            AND c.careEnd < CURRENT_DATE
+            AND c.careStart < CURRENT_DATE
             """
     )
     int outdateCaresBetweenClientAndCaretaker(Collection<CareStatus> statusesPrerequisites);
