@@ -15,16 +15,18 @@ import com.example.petbuddybackend.utils.paging.PagingUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class BlockService {
 
+    public static final String BLOCKED_EMAIL_PROPERTY_NAME = "blockedEmail";
+
     private static final String USER_CANNOT_BLOCK_HIMSELF_MESSAGE = "User cannot block himself";
     private static final String USER_ALREADY_BLOCKED_MESSAGE = "User %s is already blocked";
     private static final String BLOCK = "Block";
-    private static final String BLOCKED_EMAIL_PROPERTY_NAME = "blockedEmail";
 
     private final BlockRepository blockRepository;
     private final CareStateMachine careStateMachine;
@@ -32,7 +34,8 @@ public class BlockService {
     private final UserMapper userMapper = UserMapper.INSTANCE;
 
     public Page<AccountDataDTO> getUsersBlockedByUserSortedByBlockedUsername(String username, Pageable pageable) {
-        Pageable sortedPageable = PagingUtils.sortedBy(pageable, BLOCKED_EMAIL_PROPERTY_NAME);
+        Pageable sortedPageable = PagingUtils.sortedBy(
+                pageable, BLOCKED_EMAIL_PROPERTY_NAME, Sort.Direction.ASC);
 
         return blockRepository.findByBlockerEmail(username, sortedPageable)
                 .map(Block::getBlocked)

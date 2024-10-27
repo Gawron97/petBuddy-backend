@@ -1,8 +1,12 @@
 package com.example.petbuddybackend.service.block;
 
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.entity.block.Block;
 import com.example.petbuddybackend.entity.block.BlockId;
+import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.repository.block.BlockRepository;
+import com.example.petbuddybackend.service.user.UserService;
+import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.user.AlreadyBlockedException;
@@ -11,15 +15,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.*;
 
+import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 public class BlockServiceTest {
@@ -29,6 +34,52 @@ public class BlockServiceTest {
 
     @MockBean
     private BlockRepository blockRepository;
+
+    @MockBean
+    private UserService userService;
+
+    @Test
+    void getUsersBlockedByUserSortedByBlockedUsername_shouldReturnSortedAccountDataDTOs() {
+        // Given
+        String blockerUsername = "blocker@example.com";
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "blockedEmail"));
+
+        AppUser blockedUser1 = MockUserProvider
+                .createMockAppUser("name1", "surname1", "blocked1@example.com");
+
+        AppUser blockedUser2 = MockUserProvider
+                .createMockAppUser("name2", "surname2", "blocked2@example.com");
+
+        Block block1 = mock(Block.class);
+        Block block2 = mock(Block.class);
+
+        when(block1.getBlocked()).thenReturn(blockedUser1);
+        when(block2.getBlocked()).thenReturn(blockedUser2);
+
+        List<Block> blocks = List.of(block1, block2);
+        Page<Block> blockPage = new PageImpl<>(blocks);
+
+        when(blockRepository.findByBlockerEmail(any(String.class), any(Pageable.class))).thenReturn(blockPage);
+        when(userService.renewProfilePicture(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        Page<AccountDataDTO> result = blockService.getUsersBlockedByUserSortedByBlockedUsername(blockerUsername, pageable);
+
+        // Then
+        assertEquals(2, result.getContent().size());
+        assertEquals(blockedUser1.getEmail(), result.getContent().get(0).email());
+        assertEquals(blockedUser2.getEmail(), result.getContent().get(1).email());
+    }
+
+    @Test
+    void blockedEmailPropertyName_shouldMatchBlockProperty() {
+        try {
+            Field field = Block.class.getDeclaredField(BlockService.BLOCKED_EMAIL_PROPERTY_NAME);
+            assertEquals(String.class, field.getType(), "The property should be of type String");
+        } catch (NoSuchFieldException e) {
+            fail("Field not found: " + BlockService.BLOCKED_EMAIL_PROPERTY_NAME);
+        }
+    }
 
     @Test
     void blockUser_whenUserBlocksAnotherUser_shouldSucceed() {
