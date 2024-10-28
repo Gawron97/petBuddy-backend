@@ -34,6 +34,8 @@ public class UserService {
     private static final String USER_CANNOT_BLOCK_HIMSELF_MESSAGE = "User cannot block himself";
     private static final String USER_ALREADY_BLOCKED_MESSAGE = "User %s is already blocked";
     private static final String BLOCK = "Block";
+    private final static String CARETAKER = "Caretaker";
+    private final static String CLIENT = "Client";
 
     private final AppUserRepository userRepository;
     private final ClientRepository clientRepository;
@@ -166,6 +168,16 @@ public class UserService {
 
     public boolean isCaretaker(String email) {
         return caretakerRepository.existsById(email);
+    }
+
+    public void assertCaretakerAndClientExist(String caretakerEmail, String clientEmail) {
+        if (!isCaretaker(caretakerEmail)) {
+            throw NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail);
+        }
+
+        if (!isClient(clientEmail)) {
+            throw NotFoundException.withFormattedMessage(CLIENT, clientEmail);
+        }
     }
 
     private void assertNotBlocked(String firstUsername, String secondUsername) {
