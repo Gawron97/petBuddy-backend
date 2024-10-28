@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.rating;
 
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.entity.care.Care;
+import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.repository.care.CareRepository;
@@ -38,6 +39,7 @@ public class RatingService {
     public RatingResponse rateCaretaker(String caretakerEmail, String clientEmail, Long careId, int rating,
                                         String comment) {
         userService.assertCaretakerAndClientExist(caretakerEmail, clientEmail);
+        assertCareBetweenCaretakerAndClientIsValid(caretakerEmail, clientEmail, careId);
 
         if(caretakerEmail.equals(clientEmail)) {
             throw new IllegalActionException("User cannot rate himself");
@@ -60,7 +62,6 @@ public class RatingService {
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, Long careId, int rating,
                                         String comment) {
-        assertCareBetweenCaretakerAndClientIsValid(caretakerEmail, clientEmail, careId);
         Rating ratingEntity = getOrCreateRating(caretakerEmail, clientEmail, careId);
 
         ratingEntity.setRating(rating);
@@ -74,12 +75,12 @@ public class RatingService {
         Care care = careRepository.findById(careId)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
         if(!care.getClient().getEmail().equals(clientEmail) || !care.getCaretaker().getEmail().equals(caretakerEmail)) {
-            throw new IllegalActionException("Care does not exist between caretaker and client");
+            throw new IllegalActionException("This care does not exist between caretaker and client");
         }
 
-        return;
-        //TODO od care need to be accepted, or by date finished or stated or sth else?
-
+        if(!care.getCaretakerStatus().equals(CareStatus.PAID) || !care.getClientStatus().equals(CareStatus.PAID)) {
+            throw new IllegalActionException("Cannot rate unpaid care");
+        }
     }
 
     private Rating getOrCreateRating(String caretakerEmail, String clientEmail, Long careId) {

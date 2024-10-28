@@ -16,7 +16,6 @@ import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
-import com.example.petbuddybackend.testutils.mock.MockRatingProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
@@ -33,13 +32,15 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
+import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockPaidCare;
+import static com.example.petbuddybackend.testutils.mock.MockRatingProvider.createMockRating;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -67,10 +68,14 @@ public class RatingServiceTest {
     @Autowired
     private CareRepository careRepository;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     private Caretaker caretaker;
     private Client client;
     private Client clientSameAsCaretaker;
     private Care care;
+    private Care paidCare;
 
 
     @BeforeEach
@@ -87,6 +92,9 @@ public class RatingServiceTest {
         );
         care = PersistenceUtils.addCare(
                 careRepository, createMockCare(caretaker, client, animalRepository.findById("DOG").orElseThrow())
+        );
+        paidCare = PersistenceUtils.addCare(
+                careRepository, createMockPaidCare(caretaker, client, animalRepository.findById("DOG").orElseThrow())
         );
     }
 
@@ -111,41 +119,58 @@ public class RatingServiceTest {
     }
 
     @Test
-    @Transactional
     void rateCaretaker_shouldSucceed() throws IllegalAccessException {
-        ratingService.rateCaretaker(
-                caretaker.getEmail(),
-                client.getEmail(),
-                care.getId(),
-                5,
-                "comment"
-        );
+        transactionTemplate.execute(status -> {
+            ratingService.rateCaretaker(
+                    caretaker.getEmail(),
+                    client.getEmail(),
+                    paidCare.getId(),
+                    5,
+                    "comment"
+            );
+            return null;
+        });
 
-        Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail(), care.getId()));
-        assertEquals(1, ratingRepository.count());
-        assertEquals(5, rating.getRating());
-        assertTrue(ValidationUtils.fieldsNotNullRecursive(rating, Set.of("client", "caretaker", "care")));
+        transactionTemplate.execute(status -> {
+            Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail(), paidCare.getId()));
+            assertEquals(1, ratingRepository.count());
+            assertEquals(5, rating.getRating());
+            assertTrue(ValidationUtils.fieldsNotNullRecursive(rating, Set.of("client", "caretaker", "care")));
+            return null;
+        });
+
     }
 
     @Test
-    @Transactional
     void rateCaretaker_ratingExists_shouldUpdateRating() {
-        ratingRepository.save(MockRatingProvider.createMockRating(caretaker, client, care));
-
-        ratingService.rateCaretaker(
-                caretaker.getEmail(),
-                client.getAccountData().getEmail(),
-                care.getId(),
-                5,
-                "new comment"
+        transactionTemplate.execute(status ->
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(caretaker, client, paidCare))
         );
 
-        Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail(), care.getId()));
-        assertEquals(1, ratingRepository.count());
-        assertEquals(5, rating.getRating());
-        assertEquals("new comment", rating.getComment());
-        assertEquals(client.getEmail(), rating.getClientEmail());
-        assertEquals(caretaker.getEmail(), rating.getCaretakerEmail());
+        transactionTemplate.execute(status -> {
+            ratingService.rateCaretaker(
+                    caretaker.getEmail(),
+                    client.getAccountData().getEmail(),
+                    paidCare.getId(),
+                    5,
+                    "new comment"
+            );
+            return null;
+        });
+
+        transactionTemplate.execute(status -> {
+            assertEquals(1, ratingRepository.count());
+            return null;
+        });
+
+        transactionTemplate.execute(status -> {
+            Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail(), paidCare.getId()));
+            assertEquals(5, rating.getRating());
+            assertEquals("new comment", rating.getComment());
+            assertEquals(client.getEmail(), rating.getClientEmail());
+            assertEquals(caretaker.getEmail(), rating.getCaretakerEmail());
+            return null;
+        });
     }
 
     @ParameterizedTest
@@ -155,7 +180,7 @@ public class RatingServiceTest {
             ratingService.rateCaretaker(
                     caretaker.getEmail(),
                     client.getAccountData().getEmail(),
-                    care.getId(),
+                    paidCare.getId(),
                     rating,
                     "comment"
             );
@@ -165,7 +190,7 @@ public class RatingServiceTest {
         assertThrows(DataIntegrityViolationException.class, () -> ratingService.rateCaretaker(
                 caretaker.getEmail(),
                 client.getAccountData().getEmail(),
-                care.getId(),
+                paidCare.getId(),
                 rating,
                 "comment"
         ));
@@ -176,7 +201,7 @@ public class RatingServiceTest {
         assertThrows(IllegalActionException.class, () -> ratingService.rateCaretaker(
                 caretaker.getEmail(),
                 clientSameAsCaretaker.getEmail(),
-                care.getId(),
+                paidCare.getId(),
                 5,
                 "comment"
         ));
@@ -187,6 +212,17 @@ public class RatingServiceTest {
         assertThrows(NotFoundException.class, () -> ratingService.rateCaretaker(
                 "invalidEmail",
                 client.getAccountData().getEmail(),
+                paidCare.getId(),
+                5,
+                "comment"
+        ));
+    }
+
+    @Test
+    void rateCaretaker_careNotPaid_shouldThrowIllegalActionException() {
+        assertThrows(IllegalActionException.class, () -> ratingService.rateCaretaker(
+                caretaker.getEmail(),
+                client.getAccountData().getEmail(),
                 care.getId(),
                 5,
                 "comment"
@@ -195,10 +231,18 @@ public class RatingServiceTest {
 
     @Test
     void deleteRating_shouldSucceed() {
-        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(caretaker, client, care));
+        transactionTemplate.execute(status ->
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(caretaker, client, paidCare))
+        );
 
-        ratingService.deleteRating(caretaker.getEmail(), client.getAccountData().getEmail(), care.getId());
-        assertEquals(0, ratingRepository.count());
+        transactionTemplate.execute(status ->
+                ratingService.deleteRating(caretaker.getEmail(), client.getAccountData().getEmail(), paidCare.getId())
+        );
+
+        transactionTemplate.execute(status -> {
+            assertEquals(0, ratingRepository.count());
+            return null;
+        });
     }
 
     @Test
@@ -206,7 +250,7 @@ public class RatingServiceTest {
         assertThrows(NotFoundException.class, () -> ratingService.deleteRating(
                 "invalidEmail",
                 client.getAccountData().getEmail(),
-                care.getId()
+                paidCare.getId()
         ));
     }
 
@@ -215,24 +259,33 @@ public class RatingServiceTest {
         assertThrows(NotFoundException.class, () -> ratingService.deleteRating(
                 caretaker.getEmail(),
                 client.getAccountData().getEmail(),
-                care.getId()
+                paidCare.getId()
         ));
     }
 
     @Test
     void getRatings_shouldReturnRatings() {
-        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(caretaker, client, care));
+        transactionTemplate.execute(status ->
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(caretaker, client, paidCare))
+        );
 
-        Page<RatingResponse> ratings = ratingService.getRatings(Pageable.ofSize(10), caretaker.getEmail());
+        Page<RatingResponse> ratings = transactionTemplate.execute(status ->
+                ratingService.getRatings(Pageable.ofSize(10), caretaker.getEmail())
+        );
+
         assertEquals(1, ratings.getContent().size());
     }
 
     @Test
     void getRating_shouldReturnRating() {
-        Rating rating = MockRatingProvider.createMockRating(caretaker, client, care);
-        ratingRepository.saveAndFlush(rating);
+        Rating rating = transactionTemplate.execute(status ->
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(caretaker, client, paidCare))
+        );
 
-        Rating foundRating = ratingService.getRating(caretaker.getEmail(), client.getEmail(), care.getId());
+        Rating foundRating = transactionTemplate.execute(status ->
+                ratingService.getRating(caretaker.getEmail(), client.getEmail(), paidCare.getId())
+        );
+
         assertEquals(rating.getCaretakerEmail(), foundRating.getCaretakerEmail());
         assertEquals(rating.getClientEmail(), foundRating.getClientEmail());
     }
@@ -242,7 +295,7 @@ public class RatingServiceTest {
         assertThrows(NotFoundException.class, () -> ratingService.getRating(
                 caretaker.getEmail(),
                 client.getEmail(),
-                care.getId()
+                paidCare.getId()
         ));
     }
 

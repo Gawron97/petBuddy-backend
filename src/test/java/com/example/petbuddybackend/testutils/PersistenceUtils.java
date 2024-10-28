@@ -243,6 +243,10 @@ public class PersistenceUtils {
         return ratingRepository.save(rating);
     }
 
+    public static Rating addRatingToCaretaker(RatingRepository ratingRepository, Rating rating) {
+        return ratingRepository.saveAndFlush(rating);
+    }
+
     public static void setAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer) {
         Offer offer = setMockAvailabilitiesToOffer(existingOffer);
         offerRepository.save(offer);
