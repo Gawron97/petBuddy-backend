@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.address.Address;
+import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -56,5 +57,9 @@ public class Caretaker {
     @OneToMany(mappedBy = "caretaker", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<CaretakerNotification> notifications = new HashSet<>();
+
+    @OneToMany(mappedBy = "caretaker", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Care> cares = new ArrayList<>();
 
 }

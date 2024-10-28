@@ -1,7 +1,5 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.care.CareDTO;
-import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
@@ -13,13 +11,9 @@ import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.care.CareService;
 import com.example.petbuddybackend.service.user.CaretakerService;
-import com.example.petbuddybackend.utils.annotation.swaggerdocs.TimeZoneParameter;
 import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
-import com.example.petbuddybackend.utils.time.TimeUtils;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -113,7 +107,7 @@ public class CaretakerController {
         return caretakerService.getRatings(pageable, caretakerEmail);
     }
 
-    @PostMapping("/{caretakerEmail}/rating")
+    @PostMapping("/{caretakerEmail}/{careId}/rating")
     @Operation(
             summary = "Rate caretaker",
             description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
@@ -124,18 +118,20 @@ public class CaretakerController {
             @AcceptRole(acceptRole = Role.CLIENT)
             Role role,
             @PathVariable String caretakerEmail,
+            @PathVariable Long careId,
             @RequestBody @Valid RatingRequest ratingDTO,
             Principal principal
     ) {
         return caretakerService.rateCaretaker(
                 caretakerEmail,
                 principal.getName(),
+                careId,
                 ratingDTO.rating(),
                 ratingDTO.comment()
         );
     }
 
-    @DeleteMapping("/{caretakerEmail}/rating")
+    @DeleteMapping("/{caretakerEmail}/{careId}/rating")
     @Operation(
             summary = "Delete rating",
             description = "Deletes a rating for a caretaker."
@@ -146,8 +142,9 @@ public class CaretakerController {
             @AcceptRole(acceptRole = Role.CLIENT)
             Role role,
             @PathVariable String caretakerEmail,
+            @PathVariable Long careId,
             Principal principal
     ) {
-        return caretakerService.deleteRating(caretakerEmail, principal.getName());
+        return caretakerService.deleteRating(caretakerEmail, principal.getName(), careId);
     }
 }

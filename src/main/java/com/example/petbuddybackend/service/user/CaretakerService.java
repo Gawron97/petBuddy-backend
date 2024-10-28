@@ -69,28 +69,31 @@ public class CaretakerService {
                 .map(ratingMapper::mapToRatingResponse);
     }
 
-    public Rating getRating(String caretakerEmail, String clientEmail) {
-        return getRating(new RatingKey(caretakerEmail, clientEmail));
+    public Rating getRating(String caretakerEmail, String clientEmail, Long careId) {
+        return getRating(new RatingKey(caretakerEmail, clientEmail, careId));
     }
 
     public boolean caretakerExists(String caretakerEmail) {
         return caretakerRepository.existsById(caretakerEmail);
     }
 
-    public RatingResponse rateCaretaker(String caretakerEmail, String clientEmail, int rating, String comment) {
+    public RatingResponse rateCaretaker(String caretakerEmail, String clientEmail, Long careId, int rating,
+                                        String comment) {
         assertCaretakerAndClientExist(caretakerEmail, clientEmail);
 
         if(caretakerEmail.equals(clientEmail)) {
             throw new IllegalActionException("User cannot rate himself");
         }
 
-        return ratingMapper.mapToRatingResponse(createOrUpdateRating(caretakerEmail, clientEmail, rating, comment));
+        return ratingMapper.mapToRatingResponse(
+                createOrUpdateRating(caretakerEmail, clientEmail, careId, rating, comment)
+        );
     }
 
-    public RatingResponse deleteRating(String caretakerEmail, String clientEmail) {
+    public RatingResponse deleteRating(String caretakerEmail, String clientEmail, Long careId) {
         assertCaretakerAndClientExist(caretakerEmail, clientEmail);
 
-        RatingKey ratingKey = new RatingKey(caretakerEmail, clientEmail);
+        RatingKey ratingKey = new RatingKey(caretakerEmail, clientEmail, careId);
         Rating rating = getRating(ratingKey);
         ratingRepository.deleteById(ratingKey);
 
@@ -120,8 +123,9 @@ public class CaretakerService {
         return caretaker;
     }
 
-    private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, int rating, String comment) {
-        Rating ratingEntity = getOrCreateRating(caretakerEmail, clientEmail);
+    private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, Long careId, int rating,
+                                        String comment) {
+        Rating ratingEntity = getOrCreateRating(caretakerEmail, clientEmail, careId);
 
         ratingEntity.setRating(rating);
         ratingEntity.setComment(comment);
@@ -129,12 +133,13 @@ public class CaretakerService {
         return ratingRepository.save(ratingEntity);
     }
 
-    private Rating getOrCreateRating(String caretakerEmail, String clientEmail) {
-        return ratingRepository.findById(new RatingKey(caretakerEmail, clientEmail))
+    private Rating getOrCreateRating(String caretakerEmail, String clientEmail, Long careId) {
+        return ratingRepository.findById(new RatingKey(caretakerEmail, clientEmail, careId))
                 .orElse(
                         Rating.builder()
                                 .clientEmail(clientEmail)
                                 .caretakerEmail(caretakerEmail)
+                                .careId(careId)
                                 .build()
                 );
     }

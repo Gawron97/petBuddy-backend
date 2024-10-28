@@ -87,25 +87,26 @@ public class MockService {
         return voivodeships[faker.random().nextInt(voivodeships.length)];
     }
 
-    public Rating createMockRating(Caretaker caretaker, Client client) {
+    public Rating createMockRating(Caretaker caretaker, Care care, Client client) {
         return Rating.builder()
                 .caretakerEmail(caretaker.getEmail())
                 .clientEmail(client.getEmail())
+                .careId(care.getId())
                 .caretaker(caretaker)
                 .client(client)
+                .care(care)
                 .rating(faker.random().nextInt(1, 5))
                 .comment(faker.lorem().sentence())
                 .build();
     }
 
-    public List<Rating> createMockRatings(List<Caretaker> caretakers, List<Client> clients) {
-        List<Rating> ratings = new ArrayList<>(caretakers.size() * clients.size());
+    public List<Rating> createMockRatings(List<Caretaker> caretakers) {
+        List<Rating> ratings = new ArrayList<>();
 
-        for (Caretaker caretaker : caretakers) {
-            for (Client client : clients) {
-                ratings.add(createMockRating(caretaker, client));
-            }
-        }
+        caretakers.forEach(caretaker ->
+                caretaker.getCares().forEach(care ->
+                        ratings.add(createMockRating(caretaker, care, care.getClient())))
+        );
 
         return ratings;
     }

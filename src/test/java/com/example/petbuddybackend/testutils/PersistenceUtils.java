@@ -164,6 +164,10 @@ public class PersistenceUtils {
         return careRepository.saveAndFlush(care);
     }
 
+    public static Care addCare(CareRepository careRepository, Care care) {
+        return careRepository.saveAndFlush(care);
+    }
+
     public static ChatRoom createChatRoomWithMessages(
             AppUserRepository appUserRepository,
             ClientRepository clientRepository,
@@ -233,9 +237,9 @@ public class PersistenceUtils {
         );
     }
 
-    public static Rating addRatingToCaretaker(Caretaker caretaker, Client client, Integer ratingNumber, String comment,
+    public static Rating addRatingToCaretaker(Caretaker caretaker, Client client, Care care, Integer ratingNumber, String comment,
                                               RatingRepository ratingRepository) {
-        Rating rating = createMockRatingForCaretaker(caretaker, client, ratingNumber, comment);
+        Rating rating = createMockRatingForCaretaker(caretaker, client, care, ratingNumber, comment);
         return ratingRepository.save(rating);
     }
 

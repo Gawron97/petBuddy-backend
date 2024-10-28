@@ -14,4 +14,5 @@ import java.io.Serializable;
 public class RatingKey implements Serializable {
     private String caretakerEmail;
     private String clientEmail;
+    private Long careId;
 }

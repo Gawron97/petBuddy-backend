@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.entity.user;
 
+import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.notification.ClientNotification;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
@@ -43,6 +44,10 @@ public class Client {
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<ClientNotification> notifications = new HashSet<>();
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Care> cares = new ArrayList<>();
 
     @PrePersist
     @PreUpdate
