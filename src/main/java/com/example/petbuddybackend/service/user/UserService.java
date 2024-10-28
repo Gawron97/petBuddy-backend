@@ -2,22 +2,16 @@ package com.example.petbuddybackend.service.user;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.UserProfilesData;
-import com.example.petbuddybackend.entity.block.Block;
-import com.example.petbuddybackend.entity.block.BlockId;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.repository.block.BlockRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.UserMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.InvalidRoleException;
-import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.user.AlreadyBlockedException;
-import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -31,14 +25,10 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserService {
 
     private static final String USER = "User";
-    private static final String USER_CANNOT_BLOCK_HIMSELF_MESSAGE = "User cannot block himself";
-    private static final String USER_ALREADY_BLOCKED_MESSAGE = "User %s is already blocked";
-    private static final String BLOCK = "Block";
 
     private final AppUserRepository userRepository;
     private final ClientRepository clientRepository;
     private final CaretakerRepository caretakerRepository;
-    private final BlockRepository blockRepository;
     private final PhotoService photoService;
     private final UserMapper userMapper = UserMapper.INSTANCE;
 
@@ -112,41 +102,14 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void renewProfilePicture(AppUser user) {
+    public AppUser renewProfilePicture(AppUser user) {
         PhotoLink photoLink = user.getProfilePicture();
 
         if(photoLink != null) {
             photoService.updatePhotoExpiration(photoLink);
         }
-    }
 
-    public void blockUser(String blockerUsername, String blockedUsername) {
-        assertDoesNotBlockSelf(blockerUsername, blockedUsername);
-        assertNotAlreadyBlocked(blockerUsername, blockedUsername);
-
-        Block block = new Block(blockerUsername, blockedUsername);
-        blockRepository.save(block);
-    }
-
-    public void unblockUser(String blockerUsername, String blockedUsername) {
-        assertDoesNotBlockSelf(blockerUsername, blockedUsername);
-
-        Block block = getBlock(blockerUsername, blockedUsername);
-        blockRepository.delete(block);
-    }
-
-    public Block getBlock(String blockerUsername, String blockedUsername) {
-        return blockRepository.findById(new BlockId(blockerUsername, blockedUsername))
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(BLOCK, blockedUsername));
-    }
-
-    public boolean isBlocked(String blockerUsername, String blockedUsername) {
-        return blockRepository.existsById(new BlockId(blockerUsername, blockedUsername));
-    }
-
-    public void assertNotBlockedByAny(String firstUsername, String secondUsername) {
-        assertNotBlocked(firstUsername, secondUsername);
-        assertNotBlocked(secondUsername, firstUsername);
+        return user;
     }
 
     public void assertHasRole(String clientEmail, Role role) {
@@ -166,23 +129,5 @@ public class UserService {
 
     public boolean isCaretaker(String email) {
         return caretakerRepository.existsById(email);
-    }
-
-    private void assertNotBlocked(String firstUsername, String secondUsername) {
-        if(isBlocked(firstUsername, secondUsername)) {
-            throw new BlockedException(firstUsername, secondUsername);
-        }
-    }
-
-    private void assertNotAlreadyBlocked(String blockerUsername, String blockedUsername) {
-        if(isBlocked(blockerUsername, blockedUsername)) {
-            throw new AlreadyBlockedException(USER_ALREADY_BLOCKED_MESSAGE);
-        }
-    }
-
-    private void assertDoesNotBlockSelf(String blockerUsername, String blockedUsername) {
-        if(blockerUsername.equals(blockedUsername)) {
-            throw new IllegalActionException(USER_CANNOT_BLOCK_HIMSELF_MESSAGE);
-        }
     }
 }
