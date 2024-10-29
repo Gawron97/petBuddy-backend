@@ -27,7 +27,7 @@ public class ValidChatRoomAccessInterceptorTest {
     @Value("${header-name.role}")
     private String ROLE_HEADER_NAME;
 
-    @Value("${url.chat.topic.pattern}")
+    @Value("${url.chat.topic.client-subscribe-pattern}")
     private String URL_CHAT_TOPIC_PATTERN;
 
     @Autowired

@@ -7,16 +7,17 @@ import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.repository.availability.AvailabilityRepository;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.availability.AvailabilityRepository;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
@@ -254,22 +255,24 @@ public class MockDataCreator {
                 ZoneId.systemDefault()
         ).stream().findFirst().orElseThrow();
 
-        Long chatId = createdChatRoomDTO.getId();
+        ChatRoom chatRoom = chatRoomRepository.findById(createdChatRoomDTO.getId()).orElseThrow();
 
         for (int i = 0; i < 10; i++) {
             chatService.createMessage(
-                    chatId,
+                    chatRoom,
                     client.getEmail(),
+                    Role.CLIENT,
                     new ChatMessageSent("Message from client: " + i),
-                    Role.CLIENT
+                    false
             );
         }
         for (int i = 0; i < 10; i++) {
             chatService.createMessage(
-                    chatId,
+                    chatRoom,
                     caretaker.getEmail(),
+                    Role.CARETAKER,
                     new ChatMessageSent("Message from caretaker: " + i),
-                    Role.CARETAKER
+                    false
             );
         }
     }

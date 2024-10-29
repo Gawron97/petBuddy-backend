@@ -3,6 +3,9 @@ package com.example.petbuddybackend.controller.websocket;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.notification.*;
+import com.example.petbuddybackend.entity.chat.ChatRoom;
+import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
@@ -22,14 +25,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.simp.stomp.*;
+import org.springframework.messaging.simp.stomp.StompFrameHandler;
+import org.springframework.messaging.simp.stomp.StompHeaders;
+import org.springframework.messaging.simp.stomp.StompSession;
+import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
-import org.springframework.web.socket.sockjs.client.Transport;
-import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 
 import java.lang.reflect.Type;
 import java.time.ZoneId;
@@ -37,11 +40,12 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test-security-inject-user")
@@ -52,12 +56,11 @@ public class ChatWebSocketIntegrationTest {
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
     private static final String SEND_MESSAGE_ENDPOINT = "/app/chat/1";
     private static final int TIMEOUT = 1;
+    private static final String CLIENT_USERNAME = "client";
+    private static final String CARETAKER_USERNAME = "caretaker";
 
-    @Value("${url.chat.topic.pattern}")
+    @Value("${url.chat.topic.client-subscribe-pattern}")
     private String SUBSCRIPTION_URL_PATTERN;
-
-    @Value("${url.session.topic.pattern}")
-    private String SESSION_URL_PATTERN;
 
     @Value("${header-name.timezone}")
     private String HEADER_NAME_TIMEZONE;
@@ -78,28 +81,45 @@ public class ChatWebSocketIntegrationTest {
     private BlockingQueue<ChatNotificationMessage> messageBlockingQueue;
     private BlockingQueue<ChatNotificationJoined> joinBlockingQueue;
     private BlockingQueue<ChatNotificationLeft> leaveBlockingQueue;
-    private BlockingQueue<ChatNotificationConnected> connectedBlockingQueue;
+    private List<StompSession> sessions;
 
 
     @BeforeEach
-    public void setup() throws ExecutionException, InterruptedException, TimeoutException {
+    void setup() {
+        sessions = new ArrayList<>();
         messageBlockingQueue = new LinkedBlockingDeque<>();
         joinBlockingQueue = new LinkedBlockingDeque<>();
         leaveBlockingQueue = new LinkedBlockingDeque<>();
-        connectedBlockingQueue = new LinkedBlockingDeque<>();
 
         stompClient = new WebSocketStompClient(new SockJsClient(WebsocketUtils.createTransportClient()));
         stompClient.setMessageConverter(messageConverter);
 
-        when(chatService.createMessage(any(), any(), any(), any()))
-                .thenReturn(createChatMessageDTO());
+        Client client = Client.builder()
+                .email(CLIENT_USERNAME)
+                .build();
 
-        when(chatService.createCallbackMessageSeen(any(), any()))
-                .thenReturn(u -> {});
+        Caretaker caretaker = Caretaker.builder()
+                .email(CARETAKER_USERNAME)
+                .build();
+
+        ChatRoom chatRoom = ChatRoom.builder()
+                .id(1L)
+                .client(client)
+                .caretaker(caretaker)
+                .build();
+
+        when(chatService.getChatRoomById(any(Long.class)))
+                .thenReturn(chatRoom);
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
+        sessions.forEach(s -> {
+            if (s.isConnected()) {
+                s.disconnect();
+            }
+        });
+
         stompClient.stop();
     }
 
@@ -107,27 +127,33 @@ public class ChatWebSocketIntegrationTest {
     @SneakyThrows
     void testSendChatMessage_shouldSucceed() {
         ChatMessageSent chatMessageSent = new ChatMessageSent("hello");
-        StompSession stompSession = connectToWebSocket();
+        StompSession stompSession = connectToWebSocket(CLIENT_USERNAME);
 
         when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
-        // Init session
-        ChatNotificationConnected chatMessageConnected = getChatNotificationConnected(stompSession, NoSecurityInjectUserConfig.injectedUsername);
+        when(chatService.createMessage(any(), any(), any(), any(), eq(false)))
+                .thenReturn(createChatMessageDTO(CLIENT_USERNAME));
 
         // Subscribe to topic and send message
-        subscribeToMessageTopic(stompSession, chatMessageConnected, "Europe/Warsaw", Role.CLIENT);
+        subscribeToMessageTopic(stompSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
         sendMessageToMessageTopic(stompSession, chatMessageSent);
 
         ChatMessageDTO chatMessageDTO = (messageBlockingQueue.poll(TIMEOUT, SECONDS)).getContent();
+        ChatNotificationJoined notificationJoined = joinBlockingQueue.poll(TIMEOUT, SECONDS);
+
         assertNotNull(chatMessageDTO);
+        assertNotNull(notificationJoined);
+        assertEquals(CLIENT_USERNAME, notificationJoined.getJoiningUserEmail());
+
+        // No messages should be left in the queue
+        assertEquals(0, messageBlockingQueue.drainTo(new ArrayList<>()));
+        assertEquals(0, joinBlockingQueue.drainTo(new ArrayList<>()));
     }
 
     @Test
     @SneakyThrows
     void testSendMessages_usersUseDifferentTimeZones_shouldReceiveMessagesInDifferentTimeZones() {
-        String clientUsername = "client";
-        String caretakerUsername = "caretaker";
         String clientTimezone = "+02:00";
         String caretakerTimezone = "+06:00";
         ChatMessageSent chatMessageSent = new ChatMessageSent("hello");
@@ -135,15 +161,15 @@ public class ChatWebSocketIntegrationTest {
         when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
-        StompSession clientSession = connectToWebSocket(clientUsername);
-        StompSession caretakerSession = connectToWebSocket(caretakerUsername);
+        when(chatService.createMessage(any(), any(), any(), any(), eq(true)))
+                .thenReturn(createChatMessageDTO(CLIENT_USERNAME));
 
-        // Init session
-        ChatNotificationConnected clientMessageConnected = getChatNotificationConnected(clientSession, clientUsername);
-        ChatNotificationConnected caretakerMessageConnected = getChatNotificationConnected(caretakerSession, caretakerUsername);
+        StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
-        subscribeToMessageTopic(clientSession, clientMessageConnected, clientTimezone, Role.CLIENT);
-        subscribeToMessageTopic(caretakerSession, caretakerMessageConnected, caretakerTimezone, Role.CLIENT);
+        // Init sessions
+        subscribeToMessageTopic(clientSession, CLIENT_USERNAME, clientTimezone, Role.CLIENT);
+        subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, caretakerTimezone, Role.CLIENT);
 
         // Client sends message
         sendMessageToMessageTopic(clientSession, chatMessageSent);
@@ -172,106 +198,145 @@ public class ChatWebSocketIntegrationTest {
 
 
     @Test
-    void testSubscribeToChat_shouldSendNotificationToUsersInChat() throws InterruptedException {
-        String clientUsername = "client";
-        String caretakerUsername = "caretaker";
-
+    void testSubscribeToChat_shouldSendJoinNotificationToUsersInChat() throws InterruptedException {
         when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
-        StompSession clientSession = connectToWebSocket(clientUsername);
-        StompSession caretakerSession = connectToWebSocket(caretakerUsername);
-
-        // Init session
-        ChatNotificationConnected clientMessageConnected = getChatNotificationConnected(clientSession, clientUsername);
-        ChatNotificationConnected caretakerMessageConnected = getChatNotificationConnected(caretakerSession, caretakerUsername);
+        StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
         // Subscribe to the chat room topic. Should receive only one notification
-        subscribeToMessageTopic(clientSession, clientMessageConnected, "Europe/Warsaw", Role.CLIENT);
+        subscribeToMessageTopic(clientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
         ChatNotificationJoined firstNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
 
         // Subscribe to the chat room topic. Should receive two notifications
-        subscribeToMessageTopic(caretakerSession, caretakerMessageConnected, "Europe/Warsaw", Role.CARETAKER);
+        subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CARETAKER);
         ChatNotificationJoined secondNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
         ChatNotificationJoined thirdNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNotNull(firstNotification);
-        assertEquals(clientUsername, firstNotification.getJoiningUserEmail());
+        assertEquals(CLIENT_USERNAME, firstNotification.getJoiningUserEmail());
 
         assertNotNull(secondNotification);
-        assertEquals(caretakerUsername, secondNotification.getJoiningUserEmail());
+        assertEquals(CARETAKER_USERNAME, secondNotification.getJoiningUserEmail());
 
         assertNotNull(thirdNotification);
-        assertEquals(caretakerUsername, thirdNotification.getJoiningUserEmail());
+        assertEquals(CARETAKER_USERNAME, thirdNotification.getJoiningUserEmail());
 
         // No notifications should be left in the queue
         assertEquals(0, joinBlockingQueue.drainTo(new ArrayList<>()));
     }
 
     @Test
-    void testDisconnectFromChat_shouldSendNotificationToOtherUserLeftInChat() throws InterruptedException {
-        String clientUsername = "client";
-        String caretakerUsername = "caretaker";
-
+    void testSubscribeToChat_multipleJoins_shouldNotSendDuplicatedJoins() throws InterruptedException {
         when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
-        StompSession clientSession = connectToWebSocket(clientUsername);
-        StompSession caretakerSession = connectToWebSocket(caretakerUsername);
+        StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
-        // Init sessions
-        ChatNotificationConnected clientMessageConnected = getChatNotificationConnected(clientSession, clientUsername);
-        ChatNotificationConnected caretakerMessageConnected = getChatNotificationConnected(caretakerSession, caretakerUsername);
+        // Subscribe to the chat room topic. Should receive only one notification
+        subscribeToMessageTopic(clientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
+        joinBlockingQueue.poll(TIMEOUT, SECONDS);
+
+        // Subscribe to the chat room topic. Should receive two notifications
+        subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CARETAKER);
+        joinBlockingQueue.poll(TIMEOUT, SECONDS);
+        joinBlockingQueue.poll(TIMEOUT, SECONDS);
+
+        // This should not send a notification
+        StompSession anotherClientSession = connectToWebSocket(CLIENT_USERNAME);
+        subscribeToMessageTopic(anotherClientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
+        ChatNotificationJoined shouldBeNull = joinBlockingQueue.poll(TIMEOUT, SECONDS);
+
+        assertNull(shouldBeNull);
+        assertEquals(0, joinBlockingQueue.drainTo(new ArrayList<>()));
+    }
+
+    @Test
+    void testDisconnectFromChat_shouldSendNotificationToOtherUserLeftInChat() throws InterruptedException {
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
+                .thenReturn(true);
+
+        StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
         // Subscribe to the chat room topic
-        subscribeToMessageTopic(clientSession, clientMessageConnected, "Europe/Warsaw", Role.CLIENT);
-        subscribeToMessageTopic(caretakerSession, caretakerMessageConnected, "Europe/Warsaw", Role.CARETAKER);
+        subscribeToMessageTopic(clientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
+        subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CARETAKER);
 
         clientSession.disconnect();
         ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNotNull(clientLeftNotification);
-        assertEquals(clientUsername, clientLeftNotification.getLeavingUserEmail());
+        assertEquals(CLIENT_USERNAME, clientLeftNotification.getLeavingUserEmail());
 
         // No notifications should be left in the queue
         assertEquals(0, leaveBlockingQueue.drainTo(new ArrayList<>()));
     }
 
     @Test
-    @SneakyThrows
-    void handleUnsubscribeToMessageTopic_shouldCallUnsubscribeAndSendNotification() {
-        String clientUsername = "client";
-        String caretakerUsername = "caretaker";
-
+    void testDisconnectFromChat_multipleSubs_shouldNotSendNotification() throws InterruptedException {
         when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
-        StompSession clientSession = connectToWebSocket(clientUsername);
-        StompSession caretakerSession = connectToWebSocket(caretakerUsername);
+        StompSession clientFirstSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession clientSecondSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
-        // Init sessions
-        ChatNotificationConnected clientMessageConnected = getChatNotificationConnected(clientSession, clientUsername);
-        ChatNotificationConnected caretakerMessageConnected = getChatNotificationConnected(caretakerSession, caretakerUsername);
+        // Subscribe to the chat room topic
+        subscribeToMessageTopic(clientFirstSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
+        subscribeToMessageTopic(clientSecondSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
+        subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CARETAKER);
 
-        StompSession.Subscription clientSubscription = subscribeToMessageTopic(clientSession, clientMessageConnected, "Europe/Warsaw", Role.CLIENT);
+        clientFirstSession.disconnect();
+        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
 
-        subscribeToMessageTopic(caretakerSession, caretakerMessageConnected, "Europe/Warsaw", Role.CLIENT);
+        assertNull(clientLeftNotification);
+        assertEquals(0, leaveBlockingQueue.drainTo(new ArrayList<>()));
+    }
+
+    @Test
+    @SneakyThrows
+    void testUnsubscribeToMessageTopic_shouldCallUnsubscribeAndSendNotification() {
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
+                .thenReturn(true);
+
+        StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
+
+        StompSession.Subscription clientSubscription =
+                subscribeToMessageTopic(clientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
+
+        subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CLIENT);
         clientSubscription.unsubscribe();
 
         ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
         assertNotNull(clientLeftNotification);
+        assertEquals(0, leaveBlockingQueue.drainTo(new ArrayList<>()));
     }
 
+    @Test
     @SneakyThrows
-    private ChatNotificationConnected getChatNotificationConnected(StompSession stompSession, String principalUsername) {
-        NoSecurityInjectUserConfig.injectedUsername = principalUsername;
-        String connectDestination = String.format(SESSION_URL_PATTERN, principalUsername);
+    void testUnsubscribeToMessageTopic_multipleSubscriptionsToSameTopic_shouldNotSendNotification() {
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
+                .thenReturn(true);
 
-        stompSession.subscribe(connectDestination, new ChatNotificationFrameHandler());
-        ChatNotificationConnected chatMessageConnected = connectedBlockingQueue.poll(TIMEOUT, SECONDS);
-        assertNotNull(chatMessageConnected);
+        StompSession clientFirstSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession clientOtherSession = connectToWebSocket(CLIENT_USERNAME);
+        StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
-        return chatMessageConnected;
+        StompSession.Subscription clientFirstSubscription =
+                subscribeToMessageTopic(clientFirstSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
+
+        StompSession.Subscription clientSecondSubscription =
+                subscribeToMessageTopic(clientOtherSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
+
+        subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CLIENT);
+        clientFirstSubscription.unsubscribe();
+
+        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
+        assertNull(clientLeftNotification);
     }
 
     private void sendMessageToMessageTopic(StompSession stompSession, ChatMessageSent chatMessageSent) {
@@ -281,24 +346,18 @@ public class ChatWebSocketIntegrationTest {
 
     private StompSession.Subscription subscribeToMessageTopic(
             StompSession stompSession,
-            ChatNotificationConnected chatMessageConnected,
+            String connectingUserEmail,
             String timeZone,
             Role role
     ) {
-        NoSecurityInjectUserConfig.injectedUsername = chatMessageConnected.getConnectingUserEmail();
-        String destinationFormatted = String.format(SUBSCRIPTION_URL_PATTERN, 1L, chatMessageConnected.getSessionId());
+        NoSecurityInjectUserConfig.injectedUsername = connectingUserEmail;
+        String destinationFormatted = String.format(SUBSCRIPTION_URL_PATTERN, 1L);
         StompHeaders headers = createHeaders(destinationFormatted, timeZone, role);
         return WebsocketUtils.subscribeToTopic(
                 stompSession,
                 headers,
                 new ChatNotificationFrameHandler()
         );
-    }
-
-    private List<Transport> createTransportClient() {
-        List<Transport> transports = new ArrayList<>(1);
-        transports.add(new WebSocketTransport(new StandardWebSocketClient()));
-        return transports;
     }
 
     private class ChatNotificationFrameHandler implements StompFrameHandler {
@@ -323,7 +382,7 @@ public class ChatWebSocketIntegrationTest {
         @Override
         public void handleFrame(StompHeaders headers, Object payload) {
             LinkedHashMap<String, Object> payloadConverted = (LinkedHashMap<String, Object>) payload;
-            ChatNotificationType type = ChatNotificationType.valueOf((String)payloadConverted.get("type"));
+            ChatNotificationType type = ChatNotificationType.valueOf((String) payloadConverted.get("type"));
 
             switch(type) {
                 case JOIN:
@@ -335,24 +394,22 @@ public class ChatWebSocketIntegrationTest {
                 case SEND:
                     messageBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationMessage.class));
                     break;
-                case CONNECT:
-                    connectedBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationConnected.class));
-                    break;
             }
         }
     }
 
     @SneakyThrows
-    private StompSession connectToWebSocket() {
-        return stompClient.connectAsync(
-                String.format(WEBSOCKET_URL_PATTERN, PORT),
-                new StompSessionHandlerAdapter() {}
-        ).get(1, SECONDS);
-    }
+    private StompSession connectToWebSocket(String username) {
+        NoSecurityInjectUserConfig.injectedUsername = username;
 
-    private StompSession connectToWebSocket(String injectUsername) {
-        NoSecurityInjectUserConfig.injectedUsername = injectUsername;
-        return connectToWebSocket();
+        StompSession newSession = stompClient.connectAsync(
+                String.format(WEBSOCKET_URL_PATTERN, PORT),
+                new StompSessionHandlerAdapter() {
+                }
+        ).get(1, SECONDS);
+
+        sessions.add(newSession);
+        return newSession;
     }
 
     private StompHeaders createHeaders(String destination, String timezone, Role role) {
@@ -363,10 +420,11 @@ public class ChatWebSocketIntegrationTest {
         return headers;
     }
 
-    private ChatMessageDTO createChatMessageDTO() {
+    private ChatMessageDTO createChatMessageDTO(String senderEmail) {
         return ChatMessageDTO.builder()
                 .id(1L)
                 .createdAt(ZonedDateTime.now())
+                .senderEmail(senderEmail)
                 .chatId(1L)
                 .build();
     }

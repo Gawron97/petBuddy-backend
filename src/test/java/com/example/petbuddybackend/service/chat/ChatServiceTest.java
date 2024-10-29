@@ -234,10 +234,11 @@ public class ChatServiceTest {
         long msgCount = chatMessageRepository.count();
 
         ChatMessageDTO msg = chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 client.getEmail(),
+                Role.CLIENT,
                 new ChatMessageSent("message content"),
-                Role.CLIENT
+                false
         );
 
         assertEquals(msgCount + 1, chatMessageRepository.count());
@@ -252,10 +253,11 @@ public class ChatServiceTest {
         long msgCount = chatMessageRepository.count();
 
         ChatMessageDTO msg = chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 caretaker.getEmail(),
+                Role.CARETAKER,
                 new ChatMessageSent("message content"),
-                Role.CARETAKER
+                false
         );
 
         assertEquals(msgCount + 1, chatMessageRepository.count());
@@ -270,24 +272,27 @@ public class ChatServiceTest {
         ChatMessageSent payload = new ChatMessageSent("message content");
 
         chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 caretaker.getEmail(),
+                Role.CARETAKER,
                 payload,
-                Role.CARETAKER
+                false
         );
 
         chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 client.getEmail(),
+                Role.CLIENT,
                 payload,
-                Role.CLIENT
+                false
         );
 
         chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 caretaker.getEmail(),
+                Role.CARETAKER,
                 payload,
-                Role.CARETAKER
+                false
         );
 
         List<ChatMessageDTO> clientMessages = chatService.getChatMessagesByParticipantEmail(
@@ -305,14 +310,21 @@ public class ChatServiceTest {
     }
 
     @Test
-    void testCreateMessage_chatRoomDoesNotExists_shouldThrowNotFoundException() {
+    void testCreateMessage_chatRoomDoesNotExists_shouldThrowNotParticipateException() {
+        ChatRoom chatRoom = ChatRoom.builder()
+                .id(-1L)
+                .client(Client.builder().email("otherClient").build())
+                .caretaker(Caretaker.builder().email("otherCaretaker").build())
+                .build();
+
         assertThrows(
-                NotFoundException.class,
+                NotParticipateException.class,
                 () -> chatService.createMessage(
-                        -1L,
+                        chatRoom,
                         caretaker.getEmail(),
+                        Role.CARETAKER,
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        false
                 )
         );
     }
@@ -322,10 +334,11 @@ public class ChatServiceTest {
         assertThrows(
                 NotParticipateException.class,
                 () -> chatService.createMessage(
-                        chatRoom.getId(),
+                        chatRoom,
                         "notAParticipant",
+                        Role.CARETAKER,
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        false
                 )
         );
     }
@@ -335,20 +348,22 @@ public class ChatServiceTest {
         assertThrows(
                 NotParticipateException.class,
                 () -> chatService.createMessage(
-                        chatRoom.getId(),
+                        chatRoom,
                         client.getEmail(),
+                        Role.CARETAKER,
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        false
                 )
         );
 
         assertThrows(
                 NotParticipateException.class,
                 () -> chatService.createMessage(
-                        chatRoom.getId(),
+                        chatRoom,
                         caretaker.getEmail(),
+                        Role.CLIENT,
                         new ChatMessageSent("message content"),
-                        Role.CLIENT
+                        false
                 )
         );
     }
