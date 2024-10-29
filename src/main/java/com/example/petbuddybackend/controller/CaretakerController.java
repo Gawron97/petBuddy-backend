@@ -3,6 +3,7 @@ package com.example.petbuddybackend.controller;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
+import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
@@ -16,15 +17,20 @@ import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -35,7 +41,7 @@ public class CaretakerController {
     private final CaretakerService caretakerService;
 
     @SecurityRequirements
-    @PostMapping
+    @PostMapping("/all")
     @Operation(
             summary = "Get list of caretakers",
             description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters." +
@@ -47,7 +53,7 @@ public class CaretakerController {
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
             @RequestBody(required = false) Set<@Valid OfferFilterDTO> offerFilters
-            ) {
+    ) {
         if(offerFilters == null) {
             offerFilters = Collections.emptySet();
         }
@@ -78,30 +84,82 @@ public class CaretakerController {
         return caretakerService.getMyCaretakerProfile(principal.getName());
     }
 
-    @PostMapping("/add")
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Add caretaker profile",
             description = "Add caretaker profile if it does not exists"
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Added caretaker profile successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input or image type"),
+            @ApiResponse(responseCode = "413", description = "Uploaded file exceeds the maximum allowed size of ${spring.servlet.multipart.max-file-size}")
+    })
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexDTO addCaretaker(
-            @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
-            Principal principal
+            Principal principal,
+            @RequestPart @Valid ModifyCaretakerDTO caretakerData,
+            @RequestPart(required = false) Optional<List<@NotNull MultipartFile>> newOfferPhotos
     ) {
-        return caretakerService.addCaretaker(caretakerDTO, principal.getName());
+        return caretakerService.addCaretaker(
+                caretakerData,
+                principal.getName(),
+                newOfferPhotos.orElse(Collections.emptyList())
+        );
     }
 
-    @PutMapping("/edit")
+    @PutMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Operation(
             summary = "Edit caretaker profile",
-            description = "Edit caretaker profile if it does exists"
+            description = """
+                    Edit caretaker profile if it does exists.
+                    
+                    Param newOfferPhotos adds new photos to caretaker profile.
+                    
+                    Param currentOfferBlobs should contain names (blobs) of photos that are currently in caretaker profile.
+                    **Names not included in this set will be removed. Not providing any names will remove all photos**.
+                    """
     )
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexDTO editCaretaker(
-            @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
-            Principal principal
+            Principal principal,
+            @AcceptRole(acceptRole = Role.CARETAKER)
+            @RequestHeader(value = "${header-name.role}") Role role,
+            @RequestPart @Valid ModifyCaretakerDTO caretakerData,
+            @RequestPart(required = false) Optional<List<@NotNull MultipartFile>> newOfferPhotos,
+            @RequestPart(required = false) Optional<Set<@NotNull String>> offerBlobsToKeep
     ) {
-        return caretakerService.editCaretaker(caretakerDTO, principal.getName());
+        return caretakerService.editCaretaker(
+                caretakerData,
+                principal.getName(),
+                offerBlobsToKeep.orElse(Collections.emptySet()),
+                newOfferPhotos.orElse(Collections.emptyList())
+        );
+    }
+
+    @PutMapping(value = "/offer-photo", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "Add new offer photos",
+            description = """
+                    Edit caretaker offer photos
+                    Param newOfferPhotos adds new photos to caretaker profile.
+
+                    Param currentOfferBlobs should contain names (blobs) of photos that are currently in caretaker profile.
+                    **Names not included in this set will be removed. Not providing any names will remove all photos**.
+                    """
+    )
+    public List<PhotoLinkDTO> editCaretakerOfferPhotos(
+            Principal principal,
+            @AcceptRole(acceptRole = Role.CARETAKER)
+            @RequestHeader(value = "${header-name.role}") Role role,
+            @RequestPart(required = false) Optional<Set<@NotNull String>> offerBlobsToKeep,
+            @RequestPart(required = false) Optional<List<@NotNull MultipartFile>> newOfferPhotos
+    ) {
+        return caretakerService.putOfferPhotos(
+                principal.getName(),
+                offerBlobsToKeep.orElse(Collections.emptySet()),
+                newOfferPhotos.orElse(Collections.emptyList())
+        );
     }
 
     @SecurityRequirements
@@ -125,9 +183,8 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public RatingResponse rateCaretaker(
-            @RequestHeader(value = "${header-name.role}")
             @AcceptRole(acceptRole = Role.CLIENT)
-            Role role,
+            @RequestHeader(value = "${header-name.role}") Role role,
             @PathVariable String caretakerEmail,
             @RequestBody @Valid RatingRequest ratingDTO,
             Principal principal
@@ -147,9 +204,8 @@ public class CaretakerController {
     )
     @PreAuthorize("isAuthenticated()")
     public RatingResponse deleteRating(
-            @RequestHeader(value = "${header-name.role}")
             @AcceptRole(acceptRole = Role.CLIENT)
-            Role role,
+            @RequestHeader(value = "${header-name.role}") Role role,
             @PathVariable String caretakerEmail,
             Principal principal
     ) {

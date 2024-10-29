@@ -4,7 +4,6 @@ import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.ClientService;
-import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
 import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ public class ClientController {
     @PreAuthorize("isAuthenticated()")
     public ClientDTO getClient(Principal principal,
 
-                               @RoleParameter
                                @AcceptRole(acceptRole = Role.CLIENT)
                                @RequestHeader(value = "${header-name.role}") Role role) {
         return clientService.getClient(principal.getName());
@@ -38,7 +36,6 @@ public class ClientController {
     public Set<String> addFollowingCaretakers(Principal principal,
                                               @PathVariable String caretakerEmail,
 
-                                              @RoleParameter
                                               @AcceptRole(acceptRole = Role.CLIENT)
                                               @RequestHeader(value = "${header-name.role}") Role role) {
         return clientService.addFollowingCaretaker(principal.getName(), caretakerEmail);
@@ -50,7 +47,6 @@ public class ClientController {
     public Set<String> removeFollowingCaretakers(Principal principal,
                                                  @PathVariable String caretakerEmail,
 
-                                                 @RoleParameter
                                                  @AcceptRole(acceptRole = Role.CLIENT)
                                                  @RequestHeader(value = "${header-name.role}") Role role) {
         return clientService.removeFollowingCaretaker(principal.getName(), caretakerEmail);
@@ -61,9 +57,8 @@ public class ClientController {
     @PreAuthorize("isAuthenticated()")
     public Set<AccountDataDTO> getFollowedCaretakers(Principal principal,
 
-                                                     @RoleParameter
-                                                   @AcceptRole(acceptRole = Role.CLIENT)
-                                                   @RequestHeader(value = "${header-name.role}") Role role) {
+                                                     @AcceptRole(acceptRole = Role.CLIENT)
+                                                     @RequestHeader(value = "${header-name.role}") Role role) {
 
         return clientService.getFollowedCaretakers(principal.getName());
     }

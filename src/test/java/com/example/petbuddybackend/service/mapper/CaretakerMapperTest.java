@@ -13,6 +13,9 @@ import com.example.petbuddybackend.testutils.mock.MockOfferProvider;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CaretakerMapperTest {
@@ -52,7 +55,7 @@ public class CaretakerMapperTest {
     }
 
     @Test
-    void mapToCaretaker_shouldNotLeaveNullFields() {
+    void mapToCaretaker_shouldNotLeaveNullFields_andShouldAssignListInsteadOfCopying() {
         AppUser accountData = MockUserProvider.createMockAppUser();
         AddressDTO addressDTO = AddressMapper.INSTANCE.mapToAddressDTO(MockUserProvider.createMockAddress());
 
@@ -62,13 +65,15 @@ public class CaretakerMapperTest {
                         .address(addressDTO)
                         .build();
 
-        Caretaker caretakerMappingResult = mapper.mapToCaretaker(dto, accountData);
+        List<PhotoLink> offerPhotos = new ArrayList<>();
+        Caretaker caretakerMappingResult = mapper.mapToCaretaker(dto, accountData, offerPhotos);
 
         // Set calculated fields to pass the test
         caretakerMappingResult.setAvgRating(4.5f);
         caretakerMappingResult.setNumberOfRatings(2);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerMappingResult));
+        assertSame(caretakerMappingResult.getOfferPhotos(), offerPhotos);
     }
 
     @Test
@@ -100,7 +105,7 @@ public class CaretakerMapperTest {
                         .address(AddressMapper.INSTANCE.mapToAddressDTO(MockUserProvider.createMockAddress()))
                         .build();
 
-        mapper.updateCaretakerFromDTO(dto, caretaker);
+        mapper.updateCaretakerFromDTO(caretaker, dto);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(caretaker));
     }

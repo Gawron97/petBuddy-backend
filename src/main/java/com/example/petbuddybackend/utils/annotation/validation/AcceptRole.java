@@ -10,10 +10,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@RoleParameter
 @Constraint(validatedBy = AcceptRoleValidator.class)
 @Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-@RoleParameter
 public @interface AcceptRole {
 
     String message() default "Your profile is not allowed to do this action.";

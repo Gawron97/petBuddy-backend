@@ -9,9 +9,11 @@ import com.google.cloud.storage.Bucket;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.cloud.StorageClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,11 +24,11 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FirebasePhotoService implements PhotoService {
 
-    private final static String INVALID_PHOTO_PROVIDED_MESSAGE = "Invalid photo provided";
     private final static String MISSING_FILE_EXTENSION = "Missing file extension";
     private final static String PHOTO = "Photo";
     private static final Set<String> acceptedImageTypes = Set.of(
@@ -50,6 +52,7 @@ public class FirebasePhotoService implements PhotoService {
     private final Tika tika;
 
 
+    @Override
     public Optional<PhotoLink> findPhotoLinkByNullableId(String blob) {
         if(blob == null) {
             return Optional.empty();
@@ -69,6 +72,30 @@ public class FirebasePhotoService implements PhotoService {
 
     @Override
     @Transactional
+    public List<PhotoLink> uploadPhotos(List<MultipartFile> multipartFiles) {
+        if(multipartFiles.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        multipartFiles.forEach(this::validatePhoto);
+        List<PhotoLink> uploadedPhotos = new ArrayList<>(multipartFiles.size());
+
+        try {
+            for(MultipartFile file : multipartFiles) {
+                uploadedPhotos.add(uploadFile(file, MAX_EXPIRATION_SECONDS));
+            }
+        } catch(Exception e) {
+            // Rollback uploaded photos
+            log.error("Error occurred while uploading photos. Rolling back uploaded photos", e);
+            photoRepository.deleteAll(uploadedPhotos);
+            throw e;
+        }
+
+        return photoRepository.saveAll(uploadedPhotos);
+    }
+
+    @Override
+    @Transactional
     public void deletePhoto(String blob) {
         Optional<PhotoLink> photo = findPhotoLinkByNullableId(blob);
 
@@ -80,18 +107,16 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deletePhoto(PhotoLink photoLink) {
-        String blob = photoLink.getBlob();
-        StorageClient storageClient = StorageClient.getInstance(firebaseApp);
-        Bucket bucket = storageClient.bucket();
-        Blob blobToDelete = bucket.get(blob);
-
-        if(blobToDelete != null) {
-            blobToDelete.delete();
-        }
-
         photoRepository.delete(photoLink);
+        removePhotoFromCloud(photoLink.getBlob());
+    }
+
+    @Override
+    @Transactional
+    public void deletePhotos(Collection<PhotoLink> photoLinksToDelete) {
+        photoLinksToDelete.forEach(this::deletePhoto);
     }
 
     @Override
@@ -101,11 +126,21 @@ public class FirebasePhotoService implements PhotoService {
 
     @Override
     public List<PhotoLink> updatePhotoExpirations(List<PhotoLink> photos) {
-        photos = photos.stream()
+        List<PhotoLink> photosRenewed = photos.stream()
                 .map(this::applyPhotoRenewal)
                 .toList();
 
-        return photoRepository.saveAll(photos);
+        return photoRepository.saveAll(photosRenewed);
+    }
+
+    private void removePhotoFromCloud(String blob) {
+        StorageClient storageClient = StorageClient.getInstance(firebaseApp);
+        Bucket bucket = storageClient.bucket();
+        Blob blobToDelete = bucket.get(blob);
+
+        if(blobToDelete != null) {
+            blobToDelete.delete();
+        }
     }
 
     /**
@@ -113,18 +148,22 @@ public class FirebasePhotoService implements PhotoService {
      * */
      private void validatePhoto(MultipartFile multipartFile) {
          if (multipartFile == null || multipartFile.isEmpty()) {
-             throw new InvalidPhotoException(INVALID_PHOTO_PROVIDED_MESSAGE);
+             throw InvalidPhotoException.ofEmptyPhoto();
          }
 
          try(InputStream inputStream = multipartFile.getInputStream()) {
              String mimeType = tika.detect(inputStream);
 
              if(!acceptedImageTypes.contains(mimeType)) {
-                 throw InvalidPhotoException.invalidType(mimeType, acceptedImageTypes);
+                 throw InvalidPhotoException.ofPhotoWithInvalidExtension(
+                         multipartFile.getOriginalFilename(),
+                         mimeType,
+                         acceptedImageTypes
+                 );
              }
 
          } catch (IOException e) {
-             throw new InvalidPhotoException(INVALID_PHOTO_PROVIDED_MESSAGE);
+             throw InvalidPhotoException.ofInvalidPhoto(multipartFile.getOriginalFilename());
          }
      }
 
@@ -155,7 +194,7 @@ public class FirebasePhotoService implements PhotoService {
                     .urlExpiresAt(LocalDateTime.now().plusSeconds(expirationSeconds))
                     .build();
         } catch(IOException e) {
-            throw new InvalidPhotoException(INVALID_PHOTO_PROVIDED_MESSAGE);
+            throw InvalidPhotoException.ofInvalidPhoto(file.getOriginalFilename());
         }
     }
 
