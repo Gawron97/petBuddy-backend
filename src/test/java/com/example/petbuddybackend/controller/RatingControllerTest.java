@@ -49,8 +49,8 @@ public class RatingControllerTest {
     @MethodSource("provideRatingData")
     @WithMockUser(username = "client")
     void rateCaretaker(String body, ResultMatcher expectedResponse) throws Exception {
-        when(ratingService.rateCaretaker(anyString(), anyString(), anyLong(), anyInt(), anyString())).thenReturn(null);
-        mockMvc.perform(post("/api/rating/caretakerEmail/1")
+        when(ratingService.rateCaretaker(anyString(), anyLong(), anyInt(), anyString())).thenReturn(null);
+        mockMvc.perform(post("/api/rating/1")
                         .content(body)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -61,8 +61,8 @@ public class RatingControllerTest {
     @Test
     @WithMockUser(username = "client")
     void deleteRating() throws Exception {
-        when(ratingService.deleteRating(anyString(), anyString(), anyLong())).thenReturn(null);
-        mockMvc.perform(delete("/api/rating/caretakerEmail/1")
+        when(ratingService.deleteRating(anyString(), anyLong())).thenReturn(null);
+        mockMvc.perform(delete("/api/rating/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
                         .header(ROLE_HEADER_NAME, Role.CLIENT))

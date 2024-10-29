@@ -66,7 +66,8 @@ public class CareService {
         assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());
 
         Care care = careRepository.save(
-                createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes));
+                createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes)
+        );
 
         sendCaretakerCareNotification(care, RESERVATION_MESSAGE);
         return careMapper.mapToCareDTO(care, timeZone);
@@ -116,6 +117,11 @@ public class CareService {
         return careRepository.findAll(spec, pageable)
                 .map(care -> careMapper.mapToCareDTO(care, zoneId));
 
+    }
+
+    public Care getCareById(Long careId) {
+        return careRepository.findById(careId)
+                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
     }
 
     private String getNotificationOnStatusChange(CareStatus status) {
@@ -186,8 +192,7 @@ public class CareService {
      * Get care of id and check if the caretakerEmail is owner o the returned care
      * */
     private Care getCareOfCaretaker(Long careId, String caretakerEmail) {
-        Care care = careRepository.findById(careId)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
+        Care care = getCareById(careId);
 
         if(!care.getCaretaker().getEmail().equals(caretakerEmail)) {
             throw new IllegalActionException(CARETAKER_NOT_OWNER_MESSAGE);
@@ -200,10 +205,9 @@ public class CareService {
      * Get care of id and check if the clientEmail is the one issuing the care
      * */
     private Care getCareOfClient(Long careId, String clientEmail) {
-        Care care = careRepository.findById(careId)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
+        Care care = getCareById(careId);
 
-        if(!care.getClient().getEmail().equals(clientEmail)) {
+        if (!care.getClient().getEmail().equals(clientEmail)) {
             throw new IllegalActionException(CLIENT_NOT_OWNER_MESSAGE);
         }
 

@@ -40,7 +40,7 @@ public class RatingController {
         return ratingService.getRatings(pageable, caretakerEmail);
     }
 
-    @PostMapping("/{caretakerEmail}/{careId}")
+    @PostMapping("/{careId}")
     @Operation(
             summary = "Rate caretaker",
             description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
@@ -50,13 +50,11 @@ public class RatingController {
             @RequestHeader(value = "${header-name.role}")
             @AcceptRole(acceptRole = Role.CLIENT)
             Role role,
-            @PathVariable String caretakerEmail,
             @PathVariable Long careId,
             @RequestBody @Valid RatingRequest ratingDTO,
             Principal principal
     ) {
         return ratingService.rateCaretaker(
-                caretakerEmail,
                 principal.getName(),
                 careId,
                 ratingDTO.rating(),
@@ -64,7 +62,7 @@ public class RatingController {
         );
     }
 
-    @DeleteMapping("/{caretakerEmail}/{careId}")
+    @DeleteMapping("/{careId}")
     @Operation(
             summary = "Delete rating",
             description = "Deletes a rating for a caretaker."
@@ -74,11 +72,10 @@ public class RatingController {
             @RequestHeader(value = "${header-name.role}")
             @AcceptRole(acceptRole = Role.CLIENT)
             Role role,
-            @PathVariable String caretakerEmail,
             @PathVariable Long careId,
             Principal principal
     ) {
-        return ratingService.deleteRating(caretakerEmail, principal.getName(), careId);
+        return ratingService.deleteRating(principal.getName(), careId);
     }
 
 }

@@ -122,7 +122,6 @@ public class RatingServiceTest {
     void rateCaretaker_shouldSucceed() throws IllegalAccessException {
         transactionTemplate.execute(status -> {
             ratingService.rateCaretaker(
-                    caretaker.getEmail(),
                     client.getEmail(),
                     paidCare.getId(),
                     5,
@@ -132,7 +131,8 @@ public class RatingServiceTest {
         });
 
         transactionTemplate.execute(status -> {
-            Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail(), paidCare.getId()));
+            Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail(),
+                    paidCare.getId()));
             assertEquals(1, ratingRepository.count());
             assertEquals(5, rating.getRating());
             assertTrue(ValidationUtils.fieldsNotNullRecursive(rating, Set.of("client", "caretaker", "care")));
@@ -149,7 +149,6 @@ public class RatingServiceTest {
 
         transactionTemplate.execute(status -> {
             ratingService.rateCaretaker(
-                    caretaker.getEmail(),
                     client.getAccountData().getEmail(),
                     paidCare.getId(),
                     5,
@@ -178,7 +177,6 @@ public class RatingServiceTest {
     void rateCaretaker_invalidRating_(int rating, boolean shouldSucceed) {
         if(shouldSucceed) {
             ratingService.rateCaretaker(
-                    caretaker.getEmail(),
                     client.getAccountData().getEmail(),
                     paidCare.getId(),
                     rating,
@@ -188,7 +186,6 @@ public class RatingServiceTest {
         }
 
         assertThrows(DataIntegrityViolationException.class, () -> ratingService.rateCaretaker(
-                caretaker.getEmail(),
                 client.getAccountData().getEmail(),
                 paidCare.getId(),
                 rating,
@@ -199,7 +196,6 @@ public class RatingServiceTest {
     @Test
     void rateCaretaker_clientRatesHimself_shouldThrowIllegalActionException() {
         assertThrows(IllegalActionException.class, () -> ratingService.rateCaretaker(
-                caretaker.getEmail(),
                 clientSameAsCaretaker.getEmail(),
                 paidCare.getId(),
                 5,
@@ -208,11 +204,10 @@ public class RatingServiceTest {
     }
 
     @Test
-    void rateCaretaker_caretakerDoesNotExist_shouldThrowNotFoundException() {
+    void rateCaretaker_careDoesNotExist_shouldThrowNotFoundException() {
         assertThrows(NotFoundException.class, () -> ratingService.rateCaretaker(
                 "invalidEmail",
-                client.getAccountData().getEmail(),
-                paidCare.getId(),
+                99L,
                 5,
                 "comment"
         ));
@@ -221,7 +216,6 @@ public class RatingServiceTest {
     @Test
     void rateCaretaker_careNotPaid_shouldThrowIllegalActionException() {
         assertThrows(IllegalActionException.class, () -> ratingService.rateCaretaker(
-                caretaker.getEmail(),
                 client.getAccountData().getEmail(),
                 care.getId(),
                 5,
@@ -236,7 +230,7 @@ public class RatingServiceTest {
         );
 
         transactionTemplate.execute(status ->
-                ratingService.deleteRating(caretaker.getEmail(), client.getAccountData().getEmail(), paidCare.getId())
+                ratingService.deleteRating(client.getAccountData().getEmail(), paidCare.getId())
         );
 
         transactionTemplate.execute(status -> {
@@ -246,18 +240,16 @@ public class RatingServiceTest {
     }
 
     @Test
-    void deleteRating_caretakerDoesNotExist_shouldThrow() {
+    void deleteRating_careDoesNotExist_shouldThrow() {
         assertThrows(NotFoundException.class, () -> ratingService.deleteRating(
-                "invalidEmail",
                 client.getAccountData().getEmail(),
-                paidCare.getId()
+                99L
         ));
     }
 
     @Test
     void deleteRating_ratingDoesNotExist_shouldThrow() {
         assertThrows(NotFoundException.class, () -> ratingService.deleteRating(
-                caretaker.getEmail(),
                 client.getAccountData().getEmail(),
                 paidCare.getId()
         ));
@@ -276,28 +268,6 @@ public class RatingServiceTest {
         assertEquals(1, ratings.getContent().size());
     }
 
-    @Test
-    void getRating_shouldReturnRating() {
-        Rating rating = transactionTemplate.execute(status ->
-                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(caretaker, client, paidCare))
-        );
-
-        Rating foundRating = transactionTemplate.execute(status ->
-                ratingService.getRating(caretaker.getEmail(), client.getEmail(), paidCare.getId())
-        );
-
-        assertEquals(rating.getCaretakerEmail(), foundRating.getCaretakerEmail());
-        assertEquals(rating.getClientEmail(), foundRating.getClientEmail());
-    }
-
-    @Test
-    void getRating_ratingDoesNotExist_shouldThrowNotFoundException() {
-        assertThrows(NotFoundException.class, () -> ratingService.getRating(
-                caretaker.getEmail(),
-                client.getEmail(),
-                paidCare.getId()
-        ));
-    }
 
     private static Stream<Arguments> provideRatingParams() {
         return Stream.of(
