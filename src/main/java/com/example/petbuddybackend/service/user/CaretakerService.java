@@ -65,15 +65,19 @@ public class CaretakerService {
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
-    public CaretakerComplexPublicDTO getCaretaker(String caretakerEmail) {
+    public CaretakerComplexPublicDTO getOtherCaretaker(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
-        renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker);
+    }
+
+    public CaretakerComplexDTO getMyCaretakerProfile(String caretakerEmail) {
+        Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
+        return caretakerMapper.mapToCaretakerComplexDTO(caretaker);
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
-                .map(this::renewCaretakerProfilePicture)
+                .map(this::renewCaretakerPictures)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
     }
 
@@ -123,7 +127,7 @@ public class CaretakerService {
         Caretaker caretaker = caretakerMapper.mapToCaretaker(createCaretakerDTO, appUser, uploadedOfferPhotos);
 
         renewCaretakerPictures(caretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+        return caretakerMapper.mapToCaretakerComplexDTO(caretakerRepository.save(caretaker));
     }
 
     @Transactional
@@ -138,7 +142,7 @@ public class CaretakerService {
 
         applyOfferPhotosPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
         renewCaretakerPictures(caretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+        return caretakerMapper.mapToCaretakerComplexDTO(caretakerRepository.save(caretaker));
     }
 
     @Transactional
