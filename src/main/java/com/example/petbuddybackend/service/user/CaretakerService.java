@@ -21,6 +21,7 @@ import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.photo.PhotoLimitException;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,8 +38,10 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class CaretakerService {
 
-    private final static String CARETAKER = "Caretaker";
-    private final static String CLIENT = "Client";
+    private static final String CARETAKER = "Caretaker";
+    private static final String CLIENT = "Client";
+    private static final String PHOTO_LIMIT_EXCEEDED_MESSAGE = "Photo limit exceeded for Caretaker. Provided: %d, expected %s";
+    public static final String CARETAKER_EXISTS_MESSAGE = "Caretaker with email %s already exists";
 
     private final CaretakerRepository caretakerRepository;
     private final ClientRepository clientRepository;
@@ -105,7 +108,6 @@ public class CaretakerService {
         return ratingMapper.mapToRatingResponse(rating);
     }
 
-
     @Transactional
     public CaretakerComplexInfoDTO addCaretaker(
             ModifyCaretakerDTO createCaretakerDTO,
@@ -113,6 +115,7 @@ public class CaretakerService {
             List<MultipartFile> newOfferPhotos
     ) {
         assertCaretakerNotExists(email);
+        assertOfferPhotoCountWithinLimit(newOfferPhotos);
         AppUser appUser = userService.getAppUser(email);
         List<PhotoLink> uploadedOfferPhotos = photoService.uploadPhotos(newOfferPhotos);
         Caretaker caretaker = caretakerMapper.mapToCaretaker(createCaretakerDTO, appUser, uploadedOfferPhotos);
@@ -159,6 +162,7 @@ public class CaretakerService {
                 .toList();
 
         caretaker.getOfferPhotos().removeAll(photosToRemove);
+        assertOfferPhotoCountWithinLimit(caretaker.getOfferPhotos().size() + newPhotos.size());
         caretaker.getOfferPhotos().addAll(photoService.uploadPhotos(newPhotos));
         photoService.deletePhotos(photosToRemove);
     }
@@ -208,8 +212,22 @@ public class CaretakerService {
     }
 
     private void assertCaretakerNotExists(String caretakerEmail) {
-        if (caretakerExists(caretakerEmail)) {
-            throw new IllegalActionException("Caretaker with email " + caretakerEmail + " already exists");
+        if(caretakerExists(caretakerEmail)) {
+            throw new IllegalActionException(String.format(CARETAKER_EXISTS_MESSAGE, caretakerEmail));
         }
+    }
+
+    private void assertOfferPhotoCountWithinLimit(int photoSize) {
+        if(photoSize > Caretaker.MAX_OFFER_PHOTO_LIMIT) {
+            throw new PhotoLimitException(String.format(
+                    PHOTO_LIMIT_EXCEEDED_MESSAGE,
+                    photoSize,
+                    Caretaker.MAX_OFFER_PHOTO_LIMIT)
+            );
+        }
+    }
+
+    private void assertOfferPhotoCountWithinLimit(List<MultipartFile> newPhotos) {
+        assertOfferPhotoCountWithinLimit(newPhotos.size());
     }
 }

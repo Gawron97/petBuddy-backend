@@ -105,7 +105,7 @@ public class CaretakerController {
                     Param newOfferPhotos adds new photos to caretaker profile.
                     
                     Param currentOfferBlobs should contain names (blobs) of photos that are currently in caretaker profile.
-                    Names not included in this set will be removed. Not providing any names will remove all photos.
+                    **Names not included in this set will be removed. Not providing any names will remove all photos**.
                     """
     )
     @PreAuthorize("isAuthenticated()")
@@ -134,7 +134,7 @@ public class CaretakerController {
                     Param newOfferPhotos adds new photos to caretaker profile.
 
                     Param currentOfferBlobs should contain names (blobs) of photos that are currently in caretaker profile.
-                    Names not included in this set will be removed. Not providing any names will remove all photos.
+                    **Names not included in this set will be removed. Not providing any names will remove all photos**.
                     """
     )
     public List<PhotoLinkDTO> editCaretakerOfferPhotos(

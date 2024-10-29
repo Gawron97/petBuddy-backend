@@ -9,7 +9,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Formula;
 
-import java.util.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +21,8 @@ import java.util.Set;
 @NoArgsConstructor
 @EqualsAndHashCode(of = "email")
 public class Caretaker {
+
+    public static final int MAX_OFFER_PHOTO_LIMIT = 10;
 
     @Id
     private String email;
@@ -64,4 +65,12 @@ public class Caretaker {
     @OrderColumn(name = "index_id")
     @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<PhotoLink> offerPhotos = new ArrayList<>();
+
+    @PrePersist
+    @PreUpdate
+    private void checkPhotoLimit() {
+        if (offerPhotos.size() > 10) {
+            throw new IllegalStateException("Entity \"Caretaker\" cannot have more than 10 offerPhotos");
+        }
+    }
 }
