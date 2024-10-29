@@ -1,25 +1,19 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.care.CareDTO;
-import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.service.care.CareService;
 import com.example.petbuddybackend.service.user.CaretakerService;
-import com.example.petbuddybackend.utils.annotation.swaggerdocs.TimeZoneParameter;
 import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
-import com.example.petbuddybackend.utils.time.TimeUtils;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +33,6 @@ import java.util.Set;
 public class CaretakerController {
 
     private final CaretakerService caretakerService;
-    private final CareService careService;
 
     @SecurityRequirements
     @PostMapping
@@ -69,8 +62,20 @@ public class CaretakerController {
             summary = "Get caretaker information",
             description = "Get caretaker with details information"
     )
-    public CaretakerComplexInfoDTO getCaretaker(@PathVariable String caretakerEmail) {
-        return caretakerService.getCaretaker(caretakerEmail);
+    public CaretakerComplexPublicDTO getOtherCaretaker(@PathVariable String caretakerEmail) {
+        return caretakerService.getOtherCaretaker(caretakerEmail);
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "Get currently logged in caretaker information",
+            description = "Get currently logged in caretaker with details information"
+    )
+    public CaretakerComplexDTO getMyCaretakerProfile(Principal principal,
+
+                                                 @AcceptRole(acceptRole = Role.CARETAKER)
+                                            @RequestHeader(value = "${header-name.role}") Role role) {
+        return caretakerService.getMyCaretakerProfile(principal.getName());
     }
 
     @PostMapping("/add")
@@ -79,7 +84,7 @@ public class CaretakerController {
             description = "Add caretaker profile if it does not exists"
     )
     @PreAuthorize("isAuthenticated()")
-    public CaretakerComplexInfoDTO addCaretaker(
+    public CaretakerComplexDTO addCaretaker(
             @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
             Principal principal
     ) {
@@ -92,7 +97,7 @@ public class CaretakerController {
             description = "Edit caretaker profile if it does exists"
     )
     @PreAuthorize("isAuthenticated()")
-    public CaretakerComplexInfoDTO editCaretaker(
+    public CaretakerComplexDTO editCaretaker(
             @RequestBody @Valid ModifyCaretakerDTO caretakerDTO,
             Principal principal
     ) {

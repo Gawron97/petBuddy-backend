@@ -3,7 +3,8 @@ package com.example.petbuddybackend.service.user;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -53,14 +54,19 @@ public class CaretakerService {
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
-    public CaretakerComplexInfoDTO getCaretaker(String caretakerEmail) {
+    public CaretakerComplexPublicDTO getOtherCaretaker(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
-        renewCaretakerProfilePicture(caretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretaker);
+        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker);
+    }
+
+    public CaretakerComplexDTO getMyCaretakerProfile(String caretakerEmail) {
+        Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
+        return caretakerMapper.mapToCaretakerComplexDTO(caretaker);
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
+                .map(this::renewCaretakerProfilePicture)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
     }
 
@@ -97,22 +103,21 @@ public class CaretakerService {
         return ratingMapper.mapToRatingResponse(rating);
     }
 
-    public CaretakerComplexInfoDTO addCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
+    public CaretakerComplexDTO addCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
         assertCaretakerNotExists(email);
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretaker = caretakerMapper.mapToCaretaker(caretakerDTO, appUser);
 
         renewCaretakerProfilePicture(caretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+        return caretakerMapper.mapToCaretakerComplexDTO(caretakerRepository.save(caretaker));
     }
 
-    public CaretakerComplexInfoDTO editCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
+    public CaretakerComplexDTO editCaretaker(ModifyCaretakerDTO caretakerDTO, String email) {
         AppUser appUser = userService.getAppUser(email);
         Caretaker caretaker = getCaretakerByEmail(appUser.getEmail());
 
-        renewCaretakerProfilePicture(caretaker);
         caretakerMapper.updateCaretakerFromDTO(caretakerDTO, caretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+        return caretakerMapper.mapToCaretakerComplexDTO(caretakerRepository.save(caretaker));
     }
 
     private Caretaker renewCaretakerProfilePicture(Caretaker caretaker) {

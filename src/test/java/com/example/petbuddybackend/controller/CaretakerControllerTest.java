@@ -1,7 +1,8 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.CaretakerService;
@@ -128,10 +129,10 @@ public class CaretakerControllerTest {
     }
 
     @Test
-    void getCaretaker_shouldReturnCaretakerDetails() throws Exception {
+    void getOtherCaretaker_shouldReturnCaretakerDetails() throws Exception {
         // Given
         String caretakerEmail = "johndoe@example.com";
-        CaretakerComplexInfoDTO caretakerComplexInfoDTO = CaretakerComplexInfoDTO.builder()
+        CaretakerComplexPublicDTO caretakerComplexInfoDTO = CaretakerComplexPublicDTO.builder()
                 .accountData(AccountDataDTO.builder()
                         .email(caretakerEmail)
                         .name("John Doe")
@@ -139,7 +140,7 @@ public class CaretakerControllerTest {
                 .description("Experienced pet caretaker")
                 .build();
 
-        when(caretakerService.getCaretaker(caretakerEmail)).thenReturn(caretakerComplexInfoDTO);
+        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenReturn(caretakerComplexInfoDTO);
 
         // When Then
         mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)
@@ -151,16 +152,41 @@ public class CaretakerControllerTest {
     }
 
     @Test
-    void getCaretaker_whenCaretakerNotExists_shouldThrowNotFound() throws Exception {
+    void getOtherCaretaker_whenCaretakerNotExists_shouldThrowNotFound() throws Exception {
         // Given
         String caretakerEmail = "johndoe@example.com";
 
-        when(caretakerService.getCaretaker(caretakerEmail)).thenThrow(NotFoundException.class);
+        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenThrow(NotFoundException.class);
 
         // When Then
         mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(username = "johndoe@example.com")
+    void getMyCaretakerProfile_shouldReturnProperAnswer() throws Exception {
+        // Given
+        String caretakerEmail = "johndoe@example.com";
+        CaretakerComplexDTO caretakerComplexDTO = CaretakerComplexDTO.builder()
+                .accountData(AccountDataDTO.builder()
+                        .email(caretakerEmail)
+                        .name("John Doe")
+                        .build())
+                .description("Experienced pet caretaker")
+                .build();
+
+        when(caretakerService.getMyCaretakerProfile(caretakerEmail)).thenReturn(caretakerComplexDTO);
+
+        // When Then
+        mockMvc.perform(get("/api/caretaker")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountData.email").value(caretakerEmail))
+                .andExpect(jsonPath("$.accountData.name").value("John Doe"))
+                .andExpect(jsonPath("$.description").value("Experienced pet caretaker"));
     }
 
 
