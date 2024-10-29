@@ -30,9 +30,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -166,26 +164,6 @@ public class CareService {
                 .client(clientService.getClientByEmail(clientEmail))
                 .caretaker(caretakerService.getCaretakerByEmail(caretakerEmail))
                 .build();
-    }
-
-    private void assertAnimalAttributesMatchAnimalType(Set<AnimalAttribute> animalAttributes, String animalType) {
-        List<AnimalAttribute> mismatchedAttributes = animalAttributes.stream()
-                .filter(animalAttribute -> !animalAttribute.getAnimal().getAnimalType().equals(animalType))
-                .toList();
-
-        if (mismatchedAttributes.isEmpty()) {
-            return;
-        }
-
-        String mismatches = mismatchedAttributes.stream()
-                .map(animalAttribute -> String.format(
-                        ATTRIBUTE_MISMATCH_FORMAT,
-                        animalAttribute.getAnimal().getAnimalType(),
-                        animalAttribute)
-                )
-                .collect(Collectors.joining(", "));
-
-        throw new IllegalActionException(String.format(ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE, mismatches));
     }
 
     /**
