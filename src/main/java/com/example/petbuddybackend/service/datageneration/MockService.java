@@ -18,6 +18,7 @@ import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.github.javafaker.Faker;
+import com.nimbusds.jose.util.Pair;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +32,10 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 public class MockService {
 
-    private final Faker faker = new Faker();
+    private static final Set<Pair<CareStatus, CareStatus>> validClientCaretakerCareStatuses =
+            generateValidClientCaretakerCareStatuses();
 
+    private final Faker faker = new Faker();
 
     public List<AppUser> createMockAppUsers(int count) {
         List<AppUser> caretakers = new ArrayList<>(count);
@@ -408,6 +411,8 @@ public class MockService {
         return cares;
     }
 
+
+
     private Care createMockCare(Client client, Caretaker caretaker, Animal animal,
                                 Set<AnimalAttribute> animalAttributesForCare) {
 
@@ -421,11 +426,16 @@ public class MockService {
                 LocalDate.ofEpochDay(careStart.toEpochDay() + 10)
         ).toLocalDate();
 
+        Pair<CareStatus, CareStatus> randomStatuses = validClientCaretakerCareStatuses.stream()
+                .skip(faker.random().nextInt(validClientCaretakerCareStatuses.size()))
+                .findFirst()
+                .orElseThrow();
+
         return Care.builder()
                 .careStart(careStart)
                 .careEnd(careEnd)
-                .caretakerStatus(CareStatus.values()[faker.random().nextInt(CareStatus.values().length)])
-                .clientStatus(CareStatus.values()[faker.random().nextInt(CareStatus.values().length)])
+                .clientStatus(randomStatuses.getLeft())
+                .caretakerStatus(randomStatuses.getRight())
                 .description(faker.lorem().sentence())
                 .dailyPrice(BigDecimal.valueOf(faker.number().randomDouble(2, 10, 100)))
                 .animal(animal)
@@ -525,4 +535,15 @@ public class MockService {
         return uniqueCaretakers;
     }
 
+    private static Set<Pair<CareStatus, CareStatus>> generateValidClientCaretakerCareStatuses() {
+        return Set.of(
+                Pair.of(CareStatus.PENDING, CareStatus.PENDING),
+                Pair.of(CareStatus.PENDING, CareStatus.ACCEPTED),
+                Pair.of(CareStatus.ACCEPTED, CareStatus.PENDING),
+                Pair.of(CareStatus.AWAITING_PAYMENT, CareStatus.AWAITING_PAYMENT),
+                Pair.of(CareStatus.PAID, CareStatus.PAID),
+                Pair.of(CareStatus.OUTDATED, CareStatus.OUTDATED),
+                Pair.of(CareStatus.CANCELLED, CareStatus.CANCELLED)
+        );
+    }
 }

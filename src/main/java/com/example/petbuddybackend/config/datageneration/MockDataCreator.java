@@ -140,6 +140,9 @@ public class MockDataCreator {
         careRepository.saveAllAndFlush(
                 mockService.createMockCares(clients, caretakers, animals, animalAttributes, CARE_COUNT)
         );
+        careRepository.saveAllAndFlush(
+                mockService.createMockCares(List.of(client), List.of(caretaker), animals, animalAttributes, 10)
+        );
 
         // ratings
         caretakers = caretakerRepository.findAll();

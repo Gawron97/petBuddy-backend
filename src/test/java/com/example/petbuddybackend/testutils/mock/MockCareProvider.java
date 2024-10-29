@@ -15,11 +15,16 @@ import java.util.HashSet;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class MockCareProvider {
 
-    public static Care createMockCare(Caretaker caretaker, Client client, Animal animal) {
-
+    public static Care createMockCare(
+            Caretaker caretaker,
+            Client client,
+            Animal animal,
+            CareStatus clientStatus,
+            CareStatus caretakerStatus
+    ) {
         return Care.builder()
-                .caretakerStatus(CareStatus.PENDING)
-                .clientStatus(CareStatus.ACCEPTED)
+                .caretakerStatus(caretakerStatus)
+                .clientStatus(clientStatus)
                 .careStart(LocalDate.now().plusDays(2))
                 .careEnd(LocalDate.now().plusDays(7))
                 .description("Test care description")
@@ -30,6 +35,10 @@ public class MockCareProvider {
                 .client(client)
                 .build();
 
+    }
+
+    public static Care createMockCare(Caretaker caretaker, Client client, Animal animal) {
+        return createMockCare(caretaker, client, animal, CareStatus.ACCEPTED, CareStatus.PENDING);
     }
 
     public static Care createMockPaidCare(Caretaker caretaker, Client client, Animal animal) {

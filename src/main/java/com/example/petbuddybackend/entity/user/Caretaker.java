@@ -4,6 +4,7 @@ import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.offer.Offer;
+import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.rating.Rating;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,6 +22,8 @@ import java.util.Set;
 @NoArgsConstructor
 @EqualsAndHashCode(of = "email")
 public class Caretaker {
+
+    public static final int MAX_OFFER_PHOTO_LIMIT = 10;
 
     @Id
     private String email;
@@ -62,4 +65,16 @@ public class Caretaker {
     @Builder.Default
     private List<Care> cares = new ArrayList<>();
 
+    @Builder.Default
+    @OrderColumn(name = "index_id")
+    @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<PhotoLink> offerPhotos = new ArrayList<>();
+
+    @PrePersist
+    @PreUpdate
+    private void checkPhotoLimit() {
+        if (offerPhotos.size() > 10) {
+            throw new IllegalStateException("Entity \"Caretaker\" cannot have more than 10 offerPhotos");
+        }
+    }
 }

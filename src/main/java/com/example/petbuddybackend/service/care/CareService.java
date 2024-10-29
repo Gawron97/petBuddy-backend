@@ -13,6 +13,7 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.service.animal.AnimalService;
+import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.care.state.CareStateMachine;
 import com.example.petbuddybackend.service.mapper.CareMapper;
 import com.example.petbuddybackend.service.notification.NotificationService;
@@ -37,16 +38,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CareService {
 
+    private static final String CARE = "Care";
     private static final String ATTRIBUTE_MISMATCH_FORMAT = "%s (attribute: %s)";
     private static final String CARETAKER_NOT_OWNER_MESSAGE = "Caretaker is not owner of the care";
-    private static final String CARE = "Care";
     private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
+    private static final String ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE = "Animal attributes must match animal type." +
+            " Mismatches: %s";
 
-    private static final String RESERVATION_MESSAGE = "message.care.reservation";
+    private static final String CREATE_RESERVATION_MESSAGE = "message.care.reservation";
     private static final String UPDATE_RESERVATION_MESSAGE = "message.care.update_reservation";
     private static final String ACCEPT_RESERVATION_MESSAGE = "message.care.accepted_reservation";
     private static final String REJECT_RESERVATION_MESSAGE = "message.care.rejected_reservation";
-    public static final String ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE = "Animal attributes must match animal type. Mismatches: %s";
 
     private final CareRepository careRepository;
     private final AnimalService animalService;
@@ -56,11 +58,12 @@ public class CareService {
     private final NotificationService notificationService;
     private final CareMapper careMapper = CareMapper.INSTANCE;
     private final CareStateMachine careStateMachine;
+    private final BlockService blockService;
 
     public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail, ZoneId timeZone) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
-        userService.assertNotBlockedByAny(clientEmail, caretakerEmail);
+        blockService.assertNotBlockedByAny(clientEmail, caretakerEmail);
 
         Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributesOfAnimal(createCare.animalAttributeIds());
         assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());
@@ -69,7 +72,7 @@ public class CareService {
                 createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes)
         );
 
-        sendCaretakerCareNotification(care, RESERVATION_MESSAGE);
+        sendCaretakerCareNotification(care, CREATE_RESERVATION_MESSAGE);
         return careMapper.mapToCareDTO(care, timeZone);
     }
 
@@ -95,9 +98,9 @@ public class CareService {
         return careMapper.mapToCareDTO(care, timeZone);
     }
 
-    public CareDTO caretakerChangeCareStatus(Long careId, String clientEmail, ZoneId timeZone, CareStatus newStatus) {
-        userService.assertHasRole(clientEmail, Role.CARETAKER);
-        Care care = getCareOfCaretaker(careId, clientEmail);
+    public CareDTO caretakerChangeCareStatus(Long careId, String caretakerEmail, ZoneId timeZone, CareStatus newStatus) {
+        userService.assertHasRole(caretakerEmail, Role.CARETAKER);
+        Care care = getCareOfCaretaker(careId, caretakerEmail);
 
         careStateMachine.transition(Role.CARETAKER, care, newStatus);
         care = careRepository.save(care);

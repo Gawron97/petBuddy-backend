@@ -11,6 +11,7 @@ import com.example.petbuddybackend.utils.exception.throweable.general.IllegalAct
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
+import com.example.petbuddybackend.utils.exception.throweable.photo.PhotoLimitException;
 import com.example.petbuddybackend.utils.exception.throweable.user.AlreadyBlockedException;
 import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
 import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidWebSocketHeaderException;
@@ -109,6 +110,12 @@ public class CustomExceptionAdvice {
     @ExceptionHandler(StateTransitionException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleStateTransitionException(StateTransitionException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(PhotoLimitException.class)
+    @ResponseStatus(code = HttpStatus.PAYLOAD_TOO_LARGE)
+    public ApiExceptionResponse handlePhotoLimitException(PhotoLimitException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 }
