@@ -79,8 +79,6 @@ public class CareControllerIntegrationTest {
 
     private static final String UPDATE_CARE_BODY = """
             {
-                "careStart": "%s",
-                "careEnd": "%s",
                 "dailyPrice": %s
             }
             """;
@@ -187,7 +185,7 @@ public class CareControllerIntegrationTest {
     @WithMockUser(username = CARETAKER_EMAIL)
     void updateCare_ShouldUpdateCareProperly() throws Exception {
         // Given
-        PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();
         mockMvc.perform(patch("/api/care/{careId}", careId)
@@ -195,15 +193,13 @@ public class CareControllerIntegrationTest {
                         .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
                         .header(ROLE_HEADER_NAME, Role.CARETAKER)
                         .content(String.format(UPDATE_CARE_BODY,
-                                LocalDate.now().plusDays(3),
-                                LocalDate.now().plusDays(8),
                                 new BigDecimal("60.00")))
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.clientStatus").value(CareStatus.PENDING.name()))
                 .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.ACCEPTED.name()))
-                .andExpect(jsonPath("$.careStart").value(LocalDate.now().plusDays(3).toString()))
-                .andExpect(jsonPath("$.careEnd").value(LocalDate.now().plusDays(8).toString()))
+                .andExpect(jsonPath("$.careStart").value(care.getCareStart().toString()))
+                .andExpect(jsonPath("$.careEnd").value(care.getCareEnd().toString()))
                 .andExpect(jsonPath("$.description").value("Test care description"))
                 .andExpect(jsonPath("$.dailyPrice").value(60.00))
                 .andExpect(jsonPath("$.animalType").value("DOG"))
@@ -221,8 +217,6 @@ public class CareControllerIntegrationTest {
         mockMvc.perform(patch("/api/care/{careId}", careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARE_BODY,
-                                LocalDate.now().plusDays(3),
-                                LocalDate.now().plusDays(8),
                                 new BigDecimal("60.00")))
                 )
                 .andExpect(status().isBadRequest());
@@ -240,8 +234,6 @@ public class CareControllerIntegrationTest {
         mockMvc.perform(patch("/api/care/{careId}", careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARE_BODY,
-                                LocalDate.now().plusDays(3),
-                                LocalDate.now().plusDays(8),
                                 new BigDecimal("60.00")))
                 )
                 .andExpect(status().isBadRequest());
@@ -259,8 +251,6 @@ public class CareControllerIntegrationTest {
         mockMvc.perform(patch("/api/care/{careId}", careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARE_BODY,
-                                LocalDate.now().plusDays(3),
-                                LocalDate.now().plusDays(8),
                                 new BigDecimal("60.00")))
                 )
                 .andExpect(status().isBadRequest());
@@ -276,8 +266,6 @@ public class CareControllerIntegrationTest {
         mockMvc.perform(patch("/api/care/{careId}" , careId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(String.format(UPDATE_CARE_BODY,
-                                LocalDate.now().plusDays(9),
-                                LocalDate.now().plusDays(8),
                                 new BigDecimal("60.00")))
                 )
                 .andExpect(status().isBadRequest());

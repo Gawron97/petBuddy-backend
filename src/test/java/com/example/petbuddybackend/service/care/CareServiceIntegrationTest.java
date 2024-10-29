@@ -1,20 +1,20 @@
 package com.example.petbuddybackend.service.care;
 
-import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
-import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.care.CareRepository;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.utils.exception.throweable.InvalidRoleException;
@@ -39,7 +39,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -95,7 +94,6 @@ public class CareServiceIntegrationTest {
                 .description("Description")
                 .dailyPrice(new BigDecimal("10.00"))
                 .animalType("DOG")
-                .animalAttributeIds(new ArrayList<>())
                 .build();
 
         // When
@@ -143,7 +141,6 @@ public class CareServiceIntegrationTest {
                                 .description("Description")
                                 .dailyPrice(new BigDecimal("10.00"))
                                 .animalType("DOG")
-                                .animalAttributeIds(new ArrayList<>())
                                 .build(),
                         "wrongEmail",
                         caretakerEmail,
@@ -156,7 +153,6 @@ public class CareServiceIntegrationTest {
                                 .description("Description")
                                 .dailyPrice(new BigDecimal("10.00"))
                                 .animalType("DOG")
-                                .animalAttributeIds(new ArrayList<>())
                                 .build(),
                         caretakerEmail,
                         caretakerEmail,
@@ -169,7 +165,6 @@ public class CareServiceIntegrationTest {
                                 .description("Description")
                                 .dailyPrice(new BigDecimal("10.00"))
                                 .animalType("DOG")
-                                .animalAttributeIds(new ArrayList<>())
                                 .build(),
                         clientEmail,
                         clientEmail,
@@ -185,7 +180,7 @@ public class CareServiceIntegrationTest {
         care.setClientStatus(CareStatus.ACCEPTED);
         care.setCaretakerStatus(CareStatus.PENDING);
 
-        UpdateCareDTO updateCareDTO = createUpdateCareDTO(3, 9, "20.00");
+        UpdateCareDTO updateCareDTO = createUpdateCareDTO("20.00");
 
         // When
         CareDTO result = careService.updateCare(care.getId(), updateCareDTO, caretaker.getEmail(), ZoneId.systemDefault());
@@ -193,9 +188,9 @@ public class CareServiceIntegrationTest {
         // Then
         Care updatedCare = careRepository.findById(result.id()).orElseThrow();
         assertNotNull(updatedCare);
-        assertEquals(new BigDecimal("20.00"), updatedCare.getDailyPrice());
-        assertEquals(LocalDate.now().plusDays(3), updatedCare.getCareStart());
-        assertEquals(LocalDate.now().plusDays(9), updatedCare.getCareEnd());
+        assertEquals(new BigDecimal("20.00"), updatedCare.getDailyPrice()); // only price should change
+        assertEquals(LocalDate.now().plusDays(2), updatedCare.getCareStart());
+        assertEquals(LocalDate.now().plusDays(7), updatedCare.getCareEnd());
         assertEquals(CareStatus.ACCEPTED, updatedCare.getCaretakerStatus());
         assertEquals(CareStatus.PENDING, updatedCare.getClientStatus());
     }
@@ -216,12 +211,12 @@ public class CareServiceIntegrationTest {
     static Stream<Arguments> parametrizedForUpdateCare() {
         return Stream.of(
                 Arguments.of(
-                        createUpdateCareDTO(1, 5, "10.00"),
+                        createUpdateCareDTO("10.00"),
                         "wrongEmail",
                         IllegalActionException.class
                 ),
                 Arguments.of(
-                        createUpdateCareDTO(1, 5, "10.00"),
+                        createUpdateCareDTO("10.00"),
                         "clientEmail",
                         IllegalActionException.class
                 )
@@ -232,7 +227,7 @@ public class CareServiceIntegrationTest {
     void updateCare_WhenCareIsTerminated_ShouldThrowIllegalActionException() {
 
         // Given
-        UpdateCareDTO updateCare = createUpdateCareDTO(1, 5, "10.00");
+        UpdateCareDTO updateCare = createUpdateCareDTO("10.00");
 
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
         care.setCaretakerStatus(CareStatus.OUTDATED);
@@ -248,7 +243,7 @@ public class CareServiceIntegrationTest {
     void updateCare_WhenCaretakerStatusIsAccepted_ShouldThrowStateTransitionException() {
 
         // Given
-        UpdateCareDTO updateCare = createUpdateCareDTO(1, 5, "10.00");
+        UpdateCareDTO updateCare = createUpdateCareDTO("10.00");
 
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
         care.setCaretakerStatus(CareStatus.ACCEPTED);
@@ -513,10 +508,8 @@ public class CareServiceIntegrationTest {
         }
     }
 
-    private static UpdateCareDTO createUpdateCareDTO(int daysToAdd, int daysToAdd1, String val) {
+    private static UpdateCareDTO createUpdateCareDTO(String val) {
         return UpdateCareDTO.builder()
-                .careStart(LocalDate.now().plusDays(daysToAdd))
-                .careEnd(LocalDate.now().plusDays(daysToAdd1))
                 .dailyPrice(new BigDecimal(val))
                 .build();
     }
