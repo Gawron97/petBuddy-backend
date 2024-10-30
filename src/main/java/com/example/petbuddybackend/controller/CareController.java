@@ -46,7 +46,7 @@ public class CareController {
                             
                             ## Sorting
                             You can sort by every param in DTO excluding selectedOptions,
-                             but with some fields it will be different formatt:
+                            but with some fields it will be different format:
                             - To sort by animalType you need to provide: `animal_animalType`
                             - To sort by caretakerEmail you need to provide: `caretaker_email`
                             - To sort by clientEmail you need to provide: `client_email`

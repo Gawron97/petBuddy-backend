@@ -69,13 +69,11 @@ public class AnimalService {
     public Set<AnimalAttribute> getAnimalAttributes(String animalType, Map<String, List<String>> attributes) {
         return attributes.entrySet()
                 .stream()
-                .map(entry ->
+                .flatMap(entry ->
                         entry.getValue()
                                 .stream()
                                 .map(value -> getAnimalAttribute(animalType, entry.getKey(), value))
-                                .collect(Collectors.toSet())
                 )
-                .flatMap(Set::stream)
                 .collect(Collectors.toSet());
     }
 
