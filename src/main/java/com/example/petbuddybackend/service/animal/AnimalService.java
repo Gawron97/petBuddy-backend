@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AnimalService {
+
+    private static final String ANIMAL_ATTRIBUTE_NOT_FOUND_MESSAGE =
+            "Animal attribute with name {0}, value {1} and animal type {2} not found";
 
     private final AnimalRepository animalRepository;
     private final AnimalAttributeRepository animalAttributeRepository;
@@ -43,8 +47,10 @@ public class AnimalService {
                 attributeName,
                 attributeValue
                 )
-                .orElseThrow(() -> new NotFoundException("Animal attribute with name " +
-                        attributeName + " and value " + attributeValue + " not found"));
+                .orElseThrow(() -> new NotFoundException(MessageFormat.format(
+                        ANIMAL_ATTRIBUTE_NOT_FOUND_MESSAGE,
+                        attributeName, attributeValue, animalType.toUpperCase())
+                ));
     }
 
     public Animal getAnimal(String animalType) {
@@ -58,6 +64,17 @@ public class AnimalService {
         }
 
         return animalAttributeRepository.findDistinctByIdIn(animalAttributeIds);
+    }
+
+    public Set<AnimalAttribute> getAnimalAttributes(String animalType, Map<String, List<String>> attributes) {
+        return attributes.entrySet()
+                .stream()
+                .flatMap(entry ->
+                        entry.getValue()
+                                .stream()
+                                .map(value -> getAnimalAttribute(animalType, entry.getKey(), value))
+                )
+                .collect(Collectors.toSet());
     }
 
     public Map<String, List<String>> getAnimalAttributesOfAnimal(String animalType) {

@@ -45,7 +45,8 @@ public class CareController {
                             The result is paginated, sorted and filtered by the provided parameters.
                             
                             ## Sorting
-                            You can sort by every param in DTO excluding selectedOptions, but with some fields it will be different formatt:
+                            You can sort by every param in DTO excluding selectedOptions,
+                            but with some fields it will be different format:
                             - To sort by animalType you need to provide: `animal_animalType`
                             - To sort by caretakerEmail you need to provide: `caretaker_email`
                             - To sort by clientEmail you need to provide: `client_email`
@@ -72,7 +73,9 @@ public class CareController {
     ) {
 
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
-        return careService.getCares(pageable, filters, emails, principal.getName(), acceptRole, TimeUtils.getOrSystemDefault(timeZone));
+        return careService.getCares(
+                pageable, filters, emails, principal.getName(), acceptRole, TimeUtils.getOrSystemDefault(timeZone)
+        );
     }
 
     @PatchMapping("/{careId}")
@@ -89,7 +92,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public CareDTO updateCare(
+    public CareDTO changeCarePrice(
             @RequestHeader(value = "${header-name.role}")
             @AcceptRole(acceptRole = Role.CARETAKER)
             Role role,

@@ -61,6 +61,20 @@ public class AnimalServiceIntegrationTest {
     }
 
     @Test
+    void getAnimalAttributesWithMap() {
+        Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributes(
+                "DOG",
+                Map.of(
+                        "SIZE", List.of("BIG", "SMALL"),
+                        "SEX", List.of("MALE")
+                )
+        );
+        assertNotNull(animalAttributes);
+        assertFalse(animalAttributes.isEmpty());
+        assertEquals(3, animalAttributes.size());
+    }
+
+    @Test
     void getAnimalAttributes_WhenDuplicated_ThenFlatten() {
         Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributesOfAnimal(List.of(1L, 1L));
         assertNotNull(animalAttributes);

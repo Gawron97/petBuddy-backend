@@ -30,9 +30,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +40,8 @@ public class CareService {
     private static final String ATTRIBUTE_MISMATCH_FORMAT = "%s (attribute: %s)";
     private static final String CARETAKER_NOT_OWNER_MESSAGE = "Caretaker is not owner of the care";
     private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
-    private static final String ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE = "Animal attributes must match animal type. Mismatches: %s";
+    private static final String ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE = "Animal attributes must match animal type." +
+            " Mismatches: %s";
 
     private static final String CREATE_RESERVATION_MESSAGE = "message.care.reservation";
     private static final String UPDATE_RESERVATION_MESSAGE = "message.care.update_reservation";
@@ -59,13 +58,15 @@ public class CareService {
     private final CareStateMachine careStateMachine;
     private final BlockService blockService;
 
-    public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail, ZoneId timeZone) {
+    public CareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail,
+                                   ZoneId timeZone) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
         blockService.assertNotBlockedByAny(clientEmail, caretakerEmail);
 
-        Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributesOfAnimal(createCare.animalAttributeIds());
-        assertAnimalAttributesMatchAnimalType(animalAttributes, createCare.animalType());
+        Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributes(
+                createCare.animalType(), createCare.selectedOptions()
+        );
 
         Care care = careRepository.save(
                 createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes));
@@ -96,7 +97,8 @@ public class CareService {
         return careMapper.mapToCareDTO(care, timeZone);
     }
 
-    public CareDTO caretakerChangeCareStatus(Long careId, String caretakerEmail, ZoneId timeZone, CareStatus newStatus) {
+    public CareDTO caretakerChangeCareStatus(Long careId, String caretakerEmail, ZoneId timeZone,
+                                             CareStatus newStatus) {
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
         Care care = getCareOfCaretaker(careId, caretakerEmail);
 
@@ -162,26 +164,6 @@ public class CareService {
                 .client(clientService.getClientByEmail(clientEmail))
                 .caretaker(caretakerService.getCaretakerByEmail(caretakerEmail))
                 .build();
-    }
-
-    private void assertAnimalAttributesMatchAnimalType(Set<AnimalAttribute> animalAttributes, String animalType) {
-        List<AnimalAttribute> mismatchedAttributes = animalAttributes.stream()
-                .filter(animalAttribute -> !animalAttribute.getAnimal().getAnimalType().equals(animalType))
-                .toList();
-
-        if (mismatchedAttributes.isEmpty()) {
-            return;
-        }
-
-        String mismatches = mismatchedAttributes.stream()
-                .map(animalAttribute -> String.format(
-                        ATTRIBUTE_MISMATCH_FORMAT,
-                        animalAttribute.getAnimal().getAnimalType(),
-                        animalAttribute)
-                )
-                .collect(Collectors.joining(", "));
-
-        throw new IllegalActionException(String.format(ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE, mismatches));
     }
 
     /**
