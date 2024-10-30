@@ -255,7 +255,7 @@ public class CaretakerControllerTest {
         // When
         String json = createRequestBody();
         ModifyCaretakerDTO dto = gson.fromJson(json, ModifyCaretakerDTO.class);
-        CaretakerComplexInfoDTO resultDTO = createRequestResponse();
+        CaretakerComplexDTO resultDTO = createRequestResponse();
 
         MockMultipartFile caretakerData = getMockMultipartFile(json);
         MockMultipartFile newOfferPhotos = getMockMultipartPhotoFile();
@@ -285,7 +285,7 @@ public class CaretakerControllerTest {
         // Given
         String json = createUpdatedRequestBody();
         ModifyCaretakerDTO dto = gson.fromJson(json, ModifyCaretakerDTO.class);
-        CaretakerComplexInfoDTO resultDTO = createUpdatedRequestResponse();
+        CaretakerComplexDTO resultDTO = createUpdatedRequestResponse();
 
         MockMultipartFile caretakerData = getMockMultipartFile(json);
         MockMultipartFile newOfferPhotos = getMockMultipartPhotoFile();
@@ -400,7 +400,7 @@ public class CaretakerControllerTest {
         );
     }
 
-    private static CaretakerComplexInfoDTO createRequestResponse() {
+    private static CaretakerComplexDTO createRequestResponse() {
         AccountDataDTO accountDataDTO = AccountDataDTO.builder()
                 .email(CARETAKER_EMAIL)
                 .surname("caretaker surname")
@@ -417,7 +417,7 @@ public class CaretakerControllerTest {
                 .streetNumber(STREET_NUMBER)
                 .build();
 
-        return CaretakerComplexInfoDTO.builder()
+        return CaretakerComplexDTO.builder()
                 .accountData(accountDataDTO)
                 .address(addressDTO)
                 .description(DESCRIPTION)
@@ -425,7 +425,7 @@ public class CaretakerControllerTest {
                 .build();
     }
 
-    private static CaretakerComplexInfoDTO createUpdatedRequestResponse() {
+    private static CaretakerComplexDTO createUpdatedRequestResponse() {
         AccountDataDTO accountDataDTO = AccountDataDTO.builder()
                 .email(CARETAKER_EMAIL)
                 .surname("caretaker surname")
@@ -442,7 +442,7 @@ public class CaretakerControllerTest {
                 .streetNumber(UPDATED_STREET_NUMBER)
                 .build();
 
-        return CaretakerComplexInfoDTO.builder()
+        return CaretakerComplexDTO.builder()
                 .accountData(accountDataDTO)
                 .address(addressDTO)
                 .description(UPDATED_DESCRIPTION)
