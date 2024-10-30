@@ -62,8 +62,8 @@ public class RatingRepositoryTest {
     @AfterEach
     void tearDown() {
         ratingRepository.deleteAll();
-        appUserRepository.deleteAll();
         careRepository.deleteAll();
+        appUserRepository.deleteAll();
     }
 
     @Test

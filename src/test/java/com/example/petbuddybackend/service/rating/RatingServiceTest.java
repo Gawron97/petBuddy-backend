@@ -18,6 +18,7 @@ import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,7 @@ import java.util.stream.Stream;
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockPaidCare;
 import static com.example.petbuddybackend.testutils.mock.MockRatingProvider.createMockRating;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -101,8 +103,8 @@ public class RatingServiceTest {
     @AfterEach
     void cleanUp() {
         ratingRepository.deleteAll();
-        appUserRepository.deleteAll();
         careRepository.deleteAll();
+        appUserRepository.deleteAll();
     }
 
 
@@ -195,7 +197,7 @@ public class RatingServiceTest {
 
     @Test
     void rateCaretaker_clientRatesHimself_shouldThrowIllegalActionException() {
-        assertThrows(IllegalActionException.class, () -> ratingService.rateCaretaker(
+        assertThrows(UnauthorizedException.class, () -> ratingService.rateCaretaker(
                 clientSameAsCaretaker.getEmail(),
                 paidCare.getId(),
                 5,
@@ -206,7 +208,7 @@ public class RatingServiceTest {
     @Test
     void rateCaretaker_careDoesNotExist_shouldThrowNotFoundException() {
         assertThrows(NotFoundException.class, () -> ratingService.rateCaretaker(
-                "invalidEmail",
+                client.getEmail(),
                 99L,
                 5,
                 "comment"
@@ -221,6 +223,25 @@ public class RatingServiceTest {
                 5,
                 "comment"
         ));
+    }
+
+    @Test
+    void rateCaretaker_ClientIsNotSubjectInCare_ShouldThrowUnauthorizedException() {
+
+        //given
+        Care badCare = PersistenceUtils.addCare(
+                careRepository,
+                caretaker,
+                PersistenceUtils.addClient(appUserRepository, clientRepository, createMockClient("anotherClient")),
+                animalRepository.findById("DOG").get()
+        );
+        assertThrows(UnauthorizedException.class, () -> ratingService.rateCaretaker(
+                caretaker.getEmail(),
+                badCare.getId(),
+                2,
+                "S"
+        ));
+
     }
 
     @Test

@@ -45,7 +45,7 @@ public class Client {
     @Builder.Default
     private Set<ClientNotification> notifications = new HashSet<>();
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Care> cares = new ArrayList<>();
 

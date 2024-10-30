@@ -61,7 +61,7 @@ public class Caretaker {
     @Builder.Default
     private Set<CaretakerNotification> notifications = new HashSet<>();
 
-    @OneToMany(mappedBy = "caretaker", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "caretaker", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Care> cares = new ArrayList<>();
 

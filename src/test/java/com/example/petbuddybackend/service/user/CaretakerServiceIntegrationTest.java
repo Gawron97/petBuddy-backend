@@ -118,8 +118,9 @@ public class CaretakerServiceIntegrationTest {
 
     @AfterEach
     void cleanUp() {
-        offerRepository.deleteAll();
         ratingRepository.deleteAll();
+        careRepository.deleteAll();
+        offerRepository.deleteAll();
         appUserRepository.deleteAll();
     }
 

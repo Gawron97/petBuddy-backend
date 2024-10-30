@@ -11,6 +11,7 @@ import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.service.user.UserService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RatingService {
+
+    private static final String RATING = "Rating";
 
     private final RatingRepository ratingRepository;
     private final CareService careService;
@@ -35,8 +38,7 @@ public class RatingService {
 
         Care care = careService.getCareById(careId);
         String caretakerEmail = care.getCaretaker().getEmail();
-        userService.assertCaretakerAndClientExist(caretakerEmail, clientEmail);
-        assertCareBetweenCaretakerAndClientIsValid(caretakerEmail, clientEmail, care);
+        assertCareBetweenCaretakerAndClientIsValid(clientEmail, care);
 
         if(caretakerEmail.equals(clientEmail)) {
             throw new IllegalActionException("User cannot rate himself");
@@ -50,7 +52,6 @@ public class RatingService {
     public RatingResponse deleteRating(String clientEmail, Long careId) {
         Care care = careService.getCareById(careId);
         String caretakerEmail = care.getCaretaker().getEmail();
-        userService.assertCaretakerAndClientExist(caretakerEmail, clientEmail);
 
         RatingKey ratingKey = new RatingKey(caretakerEmail, clientEmail, careId);
         Rating rating = getRating(ratingKey);
@@ -69,10 +70,10 @@ public class RatingService {
         return ratingRepository.save(ratingEntity);
     }
 
-    private void assertCareBetweenCaretakerAndClientIsValid(String caretakerEmail, String clientEmail, Care care) {
+    private void assertCareBetweenCaretakerAndClientIsValid(String clientEmail, Care care) {
 
-        if(!care.getClient().getEmail().equals(clientEmail) || !care.getCaretaker().getEmail().equals(caretakerEmail)) {
-            throw new IllegalActionException("This care does not exist between caretaker and client");
+        if(!care.getClient().getEmail().equals(clientEmail)) {
+            throw new UnauthorizedException("You are not client in this care");
         }
 
         if(!care.getCaretakerStatus().equals(CareStatus.PAID) || !care.getClientStatus().equals(CareStatus.PAID)) {
@@ -93,7 +94,7 @@ public class RatingService {
 
     private Rating getRating(RatingKey ratingKey) {
         return ratingRepository.findById(ratingKey).orElseThrow(
-                () -> new NotFoundException("Rating does not exist")
+                () -> NotFoundException.withFormattedMessage(RATING, ratingKey.toString())
         );
     }
 
