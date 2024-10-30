@@ -67,17 +67,18 @@ public class CaretakerService {
 
     public CaretakerComplexPublicDTO getOtherCaretaker(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
+        this.renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker);
     }
 
     public CaretakerComplexDTO getMyCaretakerProfile(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
+        this.renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexDTO(caretaker);
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
         return caretakerRepository.findById(caretakerEmail)
-                .map(this::renewCaretakerPictures)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail));
     }
 
