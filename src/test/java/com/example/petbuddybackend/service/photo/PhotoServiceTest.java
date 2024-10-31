@@ -212,7 +212,7 @@ public class PhotoServiceTest {
         when(mockBlob.delete()).thenThrow(exception);
 
         assertThrows(StorageException.class, () -> firebasePhotoService.schedulePhotoDeletion(photoLink));
-        verify(photoRepository, times(2)).delete(photoLink);
+        verify(photoRepository, times(1)).delete(photoLink);
     }
 
     @Test
