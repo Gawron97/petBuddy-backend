@@ -3,7 +3,8 @@ package com.example.petbuddybackend.service.user;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
@@ -57,10 +58,16 @@ public class CaretakerService {
                 .map(caretakerMapper::mapToCaretakerDTO);
     }
 
-    public CaretakerComplexInfoDTO getCaretaker(String caretakerEmail) {
+    public CaretakerComplexPublicDTO getOtherCaretaker(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
-        renewCaretakerPictures(caretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretaker);
+        this.renewCaretakerPictures(caretaker);
+        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker);
+    }
+
+    public CaretakerComplexDTO getMyCaretakerProfile(String caretakerEmail) {
+        Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
+        this.renewCaretakerPictures(caretaker);
+        return caretakerMapper.mapToCaretakerComplexDTO(caretaker);
     }
 
     public Caretaker getCaretakerByEmail(String caretakerEmail) {
@@ -73,7 +80,7 @@ public class CaretakerService {
     }
 
     @Transactional
-    public CaretakerComplexInfoDTO addCaretaker(
+    public CaretakerComplexDTO addCaretaker(
             ModifyCaretakerDTO createCaretakerDTO,
             String email,
             List<MultipartFile> newOfferPhotos
@@ -85,11 +92,11 @@ public class CaretakerService {
         Caretaker caretaker = caretakerMapper.mapToCaretaker(createCaretakerDTO, appUser, uploadedOfferPhotos);
 
         renewCaretakerPictures(caretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+        return caretakerMapper.mapToCaretakerComplexDTO(caretakerRepository.save(caretaker));
     }
 
     @Transactional
-    public CaretakerComplexInfoDTO editCaretaker(
+    public CaretakerComplexDTO editCaretaker(
             ModifyCaretakerDTO modifyCaretakerDTO,
             String email,
             Set<String> offerBlobsToKeep,
@@ -100,7 +107,7 @@ public class CaretakerService {
 
         applyOfferPhotosPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
         renewCaretakerPictures(caretaker);
-        return caretakerMapper.mapToCaretakerComplexInfoDTO(caretakerRepository.save(caretaker));
+        return caretakerMapper.mapToCaretakerComplexDTO(caretakerRepository.save(caretaker));
     }
 
     @Transactional

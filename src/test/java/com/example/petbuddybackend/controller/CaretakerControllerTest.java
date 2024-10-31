@@ -3,7 +3,8 @@ package com.example.petbuddybackend.controller;
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.address.Voivodeship;
@@ -141,10 +142,10 @@ public class CaretakerControllerTest {
     }
 
     @Test
-    void getCaretaker_shouldReturnCaretakerDetails() throws Exception {
+    void getOtherCaretaker_shouldReturnCaretakerDetails() throws Exception {
         // Given
         String caretakerEmail = "johndoe@example.com";
-        CaretakerComplexInfoDTO caretakerComplexInfoDTO = CaretakerComplexInfoDTO.builder()
+        CaretakerComplexPublicDTO caretakerComplexInfoDTO = CaretakerComplexPublicDTO.builder()
                 .accountData(AccountDataDTO.builder()
                         .email(caretakerEmail)
                         .name("John Doe")
@@ -152,7 +153,7 @@ public class CaretakerControllerTest {
                 .description("Experienced pet caretaker")
                 .build();
 
-        when(caretakerService.getCaretaker(caretakerEmail)).thenReturn(caretakerComplexInfoDTO);
+        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenReturn(caretakerComplexInfoDTO);
 
         // When Then
         mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)
@@ -164,11 +165,11 @@ public class CaretakerControllerTest {
     }
 
     @Test
-    void getCaretaker_whenCaretakerNotExists_shouldThrowNotFound() throws Exception {
+    void getOtherCaretaker_whenCaretakerNotExists_shouldThrowNotFound() throws Exception {
         // Given
         String caretakerEmail = "johndoe@example.com";
 
-        when(caretakerService.getCaretaker(caretakerEmail)).thenThrow(NotFoundException.class);
+        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenThrow(NotFoundException.class);
 
         // When Then
         mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)
@@ -177,12 +178,37 @@ public class CaretakerControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "johndoe@example.com")
+    void getMyCaretakerProfile_shouldReturnProperAnswer() throws Exception {
+        // Given
+        String caretakerEmail = "johndoe@example.com";
+        CaretakerComplexDTO caretakerComplexDTO = CaretakerComplexDTO.builder()
+                .accountData(AccountDataDTO.builder()
+                        .email(caretakerEmail)
+                        .name("John Doe")
+                        .build())
+                .description("Experienced pet caretaker")
+                .build();
+
+        when(caretakerService.getMyCaretakerProfile(caretakerEmail)).thenReturn(caretakerComplexDTO);
+
+        // When Then
+        mockMvc.perform(get("/api/caretaker")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountData.email").value(caretakerEmail))
+                .andExpect(jsonPath("$.accountData.name").value("John Doe"))
+                .andExpect(jsonPath("$.description").value("Experienced pet caretaker"));
+    }
+
+    @Test
     @WithMockUser(username = CARETAKER_EMAIL)
     void addCaretaker_shouldReturnCreatedCaretaker() throws Exception {
         // When
         String json = createRequestBody();
         ModifyCaretakerDTO dto = gson.fromJson(json, ModifyCaretakerDTO.class);
-        CaretakerComplexInfoDTO resultDTO = createRequestResponse();
+        CaretakerComplexDTO resultDTO = createRequestResponse();
 
         MockMultipartFile caretakerData = getMockMultipartFile(json);
         MockMultipartFile newOfferPhotos = getMockMultipartPhotoFile();
@@ -212,7 +238,7 @@ public class CaretakerControllerTest {
         // Given
         String json = createUpdatedRequestBody();
         ModifyCaretakerDTO dto = gson.fromJson(json, ModifyCaretakerDTO.class);
-        CaretakerComplexInfoDTO resultDTO = createUpdatedRequestResponse();
+        CaretakerComplexDTO resultDTO = createUpdatedRequestResponse();
 
         MockMultipartFile caretakerData = getMockMultipartFile(json);
         MockMultipartFile newOfferPhotos = getMockMultipartPhotoFile();
@@ -327,7 +353,7 @@ public class CaretakerControllerTest {
         );
     }
 
-    private static CaretakerComplexInfoDTO createRequestResponse() {
+    private static CaretakerComplexDTO createRequestResponse() {
         AccountDataDTO accountDataDTO = AccountDataDTO.builder()
                 .email(CARETAKER_EMAIL)
                 .surname("caretaker surname")
@@ -344,7 +370,7 @@ public class CaretakerControllerTest {
                 .streetNumber(STREET_NUMBER)
                 .build();
 
-        return CaretakerComplexInfoDTO.builder()
+        return CaretakerComplexDTO.builder()
                 .accountData(accountDataDTO)
                 .address(addressDTO)
                 .description(DESCRIPTION)
@@ -352,7 +378,7 @@ public class CaretakerControllerTest {
                 .build();
     }
 
-    private static CaretakerComplexInfoDTO createUpdatedRequestResponse() {
+    private static CaretakerComplexDTO createUpdatedRequestResponse() {
         AccountDataDTO accountDataDTO = AccountDataDTO.builder()
                 .email(CARETAKER_EMAIL)
                 .surname("caretaker surname")
@@ -369,7 +395,7 @@ public class CaretakerControllerTest {
                 .streetNumber(UPDATED_STREET_NUMBER)
                 .build();
 
-        return CaretakerComplexInfoDTO.builder()
+        return CaretakerComplexDTO.builder()
                 .accountData(accountDataDTO)
                 .address(addressDTO)
                 .description(UPDATED_DESCRIPTION)

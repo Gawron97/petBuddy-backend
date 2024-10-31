@@ -1,7 +1,8 @@
 package com.example.petbuddybackend.service.mapper;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
@@ -22,7 +23,7 @@ public class CaretakerMapperTest {
     private final CaretakerMapper mapper = CaretakerMapper.INSTANCE;
 
     @Test
-    void mapToCaretakerComplexInfoDTO_shouldNotLeaveNullFields() {
+    void mapToCaretakerComplexDTO_shouldNotLeaveNullFields() {
         Caretaker caretaker = MockUserProvider.createMockCaretaker();
         PhotoLink profilePicture = MockUserProvider.createMockPhotoLink();
         caretaker.getAccountData().setProfilePicture(profilePicture);
@@ -32,9 +33,25 @@ public class CaretakerMapperTest {
         setIds(caretaker);
         setCalculatedFields(caretaker);
 
-        CaretakerComplexInfoDTO caretakerComplexInfoDTO = mapper.mapToCaretakerComplexInfoDTO(caretaker);
+        CaretakerComplexDTO caretakerComplexDTO = mapper.mapToCaretakerComplexDTO(caretaker);
 
-        assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerComplexInfoDTO));
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerComplexDTO));
+    }
+
+    @Test
+    void mapToCaretakerPublicComplexDTO_shouldNotLeaveNullFields() {
+        Caretaker caretaker = MockUserProvider.createMockCaretaker();
+        PhotoLink profilePicture = MockUserProvider.createMockPhotoLink();
+        caretaker.getAccountData().setProfilePicture(profilePicture);
+        MockOfferProvider.editComplexMockOfferForCaretaker(caretaker);
+        MockOfferProvider.setMockAvailabilitiesToOffer(caretaker.getOffers().get(0));
+
+        setIds(caretaker);
+        setCalculatedFields(caretaker);
+
+        CaretakerComplexPublicDTO caretakerPublicComplexDTO = mapper.mapToCaretakerComplexPublicDTO(caretaker);
+
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerPublicComplexDTO));
     }
 
     @Test

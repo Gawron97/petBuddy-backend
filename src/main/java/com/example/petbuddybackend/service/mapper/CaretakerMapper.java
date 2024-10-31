@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.service.mapper;
 
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.offer.Offer;
@@ -19,7 +20,7 @@ public interface CaretakerMapper {
     CaretakerMapper INSTANCE = Mappers.getMapper(CaretakerMapper.class);
 
     @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")
-    CaretakerComplexInfoDTO mapToCaretakerComplexInfoDTO(Caretaker caretaker);
+    CaretakerComplexDTO mapToCaretakerComplexDTO(Caretaker caretaker);
 
     @Mapping(target = "offerPhotos", source = "offerPhotos")
     @Mapping(target = "accountData", source = "accountData")
@@ -28,6 +29,10 @@ public interface CaretakerMapper {
     @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")
     CaretakerDTO mapToCaretakerDTO(Caretaker caretaker);
 
+    @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")
+    CaretakerComplexPublicDTO mapToCaretakerComplexPublicDTO(Caretaker caretaker);
+
+    void updateCaretakerFromDTO(ModifyCaretakerDTO caretakerDTO, @MappingTarget Caretaker caretaker);
     void updateCaretakerFromDTO(@MappingTarget Caretaker caretaker, ModifyCaretakerDTO caretakerDTO);
 
     @Named("mapAnimalFromOffer")

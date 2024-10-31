@@ -5,10 +5,7 @@ import com.example.petbuddybackend.dto.availability.AvailabilityFilterDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
-import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.dto.user.*;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.care.Care;
@@ -1080,7 +1077,7 @@ public class CaretakerServiceIntegrationTest {
                 .build();
 
         //When
-        CaretakerComplexInfoDTO result = caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail(), new ArrayList<>());
+        CaretakerComplexDTO result = caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail(), new ArrayList<>());
         Caretaker caretaker = caretakerRepository.findById(result.accountData().email()).orElse(null);
 
         //Then
@@ -1161,7 +1158,7 @@ public class CaretakerServiceIntegrationTest {
                 .build();
 
         //When
-        CaretakerComplexInfoDTO result = caretakerService.editCaretaker(
+        CaretakerComplexDTO result = caretakerService.editCaretaker(
                 caretakerToCreate,
                 caretakerWithComplexOffer.getEmail(),
                 Collections.emptySet(),
@@ -1227,7 +1224,7 @@ public class CaretakerServiceIntegrationTest {
                 .build();
 
         //When
-        CaretakerComplexInfoDTO result = caretakerService.editCaretaker(
+        CaretakerComplexDTO result = caretakerService.editCaretaker(
                 caretakerToCreate,
                 caretakerWithComplexOffer.getEmail(),
                 Collections.emptySet(),
@@ -1257,13 +1254,13 @@ public class CaretakerServiceIntegrationTest {
 
     @Test
     @Transactional
-    void getCaretaker_shouldReturnProperCaretaker() {
+    void getOtherCaretaker_shouldReturnProperCaretaker() {
 
         //Given
         String email = "testmail@mail.com";
 
         //When
-        CaretakerComplexInfoDTO result = caretakerService.getCaretaker(email);
+        CaretakerComplexPublicDTO result = caretakerService.getOtherCaretaker(email);
 
         //Then
         assertNotNull(result);
@@ -1272,13 +1269,29 @@ public class CaretakerServiceIntegrationTest {
     }
 
     @Test
-    void getCaretaker_whenCaretakerNotExists_shouldThrowNotFoundException() {
+    void getOtherCaretaker_whenCaretakerNotExists_shouldThrowNotFoundException() {
 
         //Given
         String email = "notexists@mail.com";
 
         //When Then
-        assertThrows(NotFoundException.class, () -> caretakerService.getCaretaker(email));
+        assertThrows(NotFoundException.class, () -> caretakerService.getOtherCaretaker(email));
+
+    }
+
+    @Test
+    @Transactional
+    void getMyCaretakerProfile_shouldReturnProperAnswer() {
+
+        //Given
+        String email = "testmail@mail.com";
+
+        //When
+        CaretakerComplexDTO result = caretakerService.getMyCaretakerProfile(email);
+
+        //Then
+        assertNotNull(result);
+        assertEquals(email, result.accountData().email());
 
     }
 }

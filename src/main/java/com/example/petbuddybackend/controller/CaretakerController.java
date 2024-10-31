@@ -4,7 +4,8 @@ import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.user.Role;
@@ -69,8 +70,21 @@ public class CaretakerController {
             summary = "Get caretaker information",
             description = "Get caretaker with details information"
     )
-    public CaretakerComplexInfoDTO getCaretaker(@PathVariable String caretakerEmail) {
-        return caretakerService.getCaretaker(caretakerEmail);
+    public CaretakerComplexPublicDTO getOtherCaretaker(@PathVariable String caretakerEmail) {
+        return caretakerService.getOtherCaretaker(caretakerEmail);
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "Get currently logged in caretaker information",
+            description = "Get currently logged in caretaker with details information"
+    )
+    @PreAuthorize("isAuthenticated()")
+    public CaretakerComplexDTO getMyCaretakerProfile(Principal principal,
+
+                                                 @AcceptRole(acceptRole = Role.CARETAKER)
+                                            @RequestHeader(value = "${header-name.role}") Role role) {
+        return caretakerService.getMyCaretakerProfile(principal.getName());
     }
 
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
@@ -84,7 +98,7 @@ public class CaretakerController {
             @ApiResponse(responseCode = "413", description = "Uploaded file exceeds the maximum allowed size of ${spring.servlet.multipart.max-file-size}")
     })
     @PreAuthorize("isAuthenticated()")
-    public CaretakerComplexInfoDTO addCaretaker(
+    public CaretakerComplexDTO addCaretaker(
             Principal principal,
             @RequestPart @Valid ModifyCaretakerDTO caretakerData,
             @RequestPart(required = false) Optional<List<@NotNull MultipartFile>> newOfferPhotos
@@ -109,7 +123,7 @@ public class CaretakerController {
                     """
     )
     @PreAuthorize("isAuthenticated()")
-    public CaretakerComplexInfoDTO editCaretaker(
+    public CaretakerComplexDTO editCaretaker(
             Principal principal,
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role,

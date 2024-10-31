@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.service.mapper;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
+import com.example.petbuddybackend.dto.address.PublicAddressDTO;
 import com.example.petbuddybackend.entity.address.Address;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -16,6 +17,8 @@ public interface AddressMapper {
     Address mapToAddress(AddressDTO addressDTO);
 
     AddressDTO mapToAddressDTO(Address address);
+
+    PublicAddressDTO mapToPublicAddressDTO(Address address);
 
     void updateAddressFromDTO(AddressDTO addressDTO, @MappingTarget Address address);
 

@@ -8,7 +8,7 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record CaretakerComplexInfoDTO(
+public record CaretakerComplexDTO(
     AccountDataDTO accountData,
     String phoneNumber,
     String description,
