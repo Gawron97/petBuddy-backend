@@ -45,6 +45,7 @@ public class UserServiceTest {
             "testBlob",
             "testURL",
             LocalDateTime.now()
+            , null
     );
 
     @Mock
@@ -118,7 +119,7 @@ public class UserServiceTest {
     @Test
     void getProfileData_shouldSucceed() {
         // Given
-        PhotoLink existingProfilePicture = new PhotoLink("oldBlob", "oldURL", LocalDateTime.now());
+        PhotoLink existingProfilePicture = new PhotoLink("oldBlob", "oldURL", LocalDateTime.now(), null);
         AppUser userWithPicture = AppUser.builder()
                 .email(EMAIL)
                 .profilePicture(existingProfilePicture)
@@ -205,8 +206,8 @@ public class UserServiceTest {
         userService.uploadProfilePicture(USERNAME, profilePicture);
 
         // Then
-        verify(userRepository).save(userCaptor.capture());
-        verify(photoService).deletePhoto(photoLink);
+        verify(userRepository, times(2)).save(userCaptor.capture());
+        verify(photoService).schedulePhotoDeletion(photoLink);
         AppUser savedUser = userCaptor.getValue();
         assertEquals(newPhoto, savedUser.getProfilePicture());
     }
@@ -237,7 +238,7 @@ public class UserServiceTest {
         verify(userRepository).save(userCaptor.capture());
         AppUser savedUser = userCaptor.getValue();
         assertNull(savedUser.getProfilePicture());
-        verify(photoService).deletePhoto(photoLink);
+        verify(photoService).schedulePhotoDeletion(photoLink);
     }
 
     @Test
@@ -253,7 +254,7 @@ public class UserServiceTest {
 
         // Then
         verify(userRepository, never()).save(any(AppUser.class));
-        verify(photoService, never()).deletePhoto(any(String.class));
+        verify(photoService, never()).schedulePhotoDeletion(any(PhotoLink.class));
     }
 
     @Test
@@ -263,7 +264,7 @@ public class UserServiceTest {
 
         // When & Then
         assertThrows(NotFoundException.class, () -> userService.deleteProfilePicture(EMAIL));
-        verify(photoService, never()).deletePhoto(any(String.class));
+        verify(photoService, never()).schedulePhotoDeletion(any(PhotoLink.class));
     }
 
     @Test

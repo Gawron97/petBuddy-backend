@@ -164,7 +164,7 @@ public class CaretakerService {
         caretaker.getOfferPhotos().removeAll(photosToRemove);
         assertOfferPhotoCountWithinLimit(caretaker.getOfferPhotos().size() + newPhotos.size());
         caretaker.getOfferPhotos().addAll(photoService.uploadPhotos(newPhotos));
-        photoService.deletePhotos(photosToRemove);
+        photoService.schedulePhotoDeletions(photosToRemove);
     }
 
     private Caretaker renewCaretakerPictures(Caretaker caretaker) {

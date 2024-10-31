@@ -79,8 +79,10 @@ public class UserService {
         AppUser user = getAppUser(username);
         PhotoLink oldPhoto = user.getProfilePicture();
 
-        if(oldPhoto != null) {
-            photoService.deletePhoto(oldPhoto);
+        if (oldPhoto != null) {
+            user.setProfilePicture(null);
+            userRepository.save(user);
+            photoService.schedulePhotoDeletion(oldPhoto);
         }
 
         PhotoLink newPhoto = photoService.uploadPhoto(profilePicture);
@@ -97,7 +99,7 @@ public class UserService {
             return;
         }
 
-        photoService.deletePhoto(profilePicture);
+        photoService.schedulePhotoDeletion(profilePicture);
         user.setProfilePicture(null);
         userRepository.save(user);
     }
