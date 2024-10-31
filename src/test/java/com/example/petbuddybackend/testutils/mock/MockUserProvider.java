@@ -66,11 +66,11 @@ public final class MockUserProvider {
         );
     }
 
-    public static Client createMockClient(String newClientEmail) {
-        AppUser accountData = createMockAppUser("clientName", "clientSurname", newClientEmail);
+    public static Client createMockClient(String clientEmail) {
+        AppUser accountData = createMockAppUser("clientName", "clientSurname", clientEmail);
 
         return Client.builder()
-                .email(newClientEmail)
+                .email(clientEmail)
                 .accountData(accountData)
                 .build();
     }

@@ -8,9 +8,11 @@ import com.example.petbuddybackend.dto.rating.RatingRequest;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.user.Role;
+import com.example.petbuddybackend.service.care.CareService;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
@@ -41,6 +43,7 @@ import java.util.Set;
 public class CaretakerController {
 
     private final CaretakerService caretakerService;
+    private final CareService careService;
 
     @SecurityRequirements
     @PostMapping("/all")
@@ -165,53 +168,4 @@ public class CaretakerController {
         );
     }
 
-    @SecurityRequirements
-    @GetMapping("/{caretakerEmail}/rating")
-    @Operation(
-            summary = "Get ratings of caretaker",
-            description = "Retrieves a paginated list of ratings for a caretaker."
-    )
-    public Page<RatingResponse> getRatings(
-            @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
-            @PathVariable String caretakerEmail
-    ) {
-        Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
-        return caretakerService.getRatings(pageable, caretakerEmail);
-    }
-
-    @PostMapping("/{caretakerEmail}/rating")
-    @Operation(
-            summary = "Rate caretaker",
-            description = "Rates a caretaker with a given rating and comment. Updates the rating if it already exists."
-    )
-    @PreAuthorize("isAuthenticated()")
-    public RatingResponse rateCaretaker(
-            @AcceptRole(acceptRole = Role.CLIENT)
-            @RequestHeader(value = "${header-name.role}") Role role,
-            @PathVariable String caretakerEmail,
-            @RequestBody @Valid RatingRequest ratingDTO,
-            Principal principal
-    ) {
-        return caretakerService.rateCaretaker(
-                caretakerEmail,
-                principal.getName(),
-                ratingDTO.rating(),
-                ratingDTO.comment()
-        );
-    }
-
-    @DeleteMapping("/{caretakerEmail}/rating")
-    @Operation(
-            summary = "Delete rating",
-            description = "Deletes a rating for a caretaker."
-    )
-    @PreAuthorize("isAuthenticated()")
-    public RatingResponse deleteRating(
-            @AcceptRole(acceptRole = Role.CLIENT)
-            @RequestHeader(value = "${header-name.role}") Role role,
-            @PathVariable String caretakerEmail,
-            Principal principal
-    ) {
-        return caretakerService.deleteRating(caretakerEmail, principal.getName());
-    }
 }

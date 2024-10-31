@@ -41,6 +41,23 @@ public class MockCareProvider {
         return createMockCare(caretaker, client, animal, CareStatus.ACCEPTED, CareStatus.PENDING);
     }
 
+    public static Care createMockPaidCare(Caretaker caretaker, Client client, Animal animal) {
+
+        return Care.builder()
+                .caretakerStatus(CareStatus.PAID)
+                .clientStatus(CareStatus.PAID)
+                .careStart(LocalDate.now().plusDays(2))
+                .careEnd(LocalDate.now().plusDays(7))
+                .description("Test care description")
+                .dailyPrice(new BigDecimal("50.00"))
+                .animal(animal)
+                .animalAttributes(new HashSet<>())
+                .caretaker(caretaker)
+                .client(client)
+                .build();
+
+    }
+
     public static Care createMockCare(Caretaker caretaker, Client client, Animal animal, ZonedDateTime submittedAt,
                                       LocalDate careStart, LocalDate careEnd, BigDecimal dailyPrice,
                                       CareStatus caretakerStatus, CareStatus clientStatus) {

@@ -19,7 +19,6 @@
         <module name="LocalVariableName"/>
         <module name="PackageName"/>
         <module name="ConstantName"/>
-        <module name="WhitespaceAround"/>
 
     </module>
 

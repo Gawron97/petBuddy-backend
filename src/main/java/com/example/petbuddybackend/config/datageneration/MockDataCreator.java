@@ -92,12 +92,8 @@ public class MockDataCreator {
         caretakerAppUsers = appUserRepository.saveAllAndFlush(mockService.createMockAppUsers(CARETAKER_COUNT));
         clientAppUsers = appUserRepository.saveAllAndFlush(mockService.createMockAppUsers(CLIENT_COUNT));
 
-
         clients = clientRepository.saveAllAndFlush(mockService.createMockClients(clientAppUsers));
         caretakers = caretakerRepository.saveAllAndFlush(mockService.createMockCaretakers(caretakerAppUsers));
-
-        addRatingsToSliceOfCaretakers(caretakers, clients);
-
 
         // caretaker offers
         animals = animalRepository.findAll();
@@ -148,6 +144,10 @@ public class MockDataCreator {
                 mockService.createMockCares(List.of(client), List.of(caretaker), animals, animalAttributes, 10)
         );
 
+        // ratings
+        caretakers = caretakerRepository.findAll();
+        addRatingsToSliceOfCaretakers(caretakers);
+
         // following caretakers
         clients = clientRepository.findAll();
         caretakers = caretakerRepository.findAll();
@@ -185,13 +185,13 @@ public class MockDataCreator {
                 careRepository.count() != 0;
     }
 
-    private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers, List<Client> clients) {
+    private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers) {
         int caretakersWithRatingsCount = (int)(allCaretakers.size() * 0.7f);
         List<Caretaker> caretakersWithRatings = caretakersWithRatingsCount == 0 ?
                 allCaretakers :
                 allCaretakers.subList(0, caretakersWithRatingsCount);
 
-        return ratingRepository.saveAllAndFlush(mockService.createMockRatings(caretakersWithRatings, clients));
+        return ratingRepository.saveAllAndFlush(mockService.createMockRatings(caretakersWithRatings));
     }
 
     private Client createKnownClient() {

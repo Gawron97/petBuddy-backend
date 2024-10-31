@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Builder
 @DateRange(fields = {
@@ -31,11 +32,12 @@ public record CreateCareDTO(
         BigDecimal dailyPrice,
 
         @NotBlank String animalType,
-        List<Long> animalAttributeIds
+
+        Map<String, List<String>> selectedOptions
 ) {
         public CreateCareDTO {
-                if(animalAttributeIds == null) {
-                        animalAttributeIds = Collections.emptyList();
+                if(selectedOptions == null) {
+                        selectedOptions = Collections.emptyMap();
                 }
         }
 }

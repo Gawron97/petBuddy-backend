@@ -236,10 +236,14 @@ public class PersistenceUtils {
         );
     }
 
-    public static Rating addRatingToCaretaker(Caretaker caretaker, Client client, Integer ratingNumber, String comment,
+    public static Rating addRatingToCaretaker(Caretaker caretaker, Client client, Care care, Integer ratingNumber, String comment,
                                               RatingRepository ratingRepository) {
-        Rating rating = createMockRatingForCaretaker(caretaker, client, ratingNumber, comment);
+        Rating rating = createMockRatingForCaretaker(caretaker, client, care, ratingNumber, comment);
         return ratingRepository.save(rating);
+    }
+
+    public static Rating addRatingToCaretaker(RatingRepository ratingRepository, Rating rating) {
+        return ratingRepository.saveAndFlush(rating);
     }
 
     public static void setAvailabilitiesForOffer(OfferRepository offerRepository, Offer existingOffer) {

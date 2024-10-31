@@ -5,19 +5,21 @@ import com.example.petbuddybackend.dto.availability.AvailabilityFilterDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferConfigurationFilterDTO;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
-import com.example.petbuddybackend.dto.rating.RatingResponse;
-import com.example.petbuddybackend.dto.user.*;
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
+import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.availability.Availability;
+import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.offer.Offer;
-import com.example.petbuddybackend.entity.rating.Rating;
-import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.amenity.AnimalAmenityRepository;
 import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.offer.OfferRepository;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
@@ -26,9 +28,6 @@ import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
-import com.example.petbuddybackend.testutils.ValidationUtils;
-import com.example.petbuddybackend.testutils.mock.MockRatingProvider;
-import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +37,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -87,6 +85,9 @@ public class CaretakerServiceIntegrationTest {
     @Autowired
     private RatingRepository ratingRepository;
 
+    @Autowired
+    private CareRepository careRepository;
+
     private Caretaker caretaker;
     private Client clientSameAsCaretaker;
     private Client client;
@@ -117,6 +118,8 @@ public class CaretakerServiceIntegrationTest {
 
     @AfterEach
     void cleanUp() {
+        ratingRepository.deleteAll();
+        careRepository.deleteAll();
         offerRepository.deleteAll();
         appUserRepository.deleteAll();
     }
@@ -1018,8 +1021,11 @@ public class CaretakerServiceIntegrationTest {
         Client client2 = PersistenceUtils.addClient(appUserRepository, clientRepository,
                 createMockClient("secondClient", "seconfClient", "secondClientEmail"));
 
-        PersistenceUtils.addRatingToCaretaker(caretaker, client, 5, "comment", ratingRepository);
-        PersistenceUtils.addRatingToCaretaker(caretaker, client2, 4, "comment second", ratingRepository);
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
+        Care care2 = PersistenceUtils.addCare(careRepository, caretaker, client2, animalRepository.findById("CAT").get());
+
+        PersistenceUtils.addRatingToCaretaker(caretaker, client, care, 5, "comment", ratingRepository);
+        PersistenceUtils.addRatingToCaretaker(caretaker, client2, care2, 4, "comment second", ratingRepository);
 
         // When
         Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(
@@ -1049,158 +1055,6 @@ public class CaretakerServiceIntegrationTest {
                     Collections.emptySet()
             ));
         }
-    }
-
-    @Test
-    void testGetRating_sortingParamsShouldAlignWithDTO() {
-        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(RatingResponse.class);
-
-        for(String fieldName : fieldNames) {
-            assertDoesNotThrow(() -> caretakerService.getRatings(
-                    PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
-                    caretaker.getEmail()
-            ));
-        }
-    }
-
-    @Test
-    @Transactional
-    void rateCaretaker_shouldSucceed() throws IllegalAccessException {
-        caretakerService.rateCaretaker(
-                caretaker.getEmail(),
-                client.getAccountData().getEmail(),
-                5,
-                "comment"
-        );
-
-        Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail()));
-        assertEquals(1, ratingRepository.count());
-        assertEquals(5, rating.getRating());
-        assertTrue(ValidationUtils.fieldsNotNullRecursive(rating, Set.of("client", "caretaker")));
-    }
-
-    @Test
-    @Transactional
-    void rateCaretaker_ratingExists_shouldUpdateRating() {
-        ratingRepository.save(MockRatingProvider.createMockRating(caretaker, client));
-
-        caretakerService.rateCaretaker(
-                caretaker.getEmail(),
-                client.getAccountData().getEmail(),
-                5,
-                "new comment"
-        );
-
-        Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail()));
-        assertEquals(1, ratingRepository.count());
-        assertEquals(5, rating.getRating());
-        assertEquals("new comment", rating.getComment());
-        assertEquals(client.getEmail(), rating.getClientEmail());
-        assertEquals(caretaker.getEmail(), rating.getCaretakerEmail());
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideRatingParams")
-    void rateCaretaker_invalidRating_(int rating, boolean shouldSucceed) {
-        if(shouldSucceed) {
-            caretakerService.rateCaretaker(
-                    caretaker.getEmail(),
-                    client.getAccountData().getEmail(),
-                    rating,
-                    "comment"
-            );
-            return;
-        }
-
-        assertThrows(DataIntegrityViolationException.class, () -> caretakerService.rateCaretaker(
-                caretaker.getEmail(),
-                client.getAccountData().getEmail(),
-                rating,
-                "comment"
-        ));
-    }
-
-    @Test
-    void rateCaretaker_clientRatesHimself_shouldThrowIllegalActionException() {
-        assertThrows(IllegalActionException.class, () -> caretakerService.rateCaretaker(
-                caretaker.getEmail(),
-                clientSameAsCaretaker.getAccountData().getEmail(),
-                5,
-                "comment"
-        ));
-    }
-
-    @Test
-    void rateCaretaker_caretakerDoesNotExist_shouldThrowNotFoundException() {
-        assertThrows(NotFoundException.class, () -> caretakerService.rateCaretaker(
-                "invalidEmail",
-                client.getAccountData().getEmail(),
-                5,
-                "comment"
-        ));
-    }
-
-    @Test
-    void deleteRating_shouldSucceed() {
-        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(caretaker, client));
-
-        caretakerService.deleteRating(caretaker.getEmail(), client.getAccountData().getEmail());
-        assertEquals(0, ratingRepository.count());
-    }
-
-    @Test
-    void deleteRating_caretakerDoesNotExist_shouldThrow() {
-        assertThrows(NotFoundException.class, () -> caretakerService.deleteRating(
-                "invalidEmail",
-                client.getAccountData().getEmail()
-        ));
-    }
-
-    @Test
-    void deleteRating_ratingDoesNotExist_shouldThrow() {
-        assertThrows(NotFoundException.class, () -> caretakerService.deleteRating(
-                caretaker.getEmail(),
-                client.getAccountData().getEmail()
-        ));
-    }
-
-    @Test
-    void getRatings_shouldReturnRatings() {
-        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(caretaker, client));
-
-        Page<RatingResponse> ratings = caretakerService.getRatings(Pageable.ofSize(10), caretaker.getEmail());
-        assertEquals(1, ratings.getContent().size());
-    }
-
-    @Test
-    void getRating_shouldReturnRating() {
-        Rating rating = MockRatingProvider.createMockRating(caretaker, client);
-        ratingRepository.saveAndFlush(rating);
-
-        Rating foundRating = caretakerService.getRating(caretaker.getEmail(), client.getEmail());
-        assertEquals(rating.getCaretakerEmail(), foundRating.getCaretakerEmail());
-        assertEquals(rating.getClientEmail(), foundRating.getClientEmail());
-    }
-
-    @Test
-    void getRating_ratingDoesNotExist_shouldThrowNotFoundException() {
-        assertThrows(NotFoundException.class, () -> caretakerService.getRating(
-                caretaker.getEmail(),
-                client.getEmail()
-        ));
-    }
-
-    private static Stream<Arguments> provideRatingParams() {
-        return Stream.of(
-                Arguments.of(-1, false),
-                Arguments.of(0, false),
-                Arguments.of(1, true),
-                Arguments.of(2, true),
-                Arguments.of(3, true),
-                Arguments.of(4, true),
-                Arguments.of(5, true),
-                Arguments.of(6, false)
-        );
     }
 
     @Test
