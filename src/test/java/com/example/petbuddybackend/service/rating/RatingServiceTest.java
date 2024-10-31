@@ -16,9 +16,9 @@ import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
+import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -196,8 +196,8 @@ public class RatingServiceTest {
     }
 
     @Test
-    void rateCaretaker_clientRatesHimself_shouldThrowIllegalActionException() {
-        assertThrows(UnauthorizedException.class, () -> ratingService.rateCaretaker(
+    void rateCaretaker_clientRatesHimself_shouldThrowForbiddenException() {
+        assertThrows(ForbiddenException.class, () -> ratingService.rateCaretaker(
                 clientSameAsCaretaker.getEmail(),
                 paidCare.getId(),
                 5,
@@ -226,7 +226,7 @@ public class RatingServiceTest {
     }
 
     @Test
-    void rateCaretaker_ClientIsNotSubjectInCare_ShouldThrowUnauthorizedException() {
+    void rateCaretaker_ClientIsNotSubjectInCare_ShouldThrowForbiddenException() {
 
         //given
         Care badCare = PersistenceUtils.addCare(
@@ -235,7 +235,7 @@ public class RatingServiceTest {
                 PersistenceUtils.addClient(appUserRepository, clientRepository, createMockClient("anotherClient")),
                 animalRepository.findById("DOG").get()
         );
-        assertThrows(UnauthorizedException.class, () -> ratingService.rateCaretaker(
+        assertThrows(ForbiddenException.class, () -> ratingService.rateCaretaker(
                 caretaker.getEmail(),
                 badCare.getId(),
                 2,

@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -53,7 +54,8 @@ public class GeneralAdvice {
                 .flatMap(result -> result.getResolvableErrors().stream()
                         .map(error -> {
                             if (error instanceof FieldError fieldError) {
-                                return result.getMethodParameter().getParameterName() + "." + fieldError.getField() + ": " + fieldError.getDefaultMessage();
+                                return result.getMethodParameter().getParameterName() + "." + fieldError.getField() +
+                                        ": " + fieldError.getDefaultMessage();
                             }
                             return result.getMethodParameter().getParameterName() + ": " + error.getDefaultMessage();
                         }))
@@ -130,6 +132,12 @@ public class GeneralAdvice {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(code = HttpStatus.METHOD_NOT_ALLOWED)
     public ApiExceptionResponse handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(code = HttpStatus.FORBIDDEN)
+    public ApiExceptionResponse handleForbiddenException(ForbiddenException e) {
         return new ApiExceptionResponse(e, e.getMessage());
     }
 }

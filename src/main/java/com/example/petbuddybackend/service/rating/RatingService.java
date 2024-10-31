@@ -9,9 +9,9 @@ import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.service.care.CareService;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.service.user.UserService;
+import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.general.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -73,7 +73,7 @@ public class RatingService {
     private void assertCareBetweenCaretakerAndClientIsValid(String clientEmail, Care care) {
 
         if(!care.getClient().getEmail().equals(clientEmail)) {
-            throw new UnauthorizedException("You are not client in this care");
+            throw new ForbiddenException("You are not client in this care");
         }
 
         if(!care.getCaretakerStatus().equals(CareStatus.PAID) || !care.getClientStatus().equals(CareStatus.PAID)) {
