@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class FirebasePhotoService implements PhotoService {
 
-    private final static String MISSING_FILE_EXTENSION = "Missing file extension";
     private final static String PHOTO = "Photo";
     private static final Set<String> acceptedImageTypes = Set.of(
             "image/jpeg",
@@ -168,21 +167,10 @@ public class FirebasePhotoService implements PhotoService {
          }
      }
 
-    /**
-     * @return Extension of the file like .jpg, .png, .jpeg
-     * */
-    private String getExtension(String fileName) {
-        if(fileName == null) {
-            throw new InvalidPhotoException(MISSING_FILE_EXTENSION);
-        }
-
-        return fileName.substring(fileName.lastIndexOf("."));
-    }
-
     private PhotoLink uploadFile(MultipartFile file, int expirationSeconds) {
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
-        String filename = UUID.randomUUID() + getExtension(file.getOriginalFilename());
+        String filename = UUID.randomUUID().toString();
         String blobPath = PHOTO_DIRECTORY + "/" + filename;
 
         try {
