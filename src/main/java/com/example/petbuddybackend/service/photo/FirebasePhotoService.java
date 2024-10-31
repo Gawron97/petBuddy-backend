@@ -96,8 +96,8 @@ public class FirebasePhotoService implements PhotoService {
     @Async
     public void schedulePhotoDeletion(PhotoLink photoLink) {
         try {
-            photoRepository.delete(photoLink);
             removePhotoFromCloud(photoLink.getBlob());
+            photoRepository.delete(photoLink);
         } catch(StorageException e) {
             handleStorageException(e, photoLink);
             throw e;
