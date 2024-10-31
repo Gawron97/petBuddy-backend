@@ -79,6 +79,7 @@ public class CaretakerController {
             summary = "Get currently logged in caretaker information",
             description = "Get currently logged in caretaker with details information"
     )
+    @PreAuthorize("isAuthenticated()")
     public CaretakerComplexDTO getMyCaretakerProfile(Principal principal,
 
                                                  @AcceptRole(acceptRole = Role.CARETAKER)
