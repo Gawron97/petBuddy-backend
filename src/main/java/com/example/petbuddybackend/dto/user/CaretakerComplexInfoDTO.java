@@ -4,8 +4,8 @@ import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.offer.OfferDTO;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import lombok.Builder;
+
 import java.util.List;
-import java.util.Set;
 
 @Builder
 public record CaretakerComplexInfoDTO(

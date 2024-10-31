@@ -144,7 +144,8 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     /**
-     * Checks if the provided file is not empty and if its type matches the accepted types defined in the acceptedImageTypes set.
+     * Checks if the provided file is not empty and if its type matches the accepted types defined in the
+     * acceptedImageTypes set.
      * */
      private void validatePhoto(MultipartFile multipartFile) {
          if (multipartFile == null || multipartFile.isEmpty()) {

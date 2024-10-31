@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.address.Address;
+import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
@@ -60,6 +61,9 @@ public class Caretaker {
     @Builder.Default
     private Set<CaretakerNotification> notifications = new HashSet<>();
 
+    @OneToMany(mappedBy = "caretaker", fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Care> cares = new ArrayList<>();
 
     @Builder.Default
     @OrderColumn(name = "index_id")

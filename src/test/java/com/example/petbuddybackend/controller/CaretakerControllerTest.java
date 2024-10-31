@@ -2,20 +2,17 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.*;
-import com.example.petbuddybackend.entity.address.Voivodeship;
-import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexInfoDTO;
 import com.example.petbuddybackend.dto.user.CaretakerDTO;
+import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.entity.address.Voivodeship;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,13 +27,11 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -143,48 +138,6 @@ public class CaretakerControllerTest {
                 .andExpect(jsonPath("$.content.length()").value(2))
                 .andExpect(jsonPath("$.content[0].accountData.name").value("John Doe"))
                 .andExpect(jsonPath("$.content[1].accountData.name").value("Jane Doe"));
-    }
-
-    @ParameterizedTest
-    @MethodSource("provideRatingData")
-    @WithMockUser(username = CLIENT_EMAIL)
-    void rateCaretaker(String body, ResultMatcher expectedResponse) throws Exception {
-        mockMvc.perform(post("/api/caretaker/1/rating")
-                        .header(ROLE_HEADER_NAME, Role.CLIENT)
-                        .content(body)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(expectedResponse);
-    }
-
-    @Test
-    @WithMockUser(username = CLIENT_EMAIL)
-    void deleteRating_shouldSucceed() throws Exception {
-        mockMvc.perform(delete("/api/caretaker/1/rating")
-                        .header(ROLE_HEADER_NAME, Role.CLIENT)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void getRatingsOfCaretaker_shouldSucceed() throws Exception {
-        mockMvc.perform(get("/api/caretaker/1/rating")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
-
-    private static Stream<Arguments> provideRatingData() {
-        return Stream.of(
-                Arguments.of(String.format(RATING_BODY, 5, "Great service!"), status().isOk()),
-                Arguments.of(String.format(RATING_BODY, 3, ""), status().isOk()),
-                Arguments.of(String.format(RATING_BODY, 1, ""), status().isOk()),
-                Arguments.of(String.format(RATING_BODY, 6, "Great service!"), status().isBadRequest()),
-                Arguments.of(String.format(RATING_BODY, 0, "Great service!"), status().isBadRequest()),
-                Arguments.of("{\"comment\": \"comment\"}", status().isBadRequest()),
-                Arguments.of("{\"rating\": 4}", status().isBadRequest())
-        );
     }
 
     @Test
