@@ -26,4 +26,6 @@ public class PhotoLink {
 
     @Column(nullable = false)
     private LocalDateTime urlExpiresAt;
+
+    private LocalDateTime markedForDeletionAt;
 }

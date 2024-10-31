@@ -159,6 +159,7 @@
                             <exclude>com/example/petbuddybackend/config/websocket/**</exclude>
                             <exclude>com/example/petbuddybackend/config/web/WebConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/config/firebase/**</exclude>
+                            <exclude>com/example/petbuddybackend/config/async/AsyncConfig.class</exclude>
                             <exclude>com/example/petbuddybackend/service/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/filter/ExceptionHandlerFilter.class</exclude>
                             <exclude>com/example/petbuddybackend/filter/CORSFilter.class</exclude>

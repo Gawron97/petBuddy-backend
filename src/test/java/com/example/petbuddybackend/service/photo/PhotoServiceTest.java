@@ -5,6 +5,7 @@ import com.example.petbuddybackend.repository.photo.PhotoLinkRepository;
 import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.StorageException;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.cloud.StorageClient;
 import org.apache.tika.Tika;
@@ -98,7 +99,7 @@ public class PhotoServiceTest {
 
     @Test
     void findPhotoLinkByNullableId_blobNotNull_shouldReturnPhotoLink() {
-        PhotoLink photo = new PhotoLink(BLOB_PATH, PHOTO_URL, LocalDateTime.now().plusDays(10));
+        PhotoLink photo = new PhotoLink(BLOB_PATH, PHOTO_URL, LocalDateTime.now().plusDays(10), null);
         when(photoRepository.findById(BLOB_PATH)).thenReturn(Optional.of(photo));
 
         Optional<PhotoLink> result = firebasePhotoService.findPhotoLinkByNullableId(BLOB_PATH);
@@ -180,41 +181,71 @@ public class PhotoServiceTest {
     }
 
     @Test
-    void testDeletePhoto_validBlob_shouldDeleteSuccessfully() {
-        PhotoLink photo = new PhotoLink(BLOB_PATH, PHOTO_URL, LocalDateTime.now().plusDays(10));
+    void testSchedulePhotoDeletion_validPhotoLink_shouldDeleteSuccessfully() {
+        PhotoLink photo = new PhotoLink(BLOB_PATH, PHOTO_URL, LocalDateTime.now().plusDays(10), null);
         when(photoRepository.findById(BLOB_PATH)).thenReturn(Optional.of(photo));
         when(mockBucket.get(BLOB_PATH)).thenReturn(mockBlob);
 
-        firebasePhotoService.deletePhoto(BLOB_PATH);
+        firebasePhotoService.schedulePhotoDeletion(photo);
 
         verify(mockBlob, times(1)).delete();
         verify(photoRepository, times(1)).delete(photo);
     }
 
     @Test
-    void testDeletePhoto_nonExistentBlob_shouldNotThrowException() {
-        String nonExistentBlob = "non/existent/blob";
+    void testSchedulePhotoDeletion_nonExistentPhotoLink_shouldNotThrowException() {
+        PhotoLink nonExistentPhoto = new PhotoLink("non/existent/blob", "http://nonexistent.com", LocalDateTime.now(), null);
 
-        when(photoRepository.findById(nonExistentBlob)).thenReturn(Optional.empty());
+        when(photoRepository.findById(nonExistentPhoto.getBlob())).thenReturn(Optional.empty());
 
-        assertDoesNotThrow(() -> firebasePhotoService.deletePhoto(nonExistentBlob));
+        assertDoesNotThrow(() -> firebasePhotoService.schedulePhotoDeletion(nonExistentPhoto));
     }
+
+    @Test
+    void testSchedulePhotoDeletion_notFound_shouldDeleteFromDatabase() {
+        PhotoLink photoLink = new PhotoLink("valid/blob/path", "http://signedurl.com", LocalDateTime.now(), null);
+        StorageException exception = mock(StorageException.class);
+
+        when(exception.getCode()).thenReturn(404);
+        when(photoRepository.findById(BLOB_PATH)).thenReturn(Optional.of(photoLink));
+        when(mockBucket.get(BLOB_PATH)).thenReturn(mockBlob);
+        when(mockBlob.delete()).thenThrow(exception);
+
+        assertThrows(StorageException.class, () -> firebasePhotoService.schedulePhotoDeletion(photoLink));
+        verify(photoRepository, times(2)).delete(photoLink);
+    }
+
+    @Test
+    void testSchedulePhotoDeletion_otherCode_shouldMarkForDeletion() {
+        PhotoLink photoLink = new PhotoLink("valid/blob/path", "http://signedurl.com", LocalDateTime.now(), null);
+        StorageException exception = mock(StorageException.class);
+
+        when(exception.getCode()).thenReturn(500);
+        when(photoRepository.findById(BLOB_PATH)).thenReturn(Optional.of(photoLink));
+        when(mockBucket.get(BLOB_PATH)).thenReturn(mockBlob);
+        when(mockBlob.delete()).thenThrow(exception);
+
+        assertThrows(StorageException.class, () -> firebasePhotoService.schedulePhotoDeletion(photoLink));
+        verify(photoRepository, times(1)).save(photoLink);
+        assertNotNull(photoLink.getMarkedForDeletionAt());
+    }
+
 
     @Test
     void testDeletePhotos_shouldRemoveAllPhotos() {
         List<PhotoLink> photos = List.of(
-                new PhotoLink("valid/blob/path", "http://signedurl.com", LocalDateTime.now()),
-                new PhotoLink("valid/blob/path", "http://signedurl.com", LocalDateTime.now())
+                new PhotoLink("valid/blob/path", "http://signedurl.com", LocalDateTime.now(), null),
+                new PhotoLink("valid/blob/path", "http://signedurl.com", LocalDateTime.now(), null)
         );
 
-        firebasePhotoService.deletePhotos(photos);
+        firebasePhotoService.schedulePhotoDeletions(photos);
         verify(photoRepository, times(2)).delete(any());
     }
 
     @Test
     void testUpdatePhotoExpiration_withinThreshold_shouldNotRenew() {
         LocalDateTime expiresAt = LocalDateTime.now().plusDays(20);
-        PhotoLink photo = new PhotoLink("valid/blob/path", "http://signedurl.com", expiresAt);
+        PhotoLink photo = new PhotoLink("valid/blob/path", "http://signedurl.com", expiresAt, null);
 
         firebasePhotoService.updatePhotoExpiration(photo);
         verify(photoRepository).save(any());
@@ -223,7 +254,7 @@ public class PhotoServiceTest {
     @Test
     void testUpdatePhotoExpiration_expired_shouldRenew() throws MalformedURLException {
         LocalDateTime expiresAt = LocalDateTime.now().minusSeconds(1);
-        PhotoLink photo = new PhotoLink("valid/blob/path", "http://signedurl.com", expiresAt);
+        PhotoLink photo = new PhotoLink("valid/blob/path", "http://signedurl.com", expiresAt, null);
         when(mockBucket.get(photo.getBlob())).thenReturn(mockBlob);
         when(mockBlob.signUrl(anyLong(), any())).thenReturn(new URL("http://new-signedurl.com"));
 
@@ -236,8 +267,8 @@ public class PhotoServiceTest {
     void testUpdatePhotoExpirations_shouldRenewAllExpiredPhotos() throws MalformedURLException {
         LocalDateTime expiredDate = LocalDateTime.now().minusSeconds(1);
         LocalDateTime validDate = LocalDateTime.now().plusDays(10);
-        PhotoLink expiredPhoto = new PhotoLink("valid/blob/path", "http://signedurl.com", expiredDate);
-        PhotoLink validPhoto = new PhotoLink("valid/blob/path", "http://signedurl.com", validDate);
+        PhotoLink expiredPhoto = new PhotoLink("valid/blob/path", "http://signedurl.com", expiredDate, null);
+        PhotoLink validPhoto = new PhotoLink("valid/blob/path", "http://signedurl.com", validDate, null);
         when(mockBucket.get(expiredPhoto.getBlob())).thenReturn(mockBlob);
         when(mockBlob.signUrl(anyLong(), any())).thenReturn(new URL("http://new-signedurl.com"));
 
