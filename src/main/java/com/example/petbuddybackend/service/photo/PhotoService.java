@@ -17,7 +17,9 @@ public interface PhotoService {
     @Async
     void schedulePhotoDeletion(PhotoLink photoLink);
 
-    @Async
+    /**
+     * Schedules deletion of multiple photos asynchronously.
+     * */
     void schedulePhotoDeletions(Collection<PhotoLink> photoLinksToDelete);
 
     PhotoLink updatePhotoExpiration(PhotoLink photo);
