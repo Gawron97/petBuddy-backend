@@ -93,6 +93,7 @@ public final class MockUserProvider {
                 .name(name)
                 .surname(surname)
                 .email(email)
+                .profilePicture(createMockPhotoLink())
                 .build();
     }
 
