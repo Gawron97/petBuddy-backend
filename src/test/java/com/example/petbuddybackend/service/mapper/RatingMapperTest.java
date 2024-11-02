@@ -11,8 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.example.petbuddybackend.testutils.mock.MockAnimalProvider.createMockAnimal;
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
-import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
-import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RatingMapperTest {
@@ -22,7 +21,7 @@ public class RatingMapperTest {
 
     @Test
     void mapToCaretakerDTO_shouldNotLeaveNullFields() throws IllegalAccessException {
-        Client client = createMockClient();
+        Client client = createMockClientWithPhoto("clientEmail");
         Caretaker caretaker = createMockCaretaker();
         Care care = createMockCare(caretaker, client, createMockAnimal("DOG"));
 
