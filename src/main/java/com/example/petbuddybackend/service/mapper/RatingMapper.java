@@ -5,7 +5,7 @@ import com.example.petbuddybackend.entity.rating.Rating;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(uses = {ClientMapper.class})
 public interface RatingMapper {
 
     RatingMapper INSTANCE = Mappers.getMapper(RatingMapper.class);

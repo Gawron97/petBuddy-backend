@@ -88,11 +88,29 @@ public final class MockUserProvider {
                 .build();
     }
 
+    public static Client createMockClientWithPhoto(String clientEmail) {
+        AppUser accountData = createMockAppUserWithPhoto("clientName", "clientSurname", clientEmail);
+
+        return Client.builder()
+                .email(clientEmail)
+                .accountData(accountData)
+                .build();
+    }
+
     public static AppUser createMockAppUser(String name, String surname, String email) {
         return AppUser.builder()
                 .name(name)
                 .surname(surname)
                 .email(email)
+                .build();
+    }
+
+    public static AppUser createMockAppUserWithPhoto(String name, String surname, String email) {
+        return AppUser.builder()
+                .name(name)
+                .surname(surname)
+                .email(email)
+                .profilePicture(createMockPhotoLink())
                 .build();
     }
 
