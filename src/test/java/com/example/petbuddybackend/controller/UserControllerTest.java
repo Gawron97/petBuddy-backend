@@ -92,7 +92,12 @@ public class UserControllerTest {
         // then
         mockMvc.perform(multipart("/api/user/profile-picture")
                         .file(mockFile)
-                        .with(user(USERNAME)))
+                        .with(user(USERNAME))
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value(USERNAME))
                 .andExpect(jsonPath("$.profilePicture.url").value(url))
@@ -104,7 +109,12 @@ public class UserControllerTest {
     void uploadProfilePicture_noPictureProvided_shouldReturn400() throws Exception {
         // then
         mockMvc.perform(multipart("/api/user/profile-picture")
-                        .with(user(USERNAME)))
+                        .with(user(USERNAME))
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                )
                 .andExpect(status().isBadRequest());
     }
 

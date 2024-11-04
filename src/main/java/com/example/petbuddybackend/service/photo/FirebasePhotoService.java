@@ -6,14 +6,15 @@ import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundEx
 import com.example.petbuddybackend.utils.exception.throweable.photo.InvalidPhotoException;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.StorageException;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.cloud.StorageClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,13 +24,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class FirebasePhotoService implements PhotoService {
 
-    private final static String MISSING_FILE_EXTENSION = "Missing file extension";
     private final static String PHOTO = "Photo";
     private static final Set<String> acceptedImageTypes = Set.of(
             "image/jpeg",
@@ -50,7 +49,6 @@ public class FirebasePhotoService implements PhotoService {
     private final FirebaseApp firebaseApp;
     private final PhotoLinkRepository photoRepository;
     private final Tika tika;
-
 
     @Override
     public Optional<PhotoLink> findPhotoLinkByNullableId(String blob) {
@@ -95,28 +93,20 @@ public class FirebasePhotoService implements PhotoService {
     }
 
     @Override
-    @Transactional
-    public void deletePhoto(String blob) {
-        Optional<PhotoLink> photo = findPhotoLinkByNullableId(blob);
-
-        if(photo.isEmpty()) {
-            return;
+    @Async
+    public void schedulePhotoDeletion(PhotoLink photoLink) {
+        try {
+            removePhotoFromCloud(photoLink.getBlob());
+            photoRepository.delete(photoLink);
+        } catch(StorageException e) {
+            handleStorageException(e, photoLink);
+            throw e;
         }
-
-        deletePhoto(photo.get());
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deletePhoto(PhotoLink photoLink) {
-        photoRepository.delete(photoLink);
-        removePhotoFromCloud(photoLink.getBlob());
-    }
-
-    @Override
-    @Transactional
-    public void deletePhotos(Collection<PhotoLink> photoLinksToDelete) {
-        photoLinksToDelete.forEach(this::deletePhoto);
+    public void schedulePhotoDeletions(Collection<PhotoLink> photoLinksToDelete) {
+        photoLinksToDelete.forEach(this::schedulePhotoDeletion);
     }
 
     @Override
@@ -133,6 +123,19 @@ public class FirebasePhotoService implements PhotoService {
         return photoRepository.saveAll(photosRenewed);
     }
 
+    private void handleStorageException(StorageException e, PhotoLink photoLink) {
+        log.warn("StorageException occurred while deleting photo: {}", e.getMessage());
+
+        if(e.getCode() == 404) {
+            log.warn("Photo {} not found in cloud storage. Deleting from database", photoLink.getBlob());
+            photoRepository.delete(photoLink);
+        } else {
+            log.error("Failed to delete photo {}. Status code: {}. Marking for deletion", e.getCode(), photoLink.getBlob());
+            photoLink.setMarkedForDeletionAt(LocalDateTime.now());
+            photoRepository.save(photoLink);
+        }
+    }
+
     private void removePhotoFromCloud(String blob) {
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
@@ -147,42 +150,31 @@ public class FirebasePhotoService implements PhotoService {
      * Checks if the provided file is not empty and if its type matches the accepted types defined in the
      * acceptedImageTypes set.
      * */
-     private void validatePhoto(MultipartFile multipartFile) {
-         if (multipartFile == null || multipartFile.isEmpty()) {
-             throw InvalidPhotoException.ofEmptyPhoto();
-         }
-
-         try(InputStream inputStream = multipartFile.getInputStream()) {
-             String mimeType = tika.detect(inputStream);
-
-             if(!acceptedImageTypes.contains(mimeType)) {
-                 throw InvalidPhotoException.ofPhotoWithInvalidExtension(
-                         multipartFile.getOriginalFilename(),
-                         mimeType,
-                         acceptedImageTypes
-                 );
-             }
-
-         } catch (IOException e) {
-             throw InvalidPhotoException.ofInvalidPhoto(multipartFile.getOriginalFilename());
-         }
-     }
-
-    /**
-     * @return Extension of the file like .jpg, .png, .jpeg
-     * */
-    private String getExtension(String fileName) {
-        if(fileName == null) {
-            throw new InvalidPhotoException(MISSING_FILE_EXTENSION);
+    private void validatePhoto(MultipartFile multipartFile) {
+        if (multipartFile == null || multipartFile.isEmpty()) {
+            throw InvalidPhotoException.ofEmptyPhoto();
         }
 
-        return fileName.substring(fileName.lastIndexOf("."));
+        try(InputStream inputStream = multipartFile.getInputStream()) {
+            String mimeType = tika.detect(inputStream);
+
+            if(!acceptedImageTypes.contains(mimeType)) {
+                throw InvalidPhotoException.ofPhotoWithInvalidExtension(
+                        multipartFile.getOriginalFilename(),
+                        mimeType,
+                        acceptedImageTypes
+                );
+            }
+
+        } catch (IOException e) {
+            throw InvalidPhotoException.ofInvalidPhoto(multipartFile.getOriginalFilename());
+        }
     }
 
     private PhotoLink uploadFile(MultipartFile file, int expirationSeconds) {
         StorageClient storageClient = StorageClient.getInstance(firebaseApp);
         Bucket bucket = storageClient.bucket();
-        String filename = UUID.randomUUID() + getExtension(file.getOriginalFilename());
+        String filename = UUID.randomUUID().toString();
         String blobPath = PHOTO_DIRECTORY + "/" + filename;
 
         try {
@@ -226,3 +218,4 @@ public class FirebasePhotoService implements PhotoService {
         return photo;
     }
 }
+
