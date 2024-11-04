@@ -61,6 +61,6 @@ public class PhotoDeletionScheduledIntegrationTest {
                 new PhotoLink("2", "photo2", LocalDateTime.now(), LocalDateTime.now())
         );
         photoRepository.saveAll(photosToDelete);
-        photoDeletionScheduled.terminateCares();
+        photoDeletionScheduled.terminatePhotos();
     }
 }

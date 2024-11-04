@@ -19,7 +19,7 @@ public class PhotoDeletionScheduled {
     private final PhotoLinkRepository photoRepository;
 
     @Scheduled(cron = "0 1 0 * * *")
-    public void terminateCares() {
+    public void terminatePhotos() {
         List<PhotoLink> photosToDelete = photoRepository.getAllByMarkedForDeletionAtNotNull();
         log.info("Deleting {} photos", photosToDelete.size());
         photoService.schedulePhotoDeletions(photosToDelete);
