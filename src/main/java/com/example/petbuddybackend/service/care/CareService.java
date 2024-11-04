@@ -62,6 +62,7 @@ public class CareService {
                                    ZoneId timeZone) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
+        assertNotReservationToYourself(clientEmail, caretakerEmail);
         blockService.assertNotBlockedByAny(clientEmail, caretakerEmail);
 
         Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributes(
@@ -126,6 +127,12 @@ public class CareService {
     public Care getCareById(Long careId) {
         return careRepository.findById(careId)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
+    }
+
+    private void assertNotReservationToYourself(String clientEmail, String caretakerEmail) {
+        if(clientEmail.equals(caretakerEmail)) {
+            throw new IllegalActionException("Cannot make reservation to yourself");
+        }
     }
 
     private String getNotificationOnStatusChange(CareStatus status) {
