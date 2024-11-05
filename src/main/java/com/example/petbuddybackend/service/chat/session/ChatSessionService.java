@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,21 +57,19 @@ public class ChatSessionService {
     }
 
     public void onUserJoinChatRoom(String joiningUsername, Long chatId, String subId) {
+        ChatRoom chatRoom = chatService.getChatRoomById(chatId);
         chatSessionTracker.addSubscription(subId, chatId);
         Map<Long, Integer> allChatRoomSessions = countChatRoomSessions(joiningUsername);
 
         if(allChatRoomSessions.containsKey(chatId) && allChatRoomSessions.get(chatId) == 1) {
             log.trace("Sending join message to chat room: {}", chatId);
             chatService.updateLastMessageSeen(chatId, joiningUsername);
-            sendMessages(
-                    chatService.getChatRoomById(chatId),
-                    new ChatNotificationJoined(chatId, joiningUsername)
-            );
+            sendMessages(chatRoom, new ChatNotificationJoined(chatId, joiningUsername));
         }
     }
 
     public void onUserDisconnect(String leavingUsername) {
-        Set<String> subIds = chatSessionTracker.getSubscriptionIds();
+        Set<String> subIds = new HashSet<>(chatSessionTracker.getSubscriptionIds());
         Map<Long, Integer> allChatRoomSessions = countChatRoomSessions(leavingUsername);
 
         for(String subId : subIds) {

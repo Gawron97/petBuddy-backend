@@ -554,6 +554,32 @@ public class ChatServiceTest {
         );
     }
 
+    @Test
+    void markMessagesAsSeen_shouldSucceed() {
+        chatService.createMessage(
+                chatRoom,
+                caretaker.getEmail(),
+                Role.CARETAKER,
+                new ChatMessageSent("message content"),
+                false
+        );
+
+        chatService.markMessagesAsSeen(chatRoom.getId(), client.getEmail());
+
+        List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
+                chatRoom.getId(),
+                client.getEmail(),
+                PageRequest.of(0, 10),
+                ZoneId.of("Europe/Warsaw")
+        ).getContent();
+
+        for(ChatMessageDTO chatMessage : chatMessages) {
+            if(!chatMessage.getSenderEmail().equals(client.getEmail())) {
+                assertTrue(chatMessage.getSeenByRecipient());
+            }
+        }
+    }
+
     private static Stream<String> provideTimeZones() {
         return Stream.of(
             "UTC",

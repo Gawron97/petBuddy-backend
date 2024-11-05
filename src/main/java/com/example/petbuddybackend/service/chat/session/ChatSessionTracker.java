@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.service.chat.session;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Component
+@Profile("!test")
 @Scope(scopeName = "websocket", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class ChatSessionTracker {
 
@@ -28,5 +30,9 @@ public class ChatSessionTracker {
 
     public Long getChatId(String sessionId) {
         return subsToChatId.get(sessionId);
+    }
+
+    public void clear() {
+        subsToChatId.clear();
     }
 }
