@@ -7,6 +7,7 @@ import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.chat.session.ChatSessionService;
+import com.example.petbuddybackend.service.chat.session.ChatSessionTracker;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class ChatWebSocketController {
 
     private final ChatService chatService;
     private final ChatSessionService chatSessionService;
+    private final ChatSessionTracker chatSessionTracker;
 
     @Transactional
     @MessageMapping("/chat/{chatId}")
@@ -75,7 +77,9 @@ public class ChatWebSocketController {
 
         String username = HeaderUtils.getUser(accessor);
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
-        chatSessionService.onUserJoinChatRoom(username, chatId, accessor.getSubscriptionId());
+
+        chatSessionTracker.addSubscription(accessor.getSubscriptionId(), chatId);
+        chatSessionService.onUserJoinChatRoom(username, chatId);
         chatService.markMessagesAsSeen(chatId, username);
 
         log.debug(
@@ -90,7 +94,10 @@ public class ChatWebSocketController {
     public void handleUnsubscribeToMessageTopic(SessionUnsubscribeEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         String username = HeaderUtils.getUser(accessor);
-        chatSessionService.onUserUnsubscribe(username, accessor.getSubscriptionId());
+        String subId = accessor.getSubscriptionId();
+
+        Long chatId = chatSessionTracker.removeSubscription(subId);
+        chatSessionService.onUserUnsubscribe(username, chatId);
 
         log.debug(
                 "Event unsubscribe at {}; sessionId: {}; user: {}",
@@ -104,7 +111,10 @@ public class ChatWebSocketController {
     public void handleDisconnectFromWebSocket(SessionDisconnectEvent event) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
         String username = HeaderUtils.getUser(accessor);
-        chatSessionService.onUserDisconnect(username);
+
+        Map<String, Long> subscriptions = chatSessionTracker.getSubscriptions();
+        chatSessionService.onUserDisconnect(username, subscriptions);
+        chatSessionTracker.clear();
 
         log.debug(
                 "Event disconnect from {}; sessionId: {}; user: {}",

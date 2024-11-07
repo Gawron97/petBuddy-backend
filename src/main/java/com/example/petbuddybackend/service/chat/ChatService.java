@@ -94,6 +94,7 @@ public class ChatService {
         return chatMapper.mapToChatMessageDTO(persistedMessage);
     }
 
+    @Transactional
     public void markMessagesAsSeen(Long chatId, String username) {
         ChatRoom chatRoom = getChatRoomById(chatId);
         checkUserInChat(chatId, username);
@@ -136,16 +137,6 @@ public class ChatService {
         return role == Role.CLIENT ?
                 chatRoom.getClient().getEmail().equals(email) :
                 chatRoom.getCaretaker().getEmail().equals(email);
-    }
-
-    /**
-     * Updates the last message seen by the user in the chat room to the latest message in the chat room.
-     * */
-    @Transactional
-    public void updateLastMessageSeen(Long chatId, String email) {
-        checkChatExists(chatId);
-        Role userRole = getRoleOfUserInChat(chatId, email);
-        performLastMessageSeenUpdate(chatId, email, userRole, false);
     }
 
     @Transactional(readOnly = true)

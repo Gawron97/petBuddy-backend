@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,12 +21,16 @@ public class ChatSessionTracker {
         return subsToChatId.keySet();
     }
 
+    public Map<String, Long> getSubscriptions() {
+        return Collections.unmodifiableMap(subsToChatId);
+    }
+
     public void addSubscription(String sessionId, Long chatId) {
         subsToChatId.put(sessionId, chatId);
     }
 
-    public void removeSubscription(String sessionId) {
-        subsToChatId.remove(sessionId);
+    public Long removeSubscription(String sessionId) {
+        return subsToChatId.remove(sessionId);
     }
 
     public Long getChatId(String sessionId) {

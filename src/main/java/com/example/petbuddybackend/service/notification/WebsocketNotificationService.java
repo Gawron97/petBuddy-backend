@@ -20,16 +20,16 @@ public class WebsocketNotificationService {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
-    private final WebSocketSessionService wsSessionMetadataService;
+    private final WebSocketSessionService websocketSessionService;
 
     @Value("${url.notification.topic.send-url}")
     private String NOTIFICATION_BASE_URL;
 
     public void sendNotification(String userEmail, Notification notification) {
-        if(wsSessionMetadataService.isUserConnected(userEmail)) {
-            Set<SimpSession> userSessions = wsSessionMetadataService.getUserSessions(userEmail);
+        if(websocketSessionService.isUserConnected(userEmail)) {
+            Set<SimpSession> userSessions = websocketSessionService.getUserSessions(userEmail);
             for(SimpSession session : userSessions) {
-                ZoneId timeZone = wsSessionMetadataService.getTimezoneOrDefault(session);
+                ZoneId timeZone = websocketSessionService.getTimezoneOrDefault(session);
 
                 NotificationDTO notificationToSend = convertNotificationWithMessageTimezone(notification, timeZone);
                 simpMessagingTemplate.convertAndSendToUser(

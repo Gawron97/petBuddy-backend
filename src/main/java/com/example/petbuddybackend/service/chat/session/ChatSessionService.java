@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,7 +41,6 @@ public class ChatSessionService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WebSocketSessionService webSocketSessionService;
     private final ChatService chatService;
-    private final ChatSessionTracker chatSessionTracker;
 
     public void sendMessages(ChatRoom chatRoom, ChatNotification notification) {
         Long chatId = chatRoom.getId();
@@ -56,30 +54,28 @@ public class ChatSessionService {
                 .forEach((simpSession) -> sendToUser(chatId, caretakerEmail, simpSession.getId(), notification));
     }
 
-    public void onUserJoinChatRoom(String joiningUsername, Long chatId, String subId) {
+    public void onUserJoinChatRoom(String joiningUsername, Long chatId) {
         ChatRoom chatRoom = chatService.getChatRoomById(chatId);
-        chatSessionTracker.addSubscription(subId, chatId);
         Map<Long, Integer> allChatRoomSessions = countChatRoomSessions(joiningUsername);
 
         if(allChatRoomSessions.containsKey(chatId) && allChatRoomSessions.get(chatId) == 1) {
             log.trace("Sending join message to chat room: {}", chatId);
-            chatService.updateLastMessageSeen(chatId, joiningUsername);
+            chatService.markMessagesAsSeen(chatId, joiningUsername);
             sendMessages(chatRoom, new ChatNotificationJoined(chatId, joiningUsername));
         }
     }
 
-    public void onUserDisconnect(String leavingUsername) {
-        Set<String> subIds = new HashSet<>(chatSessionTracker.getSubscriptionIds());
+    public void onUserDisconnect(String leavingUsername, Map<String, Long> subscriptions) {
         Map<Long, Integer> allChatRoomSessions = countChatRoomSessions(leavingUsername);
 
-        for(String subId : subIds) {
-            onUserUnsubscribe(leavingUsername, subId, allChatRoomSessions);
+        for(Long chatId : subscriptions.values()) {
+            onUserUnsubscribe(leavingUsername, chatId, allChatRoomSessions);
         }
     }
 
-    public void onUserUnsubscribe(String leavingUsername, String subId) {
+    public void onUserUnsubscribe(String leavingUsername, Long chatId) {
         Map<Long, Integer> allChatRoomSessions = countChatRoomSessions(leavingUsername);
-        onUserUnsubscribe(leavingUsername, subId, allChatRoomSessions);
+        onUserUnsubscribe(leavingUsername, chatId, allChatRoomSessions);
     }
 
     public boolean isRecipientInChat(String senderUsername, ChatRoom chatRoom) {
@@ -104,8 +100,7 @@ public class ChatSessionService {
         return false;
     }
 
-    private void onUserUnsubscribe(String leavingUsername, String subId, Map<Long, Integer> allChatRoomSessions) {
-        Long chatId = chatSessionTracker.getChatId(subId);
+    private void onUserUnsubscribe(String leavingUsername, Long chatId, Map<Long, Integer> allChatRoomSessions) {
         int leavingSessionsCount = allChatRoomSessions.getOrDefault(chatId, 0);
 
         if(leavingSessionsCount == 0) {
@@ -115,8 +110,6 @@ public class ChatSessionService {
                     new ChatNotificationLeft(chatId, leavingUsername)
             );
         }
-
-        chatSessionTracker.removeSubscription(subId);
     }
 
     /**
@@ -166,12 +159,7 @@ public class ChatSessionService {
     ) {
         ZoneId zoneId = webSocketSessionService.getTimezoneOrDefault(sessionId);
         convertNotificationMessageTimezone(message, zoneId);
-
         notifyWithGenericMessage(chatId, receiverUsername, sessionId, message);
-
-        if(!message.getContent().getSenderEmail().equals(receiverUsername)) {
-            chatService.updateLastMessageSeen(chatId, message.getContent().getSenderEmail());
-        }
     }
 
     private void notifyWithGenericMessage(
