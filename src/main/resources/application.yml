@@ -39,8 +39,6 @@ keycloak:
 logging:
   level:
     root: INFO
-    com.example.petbuddybackend.controller.websocket: TRACE
-    com.example.petbuddybackend.service.chat: TRACE
 
 server:
   port: 8081
