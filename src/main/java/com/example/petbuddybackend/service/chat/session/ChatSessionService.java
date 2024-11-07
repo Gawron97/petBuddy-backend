@@ -14,14 +14,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.user.SimpSession;
 import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -56,7 +53,7 @@ public class ChatSessionService {
 
     public void onUserJoinChatRoom(String joiningUsername, Long chatId) {
         ChatRoom chatRoom = chatService.getChatRoomById(chatId);
-        Map<Long, Integer> allChatRoomSessions = countChatRoomSessions(joiningUsername);
+        Map<Long, Integer> allChatRoomSessions = webSocketSessionService.countChatRoomSessions(joiningUsername);
 
         if(allChatRoomSessions.containsKey(chatId) && allChatRoomSessions.get(chatId) == 1) {
             log.trace("Sending join message to chat room: {}", chatId);
@@ -66,7 +63,7 @@ public class ChatSessionService {
     }
 
     public void onUserDisconnect(String leavingUsername, Map<String, Long> subscriptions) {
-        Map<Long, Integer> allChatRoomSessions = countChatRoomSessions(leavingUsername);
+        Map<Long, Integer> allChatRoomSessions = webSocketSessionService.countChatRoomSessions(leavingUsername);
 
         for(Long chatId : subscriptions.values()) {
             onUserUnsubscribe(leavingUsername, chatId, allChatRoomSessions);
@@ -74,7 +71,7 @@ public class ChatSessionService {
     }
 
     public void onUserUnsubscribe(String leavingUsername, Long chatId) {
-        Map<Long, Integer> allChatRoomSessions = countChatRoomSessions(leavingUsername);
+        Map<Long, Integer> allChatRoomSessions = webSocketSessionService.countChatRoomSessions(leavingUsername);
         onUserUnsubscribe(leavingUsername, chatId, allChatRoomSessions);
     }
 
@@ -83,21 +80,10 @@ public class ChatSessionService {
                 chatRoom.getCaretaker().getEmail() :
                 chatRoom.getClient().getEmail();
 
-        Set<SimpSession> recipientSessions = webSocketSessionService.getUserSessions(recipientUsername);
-
-        for(SimpSession session : recipientSessions) {
-            Set<SimpSubscription> subs = session.getSubscriptions();
-            for(SimpSubscription sub : subs) {
-                if(HeaderUtils.destinationStartsWith(CHAT_TOPIC_URL_PREFIX, sub.getDestination())) {
-                    Long chatId = HeaderUtils.getLongFromDestination(sub.getDestination(), CHAT_ID_INDEX_IN_TOPIC_URL);
-                    if(chatId.equals(chatRoom.getId())) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
+        return webSocketSessionService.getUserSubscriptionStartingWithDestination(recipientUsername, CHAT_TOPIC_URL_PREFIX).stream()
+                .map(SimpSubscription::getDestination)
+                .map(destination -> HeaderUtils.getLongFromDestination(destination, CHAT_ID_INDEX_IN_TOPIC_URL))
+                .anyMatch(chatId -> chatId.equals(chatRoom.getId()));
     }
 
     private void onUserUnsubscribe(String leavingUsername, Long chatId, Map<Long, Integer> allChatRoomSessions) {
@@ -110,35 +96,6 @@ public class ChatSessionService {
                     new ChatNotificationLeft(chatId, leavingUsername)
             );
         }
-    }
-
-    /**
-     * @return Map with chatId as key and number of sessions as value
-     * */
-    private Map<Long, Integer> countChatRoomSessions(String username) {
-        Set<SimpSession> userSessions = webSocketSessionService.getUserSessions(username);
-        Map<Long, Integer> chatRoomSessions = new HashMap<>();
-
-        for(SimpSession session : userSessions) {
-            Set<SimpSubscription> subs = session.getSubscriptions();
-            countSessionsFromSubs(subs, chatRoomSessions);
-        }
-
-        return chatRoomSessions;
-    }
-
-    /**
-     * @return Map with chatId as key and number of sessions as value
-     * */
-    private Map<Long, Integer> countSessionsFromSubs(Set<SimpSubscription> subs, Map<Long, Integer> buffer) {
-        for(SimpSubscription sub : subs) {
-            if(HeaderUtils.destinationStartsWith(CHAT_TOPIC_URL_PREFIX, sub.getDestination())) {
-                Long chatId = HeaderUtils.getLongFromDestination(sub.getDestination(), CHAT_ID_INDEX_IN_TOPIC_URL);
-                buffer.put(chatId, buffer.getOrDefault(chatId, 0) + 1);
-            }
-        }
-
-        return buffer;
     }
 
     private void sendToUser(Long chatId, String receiverUsername, String sessionId, ChatNotification notification) {

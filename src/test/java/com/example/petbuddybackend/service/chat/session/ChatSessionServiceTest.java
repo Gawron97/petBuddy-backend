@@ -42,9 +42,6 @@ public class ChatSessionServiceTest {
     @Autowired
     private ChatSessionService chatSessionService;
 
-    @Autowired
-    private ChatSessionTracker chatSessionTracker;
-
     @MockBean
     private SimpMessagingTemplate simpMessagingTemplate;
 
@@ -63,8 +60,6 @@ public class ChatSessionServiceTest {
 
     @BeforeEach
     void setUp() {
-        chatSessionTracker.clear();
-
         chatRoom = ChatRoom.builder()
                 .id(1L)
                 .client(MockUserProvider.createMockClient(CLIENT_EMAIL))
@@ -126,11 +121,13 @@ public class ChatSessionServiceTest {
                 .thenReturn(chatRoom);
         when(webSocketSessionService.getUserSessions(eq(CLIENT_EMAIL)))
                 .thenReturn(Set.of(clientSession));
+        when(webSocketSessionService.countChatRoomSessions(eq(CLIENT_EMAIL)))
+                .thenReturn(Map.of(chatRoom.getId(), 1));
 
-        chatSessionService.onUserJoinChatRoom(CLIENT_EMAIL, chatRoom.getId(), "subId1");
+        chatSessionService.onUserJoinChatRoom(CLIENT_EMAIL, chatRoom.getId());
 
         verify(chatService)
-                .updateLastMessageSeen(eq(chatRoom.getId()), eq(CLIENT_EMAIL));
+                .markMessagesAsSeen(eq(chatRoom.getId()), eq(CLIENT_EMAIL));
         verify(simpMessagingTemplate)
                 .convertAndSendToUser(eq(CLIENT_EMAIL), any(), any(ChatNotificationJoined.class), any(Map.class));
     }
@@ -142,10 +139,10 @@ public class ChatSessionServiceTest {
         when(webSocketSessionService.getUserSessions(eq(CARETAKER_EMAIL)))
                 .thenReturn(Set.of(caretakerSession));
 
-        chatSessionService.onUserJoinChatRoom(CLIENT_EMAIL, chatRoom.getId(), "subId1");
-        chatSessionService.onUserJoinChatRoom(CARETAKER_EMAIL, chatRoom.getId(), "subId2");
+        chatSessionService.onUserJoinChatRoom(CLIENT_EMAIL, chatRoom.getId());
+        chatSessionService.onUserJoinChatRoom(CARETAKER_EMAIL, chatRoom.getId());
 
-        chatSessionService.onUserUnsubscribe(CLIENT_EMAIL, "subId1");
+        chatSessionService.onUserUnsubscribe(CLIENT_EMAIL, chatRoom.getId());
 
         verify(simpMessagingTemplate)
                 .convertAndSendToUser(eq(CARETAKER_EMAIL), any(), any(ChatNotificationLeft.class), any(Map.class));
@@ -158,13 +155,10 @@ public class ChatSessionServiceTest {
         when(webSocketSessionService.getUserSessions(eq(CARETAKER_EMAIL)))
                 .thenReturn(Set.of(caretakerSession));
 
-        chatSessionService.onUserJoinChatRoom(CARETAKER_EMAIL, chatRoom.getId(), "subId2");
+        chatSessionService.onUserJoinChatRoom(CARETAKER_EMAIL, chatRoom.getId());
+        chatSessionService.onUserJoinChatRoom(CLIENT_EMAIL, chatRoom.getId());
 
-        // Must remove subs due to no websocket scope in test
-        chatSessionTracker.clear();
-        chatSessionService.onUserJoinChatRoom(CLIENT_EMAIL, chatRoom.getId(), "subId1");
-
-        chatSessionService.onUserDisconnect(CLIENT_EMAIL);
+        chatSessionService.onUserDisconnect(CLIENT_EMAIL, Map.of("subId1", chatRoom.getId()));
 
         verify(simpMessagingTemplate)
                 .convertAndSendToUser(eq(CARETAKER_EMAIL), any(), any(ChatNotificationLeft.class), any(Map.class));
@@ -172,10 +166,19 @@ public class ChatSessionServiceTest {
 
     @Test
     void testisRecipientInChat_noRecipientInChat_shouldReturnIfRecipientIsInChatProperly() {
+        SimpSubscription clientSub = mock(SimpSubscription.class);
+        when(clientSub.getDestination())
+                .thenReturn("/user" + String.format(CHAT_TOPIC_URL_PATTERN, chatRoom.getId()));
+
         when(chatService.getChatRoomById(any()))
                 .thenReturn(chatRoom);
         when(webSocketSessionService.getUserSessions(eq(CLIENT_EMAIL)))
                 .thenReturn(Set.of(clientSession));
+
+        when(webSocketSessionService.getUserSubscriptionStartingWithDestination(eq(CLIENT_EMAIL), any()))
+                .thenReturn(Set.of(clientSub));
+        when(webSocketSessionService.getUserSubscriptionStartingWithDestination(eq(CARETAKER_EMAIL), any()))
+                .thenReturn(Set.of());
 
         assertFalse(chatSessionService.isRecipientInChat(CLIENT_EMAIL, chatRoom));
         assertTrue(chatSessionService.isRecipientInChat(CARETAKER_EMAIL, chatRoom));

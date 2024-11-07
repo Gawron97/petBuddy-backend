@@ -3,9 +3,11 @@ package com.example.petbuddybackend.service.session;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.simp.user.SimpSession;
+import org.springframework.messaging.simp.user.SimpSubscription;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 
@@ -15,9 +17,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -28,6 +28,12 @@ public class WebsocketSessionServiceTest {
     private static final String USER_EMAIL = "userEmail";
     private static final String SESSION_ID = "sessionId123";
     private static final String USER_ZONE_ID = "Europe/Warsaw";
+
+    @Value("${url.chat.topic.client-subscribe-pattern}")
+    private String CHAT_TOPIC_URL_PATTERN;
+
+    @Value("${url.chat.topic.subscribe-prefix}")
+    private String CHAT_TOPIC_URL_PREFIX;
 
     @Autowired
     private WebSocketSessionService webSocketSessionService;
@@ -184,5 +190,72 @@ public class WebsocketSessionServiceTest {
 
         // Then
         assertEquals(ZoneId.systemDefault(), timezone);
+    }
+
+    @Test
+    public void testGetUserSubscriptionStartingWithDestination() {
+        // Given
+        SimpUser simpUser = mock(SimpUser.class);
+        SimpSession session1 = mock(SimpSession.class);
+        SimpSubscription subscription1 = mock(SimpSubscription.class);
+        SimpSubscription subscription2 = mock(SimpSubscription.class);
+
+        // Mock destinations
+        String matchingDestination = String.format(CHAT_TOPIC_URL_PATTERN, 123);
+        String nonMatchingDestination = "/some/other/topic/456";
+
+        // Mock user sessions and subscriptions
+        Set<SimpSubscription> subscriptions = Set.of(subscription1, subscription2);
+        Set<SimpSession> sessions = Set.of(session1);
+
+        when(simpUserRegistry.getUser(eq(USER_EMAIL))).thenReturn(simpUser);
+        when(simpUser.getSessions()).thenReturn(sessions);
+        when(session1.getSubscriptions()).thenReturn(subscriptions);
+        when(subscription1.getDestination()).thenReturn(matchingDestination);
+        when(subscription2.getDestination()).thenReturn(nonMatchingDestination);
+
+        // When
+        Set<SimpSubscription> result = webSocketSessionService.getUserSubscriptionStartingWithDestination(USER_EMAIL, CHAT_TOPIC_URL_PREFIX);
+
+        // Then
+        assertEquals(1, result.size());
+        assertEquals(matchingDestination, result.iterator().next().getDestination());
+    }
+
+    @Test
+    public void testCountChatRoomSessions() {
+        // Given
+        SimpUser simpUser = mock(SimpUser.class);
+        SimpSession session1 = mock(SimpSession.class);
+        SimpSession session2 = mock(SimpSession.class);
+        SimpSubscription subscription1 = mock(SimpSubscription.class);
+        SimpSubscription subscription2 = mock(SimpSubscription.class);
+        SimpSubscription subscription3 = mock(SimpSubscription.class);
+
+        // Mock destinations
+        String destination1 = String.format(CHAT_TOPIC_URL_PATTERN, 123);
+        String destination2 = String.format(CHAT_TOPIC_URL_PATTERN, 123);
+        String destination3 = String.format(CHAT_TOPIC_URL_PATTERN, 456);
+
+        // Mock sessions and subscriptions
+        Set<SimpSubscription> session1Subscriptions = Set.of(subscription1, subscription2);
+        Set<SimpSubscription> session2Subscriptions = Set.of(subscription3);
+        Set<SimpSession> sessions = Set.of(session1, session2);
+
+        when(simpUserRegistry.getUser(eq(USER_EMAIL))).thenReturn(simpUser);
+        when(simpUser.getSessions()).thenReturn(sessions);
+        when(session1.getSubscriptions()).thenReturn(session1Subscriptions);
+        when(session2.getSubscriptions()).thenReturn(session2Subscriptions);
+        when(subscription1.getDestination()).thenReturn(destination1);
+        when(subscription2.getDestination()).thenReturn(destination2);
+        when(subscription3.getDestination()).thenReturn(destination3);
+
+        // When
+        Map<Long, Integer> result = webSocketSessionService.countChatRoomSessions(USER_EMAIL);
+
+        // Then
+        assertEquals(2, result.size());
+        assertEquals(2, result.get(123L));
+        assertEquals(1, result.get(456L));
     }
 }

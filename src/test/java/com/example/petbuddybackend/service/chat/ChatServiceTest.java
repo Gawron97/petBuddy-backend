@@ -456,7 +456,7 @@ public class ChatServiceTest {
     }
 
     @Test
-    void testUpdateLastMessageSeen_clientUpdatesLastMessageSeen_shouldSucceed() {
+    void testMarkMessagesAsSeen_clientUpdatesLastMessageSeen_shouldSucceed() {
         chatMessageRepository.save(
                 MockChatProvider.createMockChatMessage(client.getAccountData(),  ZonedDateTime.now().plusYears(1), chatRoom)
         );
@@ -465,7 +465,7 @@ public class ChatServiceTest {
                 MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now(), chatRoom)
         );
 
-        chatService.updateLastMessageSeen(chatRoom.getId(), client.getEmail());
+        chatService.markMessagesAsSeen(chatRoom.getId(), client.getEmail());
         List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
                 chatRoom.getId(),
                 client.getEmail(),
@@ -484,7 +484,7 @@ public class ChatServiceTest {
     }
 
     @Test
-    void testUpdateLastMessageSeen_caretakerUpdatesLastMessageSeen_shouldSucceed() {
+    void testMarkMessagesAsSeen_caretakerUpdatesLastMessageSeen_shouldSucceed() {
         chatMessageRepository.save(
                 MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now().plusYears(1), chatRoom)
         );
@@ -493,7 +493,7 @@ public class ChatServiceTest {
                 MockChatProvider.createMockChatMessage(client.getAccountData(), ZonedDateTime.now(), chatRoom)
         );
 
-        chatService.updateLastMessageSeen(chatRoom.getId(), caretaker.getEmail());
+        chatService.markMessagesAsSeen(chatRoom.getId(), caretaker.getEmail());
 
         List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
                 chatRoom.getId(),
@@ -513,18 +513,18 @@ public class ChatServiceTest {
     }
 
     @Test
-    void testUpdateLastMessageSeen_userNotInChatRoom_shouldThrowNotParticipateException() {
+    void testMarkMessagesAsSeen_userNotInChatRoom_shouldThrowNotParticipateException() {
         assertThrows(
                 NotParticipateException.class,
-                () -> chatService.updateLastMessageSeen(chatRoom.getId(), "notInChatRoom")
+                () -> chatService.markMessagesAsSeen(chatRoom.getId(), "notInChatRoom")
         );
     }
 
     @Test
-    void testUpdateLastMessageSeen_noChatRoomWithProvidedId_shouldThrowNotFoundException() {
+    void testMarkMessagesAsSeen_noChatRoomWithProvidedId_shouldThrowNotFoundException() {
         assertThrows(
                 NotFoundException.class,
-                () -> chatService.updateLastMessageSeen(-1L, client.getEmail())
+                () -> chatService.markMessagesAsSeen(-1L, client.getEmail())
         );
     }
 

@@ -80,7 +80,6 @@ public class ChatWebSocketController {
 
         chatSessionTracker.addSubscription(accessor.getSubscriptionId(), chatId);
         chatSessionService.onUserJoinChatRoom(username, chatId);
-        chatService.markMessagesAsSeen(chatId, username);
 
         log.debug(
                 "Event subscribe at {}; sessionId: {}; user: {}",
