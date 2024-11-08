@@ -1,16 +1,16 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
-import com.example.petbuddybackend.repository.care.CareRepository;
+import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
+import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,9 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -567,6 +565,17 @@ public class CareControllerIntegrationTest {
         mockMvc.perform(get("/api/care/related-users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = CARETAKER_EMAIL)
+    void getCare_ShouldReturnProperAnswer() throws Exception {
+        // Given
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
+        // When and Then
+        mockMvc.perform(get("/api/care/{careId}", care.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 

@@ -80,6 +80,22 @@ public class CareController {
         );
     }
 
+    @GetMapping("/{careId}")
+    @Operation(summary = "Get specified care info")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Care fetched successfully"),
+            @ApiResponse(responseCode = "403", description = "User not part of care"),
+            @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
+    })
+    @PreAuthorize("isAuthenticated()")
+    public CareDTO getCare(
+            @PathVariable Long careId,
+            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
+            Principal principal
+    ) {
+        return careService.getCare(careId, TimeUtils.getOrSystemDefault(timeZone), principal.getName());
+    }
+
     @PatchMapping("/{careId}")
     @Operation(
             summary = "Update a care",

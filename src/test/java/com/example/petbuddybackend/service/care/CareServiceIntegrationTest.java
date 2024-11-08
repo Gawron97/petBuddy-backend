@@ -20,7 +20,9 @@ import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.utils.exception.throweable.InvalidRoleException;
 import com.example.petbuddybackend.utils.exception.throweable.StateTransitionException;
+import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -856,6 +858,46 @@ public class CareServiceIntegrationTest {
 
         //Then
         assertEquals(0, usersRelatedToYourCares.getTotalElements());
+
+    }
+
+
+    @Test
+    @Transactional
+    void getCare_shouldReturnProperAnswer() {
+
+        //Given
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+
+        //When
+        CareDTO result = careService.getCare(care.getId(), ZoneId.systemDefault(), client.getEmail());
+
+        //Then
+        assertEquals(care.getId(), result.id());
+        assertEquals(care.getCaretakerStatus(), result.caretakerStatus());
+        assertEquals(care.getClientStatus(), result.clientStatus());
+        assertEquals(care.getCareStart(), result.careStart());
+
+    }
+
+    @Test
+    void getCare_whenCareNotExists_shouldThrowNotFoundException() {
+
+        //When Then
+        assertThrows(NotFoundException.class,
+                () -> careService.getCare(1L, ZoneId.systemDefault(), client.getEmail()));
+
+    }
+
+    @Test
+    void getCare_whenUserNotParticipateInCare_shouldThrowForbiddenException() {
+
+        //Given
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+
+        //When Then
+        assertThrows(ForbiddenException.class,
+                () -> careService.getCare(care.getId(), ZoneId.systemDefault(), "wrong@email"));
 
     }
 
