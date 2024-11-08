@@ -561,6 +561,15 @@ public class CareControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = CARETAKER_EMAIL)
+    void getUsersRelatedToYourCares_shouldReturnProperAnswer() throws Exception {
+        mockMvc.perform(get("/api/care/related-users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = CARETAKER_EMAIL)
     void getCare_ShouldReturnProperAnswer() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());

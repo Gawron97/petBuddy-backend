@@ -172,16 +172,15 @@ public class MockDataCreator {
     }
 
     private boolean shouldSkipInit() {
-        return caretakerRepository.count() != 0 &&
-                appUserRepository.count() != 0 &&
-                ratingRepository.count() != 0 &&
-                offerRepository.count() != 0 &&
-                offerConfigurationRepository.count() != 0 &&
-                offerOptionRepository.count() != 0 &&
-                animalAmenityRepository.count() != 0 &&
-                availabilityRepository.count() != 0 &&
-                chatRoomRepository.count() != 0 &&
-                chatMessageRepository.count() != 0 &&
+        return caretakerRepository.count() != 0 ||
+                appUserRepository.count() != 0 ||
+                ratingRepository.count() != 0 ||
+                offerRepository.count() != 0 ||
+                offerConfigurationRepository.count() != 0 ||
+                offerOptionRepository.count() != 0 ||
+                availabilityRepository.count() != 0 ||
+                chatRoomRepository.count() != 0 ||
+                chatMessageRepository.count() != 0 ||
                 careRepository.count() != 0;
     }
 

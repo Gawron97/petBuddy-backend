@@ -4,6 +4,7 @@ import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -128,6 +129,12 @@ public class CareService {
     public Care getCareById(Long careId) {
         return careRepository.findById(careId)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
+    }
+
+    public Page<SimplifiedAccountDataDTO> getUsersRelatedToYourCares(String userEmail, Pageable pageable, Role role) {
+        return role == Role.CARETAKER
+        ? careRepository.findClientsRelatedToYourCares(userEmail, pageable)
+        : careRepository.findCaretakersRelatedToYourCares(userEmail, pageable);
     }
 
     public CareDTO getCare(Long careId, ZoneId timezone, String userEmail) {

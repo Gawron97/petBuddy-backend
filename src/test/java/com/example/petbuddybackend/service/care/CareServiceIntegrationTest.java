@@ -4,6 +4,7 @@ import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -800,6 +801,66 @@ public class CareServiceIntegrationTest {
                 )
         );
     }
+
+    @Test
+    void getUsersRelatedToYourCares_whenEvaluatedByCaretaker_shouldReturnProperAnswer() {
+
+        //Given
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+
+        //When
+        Page<SimplifiedAccountDataDTO> usersRelatedToYourCares =
+                careService.getUsersRelatedToYourCares(caretaker.getEmail(), Pageable.ofSize(10), Role.CARETAKER);
+
+        //Then
+        assertEquals(1, usersRelatedToYourCares.getTotalElements());
+        assertEquals(client.getEmail(), usersRelatedToYourCares.getContent().get(0).email());
+
+    }
+
+    @Test
+    void getUsersRelatedToYourCares_whenEvaluatedByClient_shouldReturnProperAnswer() {
+
+        //Given
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+
+        //When
+        Page<SimplifiedAccountDataDTO> usersRelatedToYourCares =
+                careService.getUsersRelatedToYourCares(client.getEmail(), Pageable.ofSize(10), Role.CLIENT);
+
+        //Then
+        assertEquals(1, usersRelatedToYourCares.getTotalElements());
+        assertEquals(caretaker.getEmail(), usersRelatedToYourCares.getContent().get(0).email());
+
+    }
+
+    @Test
+    void getUsersRelatedToYourCares_whenUserWithProvidedRoleNotExist_shouldReturnEmptyPage() {
+
+        //Given
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+
+        //When
+        Page<SimplifiedAccountDataDTO> usersRelatedToYourCares =
+                careService.getUsersRelatedToYourCares("wrong@email", Pageable.ofSize(10), Role.CLIENT);
+
+        //Then
+        assertEquals(0, usersRelatedToYourCares.getTotalElements());
+
+    }
+
+    @Test
+    void getUsersRelatedToYourCares_whenUserDoesNotHaveCares_shouldReturnEmptyPage() {
+
+        //When
+        Page<SimplifiedAccountDataDTO> usersRelatedToYourCares =
+                careService.getUsersRelatedToYourCares(client.getEmail(), Pageable.ofSize(10), Role.CLIENT);
+
+        //Then
+        assertEquals(0, usersRelatedToYourCares.getTotalElements());
+
+    }
+
 
     @Test
     @Transactional

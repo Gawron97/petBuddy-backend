@@ -4,7 +4,9 @@ import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.paging.PagingParams;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
+import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.care.CareService;
@@ -208,4 +210,19 @@ public class CareController {
                 TimeUtils.getOrSystemDefault(timeZone)
         );
     }
+
+    @GetMapping("/related-users")
+    @Operation(
+            summary = "Get users data related to your cares"
+    )
+    @PreAuthorize("isAuthenticated()")
+    public Page<SimplifiedAccountDataDTO> getUsersRelatedToYourCares(
+            Principal principal,
+            @ParameterObject @ModelAttribute @Valid PagingParams pagingParams,
+            @RequestHeader(value = "${header-name.role}") Role role
+    ) {
+        Pageable pageable = PagingUtils.createPageable(pagingParams);
+        return careService.getUsersRelatedToYourCares(principal.getName(), pageable, role);
+    }
+
 }
