@@ -6,7 +6,7 @@ import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
-import com.example.petbuddybackend.service.session.chat.WebsocketChatMessageSender;
+import com.example.petbuddybackend.service.chat.WebSocketChatMessageSender;
 import com.example.petbuddybackend.service.session.chat.ChatSessionTracker;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import jakarta.validation.Valid;
@@ -43,7 +43,7 @@ public class ChatWebSocketController {
     private String URL_CHAT_TOPIC_BASE;
 
     private final ChatService chatService;
-    private final WebsocketChatMessageSender chatSessionService;
+    private final WebSocketChatMessageSender chatSessionService;
     private final ChatSessionTracker chatSessionTracker;
 
     @Transactional

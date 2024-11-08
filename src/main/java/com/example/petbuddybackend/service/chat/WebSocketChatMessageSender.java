@@ -1,4 +1,4 @@
-package com.example.petbuddybackend.service.session.chat;
+package com.example.petbuddybackend.service.chat;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotification;
@@ -6,7 +6,6 @@ import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
-import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.service.session.WebSocketSessionService;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
@@ -23,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WebsocketChatMessageSender {
+public class WebSocketChatMessageSender {
 
     @Value("${url.chat.topic.send-url}")
     private String CHAT_TOPIC_URL_PATTERN;
