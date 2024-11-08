@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.repository.care;
 
+import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import org.springframework.data.domain.Page;
@@ -52,4 +53,27 @@ public interface CareRepository extends JpaRepository<Care, Long>, JpaSpecificat
     )
     int outdateCaresBetweenClientAndCaretaker(Collection<CareStatus> statusesPrerequisites);
 
+    @Query("""
+            SELECT new com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO(
+                c.client.email,
+                c.client.accountData.name,
+                c.client.accountData.surname
+            )
+            FROM Care c
+            WHERE c.caretaker.email = :caretakerEmail
+            """
+    )
+    Page<SimplifiedAccountDataDTO> findClientsRelatedToYourCares(String caretakerEmail, Pageable pageable);
+
+    @Query("""
+            SELECT new com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO(
+                c.caretaker.email,
+                c.caretaker.accountData.name,
+                c.caretaker.accountData.surname
+            )
+            FROM Care c
+            WHERE c.client.email = :clientEmail
+            """
+    )
+    Page<SimplifiedAccountDataDTO> findCaretakersRelatedToYourCares(String clientEmail, Pageable pageable);
 }

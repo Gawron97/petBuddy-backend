@@ -561,5 +561,14 @@ public class CareControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    @WithMockUser(username = CARETAKER_EMAIL)
+    void getUsersRelatedToYourCares_shouldReturnProperAnswer() throws Exception {
+        mockMvc.perform(get("/api/care/related-users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk());
+    }
+
 
 }
