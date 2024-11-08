@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.testconfig;
 
 
-import com.example.petbuddybackend.service.chat.session.ChatSessionTracker;
+import com.example.petbuddybackend.service.session.chat.ChatSessionTracker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;

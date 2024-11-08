@@ -7,6 +7,7 @@ import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.session.WebSocketSessionService;
+import com.example.petbuddybackend.service.session.chat.WebsocketChatMessageSender;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,7 @@ public class ChatSessionServiceTest {
     private String CHAT_TOPIC_URL_PATTERN;
 
     @Autowired
-    private ChatSessionService chatSessionService;
+    private WebsocketChatMessageSender chatSessionService;
 
     @MockBean
     private SimpMessagingTemplate simpMessagingTemplate;
