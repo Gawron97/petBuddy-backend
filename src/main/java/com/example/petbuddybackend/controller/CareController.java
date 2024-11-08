@@ -4,6 +4,7 @@ import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.paging.PagingParams;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -201,10 +202,10 @@ public class CareController {
     @PreAuthorize("isAuthenticated()")
     public Page<SimplifiedAccountDataDTO> getUsersRelatedToYourCares(
             Principal principal,
-            @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
+            @ParameterObject @ModelAttribute @Valid PagingParams pagingParams,
             @RequestHeader(value = "${header-name.role}") Role role
     ) {
-        Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
+        Pageable pageable = PagingUtils.createPageable(pagingParams);
         return careService.getUsersRelatedToYourCares(principal.getName(), pageable, role);
     }
 
