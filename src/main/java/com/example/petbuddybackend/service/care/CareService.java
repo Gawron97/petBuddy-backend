@@ -20,6 +20,7 @@ import com.example.petbuddybackend.service.notification.NotificationService;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.service.user.UserService;
+import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CareSpecificationUtils;
@@ -129,6 +130,12 @@ public class CareService {
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
     }
 
+    public CareDTO getCare(Long careId, ZoneId timezone, String userEmail) {
+        Care care = getCareById(careId);
+        assertUserParticipatingInCare(care, userEmail);
+        return careMapper.mapToCareDTO(care, timezone);
+    }
+
     private void assertNotReservationToYourself(String clientEmail, String caretakerEmail) {
         if(clientEmail.equals(caretakerEmail)) {
             throw new IllegalActionException("Cannot make reservation to yourself");
@@ -203,5 +210,11 @@ public class CareService {
         }
 
         return care;
+    }
+
+    private void assertUserParticipatingInCare(Care care, String userEmail) {
+        if (!care.getClient().getEmail().equals(userEmail) && !care.getCaretaker().getEmail().equals(userEmail)) {
+            throw new ForbiddenException("User is not participating in the care");
+        }
     }
 }
