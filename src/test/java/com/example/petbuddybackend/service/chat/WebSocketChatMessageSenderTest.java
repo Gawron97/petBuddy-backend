@@ -1,13 +1,11 @@
-package com.example.petbuddybackend.service.chat.session;
+package com.example.petbuddybackend.service.chat;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
-import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.session.WebSocketSessionService;
-import com.example.petbuddybackend.service.chat.WebSocketChatMessageSender;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class ChatSessionServiceTest {
+public class WebSocketChatMessageSenderTest {
 
     private static final String CLIENT_EMAIL = "client@email";
     private static final String CARETAKER_EMAIL = "caretaker@email";
