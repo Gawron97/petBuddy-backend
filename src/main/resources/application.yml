@@ -57,19 +57,21 @@ header-name:
   role: "Accept-Role"
   language: "Accept-Language"
 
+# subscribe prefix - prefix to url backend sees for subscription
+# send-url - url to send message to from backend
+# client-subscribe-pattern - pattern to subscribe to for client
 url:
   chat:
     topic:
-      base: "/topic/messages"
-      pattern: "/topic/messages/%d/%s"
-  session:
-    topic:
-      base: "/topic/session"
-      pattern: "/topic/session/%s"
+      chat-id-pos: 4
+      subscribe-prefix: "/user/topic/messages"
+      send-url: "/topic/messages/%d"
+      client-subscribe-pattern: "/user/topic/messages/%d"
   notification:
     topic:
-      base: "/user/topic/notification"
-      pattern: "/topic/notification"
+      subscribe-prefix: "/user/topic/notification"
+      send-url: "/topic/notification"
+      client-subscribe-pattern: "/user/topic/notification"
 
 firebase:
   key:

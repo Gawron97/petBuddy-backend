@@ -34,5 +34,15 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
         """)
     void updateUnseenMessagesOfClient(Long chatRoomId, String clientEmail);
 
+    @Modifying
+    @Transactional
+    @Query("""
+        UPDATE ChatMessage m
+        SET m.seenByRecipient = true
+        WHERE m.chatRoom.id = :chatRoomId
+          AND m.seenByRecipient = false
+        """)
+    void updateMessageSeenOfBothUsers(Long chatRoomId);
+
     ChatMessage findFirstByChatRoom_IdOrderByCreatedAtDesc(Long chatRoomId);
 }

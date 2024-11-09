@@ -11,7 +11,6 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
-import com.example.petbuddybackend.service.chat.session.MessageCallback;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -76,18 +75,35 @@ public class ChatService {
         return chatRoomDTOs.map(room -> chatMapper.mapTimeZone(room, timeZone));
     }
 
-    /**
-     * Creates a message in the chat room with the given id and updates the last message seen by the user in the chat room.
-     * */
     @Transactional
     public ChatMessageDTO createMessage(
-            Long chatId,
-            String principalEmail,
+            ChatRoom chatRoom,
+            String senderEmail,
+            Role senderRole,
             ChatMessageSent chatMessage,
-            Role role
+            boolean seenByRecipient
     ) {
-        ChatMessage message = createMessageForRoleAndUpdateSeen(chatId, principalEmail, role, chatMessage);
-        return chatMapper.mapToChatMessageDTO(message);
+        checkUserInChat(chatRoom, senderEmail, senderRole);
+
+        AppUser sender = senderRole.equals(Role.CLIENT) ?
+                chatRoom.getClient().getAccountData() :
+                chatRoom.getCaretaker().getAccountData();
+
+        ChatMessage persistedMessage = persistMessage(chatRoom, sender, chatMessage.getContent(), seenByRecipient);
+        performLastMessageSeenUpdate(chatRoom.getId(), senderEmail, senderRole, seenByRecipient);
+        return chatMapper.mapToChatMessageDTO(persistedMessage);
+    }
+
+    @Transactional
+    public void markMessagesAsSeen(Long chatId, String username) {
+        ChatRoom chatRoom = getChatRoomById(chatId);
+        checkUserInChat(chatId, username);
+
+        if(chatRoom.getClient().getEmail().equals(username)) {
+            chatMessageRepository.updateUnseenMessagesOfClient(chatId, username);
+        } else {
+            chatMessageRepository.updateUnseenMessagesOfCaretaker(chatId, username);
+        }
     }
 
     @Transactional
@@ -123,30 +139,6 @@ public class ChatService {
                 chatRoom.getCaretaker().getEmail().equals(email);
     }
 
-    /**
-     * Updates the last message seen by the user in the chat room to the latest message in the chat room.
-     * */
-    @Transactional
-    public void updateLastMessageSeen(Long chatId, String email) {
-        checkChatExists(chatId);
-        Role userRole = getRoleOfUserInChat(chatId, email);
-
-        if(userRole == Role.CLIENT) {
-            chatMessageRepository.updateUnseenMessagesOfClient(chatId, email);
-        } else {
-            chatMessageRepository.updateUnseenMessagesOfCaretaker(chatId, email);
-        }
-    }
-
-    @Transactional
-    public MessageCallback createCallbackMessageSeen(Long chatId, String usernameToSkip) {
-        return usernameSend -> {
-            if(!usernameSend.equals(usernameToSkip)) {
-                updateLastMessageSeen(chatId, usernameSend);
-            }
-        };
-    }
-
     @Transactional(readOnly = true)
     public ChatRoomDTO getChatRoomWithParticipant(
             String username,
@@ -175,6 +167,18 @@ public class ChatService {
         return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, lastMessage, isSeenByPrincipal, timeZone);
     }
 
+    private void performLastMessageSeenUpdate(Long chatId, String senderEmail, Role senderRole, boolean seenByRecipient) {
+        if(seenByRecipient) {
+            chatMessageRepository.updateMessageSeenOfBothUsers(chatId);
+        } else {
+            if(senderRole == Role.CLIENT) {
+                chatMessageRepository.updateUnseenMessagesOfCaretaker(chatId, senderEmail);
+            } else {
+                chatMessageRepository.updateUnseenMessagesOfClient(chatId, senderEmail);
+            }
+        }
+    }
+
     private boolean messageSeenByPrincipal(String username, ChatMessage lastMessage) {
         String senderEmail = lastMessage.getSender().getEmail();
 
@@ -194,7 +198,12 @@ public class ChatService {
         Client clientSender = clientService.getClientByEmail(clientSenderEmail);
         Caretaker caretakerReceiver = caretakerService.getCaretakerByEmail(caretakerReceiverEmail);
         ChatRoom chatRoom = createChatRoom(clientSender, caretakerReceiver);
-        ChatMessage chatMessage = persistMessage(chatRoom, clientSender.getAccountData(), message.getContent());
+        ChatMessage chatMessage = persistMessage(
+                chatRoom,
+                clientSender.getAccountData(),
+                message.getContent(),
+                false
+        );
 
         chatMessageRepository.updateUnseenMessagesOfClient(chatRoom.getId(), clientSenderEmail);
 
@@ -210,36 +219,23 @@ public class ChatService {
         Client clientReceiver = clientService.getClientByEmail(clientReceiverEmail);
         Caretaker caretakerSender = caretakerService.getCaretakerByEmail(caretakerSenderEmail);
         ChatRoom chatRoom = createChatRoom(clientReceiver, caretakerSender);
-        ChatMessage chatMessage = persistMessage(chatRoom, caretakerSender.getAccountData(), message.getContent());
+        ChatMessage chatMessage = persistMessage(
+                chatRoom,
+                caretakerSender.getAccountData(),
+                message.getContent(),
+                false
+        );
 
         chatMessageRepository.updateUnseenMessagesOfCaretaker(chatRoom.getId(), caretakerSenderEmail);
 
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
 
-    private ChatMessage createMessageForRoleAndUpdateSeen(Long chatId, String principalEmail, Role principalRole, ChatMessageSent chatMessage) {
-        ChatRoom chatRoom = getChatRoomById(chatId);
-        checkUserInChat(chatRoom, principalEmail, principalRole);
-
-        if(principalRole == Role.CLIENT) {
-            AppUser sender = chatRoom.getClient().getAccountData();
-            ChatMessage message = persistMessage(chatRoom, sender, chatMessage.getContent());
-            chatMessageRepository.updateUnseenMessagesOfClient(chatId, sender.getEmail());
-            chatRoomRepository.save(chatRoom);
-            return message;
-        } else {
-            AppUser sender = chatRoom.getCaretaker().getAccountData();
-            ChatMessage message = persistMessage(chatRoom, sender, chatMessage.getContent());
-            chatMessageRepository.updateUnseenMessagesOfCaretaker(chatId, sender.getEmail());
-            chatRoomRepository.save(chatRoom);
-            return message;
-        }
-    }
-
-    private ChatMessage persistMessage(ChatRoom chatRoom, AppUser sender, String content) {
+    private ChatMessage persistMessage(ChatRoom chatRoom, AppUser sender, String content, boolean seenByRecipient) {
         ChatMessage chatMessage = ChatMessage.builder()
                 .sender(sender)
                 .content(content)
+                .seenByRecipient(seenByRecipient)
                 .chatRoom(chatRoom)
                 .build();
 

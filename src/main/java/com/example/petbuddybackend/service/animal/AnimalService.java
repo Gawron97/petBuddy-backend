@@ -32,8 +32,8 @@ public class AnimalService {
     private final AnimalAmenityRepository animalAmenityRepository;
 
     private final AnimalMapper animalMapper = AnimalMapper.INSTANCE;
-
     private static final String ANIMAL = "Animal";
+
 
     public AnimalAmenity getAnimalAmenity(String amenityName, String animalType) {
         return animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType(amenityName, animalType.toUpperCase())

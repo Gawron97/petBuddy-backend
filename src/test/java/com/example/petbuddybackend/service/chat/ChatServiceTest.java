@@ -234,10 +234,11 @@ public class ChatServiceTest {
         long msgCount = chatMessageRepository.count();
 
         ChatMessageDTO msg = chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 client.getEmail(),
+                Role.CLIENT,
                 new ChatMessageSent("message content"),
-                Role.CLIENT
+                false
         );
 
         assertEquals(msgCount + 1, chatMessageRepository.count());
@@ -252,10 +253,11 @@ public class ChatServiceTest {
         long msgCount = chatMessageRepository.count();
 
         ChatMessageDTO msg = chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 caretaker.getEmail(),
+                Role.CARETAKER,
                 new ChatMessageSent("message content"),
-                Role.CARETAKER
+                false
         );
 
         assertEquals(msgCount + 1, chatMessageRepository.count());
@@ -270,24 +272,27 @@ public class ChatServiceTest {
         ChatMessageSent payload = new ChatMessageSent("message content");
 
         chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 caretaker.getEmail(),
+                Role.CARETAKER,
                 payload,
-                Role.CARETAKER
+                false
         );
 
         chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 client.getEmail(),
+                Role.CLIENT,
                 payload,
-                Role.CLIENT
+                false
         );
 
         chatService.createMessage(
-                chatRoom.getId(),
+                chatRoom,
                 caretaker.getEmail(),
+                Role.CARETAKER,
                 payload,
-                Role.CARETAKER
+                false
         );
 
         List<ChatMessageDTO> clientMessages = chatService.getChatMessagesByParticipantEmail(
@@ -305,14 +310,21 @@ public class ChatServiceTest {
     }
 
     @Test
-    void testCreateMessage_chatRoomDoesNotExists_shouldThrowNotFoundException() {
+    void testCreateMessage_chatRoomDoesNotExists_shouldThrowNotParticipateException() {
+        ChatRoom chatRoom = ChatRoom.builder()
+                .id(-1L)
+                .client(Client.builder().email("otherClient").build())
+                .caretaker(Caretaker.builder().email("otherCaretaker").build())
+                .build();
+
         assertThrows(
-                NotFoundException.class,
+                NotParticipateException.class,
                 () -> chatService.createMessage(
-                        -1L,
+                        chatRoom,
                         caretaker.getEmail(),
+                        Role.CARETAKER,
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        false
                 )
         );
     }
@@ -322,10 +334,11 @@ public class ChatServiceTest {
         assertThrows(
                 NotParticipateException.class,
                 () -> chatService.createMessage(
-                        chatRoom.getId(),
+                        chatRoom,
                         "notAParticipant",
+                        Role.CARETAKER,
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        false
                 )
         );
     }
@@ -335,20 +348,22 @@ public class ChatServiceTest {
         assertThrows(
                 NotParticipateException.class,
                 () -> chatService.createMessage(
-                        chatRoom.getId(),
+                        chatRoom,
                         client.getEmail(),
+                        Role.CARETAKER,
                         new ChatMessageSent("message content"),
-                        Role.CARETAKER
+                        false
                 )
         );
 
         assertThrows(
                 NotParticipateException.class,
                 () -> chatService.createMessage(
-                        chatRoom.getId(),
+                        chatRoom,
                         caretaker.getEmail(),
+                        Role.CLIENT,
                         new ChatMessageSent("message content"),
-                        Role.CLIENT
+                        false
                 )
         );
     }
@@ -441,7 +456,7 @@ public class ChatServiceTest {
     }
 
     @Test
-    void testUpdateLastMessageSeen_clientUpdatesLastMessageSeen_shouldSucceed() {
+    void testMarkMessagesAsSeen_clientUpdatesLastMessageSeen_shouldSucceed() {
         chatMessageRepository.save(
                 MockChatProvider.createMockChatMessage(client.getAccountData(),  ZonedDateTime.now().plusYears(1), chatRoom)
         );
@@ -450,7 +465,7 @@ public class ChatServiceTest {
                 MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now(), chatRoom)
         );
 
-        chatService.updateLastMessageSeen(chatRoom.getId(), client.getEmail());
+        chatService.markMessagesAsSeen(chatRoom.getId(), client.getEmail());
         List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
                 chatRoom.getId(),
                 client.getEmail(),
@@ -469,7 +484,7 @@ public class ChatServiceTest {
     }
 
     @Test
-    void testUpdateLastMessageSeen_caretakerUpdatesLastMessageSeen_shouldSucceed() {
+    void testMarkMessagesAsSeen_caretakerUpdatesLastMessageSeen_shouldSucceed() {
         chatMessageRepository.save(
                 MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now().plusYears(1), chatRoom)
         );
@@ -478,7 +493,7 @@ public class ChatServiceTest {
                 MockChatProvider.createMockChatMessage(client.getAccountData(), ZonedDateTime.now(), chatRoom)
         );
 
-        chatService.updateLastMessageSeen(chatRoom.getId(), caretaker.getEmail());
+        chatService.markMessagesAsSeen(chatRoom.getId(), caretaker.getEmail());
 
         List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
                 chatRoom.getId(),
@@ -498,18 +513,18 @@ public class ChatServiceTest {
     }
 
     @Test
-    void testUpdateLastMessageSeen_userNotInChatRoom_shouldThrowNotParticipateException() {
+    void testMarkMessagesAsSeen_userNotInChatRoom_shouldThrowNotParticipateException() {
         assertThrows(
                 NotParticipateException.class,
-                () -> chatService.updateLastMessageSeen(chatRoom.getId(), "notInChatRoom")
+                () -> chatService.markMessagesAsSeen(chatRoom.getId(), "notInChatRoom")
         );
     }
 
     @Test
-    void testUpdateLastMessageSeen_noChatRoomWithProvidedId_shouldThrowNotFoundException() {
+    void testMarkMessagesAsSeen_noChatRoomWithProvidedId_shouldThrowNotFoundException() {
         assertThrows(
                 NotFoundException.class,
-                () -> chatService.updateLastMessageSeen(-1L, client.getEmail())
+                () -> chatService.markMessagesAsSeen(-1L, client.getEmail())
         );
     }
 
@@ -537,6 +552,32 @@ public class ChatServiceTest {
                 NotFoundException.class,
                 () -> chatService.getChatRoomWithParticipant(username, role, participantUsername, ZoneId.systemDefault())
         );
+    }
+
+    @Test
+    void markMessagesAsSeen_shouldSucceed() {
+        chatService.createMessage(
+                chatRoom,
+                caretaker.getEmail(),
+                Role.CARETAKER,
+                new ChatMessageSent("message content"),
+                false
+        );
+
+        chatService.markMessagesAsSeen(chatRoom.getId(), client.getEmail());
+
+        List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
+                chatRoom.getId(),
+                client.getEmail(),
+                PageRequest.of(0, 10),
+                ZoneId.of("Europe/Warsaw")
+        ).getContent();
+
+        for(ChatMessageDTO chatMessage : chatMessages) {
+            if(!chatMessage.getSenderEmail().equals(client.getEmail())) {
+                assertTrue(chatMessage.getSeenByRecipient());
+            }
+        }
     }
 
     private static Stream<String> provideTimeZones() {

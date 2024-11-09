@@ -4,6 +4,9 @@ import com.example.petbuddybackend.utils.exception.throweable.websocket.InvalidW
 import com.example.petbuddybackend.utils.exception.throweable.websocket.MissingWebSocketHeaderException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 
 import java.security.Principal;
@@ -76,9 +79,7 @@ public final class HeaderUtils {
         return user.getName();
     }
 
-    public static Long getLongFromDestination(StompHeaderAccessor accessor, int position) {
-        String destination = accessor.getDestination();
-
+    public static Long getLongFromDestination(String destination, int position) {
         String[] parts = destination.split("/");
         if (parts.length > position) {
             return Long.parseLong(parts[position]);
@@ -87,8 +88,25 @@ public final class HeaderUtils {
         throw new IndexOutOfBoundsException("Position pointing to out of bounds element");
     }
 
+    public static Long getLongFromDestination(StompHeaderAccessor accessor, int position) {
+        String destination = accessor.getDestination();
+
+        if(destination == null) {
+            throw new MissingWebSocketHeaderException("Destination");
+        }
+
+        return getLongFromDestination(destination, position);
+    }
+
     public static boolean destinationStartsWith(String prefix, String destination) {
         return destination != null && destination.startsWith(prefix);
+    }
+
+    public static MessageHeaders createMessageHeadersWithSessionId(String sessionId) {
+        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);
+        headerAccessor.setSessionId(sessionId);
+        headerAccessor.setLeaveMutable(true);
+        return headerAccessor.getMessageHeaders();
     }
 
     @SuppressWarnings("unchecked")

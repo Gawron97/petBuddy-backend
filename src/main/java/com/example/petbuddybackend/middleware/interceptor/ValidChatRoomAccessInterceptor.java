@@ -17,8 +17,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ValidChatRoomAccessInterceptor implements ChannelInterceptor {
 
-    @Value("${url.chat.topic.base}")
+    @Value("${url.chat.topic.subscribe-prefix}")
     private String URL_CHAT_TOPIC_BASE;
+
+    @Value("${url.chat.topic.chat-id-pos}")
+    private int CHAT_ID_INDEX_IN_TOPIC_URL;
 
     @Value("${header-name.role}")
     private String ROLE_HEADER_NAME;
@@ -56,6 +59,6 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor {
 
     private Long extractChatId(String destination) {
         String[] parts = destination.split("/");
-        return Long.parseLong(parts[3]);
+        return Long.parseLong(parts[CHAT_ID_INDEX_IN_TOPIC_URL]);
     }
 }

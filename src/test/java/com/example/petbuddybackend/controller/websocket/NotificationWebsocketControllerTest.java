@@ -8,6 +8,7 @@ import com.example.petbuddybackend.repository.notification.CaretakerNotification
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
+import com.example.petbuddybackend.service.session.WebSocketSessionService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.websocket.WebsocketUtils;
@@ -53,7 +54,7 @@ public class NotificationWebsocketControllerTest {
     private static final String TIMEZONE = "Europe/Warsaw";
     private static final int TIMEOUT_SECONDS = 2;
 
-    @Value("${url.notification.topic.base}")
+    @Value("${url.notification.topic.client-subscribe-pattern}")
     private String SUBSCRIBE_TOPIC;
 
     @Value("${header-name.timezone}")
@@ -61,6 +62,9 @@ public class NotificationWebsocketControllerTest {
 
     @Autowired
     private WebsocketNotificationService websocketNotificationService;
+
+    @Autowired
+    private WebSocketSessionService websocketSessionService;
 
     @Autowired
     private CaretakerRepository caretakerRepository;
@@ -110,7 +114,7 @@ public class NotificationWebsocketControllerTest {
         Thread.sleep(100);
 
         // Check if session is opened
-        assertEquals(1, websocketNotificationService.getNumberOfSessions(USER_EMAIL));
+        assertEquals(1, websocketSessionService.getNumberOfSessions(USER_EMAIL));
 
         // Close session
         subscription.unsubscribe();
