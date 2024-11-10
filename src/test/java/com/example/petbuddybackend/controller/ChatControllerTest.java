@@ -151,4 +151,12 @@ public class ChatControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"));
     }
+
+    @Test
+    @WithMockUser
+    void testGetUnreadChatsNumber_shouldReturnProperAnswer() throws Exception {
+        mockMvc.perform(get("/api/chat/unread-number"))
+                .andExpect(status().isOk());
+    }
+
 }
