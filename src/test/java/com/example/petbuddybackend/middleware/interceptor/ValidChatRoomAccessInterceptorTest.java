@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.middleware.interceptor;
 
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.service.chat.ChatService;
+import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class ValidChatRoomAccessInterceptorTest {
     private ValidChatRoomAccessInterceptor interceptor;
 
     @MockBean
-    private ChatService chatService;
+    private ChatRoomRepository chatRoomRepository;
 
     @Test
     public void testUserInChatAllowed() {
@@ -43,7 +43,7 @@ public class ValidChatRoomAccessInterceptorTest {
         Role role = Role.CLIENT;
         Message<?> message = createMessage(destination, username, role);
 
-        when(chatService.isUserInChat(any(Long.class), anyString(), any(Role.class)))
+        when(chatRoomRepository.existsByIdAndClient_Email(any(Long.class), anyString()))
                 .thenReturn(true);
 
         Message<?> result = interceptor.preSend(message, mock(MessageChannel.class));
@@ -58,7 +58,10 @@ public class ValidChatRoomAccessInterceptorTest {
         Role role = Role.CLIENT;
         Message<?> message = createMessage(destination, username, role);
 
-        when(chatService.isUserInChat(any(Long.class), anyString(), any(Role.class)))
+        when(chatRoomRepository.existsByIdAndClient_Email(any(Long.class), anyString()))
+                .thenReturn(false);
+
+        when(chatRoomRepository.existsByIdAndCaretaker_Email(any(Long.class), anyString()))
                 .thenReturn(false);
 
         assertThrows(NotParticipateException.class, () -> {

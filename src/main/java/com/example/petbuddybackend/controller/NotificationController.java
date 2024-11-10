@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.notification.NotificationDTO;
+import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.notification.NotificationService;
@@ -33,7 +33,7 @@ public class NotificationController {
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public Page<NotificationDTO> getUnreadNotifications(
+    public Page<SimplyNotificationDTO> getUnreadNotifications(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             Principal principal,
             @RoleParameter
@@ -53,10 +53,10 @@ public class NotificationController {
     @Operation(summary = "Mark notification as read")
     @PatchMapping("/{notificationId}")
     @PreAuthorize("isAuthenticated()")
-    public NotificationDTO markNotificationAsRead(@PathVariable Long notificationId,
-                                                  @RoleParameter
+    public SimplyNotificationDTO markNotificationAsRead(@PathVariable Long notificationId,
+                                                        @RoleParameter
                                                   @RequestHeader(value = "${header-name.role}") Role role,
-                                                  @TimeZoneParameter
+                                                        @TimeZoneParameter
                                                   @RequestHeader(value = "${header-name.timezone}") String timezone) {
         return notificationService.markNotificationAsRead(notificationId, role, TimeUtils.getOrSystemDefault(timezone));
     }

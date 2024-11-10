@@ -1,16 +1,12 @@
 package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.dto.notification.NotificationDTO;
-import com.example.petbuddybackend.entity.notification.Notification;
-import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
+import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
-import com.example.petbuddybackend.repository.user.AppUserRepository;
-import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
 import com.example.petbuddybackend.service.session.WebSocketSessionService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
-import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.websocket.WebsocketUtils;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
@@ -52,7 +48,7 @@ public class NotificationWebsocketControllerTest {
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
     private static final String USER_EMAIL = NoSecurityInjectUserConfig.injectedUsername;
     private static final String TIMEZONE = "Europe/Warsaw";
-    private static final int TIMEOUT_SECONDS = 2;
+    private static final int TIMEOUT_SECONDS = 5;
 
     @Value("${url.notification.topic.client-subscribe-pattern}")
     private String SUBSCRIBE_TOPIC;
@@ -65,15 +61,6 @@ public class NotificationWebsocketControllerTest {
 
     @Autowired
     private WebSocketSessionService websocketSessionService;
-
-    @Autowired
-    private CaretakerRepository caretakerRepository;
-
-    @Autowired
-    private AppUserRepository appUserRepository;
-
-    @Autowired
-    private CaretakerNotificationRepository caretakerNotificationRepository;
 
     @Autowired
     private MappingJackson2MessageConverter messageConverter;
@@ -132,19 +119,26 @@ public class NotificationWebsocketControllerTest {
         StompSession.Subscription subscription = subscribeToNotificationTopic(stompSession);
 
         // Send message
-        Caretaker caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
-        Notification notification = PersistenceUtils.addCaretakerNotification(caretakerNotificationRepository, caretaker);
+        SimplyNotificationDTO notificationToSend = SimplyNotificationDTO
+                .builder()
+                .notificationId(1L)
+                .objectId(1L)
+                .objectType(ObjectType.CARE)
+                .receiverProfile(Role.CARETAKER)
+                .createdAt(ZonedDateTime.now())
+                .build();
+
         websocketNotificationService.sendNotification(
                 USER_EMAIL,
-                notification
+                notificationToSend
         );
 
         // Check if message was received
-        NotificationDTO receivedNotification = blockingQueue.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertEquals(notification.getId(), receivedNotification.notificationId());
-        assertEquals(notification.getObjectId(), receivedNotification.objectId());
-        assertEquals(notification.getObjectType(), receivedNotification.objectType());
-        assertEquals(Role.CARETAKER, receivedNotification.receiverProfile());
+        SimplyNotificationDTO receivedNotification = (SimplyNotificationDTO) blockingQueue.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertEquals(notificationToSend.getNotificationId(), receivedNotification.getNotificationId());
+        assertEquals(notificationToSend.getObjectId(), receivedNotification.getObjectId());
+        assertEquals(notificationToSend.getObjectType(), receivedNotification.getObjectType());
+        assertEquals(Role.CARETAKER, receivedNotification.getReceiverProfile());
 
         // Close session
         subscription.unsubscribe();

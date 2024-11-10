@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.notification;
 
-import com.example.petbuddybackend.dto.notification.NotificationDTO;
+import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.notification.ClientNotification;
 import com.example.petbuddybackend.entity.notification.Notification;
@@ -42,7 +42,7 @@ public class NotificationService {
         CaretakerNotification savedNotification = caretakerNotificationRepository.save(notification);
         websocketNotificationService.sendNotification(
                 caretaker.getEmail(),
-                savedNotification
+                notificationMapper.mapToSimplyNotificationDTO(savedNotification)
         );
     }
 
@@ -52,22 +52,22 @@ public class NotificationService {
         ClientNotification savedNotification = clientNotificationRepository.save(notification);
         websocketNotificationService.sendNotification(
                 client.getEmail(),
-                savedNotification
+                notificationMapper.mapToSimplyNotificationDTO(savedNotification)
         );
     }
 
-    public Page<NotificationDTO> getUnreadNotifications(Pageable pageable, String userEmail, Role userRole,
-                                                        ZoneId timezone) {
+    public Page<SimplyNotificationDTO> getUnreadNotifications(Pageable pageable, String userEmail, Role userRole,
+                                                              ZoneId timezone) {
         return userRole == Role.CARETAKER
                 ? getCaretakerUnreadNotifications(pageable, userEmail, timezone)
                 : getClientUnreadNotifications(pageable, userEmail, timezone);
     }
 
-    public NotificationDTO markNotificationAsRead(Long notificationId, Role role, ZoneId timezone) {
+    public SimplyNotificationDTO markNotificationAsRead(Long notificationId, Role role, ZoneId timezone) {
         Notification notification = getNotification(role, notificationId);
 
         notification.setRead(true);
-        return notificationMapper.mapToNotificationDTO(notificationRepository.save(notification), timezone);
+        return notificationMapper.mapToSimplyNotificationDTO(notificationRepository.save(notification), timezone);
     }
 
     private Notification getNotification(Role role, Long id) {
@@ -78,24 +78,24 @@ public class NotificationService {
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CLIENT_NOTIFICATION, id.toString()));
     }
 
-    private Page<NotificationDTO> getCaretakerUnreadNotifications(Pageable pageable, String caretakerEmail,
-                                                                  ZoneId timezone) {
+    private Page<SimplyNotificationDTO> getCaretakerUnreadNotifications(Pageable pageable, String caretakerEmail,
+                                                                        ZoneId timezone) {
         return caretakerNotificationRepository.getCaretakerNotificationByCaretaker_EmailAndIsRead(
                 caretakerEmail,
                 false,
                 pageable
                 )
-                .map(caretakerNotification -> notificationMapper.mapToNotificationDTO(caretakerNotification, timezone));
+                .map(caretakerNotification -> notificationMapper.mapToSimplyNotificationDTO(caretakerNotification, timezone));
     }
 
-    private Page<NotificationDTO> getClientUnreadNotifications(Pageable pageable, String clientEmail,
-                                                               ZoneId timezone) {
+    private Page<SimplyNotificationDTO> getClientUnreadNotifications(Pageable pageable, String clientEmail,
+                                                                     ZoneId timezone) {
         return clientNotificationRepository.getClientNotificationByClient_EmailAndIsRead(
                 clientEmail,
                 false,
                 pageable
                 )
-                .map(clientNotification -> notificationMapper.mapToNotificationDTO(clientNotification, timezone));
+                .map(clientNotification -> notificationMapper.mapToSimplyNotificationDTO(clientNotification, timezone));
     }
 
     private CaretakerNotification createCaretakerNotification(Long objectId, ObjectType objectType, Caretaker caretaker,

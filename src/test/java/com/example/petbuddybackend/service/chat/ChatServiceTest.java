@@ -580,6 +580,12 @@ public class ChatServiceTest {
         }
     }
 
+    @Test
+    void getUnreadChatsNumber_shouldReturnProperAnswer() {
+        int unreadChatsNumber = chatService.getUnreadChatsNumber(client.getEmail());
+        assertEquals(1, unreadChatsNumber);
+    }
+
     private static Stream<String> provideTimeZones() {
         return Stream.of(
             "UTC",

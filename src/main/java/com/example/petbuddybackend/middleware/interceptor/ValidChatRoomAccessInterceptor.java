@@ -1,7 +1,7 @@
 package com.example.petbuddybackend.middleware.interceptor;
 
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.service.chat.ChatService;
+import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor {
     @Value("${header-name.role}")
     private String ROLE_HEADER_NAME;
 
-    private final ChatService chatService;
+    private final ChatRoomRepository chatRoomRepository;
 
 
     @Override
@@ -52,7 +52,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor {
         String username = HeaderUtils.getUser(accessor);
         Long chatId = extractChatId(destination);
 
-        if (!chatService.isUserInChat(chatId, username, role)) {
+        if (!isUserInChat(chatId, username, role)) {
             throw new NotParticipateException("Action not allowed for this user");
         }
     }
@@ -60,5 +60,11 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor {
     private Long extractChatId(String destination) {
         String[] parts = destination.split("/");
         return Long.parseLong(parts[CHAT_ID_INDEX_IN_TOPIC_URL]);
+    }
+
+    private boolean isUserInChat(Long chatId, String email, Role role) {
+        return role == Role.CLIENT ?
+                chatRoomRepository.existsByIdAndClient_Email(chatId, email) :
+                chatRoomRepository.existsByIdAndCaretaker_Email(chatId, email);
     }
 }
