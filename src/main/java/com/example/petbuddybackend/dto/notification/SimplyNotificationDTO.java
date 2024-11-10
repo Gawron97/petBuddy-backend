@@ -2,10 +2,7 @@ package com.example.petbuddybackend.dto.notification;
 
 import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Role;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Set;
@@ -16,6 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SimplyNotificationDTO extends NotificationDTO {
+    @Builder.Default
     private String dType = "Notification";
     private Long notificationId;
     private Long objectId;

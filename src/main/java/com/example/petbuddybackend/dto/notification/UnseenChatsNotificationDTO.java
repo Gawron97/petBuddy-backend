@@ -1,9 +1,6 @@
 package com.example.petbuddybackend.dto.notification;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @SuperBuilder
@@ -12,6 +9,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UnseenChatsNotificationDTO extends NotificationDTO {
+    @Builder.Default
     private String dType = "ChatNotification";
     private int unseenChats;
 }

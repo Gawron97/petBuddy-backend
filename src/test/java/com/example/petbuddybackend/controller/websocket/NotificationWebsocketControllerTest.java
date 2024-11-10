@@ -48,7 +48,7 @@ public class NotificationWebsocketControllerTest {
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
     private static final String USER_EMAIL = NoSecurityInjectUserConfig.injectedUsername;
     private static final String TIMEZONE = "Europe/Warsaw";
-    private static final int TIMEOUT_SECONDS = 10;
+    private static final int TIMEOUT_SECONDS = 3;
 
     @Value("${url.notification.topic.client-subscribe-pattern}")
     private String SUBSCRIBE_TOPIC;
