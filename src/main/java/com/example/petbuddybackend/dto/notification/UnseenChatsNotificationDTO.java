@@ -10,6 +10,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class UnseenChatsNotificationDTO extends NotificationDTO {
     @Builder.Default
-    private String dType = "ChatNotification";
+    private NotificationType dType = NotificationType.CHAT_NOTIFICATION;
     private int unseenChats;
 }

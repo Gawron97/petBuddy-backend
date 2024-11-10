@@ -144,7 +144,7 @@ public class ChatController {
         );
     }
 
-    @GetMapping("/unread-number")
+    @GetMapping("/unread/count")
     @Operation(
             summary = "Get number of unread chats of currently logged in user"
     )

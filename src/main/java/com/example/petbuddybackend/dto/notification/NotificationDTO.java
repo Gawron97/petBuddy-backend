@@ -17,8 +17,8 @@ import java.time.ZonedDateTime;
         property = "dType"
 )
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = SimplyNotificationDTO.class, name = "Notification"),
-        @JsonSubTypes.Type(value = UnseenChatsNotificationDTO.class, name = "ChatNotification")
+        @JsonSubTypes.Type(value = SimplyNotificationDTO.class, name = NotificationType.SIMPLE_NOTIFICATION_VALUE),
+        @JsonSubTypes.Type(value = UnseenChatsNotificationDTO.class, name = NotificationType.CHAT_NOTIFICATION_VALUE)
 })
 @SuperBuilder
 @Setter

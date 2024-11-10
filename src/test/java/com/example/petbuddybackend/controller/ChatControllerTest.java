@@ -155,7 +155,7 @@ public class ChatControllerTest {
     @Test
     @WithMockUser
     void testGetUnreadChatsNumber_shouldReturnProperAnswer() throws Exception {
-        mockMvc.perform(get("/api/chat/unread-number"))
+        mockMvc.perform(get("/api/chat/unread/count"))
                 .andExpect(status().isOk());
     }
 

@@ -80,11 +80,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             SELECT cm
             FROM ChatMessage cm
             WHERE cm.chatRoom.id = cr.id
-                AND cm.createdAt = (
-                    SELECT MAX(cm2.createdAt)
-                    FROM ChatMessage cm2
-                    WHERE cm2.chatRoom.id = cr.id
-                )
                 AND cm.sender.email != :userEmail
                 AND cm.seenByRecipient = false
         )

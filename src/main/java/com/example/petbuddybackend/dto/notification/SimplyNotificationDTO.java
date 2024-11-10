@@ -14,10 +14,10 @@ import java.util.Set;
 @NoArgsConstructor
 public class SimplyNotificationDTO extends NotificationDTO {
     @Builder.Default
-    private String dType = "Notification";
+    private NotificationType dType = NotificationType.SIMPLE_NOTIFICATION;
     private Long notificationId;
     private Long objectId;
-    private  ObjectType objectType;
+    private ObjectType objectType;
     private String messageKey;
     private Set<String> args;
     private Role receiverProfile;
