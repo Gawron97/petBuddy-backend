@@ -1,8 +1,11 @@
 package com.example.petbuddybackend.utils.exception.throweable.websocket;
 
-public class InvalidWebSocketHeaderException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class InvalidWebSocketHeaderException extends HttpException {
 
     public InvalidWebSocketHeaderException(String message) {
-        super(message);
+        super(message, HttpStatus.BAD_REQUEST);
     }
 }

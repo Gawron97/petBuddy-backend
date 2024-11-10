@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.mapper;
 
-import com.example.petbuddybackend.dto.notification.NotificationDTO;
+import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.notification.ClientNotification;
 import com.example.petbuddybackend.testutils.ValidationUtils;
@@ -25,8 +25,8 @@ public class NotificationMapperTest {
         CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker());
         notification.setId(1L);
 
-        NotificationDTO notificationDTO = mapper.mapToNotificationDTO(notification, ZoneId.systemDefault());
-        assertTrue(ValidationUtils.fieldsNotNullRecursive(notificationDTO));
+        SimplyNotificationDTO simplyNotificationDTO = mapper.mapToSimplyNotificationDTO(notification, ZoneId.systemDefault());
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(simplyNotificationDTO));
 
     }
 
@@ -37,8 +37,8 @@ public class NotificationMapperTest {
         ClientNotification notification = createMockClientNotification(createMockClient());
         notification.setId(1L);
 
-        NotificationDTO notificationDTO = mapper.mapToNotificationDTO(notification, ZoneId.systemDefault());
-        assertTrue(ValidationUtils.fieldsNotNullRecursive(notificationDTO));
+        SimplyNotificationDTO simplyNotificationDTO = mapper.mapToSimplyNotificationDTO(notification, ZoneId.systemDefault());
+        assertTrue(ValidationUtils.fieldsNotNullRecursive(simplyNotificationDTO));
 
     }
 

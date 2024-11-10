@@ -8,19 +8,23 @@ import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.chat.WebSocketChatMessageSender;
 import com.example.petbuddybackend.service.session.chat.ChatSessionTracker;
+import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.common.ExceptionUtils;
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Headers;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.http.HttpStatus;
+import org.springframework.messaging.handler.annotation.*;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
@@ -121,5 +125,33 @@ public class ChatWebSocketController {
                 accessor.getSessionId(),
                 username
         );
+    }
+
+    @SendToUser(value = "/user/topic/errors", broadcast = false)
+    @MessageExceptionHandler(MethodArgumentNotValidException.class)
+    public ApiExceptionResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        log.debug("MethodArgumentNotValidException: {}", e.getMessage());
+        return new ApiExceptionResponse(e, ExceptionUtils.getInvalidFields(e), HttpStatus.BAD_REQUEST);
+    }
+
+    @SendToUser(value = "/user/topic/errors", broadcast = false)
+    @MessageExceptionHandler(HandlerMethodValidationException.class)
+    public ApiExceptionResponse handleHandlerMethodValidationException(HandlerMethodValidationException e) {
+        log.debug("HandlerMethodValidationException: {}", e.getMessage());
+        return new ApiExceptionResponse(e, ExceptionUtils.getInvalidFields(e), HttpStatus.BAD_REQUEST);
+    }
+
+    @MessageExceptionHandler
+    @SendToUser(value = "/user/topic/errors", broadcast = false)
+    public ApiExceptionResponse handlePropertyReferenceException(HttpException e) {
+        log.debug("HttpException: {}", e.getMessage());
+        return new ApiExceptionResponse(e, e.getMessage());
+    }
+
+    @MessageExceptionHandler
+    @SendToUser(value = "/user/topic/errors", broadcast = false)
+    public ApiExceptionResponse test(Exception e) {
+        log.error("Unhandled exception: {}", e.getMessage());
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

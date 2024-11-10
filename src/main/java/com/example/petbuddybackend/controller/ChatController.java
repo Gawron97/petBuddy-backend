@@ -143,4 +143,14 @@ public class ChatController {
                 TimeUtils.getOrSystemDefault(acceptTimeZone)
         );
     }
+
+    @GetMapping("/unread-number")
+    @Operation(
+            summary = "Get number of unread chats of currently logged in user"
+    )
+    @PreAuthorize("isAuthenticated()")
+    public Integer getUnreadChatsNumber(Principal principal) {
+        return chatService.getUnreadChatsNumber(principal.getName());
+    }
+
 }

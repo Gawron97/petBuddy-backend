@@ -1,13 +1,12 @@
 package com.example.petbuddybackend.utils.exception.throweable.offer;
 
-public class OfferConfigurationDuplicatedException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class OfferConfigurationDuplicatedException extends HttpException {
 
     public OfferConfigurationDuplicatedException(String message) {
-        super(message);
-    }
-
-    public OfferConfigurationDuplicatedException(String message, Throwable cause) {
-        super(message, cause);
+        super(message, HttpStatus.CONFLICT);
     }
 
 }

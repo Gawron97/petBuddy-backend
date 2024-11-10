@@ -75,7 +75,8 @@ public class ClientControllerTest {
         // Given
         String caretakerEmail = "aretaker1@example.com";
 
-        when(clientService.addFollowingCaretaker("clientEmail", caretakerEmail)).thenThrow(IllegalActionException.class);
+        when(clientService.addFollowingCaretaker("clientEmail", caretakerEmail))
+                .thenThrow(new IllegalActionException("test message"));
 
         // When Then
         mockMvc.perform(post("/api/client/follow/".concat(caretakerEmail))
@@ -107,7 +108,8 @@ public class ClientControllerTest {
         // Given
         String caretakerEmail = "notFollowed@example.com";
 
-        when(clientService.removeFollowingCaretaker("clientEmail", caretakerEmail)).thenThrow(IllegalActionException.class);
+        when(clientService.removeFollowingCaretaker("clientEmail", caretakerEmail))
+                .thenThrow(new IllegalActionException("test message"));
 
         // When Then
         mockMvc.perform(delete("/api/client/unfollow/".concat(caretakerEmail))

@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.common.ExceptionUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -25,9 +25,6 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.DateTimeException;
 import java.time.zone.ZoneRulesException;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -37,107 +34,105 @@ public class GeneralAdvice {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        Map<String, String> errors = e.getBindingResult().getFieldErrors().stream()
-                .collect(Collectors.toMap(
-                        FieldError::getField,
-                        error -> Objects.toString(error.getDefaultMessage(), "Invalid value"),
-                        (existing, replacement) -> existing
-                ));
-
-        return new ApiExceptionResponse(e, errors.toString());
+        log.debug("MethodArgumentNotValidException", e);
+        return new ApiExceptionResponse(e, ExceptionUtils.getInvalidFields(e), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(HandlerMethodValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleHandlerMethodValidationException(HandlerMethodValidationException e) {
-        var errorList = e.getAllValidationResults().stream()
-                .flatMap(result -> result.getResolvableErrors().stream()
-                        .map(error -> {
-                            if (error instanceof FieldError fieldError) {
-                                return result.getMethodParameter().getParameterName() + "." + fieldError.getField() +
-                                        ": " + fieldError.getDefaultMessage();
-                            }
-                            return result.getMethodParameter().getParameterName() + ": " + error.getDefaultMessage();
-                        }))
-                .toList();
-
-        return new ApiExceptionResponse(e, errorList.toString());
+        log.debug("HandlerMethodValidationException", e);
+        return new ApiExceptionResponse(e, ExceptionUtils.getInvalidFields(e), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(PropertyReferenceException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handlePropertyReferenceException(PropertyReferenceException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("PropertyReferenceException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ZoneRulesException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleZoneRulesException(ZoneRulesException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("ZoneRulesException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(DateTimeException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleDateTimeException(DateTimeException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("DateTimeException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("HttpMessageNotReadableException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMissingRequestHeaderException(MissingRequestHeaderException e) {
-        return new ApiExceptionResponse(e, "Required header missing");
+        log.debug("MissingRequestHeaderException", e);
+        return new ApiExceptionResponse(e, "Required header missing", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("MethodArgumentTypeMismatchException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(code = HttpStatus.PAYLOAD_TOO_LARGE)
     public ApiExceptionResponse handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
-        return new ApiExceptionResponse(e, "Maximum file upload size exceeded");
+        log.debug("MaxUploadSizeExceededException", e);
+        return new ApiExceptionResponse(e, "Maximum file upload size exceeded", HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     @ResponseStatus(code = HttpStatus.FORBIDDEN)
-    public void handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+    public ApiExceptionResponse handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+        log.debug("AuthorizationDeniedException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleNoHandlerFoundException(NoHandlerFoundException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("NoHandlerFoundException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MissingServletRequestPartException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ApiExceptionResponse handleMissingServletRequestPartException(MissingServletRequestPartException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("MissingServletRequestPartException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     @ResponseStatus(code = HttpStatus.UNSUPPORTED_MEDIA_TYPE)
     public ApiExceptionResponse handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
-        return new ApiExceptionResponse(e, e.getBody().getDetail());
+        log.debug("HttpMediaTypeNotSupportedException", e);
+        return new ApiExceptionResponse(e, e.getBody().getDetail(), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(code = HttpStatus.METHOD_NOT_ALLOWED)
     public ApiExceptionResponse handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("HttpRequestMethodNotSupportedException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(ForbiddenException.class)
     @ResponseStatus(code = HttpStatus.FORBIDDEN)
     public ApiExceptionResponse handleForbiddenException(ForbiddenException e) {
-        return new ApiExceptionResponse(e, e.getMessage());
+        log.debug("ForbiddenException", e);
+        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.FORBIDDEN);
     }
 }

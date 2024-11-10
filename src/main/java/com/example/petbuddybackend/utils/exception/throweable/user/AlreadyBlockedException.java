@@ -1,9 +1,12 @@
 package com.example.petbuddybackend.utils.exception.throweable.user;
 
 
-public class AlreadyBlockedException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class AlreadyBlockedException extends HttpException {
 
     public AlreadyBlockedException(String message) {
-        super(message);
+        super(message, HttpStatus.CONFLICT);
     }
 }

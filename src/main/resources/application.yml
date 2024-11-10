@@ -72,6 +72,11 @@ url:
       subscribe-prefix: "/user/topic/notification"
       send-url: "/topic/notification"
       client-subscribe-pattern: "/user/topic/notification"
+  exception:
+    topic:
+      client-subscribe-pattern: "/user/topic/exceptions"
+      send-url: "/topic/exceptions"
+      subscribe-prefix: "/user/topic/exceptions"
 
 firebase:
   key:

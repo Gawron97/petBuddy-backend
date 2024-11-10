@@ -3,6 +3,7 @@ package com.example.petbuddybackend.service.chat;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -12,12 +13,13 @@ import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
+import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.InvalidMessageReceiverException;
-import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +45,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
     private final ChatRoomRepository chatRoomRepository;
+    private final WebsocketNotificationService wsNotificationService;
 
     public Page<ChatMessageDTO> getChatMessagesByParticipantEmail(
             Long chatId,
@@ -90,20 +94,25 @@ public class ChatService {
                 chatRoom.getCaretaker().getAccountData();
 
         ChatMessage persistedMessage = persistMessage(chatRoom, sender, chatMessage.getContent(), seenByRecipient);
-        performLastMessageSeenUpdate(chatRoom.getId(), senderEmail, senderRole, seenByRecipient);
+        performPreviousMessagesSeenUpdate(chatRoom.getId(), senderEmail, senderRole, seenByRecipient);
+
+        String receiverEmail = getMessageReceiverEmail(chatRoom, senderRole);
+        sendUnseenChatsNotification(receiverEmail);
+
         return chatMapper.mapToChatMessageDTO(persistedMessage);
+    }
+
+    private String getMessageReceiverEmail(ChatRoom chatRoom, Role senderRole) {
+        return senderRole == Role.CARETAKER
+            ? chatRoom.getClient().getEmail()
+            : chatRoom.getCaretaker().getEmail();
     }
 
     @Transactional
     public void markMessagesAsSeen(Long chatId, String username) {
-        ChatRoom chatRoom = getChatRoomById(chatId);
+        checkChatExists(chatId);
         checkUserInChat(chatId, username);
-
-        if(chatRoom.getClient().getEmail().equals(username)) {
-            chatMessageRepository.updateUnseenMessagesOfClient(chatId, username);
-        } else {
-            chatMessageRepository.updateUnseenMessagesOfCaretaker(chatId, username);
-        }
+        chatMessageRepository.updateUnseenMessagesOfUser(chatId, username);
     }
 
     @Transactional
@@ -167,15 +176,15 @@ public class ChatService {
         return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, lastMessage, isSeenByPrincipal, timeZone);
     }
 
-    private void performLastMessageSeenUpdate(Long chatId, String senderEmail, Role senderRole, boolean seenByRecipient) {
-        if(seenByRecipient) {
-            chatMessageRepository.updateMessageSeenOfBothUsers(chatId);
+    public Integer getUnreadChatsNumber(String userEmail) {
+        return chatRepository.countUnreadChatsForUser(userEmail);
+    }
+
+    private void performPreviousMessagesSeenUpdate(Long chatId, String senderEmail, Role senderRole, boolean seenByRecipient) {
+        if (seenByRecipient) {
+            chatMessageRepository.updateMessagesSeenOfBothUsers(chatId);
         } else {
-            if(senderRole == Role.CLIENT) {
-                chatMessageRepository.updateUnseenMessagesOfCaretaker(chatId, senderEmail);
-            } else {
-                chatMessageRepository.updateUnseenMessagesOfClient(chatId, senderEmail);
-            }
+            chatMessageRepository.updateUnseenMessagesOfUser(chatId, senderEmail);
         }
     }
 
@@ -205,8 +214,8 @@ public class ChatService {
                 false
         );
 
-        chatMessageRepository.updateUnseenMessagesOfClient(chatRoom.getId(), clientSenderEmail);
-
+        chatMessageRepository.updateUnseenMessagesOfUser(chatRoom.getId(), clientSenderEmail);
+        sendUnseenChatsNotification(caretakerReceiverEmail);
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
 
@@ -226,9 +235,21 @@ public class ChatService {
                 false
         );
 
-        chatMessageRepository.updateUnseenMessagesOfCaretaker(chatRoom.getId(), caretakerSenderEmail);
-
+        chatMessageRepository.updateUnseenMessagesOfUser(chatRoom.getId(), caretakerSenderEmail);
+        sendUnseenChatsNotification(clientReceiverEmail);
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
+    }
+
+    private void sendUnseenChatsNotification(String userEmail) {
+        int unseenChatsOfUser = chatRepository.countUnreadChatsForUser(userEmail);
+        wsNotificationService.sendNotification(userEmail, createUnseenChatsNotification(unseenChatsOfUser));
+    }
+
+    private UnseenChatsNotificationDTO createUnseenChatsNotification(int unseenChats) {
+        return UnseenChatsNotificationDTO.builder()
+                .createdAt(ZonedDateTime.now())
+                .unseenChats(unseenChats)
+                .build();
     }
 
     private ChatMessage persistMessage(ChatRoom chatRoom, AppUser sender, String content, boolean seenByRecipient) {

@@ -15,24 +15,15 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     @Modifying
     @Transactional
     @Query("""
+    
         UPDATE ChatMessage m
         SET m.seenByRecipient = true
         WHERE m.chatRoom.id = :chatRoomId
           AND m.seenByRecipient = false
-          AND m.sender.email != :caretakerEmail
-        """)
-    void updateUnseenMessagesOfCaretaker(Long chatRoomId, String caretakerEmail);
-
-    @Modifying
-    @Transactional
-    @Query("""
-        UPDATE ChatMessage m
-        SET m.seenByRecipient = true
-        WHERE m.chatRoom.id = :chatRoomId
-          AND m.seenByRecipient = false
-          AND m.sender.email != :clientEmail
-        """)
-    void updateUnseenMessagesOfClient(Long chatRoomId, String clientEmail);
+          AND m.sender.email != :userEmail
+        
+    """)
+    void updateUnseenMessagesOfUser(Long chatRoomId, String userEmail);
 
     @Modifying
     @Transactional
@@ -42,7 +33,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
         WHERE m.chatRoom.id = :chatRoomId
           AND m.seenByRecipient = false
         """)
-    void updateMessageSeenOfBothUsers(Long chatRoomId);
+    void updateMessagesSeenOfBothUsers(Long chatRoomId);
 
     ChatMessage findFirstByChatRoom_IdOrderByCreatedAtDesc(Long chatRoomId);
 }

@@ -3,6 +3,8 @@ package com.example.petbuddybackend.repository.chat;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
+import com.example.petbuddybackend.entity.user.Caretaker;
+import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
@@ -17,12 +19,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.example.petbuddybackend.testutils.mock.MockChatProvider.createMockChatMessage;
+import static com.example.petbuddybackend.testutils.mock.MockChatProvider.createMockChatRoom;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,11 +51,15 @@ public class ChatRoomRepositoryTest {
     @Autowired
     private CaretakerRepository caretakerRepository;
 
+    @Autowired
+    private ChatRoomRepository chatRoomRepository;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     private ChatRoom chatRoomSameCreatedAtFst;
     private ChatRoom chatRoomSameCreatedAtSnd;
     private ChatRoom chatRoomDifferentCreatedAt;
-    @Autowired
-    private ChatRoomRepository chatRoomRepository;
 
     @BeforeEach
     void setUp() {
@@ -183,6 +194,64 @@ public class ChatRoomRepositoryTest {
 
         assertEquals(1, chatRooms.getTotalElements());
         assertEquals(chatRoomSameCreatedAtSnd.getClient().getEmail(), chatRooms.getContent().get(0).getLastMessageSendBy());
+    }
+
+
+    @Test
+    void testCountUnreadChatsForUser_whenMessagesAtDifferentTime_shouldReturnCorrectCount() {
+        long unreadChats = chatRepository.countUnreadChatsForUser(chatRoomDifferentCreatedAt.getClient().getEmail());
+        assertEquals(1, unreadChats);
+    }
+
+    @Test
+    void testCountUnreadChatsForUser_whenMessagesAtSameTime_shouldReturnCorrectCount() {
+        long unreadChats = chatRepository.countUnreadChatsForUser(chatRoomSameCreatedAtFst.getClient().getEmail());
+        assertEquals(1, unreadChats);
+    }
+
+    @Test
+    void testCountUnreadChatsForUser_whenUserHasMultipleUnreadChats_shouldReturnCorrectCount() {
+
+        //Given
+        transactionTemplate.execute(status ->
+            PersistenceUtils.createChatRoomWithMessages(
+                appUserRepository,
+                clientRepository,
+                caretakerRepository,
+                chatRoomRepository,
+                chatMessageRepository,
+                chatRoomDifferentCreatedAt.getClient().getEmail(),
+                "differentCaretaker"
+            )
+        );
+
+        long unreadChats = chatRepository.countUnreadChatsForUser(chatRoomDifferentCreatedAt.getClient().getEmail());
+        assertEquals(2, unreadChats);
+    }
+
+    @Test
+    void testCountUnreadChatsForUser_whenOnlyUserSendMessagesToChat_ShouldReturnZeroUnreadChats() {
+
+        //Given
+        transactionTemplate.execute(status -> {
+                Client client = PersistenceUtils.addClient(appUserRepository, clientRepository, createMockClient("client"));
+                Caretaker caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository, createMockCaretaker("caretaker"));
+                PersistenceUtils.addChatRoom(
+                        createMockChatRoom(client, caretaker),
+                        List.of(createMockChatMessage(client.getAccountData())),
+                        chatRoomRepository,
+                        chatMessageRepository
+                );
+                return null;
+            }
+        );
+
+        //When
+        int countUnreadChats = chatRepository.countUnreadChatsForUser("client");
+
+        //Then
+        assertEquals(0, countUnreadChats);
+
     }
 
     private boolean allMessagesHaveSameCreatedAt(List<ChatMessage> messages) {

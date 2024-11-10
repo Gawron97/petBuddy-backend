@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.notification.NotificationDTO;
+import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.notification.NotificationService;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ public class NotificationControllerTest {
     @WithMockUser("caretakerEmail")
     void getUnreadNotifications_shouldReturnProperAnswer() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
-        Page<NotificationDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+        Page<SimplyNotificationDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
         when(notificationService.getUnreadNotifications(any(), any(), any(), any()))
                 .thenReturn(emptyPage);
@@ -63,7 +63,7 @@ public class NotificationControllerTest {
     @WithMockUser("caretakerEmail")
     void markNotificationAsRead_shouldReturnProperAnswer() throws Exception {
         when(notificationService.markNotificationAsRead(anyLong(), any(), any()))
-                .thenReturn(NotificationDTO.builder().build());
+                .thenReturn(SimplyNotificationDTO.builder().build());
 
         mockMvc.perform(patch("/api/notifications/{notificationId}", 1L)
                         .header(TIMEZONE_HEADER_NAME, "UTC")
