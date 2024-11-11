@@ -4,7 +4,7 @@ import com.example.petbuddybackend.dto.notification.NotificationDTO;
 import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
 import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
+import com.example.petbuddybackend.service.notification.WebsocketNotificationSender;
 import com.example.petbuddybackend.service.session.WebSocketSessionService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
 import com.example.petbuddybackend.testutils.websocket.WebsocketUtils;
@@ -48,7 +48,7 @@ public class NotificationWebsocketControllerTest {
     private static final String WEBSOCKET_URL_PATTERN = "ws://localhost:%s/ws";
     private static final String USER_EMAIL = NoSecurityInjectUserConfig.injectedUsername;
     private static final String TIMEZONE = "Europe/Warsaw";
-    private static final int TIMEOUT_SECONDS = 5;
+    private static final int TIMEOUT_SECONDS = 3;
 
     @Value("${url.notification.topic.client-subscribe-pattern}")
     private String SUBSCRIBE_TOPIC;
@@ -57,7 +57,7 @@ public class NotificationWebsocketControllerTest {
     private String HEADER_NAME_TIMEZONE;
 
     @Autowired
-    private WebsocketNotificationService websocketNotificationService;
+    private WebsocketNotificationSender websocketNotificationSender;
 
     @Autowired
     private WebSocketSessionService websocketSessionService;
@@ -128,7 +128,7 @@ public class NotificationWebsocketControllerTest {
                 .createdAt(ZonedDateTime.now())
                 .build();
 
-        websocketNotificationService.sendNotification(
+        websocketNotificationSender.sendNotification(
                 USER_EMAIL,
                 notificationToSend
         );

@@ -7,6 +7,7 @@ import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.service.chat.WebSocketChatMessageSender;
+import com.example.petbuddybackend.service.notification.WebsocketNotificationSender;
 import com.example.petbuddybackend.service.session.chat.ChatSessionTracker;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
 import com.example.petbuddybackend.utils.exception.common.ExceptionUtils;
@@ -47,7 +48,8 @@ public class ChatWebSocketController {
     private String URL_CHAT_TOPIC_BASE;
 
     private final ChatService chatService;
-    private final WebSocketChatMessageSender chatSessionService;
+    private final WebSocketChatMessageSender wsChatMessageSender;
+    private final WebsocketNotificationSender wsNotificationSender;
     private final ChatSessionTracker chatSessionTracker;
 
     @Transactional
@@ -64,10 +66,24 @@ public class ChatWebSocketController {
         String principalUsername = principal.getName();
         Role acceptRole = HeaderUtils.getNativeHeaderSingleValue(headers, ROLE_HEADER_NAME, Role.class);
         ChatRoom chatRoom = chatService.getChatRoomById(chatId);
+        String recipientUsername = chatService.getMessageReceiverEmail(principalUsername, chatRoom);
 
-        boolean seenByRecipient = chatSessionService.isRecipientInChat(principalUsername, chatRoom);
-        ChatMessageDTO messageDTO = chatService.createMessage(chatRoom, principalUsername, acceptRole, message, seenByRecipient);
-        chatSessionService.sendMessages(chatRoom, new ChatNotificationMessage(messageDTO));
+        boolean seenByRecipient = wsChatMessageSender.isRecipientInChat(recipientUsername, chatRoom);
+        ChatMessageDTO messageDTO = chatService.createMessage(
+                chatRoom,
+                principalUsername,
+                acceptRole,
+                message,
+                seenByRecipient
+        );
+
+        wsChatMessageSender.sendMessages(chatRoom, new ChatNotificationMessage(messageDTO));
+        if(!seenByRecipient) {
+            wsNotificationSender.sendNotification(
+                    recipientUsername,
+                    chatService.getUnseenChatsNotification(recipientUsername)
+            );
+        }
     }
 
     @EventListener
@@ -79,11 +95,15 @@ public class ChatWebSocketController {
             return;
         }
 
-        String username = HeaderUtils.getUser(accessor);
+        String subscriberUsername = HeaderUtils.getUser(accessor);
         Long chatId = HeaderUtils.getLongFromDestination(accessor, CHAT_ID_INDEX_IN_TOPIC_URL);
 
         chatSessionTracker.addSubscription(accessor.getSubscriptionId(), chatId);
-        chatSessionService.onUserJoinChatRoom(username, chatId);
+        wsChatMessageSender.onUserJoinChatRoom(subscriberUsername, chatId);
+        wsNotificationSender.sendNotification(
+                subscriberUsername,
+                chatService.getUnseenChatsNotification(subscriberUsername)
+        );
 
         log.debug(
                 "Event subscribe at {}; sessionId: {}; user: {}",
@@ -100,7 +120,7 @@ public class ChatWebSocketController {
         String subId = accessor.getSubscriptionId();
 
         Long chatId = chatSessionTracker.removeSubscription(subId);
-        chatSessionService.onUserUnsubscribe(username, chatId);
+        wsChatMessageSender.onUserUnsubscribe(username, chatId);
 
         log.debug(
                 "Event unsubscribe at {}; sessionId: {}; user: {}",
@@ -116,7 +136,7 @@ public class ChatWebSocketController {
         String username = HeaderUtils.getUser(accessor);
 
         Map<String, Long> subscriptions = chatSessionTracker.getSubscriptions();
-        chatSessionService.onUserDisconnect(username, subscriptions);
+        wsChatMessageSender.onUserDisconnect(username, subscriptions);
         chatSessionTracker.clear();
 
         log.debug(

@@ -16,7 +16,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.user.SimpSession;
 import org.springframework.messaging.simp.user.SimpSubscription;
-import org.springframework.messaging.simp.user.SimpUserRegistry;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -49,9 +48,6 @@ public class WebSocketChatMessageSenderTest {
 
     @MockBean
     private WebSocketSessionService webSocketSessionService;
-
-    @MockBean
-    private SimpUserRegistry simpUserRegistry;
 
     private ChatRoom chatRoom;
     private SimpSession clientSession;
@@ -164,7 +160,7 @@ public class WebSocketChatMessageSenderTest {
     }
 
     @Test
-    void testisRecipientInChat_noRecipientInChat_shouldReturnIfRecipientIsInChatProperly() {
+    void testIsRecipientInChat_noRecipientInChat_shouldReturnIfRecipientIsInChatProperly() {
         SimpSubscription clientSub = mock(SimpSubscription.class);
         when(clientSub.getDestination())
                 .thenReturn("/user" + String.format(CHAT_TOPIC_URL_PATTERN, chatRoom.getId()));
@@ -179,7 +175,7 @@ public class WebSocketChatMessageSenderTest {
         when(webSocketSessionService.getUserSubscriptionStartingWithDestination(eq(CARETAKER_EMAIL), any()))
                 .thenReturn(Set.of());
 
-        assertFalse(chatSessionService.isRecipientInChat(CLIENT_EMAIL, chatRoom));
-        assertTrue(chatSessionService.isRecipientInChat(CARETAKER_EMAIL, chatRoom));
+        assertFalse(chatSessionService.isRecipientInChat(CARETAKER_EMAIL, chatRoom));
+        assertTrue(chatSessionService.isRecipientInChat(CLIENT_EMAIL, chatRoom));
     }
 }

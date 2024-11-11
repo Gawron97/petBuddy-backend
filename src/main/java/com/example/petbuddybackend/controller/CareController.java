@@ -2,6 +2,7 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
+import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.dto.paging.PagingParams;
@@ -65,7 +66,7 @@ public class CareController {
             @ApiResponse(responseCode = "403", description = "Authorized user can only fetch cares"),
     })
     @PreAuthorize("isAuthenticated()")
-    public Page<CareDTO> getCares(
+    public Page<DetailedCareDTO> getCares(
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
@@ -88,7 +89,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public CareDTO getCare(
+    public DetailedCareDTO getCare(
             @PathVariable Long careId,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             Principal principal

@@ -509,8 +509,8 @@ public class CareControllerIntegrationTest {
                 .andExpect(jsonPath("$.content[0].description").value("Test care description"))
                 .andExpect(jsonPath("$.content[0].dailyPrice").value(50.00))
                 .andExpect(jsonPath("$.content[0].animalType").value("DOG"))
-                .andExpect(jsonPath("$.content[0].caretakerEmail").value(CARETAKER_EMAIL))
-                .andExpect(jsonPath("$.content[0].clientEmail").value(CLIENT_EMAIL));
+                .andExpect(jsonPath("$.content[0].caretaker.email").value(CARETAKER_EMAIL))
+                .andExpect(jsonPath("$.content[0].client.email").value(CLIENT_EMAIL));
     }
 
     @Test
@@ -530,8 +530,8 @@ public class CareControllerIntegrationTest {
                 .andExpect(jsonPath("$.content[0].description").value("Test care description"))
                 .andExpect(jsonPath("$.content[0].dailyPrice").value(50.00))
                 .andExpect(jsonPath("$.content[0].animalType").value("DOG"))
-                .andExpect(jsonPath("$.content[0].caretakerEmail").value(CARETAKER_EMAIL))
-                .andExpect(jsonPath("$.content[0].clientEmail").value(CLIENT_EMAIL));
+                .andExpect(jsonPath("$.content[0].caretaker.email").value(CARETAKER_EMAIL))
+                .andExpect(jsonPath("$.content[0].client.email").value(CLIENT_EMAIL));
     }
 
     @Test

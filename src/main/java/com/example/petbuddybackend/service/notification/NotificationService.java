@@ -31,7 +31,7 @@ public class NotificationService {
     private final CaretakerNotificationRepository caretakerNotificationRepository;
     private final ClientNotificationRepository clientNotificationRepository;
     private final NotificationRepository notificationRepository;
-    private final WebsocketNotificationService websocketNotificationService;
+    private final WebsocketNotificationSender websocketNotificationSender;
 
     private final NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
@@ -40,7 +40,7 @@ public class NotificationService {
         CaretakerNotification notification = createCaretakerNotification(objectId, objectType, caretaker,
                 messageKey, args);
         CaretakerNotification savedNotification = caretakerNotificationRepository.save(notification);
-        websocketNotificationService.sendNotification(
+        websocketNotificationSender.sendNotification(
                 caretaker.getEmail(),
                 notificationMapper.mapToSimplyNotificationDTO(savedNotification)
         );
@@ -50,7 +50,7 @@ public class NotificationService {
                                                 String messageKey, Set<String> args) {
         ClientNotification notification = createClientNotification(objectId, objectType, client, messageKey, args);
         ClientNotification savedNotification = clientNotificationRepository.save(notification);
-        websocketNotificationService.sendNotification(
+        websocketNotificationSender.sendNotification(
                 client.getEmail(),
                 notificationMapper.mapToSimplyNotificationDTO(savedNotification)
         );
@@ -85,7 +85,8 @@ public class NotificationService {
                 false,
                 pageable
                 )
-                .map(caretakerNotification -> notificationMapper.mapToSimplyNotificationDTO(caretakerNotification, timezone));
+                .map(caretakerNotification ->
+                        notificationMapper.mapToSimplyNotificationDTO(caretakerNotification, timezone));
     }
 
     private Page<SimplyNotificationDTO> getClientUnreadNotifications(Pageable pageable, String clientEmail,

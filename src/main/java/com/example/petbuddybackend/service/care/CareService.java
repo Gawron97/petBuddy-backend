@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.care;
 
 import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
+import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
@@ -114,7 +115,7 @@ public class CareService {
     }
 
 
-    public Page<CareDTO> getCares(Pageable pageable, CareSearchCriteria filters, Set<String> emails,
+    public Page<DetailedCareDTO> getCares(Pageable pageable, CareSearchCriteria filters, Set<String> emails,
                                   String userEmail, Role selectedProfile, ZoneId zoneId) {
 
         Specification<Care> spec = selectedProfile == Role.CARETAKER
@@ -122,7 +123,7 @@ public class CareService {
                 : CareSpecificationUtils.toSpecificationForClient(filters, emails, userEmail);
 
         return careRepository.findAll(spec, pageable)
-                .map(care -> careMapper.mapToCareDTO(care, zoneId));
+                .map(care -> careMapper.mapToDetailedCareDTO(care, zoneId));
 
     }
 
@@ -137,10 +138,10 @@ public class CareService {
         : careRepository.findCaretakersRelatedToYourCares(userEmail, pageable);
     }
 
-    public CareDTO getCare(Long careId, ZoneId timezone, String userEmail) {
+    public DetailedCareDTO getCare(Long careId, ZoneId timezone, String userEmail) {
         Care care = getCareById(careId);
         assertUserParticipatingInCare(care, userEmail);
-        return careMapper.mapToCareDTO(care, timezone);
+        return careMapper.mapToDetailedCareDTO(care, timezone);
     }
 
     private void assertNotReservationToYourself(String clientEmail, String caretakerEmail) {

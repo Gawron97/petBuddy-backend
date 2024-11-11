@@ -26,13 +26,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class WebsocketNotificationServiceTest {
+public class WebsocketNotificationSenderTest {
 
     @Autowired
-    private WebsocketNotificationService websocketNotificationService;
+    private WebsocketNotificationSender wsNotificationSender;
 
     @Autowired
-    private WebSocketSessionService webSocketSessionService;
+    private WebSocketSessionService wsSessionService;
 
     private NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
@@ -60,13 +60,13 @@ public class WebsocketNotificationServiceTest {
         when(simpUser.getSessions()).thenReturn(Collections.singleton(simpSession));
         when(simpSession.getId()).thenReturn(sessionId);
 
-        webSocketSessionService.storeUserTimeZoneWithSession(sessionId, userZoneId);
+        wsSessionService.storeUserTimeZoneWithSession(sessionId, userZoneId);
 
         //When
         CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker());
         SimplyNotificationDTO notificationToSend = notificationMapper.mapToSimplyNotificationDTO(notification, ZoneId.of(userZoneId));
 
-        websocketNotificationService.sendNotification(userEmail, notificationToSend);
+        wsNotificationSender.sendNotification(userEmail, notificationToSend);
 
         // Then
         ArgumentCaptor<SimplyNotificationDTO> notificationDTOCaptor = ArgumentCaptor.forClass(SimplyNotificationDTO.class);
@@ -103,7 +103,7 @@ public class WebsocketNotificationServiceTest {
         SimplyNotificationDTO notificationToSend = notificationMapper.mapToSimplyNotificationDTO(notification, ZoneId.of(userZoneId));
 
         //When
-        websocketNotificationService.sendNotification(userEmail, notificationToSend);
+        wsNotificationSender.sendNotification(userEmail, notificationToSend);
 
 
         //Then
