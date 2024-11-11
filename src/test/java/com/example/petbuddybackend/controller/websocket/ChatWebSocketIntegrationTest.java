@@ -6,6 +6,7 @@ import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationType;
+import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -104,6 +105,7 @@ public class ChatWebSocketIntegrationTest {
     private List<StompSession> sessions;
     private BlockingQueue<ApiExceptionResponse> exceptionBlockingQueue;
 
+    private ChatRoom chatRoom;
 
     @BeforeEach
     void setup() {
@@ -124,7 +126,7 @@ public class ChatWebSocketIntegrationTest {
                 .email(CARETAKER_USERNAME)
                 .build();
 
-        ChatRoom chatRoom = ChatRoom.builder()
+        chatRoom = ChatRoom.builder()
                 .id(1L)
                 .client(client)
                 .caretaker(caretaker)
@@ -144,6 +146,15 @@ public class ChatWebSocketIntegrationTest {
 
         when(chatRoomRepository.existsByIdAndCaretaker_Email(any(Long.class), any(String.class)))
                 .thenReturn(true);
+
+        when(chatService.getUnseenChatsNotification(any()))
+                .thenReturn(UnseenChatsNotificationDTO.builder().createdAt(ZonedDateTime.now()).build());
+
+        when(chatService.getMessageReceiverEmail(eq(CLIENT_USERNAME), any()))
+                .thenReturn(CARETAKER_USERNAME);
+
+        when(chatService.getMessageReceiverEmail(eq(CARETAKER_USERNAME), any()))
+                .thenReturn(CLIENT_USERNAME);
     }
 
     @AfterEach

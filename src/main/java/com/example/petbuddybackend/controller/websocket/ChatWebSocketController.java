@@ -78,6 +78,7 @@ public class ChatWebSocketController {
         );
 
         wsChatMessageSender.sendMessages(chatRoom, new ChatNotificationMessage(messageDTO));
+
         if(!seenByRecipient) {
             wsNotificationSender.sendNotification(
                     recipientUsername,

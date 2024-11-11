@@ -98,9 +98,9 @@ public class ChatService {
     }
 
     public String getMessageReceiverEmail(String senderEmail, ChatRoom chatRoom) {
-        return chatRoom.getClient().getEmail().equals(senderEmail)
-                ? chatRoom.getCaretaker().getEmail()
-                : chatRoom.getClient().getEmail();
+        String clientEmail = chatRoom.getClient().getEmail();
+        String caretakerEmail = chatRoom.getCaretaker().getEmail();
+        return senderEmail.equals(clientEmail) ? caretakerEmail : clientEmail;
     }
 
     @Transactional
