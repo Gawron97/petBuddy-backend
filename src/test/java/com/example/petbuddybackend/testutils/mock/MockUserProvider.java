@@ -97,6 +97,19 @@ public final class MockUserProvider {
                 .build();
     }
 
+    public static Caretaker createMockCaretakerWithPhoto(String caretakerEmail) {
+        AppUser accountData = createMockAppUserWithPhoto("caretakerName", "caretakerSurname", caretakerEmail);
+
+        return Caretaker.builder()
+                .email(caretakerEmail)
+                .accountData(accountData)
+                .address(createMockAddress())
+                .description("description")
+                .phoneNumber("number")
+                .avgRating(4.5f)
+                .build();
+    }
+
     public static AppUser createMockAppUser(String name, String surname, String email) {
         return AppUser.builder()
                 .name(name)

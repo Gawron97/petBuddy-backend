@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.care;
 
 import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
+import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
@@ -487,7 +488,7 @@ public class CareServiceIntegrationTest {
         List<Care> cares = createCares(secondClient,secondCaretaker);
 
         // When
-        Page<CareDTO> result = careService.getCares(Pageable.ofSize(10), filters, emails, userEmail,
+        Page<DetailedCareDTO> result = careService.getCares(Pageable.ofSize(10), filters, emails, userEmail,
                 selectedProfile, ZoneId.systemDefault());
 
         // Then
@@ -870,7 +871,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         //When
-        CareDTO result = careService.getCare(care.getId(), ZoneId.systemDefault(), client.getEmail());
+        DetailedCareDTO result = careService.getCare(care.getId(), ZoneId.systemDefault(), client.getEmail());
 
         //Then
         assertEquals(care.getId(), result.id());
