@@ -71,4 +71,19 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
         )
         """)
     Page<ChatRoomDTO> findByCaretakerEmailSortByLastMessageDesc(String email, Pageable pageable);
+
+    @Query("""
+        SELECT COUNT(cr)
+        FROM ChatRoom cr
+        WHERE (cr.client.email = :userEmail OR cr.caretaker.email = :userEmail)
+        AND EXISTS(
+            SELECT cm
+            FROM ChatMessage cm
+            WHERE cm.chatRoom.id = cr.id
+                AND cm.sender.email != :userEmail
+                AND cm.seenByRecipient = false
+        )
+    """)
+    Integer countUnreadChatsForUser(String userEmail);
+
 }

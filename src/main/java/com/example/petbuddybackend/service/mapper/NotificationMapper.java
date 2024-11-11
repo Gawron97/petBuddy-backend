@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.mapper;
 
-import com.example.petbuddybackend.dto.notification.NotificationDTO;
+import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.notification.ClientNotification;
 import com.example.petbuddybackend.entity.notification.Notification;
@@ -22,7 +22,11 @@ public interface NotificationMapper {
     @Mapping(target = "notificationId", source = "id")
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "mapToZonedDateTime")
     @Mapping(target = "receiverProfile", source = "notification", qualifiedByName = "mapToReceiverProfile")
-    NotificationDTO mapToNotificationDTO(Notification notification, @Context ZoneId zoneId);
+    SimplyNotificationDTO mapToSimplyNotificationDTO(Notification notification, @Context ZoneId zoneId);
+
+    @Mapping(target = "notificationId", source = "id")
+    @Mapping(target = "receiverProfile", source = "notification", qualifiedByName = "mapToReceiverProfile")
+    SimplyNotificationDTO mapToSimplyNotificationDTO(Notification notification);
 
     @Named("mapToZonedDateTime")
     default ZonedDateTime mapToZonedDateTime(ZonedDateTime date, @Context ZoneId zoneId) {

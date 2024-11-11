@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.notification;
 
-import com.example.petbuddybackend.dto.notification.NotificationDTO;
+import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.notification.ClientNotification;
 import com.example.petbuddybackend.entity.notification.ObjectType;
@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -57,7 +59,7 @@ public class NotificationServiceTest {
     private AppUserRepository appUserRepository;
 
     @SpyBean
-    private WebsocketNotificationService websocketNotificationService;
+    private WebsocketNotificationSender websocketNotificationSender;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -96,7 +98,7 @@ public class NotificationServiceTest {
         assertEquals(caretaker, notification.getCaretaker());
         assertFalse(notification.isRead());
 
-        verify(websocketNotificationService, times(1)).sendNotification(caretaker.getEmail(), notification);
+        verify(websocketNotificationSender, times(1)).sendNotification(eq(caretaker.getEmail()), any());
 
     }
 
@@ -118,16 +120,17 @@ public class NotificationServiceTest {
         assertEquals(client, notification.getClient());
         assertFalse(notification.isRead());
 
-        verify(websocketNotificationService, times(1)).sendNotification(client.getEmail(), notification);
+        verify(websocketNotificationSender, times(1)).sendNotification(eq(client.getEmail()), any());
 
     }
 
     @Test
     void testGetUnreadNotifications_sortingParamsShouldAlignWithDTO() {
 
-        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(NotificationDTO.class);
+        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(SimplyNotificationDTO.class);
         fieldNames.remove("notificationId");
         fieldNames.add("id");
+        fieldNames.remove("dType");
 
         for(String fieldName : fieldNames) {
             assertDoesNotThrow(() -> notificationService.getUnreadNotifications(
@@ -160,7 +163,7 @@ public class NotificationServiceTest {
 
         //When Then
         transactionTemplate.execute(status -> {
-            Page<NotificationDTO> result = notificationService.getUnreadNotifications(
+            Page<SimplyNotificationDTO> result = notificationService.getUnreadNotifications(
                     PageRequest.of(0, 10),
                     caretaker.getEmail(),
                     Role.CARETAKER,
@@ -185,12 +188,12 @@ public class NotificationServiceTest {
 
         //When
         transactionTemplate.execute(status -> {
-            NotificationDTO result = notificationService.markNotificationAsRead(
+            SimplyNotificationDTO result = notificationService.markNotificationAsRead(
                     notificationId,
                     Role.CARETAKER,
                     ZoneId.systemDefault()
             );
-            assertEquals(Role.CARETAKER, result.receiverProfile());
+            assertEquals(Role.CARETAKER, result.getReceiverProfile());
             return null;
         });
 

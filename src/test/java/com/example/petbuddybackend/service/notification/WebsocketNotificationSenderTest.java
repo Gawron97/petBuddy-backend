@@ -1,8 +1,9 @@
 package com.example.petbuddybackend.service.notification;
 
-import com.example.petbuddybackend.dto.notification.NotificationDTO;
+import com.example.petbuddybackend.dto.notification.SimplyNotificationDTO;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.user.Role;
+import com.example.petbuddybackend.service.mapper.NotificationMapper;
 import com.example.petbuddybackend.service.session.WebSocketSessionService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -16,6 +17,7 @@ import org.springframework.messaging.simp.user.SimpSession;
 import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 
+import java.time.ZoneId;
 import java.util.Collections;
 
 import static com.example.petbuddybackend.testutils.mock.MockNotificationProvider.createMockCaretakerNotification;
@@ -24,13 +26,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class WebsocketNotificationServiceTest {
+public class WebsocketNotificationSenderTest {
 
     @Autowired
-    private WebsocketNotificationService websocketNotificationService;
+    private WebsocketNotificationSender wsNotificationSender;
 
     @Autowired
-    private WebSocketSessionService webSocketSessionService;
+    private WebSocketSessionService wsSessionService;
+
+    private NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
     @MockBean
     private SimpUserRegistry simpUserRegistry;
@@ -56,15 +60,16 @@ public class WebsocketNotificationServiceTest {
         when(simpUser.getSessions()).thenReturn(Collections.singleton(simpSession));
         when(simpSession.getId()).thenReturn(sessionId);
 
-        webSocketSessionService.storeUserTimeZoneWithSession(sessionId, userZoneId);
+        wsSessionService.storeUserTimeZoneWithSession(sessionId, userZoneId);
 
         //When
         CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker());
+        SimplyNotificationDTO notificationToSend = notificationMapper.mapToSimplyNotificationDTO(notification, ZoneId.of(userZoneId));
 
-        websocketNotificationService.sendNotification(userEmail, notification);
+        wsNotificationSender.sendNotification(userEmail, notificationToSend);
 
         // Then
-        ArgumentCaptor<NotificationDTO> notificationDTOCaptor = ArgumentCaptor.forClass(NotificationDTO.class);
+        ArgumentCaptor<SimplyNotificationDTO> notificationDTOCaptor = ArgumentCaptor.forClass(SimplyNotificationDTO.class);
         ArgumentCaptor<String> userCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> destinationCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<MessageHeaders> headersCaptor = ArgumentCaptor.forClass(MessageHeaders.class);
@@ -78,12 +83,12 @@ public class WebsocketNotificationServiceTest {
 
         assertEquals(userEmail, userCaptor.getValue());
         assertEquals(NOTIFICATION_BASE_URL, destinationCaptor.getValue());
-        assertEquals(notification.getId(), notificationDTOCaptor.getValue().notificationId());
-        assertEquals(notification.getMessageKey(), notificationDTOCaptor.getValue().messageKey());
-        assertEquals(notification.getArgs(), notificationDTOCaptor.getValue().args());
-        assertEquals(notification.getObjectId(), notificationDTOCaptor.getValue().objectId());
-        assertEquals(notification.getObjectType(), notificationDTOCaptor.getValue().objectType());
-        assertEquals(Role.CARETAKER, notificationDTOCaptor.getValue().receiverProfile());
+        assertEquals(notification.getId(), notificationDTOCaptor.getValue().getNotificationId());
+        assertEquals(notification.getMessageKey(), notificationDTOCaptor.getValue().getMessageKey());
+        assertEquals(notification.getArgs(), notificationDTOCaptor.getValue().getArgs());
+        assertEquals(notification.getObjectId(), notificationDTOCaptor.getValue().getObjectId());
+        assertEquals(notification.getObjectType(), notificationDTOCaptor.getValue().getObjectType());
+        assertEquals(Role.CARETAKER, notificationDTOCaptor.getValue().getReceiverProfile());
 
 
         MessageHeaders headers = headersCaptor.getValue();
@@ -95,9 +100,11 @@ public class WebsocketNotificationServiceTest {
         //Given
         when(simpUserRegistry.getUser(userEmail)).thenReturn(null);
         CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker());
+        SimplyNotificationDTO notificationToSend = notificationMapper.mapToSimplyNotificationDTO(notification, ZoneId.of(userZoneId));
 
         //When
-        websocketNotificationService.sendNotification(userEmail, notification);
+        wsNotificationSender.sendNotification(userEmail, notificationToSend);
+
 
         //Then
         verify(simpMessagingTemplate, never()).convertAndSendToUser(anyString(), anyString(), any(), anyMap());
