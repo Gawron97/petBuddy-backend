@@ -59,7 +59,7 @@ public class NotificationServiceTest {
     private AppUserRepository appUserRepository;
 
     @SpyBean
-    private WebsocketNotificationService websocketNotificationService;
+    private WebsocketNotificationSender websocketNotificationSender;
 
     @Autowired
     private TransactionTemplate transactionTemplate;
@@ -98,7 +98,7 @@ public class NotificationServiceTest {
         assertEquals(caretaker, notification.getCaretaker());
         assertFalse(notification.isRead());
 
-        verify(websocketNotificationService, times(1)).sendNotification(eq(caretaker.getEmail()), any());
+        verify(websocketNotificationSender, times(1)).sendNotification(eq(caretaker.getEmail()), any());
 
     }
 
@@ -120,7 +120,7 @@ public class NotificationServiceTest {
         assertEquals(client, notification.getClient());
         assertFalse(notification.isRead());
 
-        verify(websocketNotificationService, times(1)).sendNotification(eq(client.getEmail()), any());
+        verify(websocketNotificationSender, times(1)).sendNotification(eq(client.getEmail()), any());
 
     }
 

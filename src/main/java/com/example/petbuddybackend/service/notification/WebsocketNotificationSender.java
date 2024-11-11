@@ -14,7 +14,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class WebsocketNotificationService {
+public class WebsocketNotificationSender {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WebSocketSessionService websocketSessionService;

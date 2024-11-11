@@ -3,6 +3,8 @@ package com.example.petbuddybackend.service.chat;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.notification.NotificationType;
+import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -17,8 +19,8 @@ import com.example.petbuddybackend.testutils.mock.MockChatProvider;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.InvalidMessageReceiverException;
-import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -584,6 +586,14 @@ public class ChatServiceTest {
     void getUnreadChatsNumber_shouldReturnProperAnswer() {
         int unreadChatsNumber = chatService.getUnreadChatsNumber(client.getEmail());
         assertEquals(1, unreadChatsNumber);
+    }
+
+    @Test
+    void testGetUnseenChatsNotification_shouldReturnProperAnswer() {
+        UnseenChatsNotificationDTO result = chatService.getUnseenChatsNotification(client.getEmail());
+        assertNotNull(result);
+        assertEquals(NotificationType.CHAT_NOTIFICATION, result.getDType());
+        assertEquals(1, result.getUnseenChats());
     }
 
     private static Stream<String> provideTimeZones() {

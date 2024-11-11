@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.service.notification.WebsocketNotificationSender;
 import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
 import com.example.petbuddybackend.utils.annotation.swaggerdocs.TimeZoneParameter;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
@@ -29,6 +30,7 @@ import java.security.Principal;
 public class ChatController {
 
     private final ChatService chatService;
+    private final WebsocketNotificationSender wsNotificationSender;
 
 
     @PreAuthorize("isAuthenticated()")
@@ -65,7 +67,7 @@ public class ChatController {
             summary = "Send chat message and initialize chat room with given user",
             description =
                     """
-                    Creates a new chat room with the given user and sends the first message to him. This is the
+                    Creates a new chat room with the given user and sends the first message to him. This is the 
                     first step of the communication between a Caretaker and a Client. After this step, websocket 
                     endpoint should be used instead of this endpoint.
                     """
@@ -82,13 +84,19 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone,
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole
     ) {
-        return chatService.createChatRoomWithMessage(
+        ChatMessageDTO chatMessage = chatService.createChatRoomWithMessage(
                 principal.getName(),
                 acceptRole,
                 messageReceiverEmail,
                 message,
                 TimeUtils.getOrSystemDefault(acceptTimeZone)
         );
+
+        wsNotificationSender.sendNotification(
+                messageReceiverEmail,
+                chatService.getUnseenChatsNotification(messageReceiverEmail)
+        );
+        return chatMessage;
     }
 
     @PreAuthorize("isAuthenticated()")

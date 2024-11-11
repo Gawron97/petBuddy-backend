@@ -13,7 +13,6 @@ import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
-import com.example.petbuddybackend.service.notification.WebsocketNotificationService;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
 import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyExistsException;
@@ -45,7 +44,6 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
     private final ChatRoomRepository chatRoomRepository;
-    private final WebsocketNotificationService wsNotificationService;
 
     public Page<ChatMessageDTO> getChatMessagesByParticipantEmail(
             Long chatId,
@@ -94,18 +92,15 @@ public class ChatService {
                 chatRoom.getCaretaker().getAccountData();
 
         ChatMessage persistedMessage = persistMessage(chatRoom, sender, chatMessage.getContent(), seenByRecipient);
-        performPreviousMessagesSeenUpdate(chatRoom.getId(), senderEmail, senderRole, seenByRecipient);
-
-        String receiverEmail = getMessageReceiverEmail(chatRoom, senderRole);
-        sendUnseenChatsNotification(receiverEmail);
+        performPreviousMessagesSeenUpdate(chatRoom.getId(), senderEmail, seenByRecipient);
 
         return chatMapper.mapToChatMessageDTO(persistedMessage);
     }
 
-    private String getMessageReceiverEmail(ChatRoom chatRoom, Role senderRole) {
-        return senderRole == Role.CARETAKER
-            ? chatRoom.getClient().getEmail()
-            : chatRoom.getCaretaker().getEmail();
+    public String getMessageReceiverEmail(String senderEmail, ChatRoom chatRoom) {
+        return chatRoom.getClient().getEmail().equals(senderEmail)
+                ? chatRoom.getCaretaker().getEmail()
+                : chatRoom.getClient().getEmail();
     }
 
     @Transactional
@@ -158,17 +153,16 @@ public class ChatService {
         ChatRoom chatRoom;
         AppUser chatter;
 
-        switch(userRole) {
-            case CLIENT:
+        switch (userRole) {
+            case CLIENT -> {
                 chatRoom = getByClientEmailAndCaretakerEmail(username, participantUsername);
                 chatter = chatRoom.getCaretaker().getAccountData();
-                break;
-            case CARETAKER:
+            }
+            case CARETAKER -> {
                 chatRoom = getByClientEmailAndCaretakerEmail(participantUsername, username);
                 chatter = chatRoom.getClient().getAccountData();
-                break;
-            default:
-                throw new UnsupportedOperationException(String.format(INVALID_USER_ROLE_MESSAGE, userRole));
+            }
+            default -> throw new UnsupportedOperationException(String.format(INVALID_USER_ROLE_MESSAGE, userRole));
         }
 
         ChatMessage lastMessage = chatMessageRepository.findFirstByChatRoom_IdOrderByCreatedAtDesc(chatRoom.getId());
@@ -180,7 +174,12 @@ public class ChatService {
         return chatRepository.countUnreadChatsForUser(userEmail);
     }
 
-    private void performPreviousMessagesSeenUpdate(Long chatId, String senderEmail, Role senderRole, boolean seenByRecipient) {
+    public UnseenChatsNotificationDTO getUnseenChatsNotification(String userEmail) {
+        int unseenChatsOfUser = getUnreadChatsNumber(userEmail);
+        return createUnseenChatsNotification(unseenChatsOfUser);
+    }
+
+    private void performPreviousMessagesSeenUpdate(Long chatId, String senderEmail, boolean seenByRecipient) {
         if (seenByRecipient) {
             chatMessageRepository.updateMessagesSeenOfBothUsers(chatId);
         } else {
@@ -215,7 +214,6 @@ public class ChatService {
         );
 
         chatMessageRepository.updateUnseenMessagesOfUser(chatRoom.getId(), clientSenderEmail);
-        sendUnseenChatsNotification(caretakerReceiverEmail);
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
     }
 
@@ -236,13 +234,7 @@ public class ChatService {
         );
 
         chatMessageRepository.updateUnseenMessagesOfUser(chatRoom.getId(), caretakerSenderEmail);
-        sendUnseenChatsNotification(clientReceiverEmail);
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
-    }
-
-    private void sendUnseenChatsNotification(String userEmail) {
-        int unseenChatsOfUser = chatRepository.countUnreadChatsForUser(userEmail);
-        wsNotificationService.sendNotification(userEmail, createUnseenChatsNotification(unseenChatsOfUser));
     }
 
     private UnseenChatsNotificationDTO createUnseenChatsNotification(int unseenChats) {
@@ -278,7 +270,8 @@ public class ChatService {
         }
     }
 
-    private void checkChatNotExistsByParticipants(String principalEmail, String otherParticipantEmail, Role principalRole) {
+    private void checkChatNotExistsByParticipants(String principalEmail, String otherParticipantEmail,
+                                                  Role principalRole) {
         if(principalRole == Role.CLIENT) {
             checkChatNotExistsByParticipants(otherParticipantEmail, principalEmail);
         } else {
@@ -288,7 +281,12 @@ public class ChatService {
 
     private void checkChatNotExistsByParticipants(String clientEmail, String caretakerEmail) {
         if(chatRepository.existsByClient_EmailAndCaretaker_Email(clientEmail, caretakerEmail)) {
-            throw new ChatAlreadyExistsException(String.format(CHAT_PARTICIPANTS_ALREADY_EXIST_MESSAGE, clientEmail, caretakerEmail));
+            throw new ChatAlreadyExistsException(
+                    String.format(
+                            CHAT_PARTICIPANTS_ALREADY_EXIST_MESSAGE,
+                            clientEmail, caretakerEmail
+                    )
+            );
         }
     }
 
@@ -310,17 +308,6 @@ public class ChatService {
         if(!isUserInChat(chatRoom, email, role)) {
             throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatRoom.getId()));
         }
-    }
-
-    private Role getRoleOfUserInChat(Long chatId, String email) {
-        if(chatRepository.existsByIdAndClient_Email(chatId, email)) {
-            return Role.CLIENT;
-        }
-        else if(chatRepository.existsByIdAndCaretaker_Email(chatId, email)) {
-            return Role.CARETAKER;
-        }
-
-        throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatId));
     }
 
     private void checkSenderIsNotTheSameAsReceiver(String senderEmail, String receiverEmail) {

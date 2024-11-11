@@ -74,12 +74,12 @@ public class WebSocketChatMessageSender {
         onUserUnsubscribe(leavingUsername, chatId, allChatRoomSessions);
     }
 
-    public boolean isRecipientInChat(String senderUsername, ChatRoom chatRoom) {
-        String recipientUsername = chatRoom.getClient().getEmail().equals(senderUsername) ?
-                chatRoom.getCaretaker().getEmail() :
-                chatRoom.getClient().getEmail();
-
-        return webSocketSessionService.getUserSubscriptionStartingWithDestination(recipientUsername, CHAT_TOPIC_URL_PREFIX).stream()
+    public boolean isRecipientInChat(String recipientUsername, ChatRoom chatRoom) {
+        return webSocketSessionService.getUserSubscriptionStartingWithDestination(
+                recipientUsername,
+                CHAT_TOPIC_URL_PREFIX
+            )
+                .stream()
                 .map(SimpSubscription::getDestination)
                 .map(destination -> HeaderUtils.getLongFromDestination(destination, CHAT_ID_INDEX_IN_TOPIC_URL))
                 .anyMatch(chatId -> chatId.equals(chatRoom.getId()));
