@@ -23,6 +23,10 @@ public class GeolocationProvider {
 
     private static Long lastRequestTime = 1_577_833_200_000L;
 
+    public Coordinates getCoordinatesOfAddress(String country, String city) {
+        return getCoordinatesOfAddress(country, city, null);
+    }
+
     public Coordinates getCoordinatesOfAddress(String country, String city, String streetName) {
         String formattedAddress = formatAddress(country, city, streetName);
         JOpenCageForwardRequest request = buildRequest(formattedAddress);

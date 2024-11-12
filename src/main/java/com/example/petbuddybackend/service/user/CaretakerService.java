@@ -3,10 +3,7 @@ package com.example.petbuddybackend.service.user;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.dto.user.*;
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
@@ -49,14 +46,23 @@ public class CaretakerService {
     private final GeolocationProvider geolocationProvider;
 
     @Transactional(readOnly = true)
-    public Page<CaretakerDTO> getCaretakers(Pageable pageable,
-                                            CaretakerSearchCriteria filters,
-                                            Set<OfferFilterDTO> offerFilters) {
+    public SearchCaretakersResponseDTO getCaretakers(Pageable pageable,
+                                                           CaretakerSearchCriteria filters,
+                                                           Set<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
-        return caretakerRepository.findAll(spec, pageable)
+        Page<CaretakerDTO> caretakers = caretakerRepository.findAll(spec, pageable)
                 .map(this::renewCaretakerPictures)
                 .map(caretakerMapper::mapToCaretakerDTO);
+
+        Coordinates coordinates = geolocationProvider.getCoordinatesOfAddress("Poland", filters.cityLike());
+
+        return SearchCaretakersResponseDTO.builder()
+                .caretakers(caretakers)
+                .cityLatitude(coordinates.latitude())
+                .cityLongitude(coordinates.longitude())
+                .build();
+
     }
 
     public CaretakerComplexPublicDTO getOtherCaretaker(String caretakerEmail) {
