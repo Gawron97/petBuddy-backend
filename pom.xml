@@ -168,6 +168,7 @@
                             <exclude>com/example/petbuddybackend/service/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/filter/ExceptionHandlerFilter.class</exclude>
                             <exclude>com/example/petbuddybackend/filter/CORSFilter.class</exclude>
+                            <exclude>com/example/petbuddybackend/utils/provider/geolocation</exclude>
 
                             <!-- Excludes for classes covered by websocket tests -->
                             <exclude>com/example/petbuddybackend/filter/SubscriptionInterceptor.class</exclude>
