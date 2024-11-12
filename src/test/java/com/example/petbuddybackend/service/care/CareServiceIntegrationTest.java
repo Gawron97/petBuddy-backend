@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.service.care;
 
-import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
@@ -101,7 +100,7 @@ public class CareServiceIntegrationTest {
                 .build();
 
         // When
-        CareDTO result = careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault());
+        DetailedCareDTO result = careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care care = careRepository.findById(result.id()).orElseThrow();
@@ -187,7 +186,7 @@ public class CareServiceIntegrationTest {
         UpdateCareDTO updateCareDTO = createUpdateCareDTO("20.00");
 
         // When
-        CareDTO result = careService.updateCare(care.getId(), updateCareDTO, caretaker.getEmail(), ZoneId.systemDefault());
+        DetailedCareDTO result = careService.updateCare(care.getId(), updateCareDTO, caretaker.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care updatedCare = careRepository.findById(result.id()).orElseThrow();
@@ -266,7 +265,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED);
+        DetailedCareDTO result = careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED);
 
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
@@ -339,7 +338,7 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When
-        CareDTO result = careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED);
+        DetailedCareDTO result = careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED);
 
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
@@ -395,7 +394,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED);
+        DetailedCareDTO result = careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED);
 
         // Then
         Care rejectedCare = careRepository.findById(result.id()).orElseThrow();
@@ -437,7 +436,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When
-        CareDTO result = careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED);
+        DetailedCareDTO result = careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED);
 
         // Then
         Care cancelledCare = careRepository.findById(result.id()).orElseThrow();

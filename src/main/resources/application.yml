@@ -87,6 +87,10 @@ firebase:
       threshold-seconds: 2300   # 0.5 hour
 
 
+opencage:
+  api:
+    key: ${OPENCAGE_API_KEY}
+
 notification:
   care:
     reservation: "care_reservation"

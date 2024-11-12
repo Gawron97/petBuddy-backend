@@ -74,6 +74,8 @@ public class MockService {
                 .city(faker.address().city())
                 .streetNumber(faker.address().buildingNumber())
                 .apartmentNumber(faker.address().secondaryAddress())
+                .latitude(BigDecimal.valueOf(this.faker.random().nextDouble() * 180.0 - 90.0))
+                .longitude(BigDecimal.valueOf(this.faker.random().nextDouble() * 180.0 - 90.0))
                 .build();
 
         return Caretaker.builder()

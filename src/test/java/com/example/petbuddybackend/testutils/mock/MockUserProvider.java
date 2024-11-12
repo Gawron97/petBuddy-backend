@@ -8,6 +8,7 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,6 +23,8 @@ public final class MockUserProvider {
                 .zipCode("12-123")
                 .streetNumber("5A")
                 .apartmentNumber("10")
+                .latitude(BigDecimal.valueOf(52.22977))
+                .longitude(BigDecimal.valueOf(21.01178))
                 .build();
     }
 
