@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
+import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
@@ -9,6 +10,7 @@ import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.photo.PhotoLimitException;
+import com.example.petbuddybackend.utils.provider.geolocation.GeolocationProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -23,9 +25,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCoordinates;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -39,6 +41,9 @@ public class CaretakerServiceTest {
 
     @MockBean
     private PhotoService photoService;
+
+    @MockBean
+    private GeolocationProvider geolocationProvider;
 
     @Test
     void testPutOfferPhotos_caretakerDoesNotExist_shouldThrowNotFoundException() {
@@ -97,7 +102,14 @@ public class CaretakerServiceTest {
             List<MultipartFile> newPhotos
     ) {
         Caretaker caretaker = MockUserProvider.createMockCaretaker();
-        ModifyCaretakerDTO dto = ModifyCaretakerDTO.builder().build();
+        ModifyCaretakerDTO dto = ModifyCaretakerDTO.builder()
+                .address(
+                        AddressDTO.builder()
+                        .city("city")
+                        .street("street")
+                        .build()
+                )
+                .build();
         List<PhotoLink> photosMachingBlobs = offerBlobsToKeep.stream()
                 .map(blob -> PhotoLink.builder().blob(blob).build())
                 .toList();
@@ -106,6 +118,8 @@ public class CaretakerServiceTest {
 
         when(caretakerRepository.findById(eq(caretaker.getEmail())))
                 .thenReturn(Optional.of(caretaker));
+        when(geolocationProvider.getCoordinatesOfAddress(anyString(), anyString(), anyString()))
+                .thenReturn(createMockCoordinates());
 
         assertThrows(PhotoLimitException.class,
                 () -> caretakerService.editCaretaker(dto, caretaker.getEmail(), offerBlobsToKeep, newPhotos));

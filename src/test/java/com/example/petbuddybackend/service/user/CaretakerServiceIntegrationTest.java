@@ -26,6 +26,7 @@ import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.provider.geolocation.GeolocationProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +51,8 @@ import java.util.stream.Stream;
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 
 @SpringBootTest
@@ -85,6 +89,9 @@ public class CaretakerServiceIntegrationTest {
     @Autowired
     private CareRepository careRepository;
 
+    @MockBean
+    private GeolocationProvider geolocationProvider;
+
     private Caretaker caretaker;
     private Client clientSameAsCaretaker;
     private Client client;
@@ -94,6 +101,8 @@ public class CaretakerServiceIntegrationTest {
     void init() {
         initCaretakers();
         initClients(this.caretaker);
+        when(geolocationProvider.getCoordinatesOfAddress(anyString(), anyString(), anyString()))
+                .thenReturn(createMockCoordinates());
     }
 
     private void initCaretakers() {
