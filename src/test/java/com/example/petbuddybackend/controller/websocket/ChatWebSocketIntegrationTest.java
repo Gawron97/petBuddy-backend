@@ -11,7 +11,6 @@ import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
@@ -21,6 +20,7 @@ import com.example.petbuddybackend.utils.conversion.serializer.LocalDateTimeSeri
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.SneakyThrows;
@@ -50,7 +50,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -88,9 +87,6 @@ public class ChatWebSocketIntegrationTest {
 
     @MockBean
     private ChatService chatService;
-
-    @MockBean
-    private ChatRoomRepository chatRoomRepository;
 
     @MockBean
     private BlockService blockService;
@@ -135,16 +131,10 @@ public class ChatWebSocketIntegrationTest {
         when(chatService.getChatRoomById(any(Long.class)))
                 .thenReturn(chatRoom);
 
-        when(chatRoomRepository.findById(any(Long.class)))
-                .thenReturn(Optional.of(chatRoom));
-
         when(blockService.isBlockedByAny(any(String.class), any(String.class)))
                 .thenReturn(false);
 
-        when(chatRoomRepository.existsByIdAndClient_Email(any(Long.class), any(String.class)))
-                .thenReturn(true);
-
-        when(chatRoomRepository.existsByIdAndCaretaker_Email(any(Long.class), any(String.class)))
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
         when(chatService.getUnseenChatsNotification(any()))
@@ -366,9 +356,7 @@ public class ChatWebSocketIntegrationTest {
     @Test
     @SneakyThrows
     void subscribeToMessageTopic_userNotParticipating_shouldSendExceptionMessage() {
-        when(chatRoomRepository.existsByIdAndCaretaker_Email(any(Long.class), any(String.class)))
-                .thenReturn(false);
-        when(chatRoomRepository.existsByIdAndClient_Email(any(Long.class), any(String.class)))
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(false);
 
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
@@ -384,8 +372,8 @@ public class ChatWebSocketIntegrationTest {
     @Test
     @SneakyThrows
     void subscribeToMessageTopic_chatNotFound_shouldSendExceptionMessage() {
-        when(chatRoomRepository.findById(any(Long.class)))
-                .thenReturn(Optional.empty());
+        when(chatService.getChatRoomById(any(Long.class)))
+                .thenThrow(new NotFoundException());
 
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         subscribeToExceptionTopic(clientSession, CLIENT_USERNAME , new ExceptionFrameHandler());
@@ -455,8 +443,7 @@ public class ChatWebSocketIntegrationTest {
             ExceptionFrameHandler exceptionFrameHandler
     ) {
         NoSecurityInjectUserConfig.injectedUsername = username;
-        String destinationFormatted = EXCEPTIONS_PATH;
-        return WebsocketUtils.subscribeToTopic(session, createHeaders(destinationFormatted), exceptionFrameHandler);
+        return WebsocketUtils.subscribeToTopic(session, createHeaders(EXCEPTIONS_PATH), exceptionFrameHandler);
     }
 
     private class ExceptionFrameHandler implements StompFrameHandler {

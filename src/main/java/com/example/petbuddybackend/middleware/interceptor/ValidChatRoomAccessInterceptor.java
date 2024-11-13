@@ -35,7 +35,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     private String URL_CHAT_TOPIC_BASE;
 
     @Value("${url.exception.topic.send-url}")
-    public String EXCEPTIONS_PATH = "/topic/exceptions";
+    public String EXCEPTIONS_PATH;
 
     @Value("${url.chat.topic.chat-id-pos}")
     private int CHAT_ID_INDEX_IN_TOPIC_URL;
@@ -96,6 +96,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
         } catch(NotParticipateException | NotFoundException | BlockedException e) {
             log.debug("User {} is not allowed to access chat room {}", username, chatId);
             log.trace("Exception: {}", e.getMessage());
+            log.trace("Sending exception message to user at destination {}", EXCEPTIONS_PATH);
             simpMessagingTemplate.convertAndSendToUser(
                     username,
                     EXCEPTIONS_PATH,
