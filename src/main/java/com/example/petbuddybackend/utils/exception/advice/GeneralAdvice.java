@@ -2,7 +2,6 @@ package com.example.petbuddybackend.utils.exception.advice;
 
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
 import com.example.petbuddybackend.utils.exception.common.ExceptionUtils;
-import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -127,12 +126,5 @@ public class GeneralAdvice {
     public ApiExceptionResponse handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
         log.debug("HttpRequestMethodNotSupportedException", e);
         return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.METHOD_NOT_ALLOWED);
-    }
-
-    @ExceptionHandler(ForbiddenException.class)
-    @ResponseStatus(code = HttpStatus.FORBIDDEN)
-    public ApiExceptionResponse handleForbiddenException(ForbiddenException e) {
-        log.debug("ForbiddenException", e);
-        return new ApiExceptionResponse(e, e.getMessage(), HttpStatus.FORBIDDEN);
     }
 }

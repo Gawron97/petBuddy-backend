@@ -2,8 +2,8 @@ package com.example.petbuddybackend.middleware.interceptor;
 
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.service.block.BlockService;
+import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
@@ -43,7 +43,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     @Value("${header-name.role}")
     private String ROLE_HEADER_NAME;
 
-    private final ChatRoomRepository chatRoomRepository;
+    private final ChatService chatService;
     private final BlockService blockService;
     private SimpMessagingTemplate simpMessagingTemplate;
     private ApplicationContext applicationContext;
@@ -90,9 +90,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
 
     private boolean validateChatPermission(Long chatId, String username, String sessionId, Role role) {
         try {
-            ChatRoom chatRoom = chatRoomRepository.findById(chatId).orElseThrow(
-                    () -> NotFoundException.withFormattedMessage(CHAT, chatId.toString())
-            );
+            ChatRoom chatRoom = chatService.getChatRoomById(chatId);
             assertIsInChat(chatId, username, role);
             assertNotBlocked(chatRoom);
         } catch(NotParticipateException | NotFoundException | BlockedException e) {
@@ -112,7 +110,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     }
 
     private void assertIsInChat(Long chatId, String username, Role role) {
-        if (!isUserInChat(chatId, username, role)) {
+        if (!chatService.isUserInChat(chatId, username, role)) {
             throw new NotParticipateException(String.format(USER_NOT_IN_CHAT_MESSAGE, username, chatId));
         }
     }
@@ -129,11 +127,5 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     private Long extractChatId(String destination) {
         String[] parts = destination.split("/");
         return Long.parseLong(parts[CHAT_ID_INDEX_IN_TOPIC_URL]);
-    }
-
-    private boolean isUserInChat(Long chatId, String email, Role role) {
-        return role == Role.CLIENT ?
-                chatRoomRepository.existsByIdAndClient_Email(chatId, email) :
-                chatRoomRepository.existsByIdAndCaretaker_Email(chatId, email);
     }
 }
