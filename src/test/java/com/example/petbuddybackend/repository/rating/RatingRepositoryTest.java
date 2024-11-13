@@ -67,10 +67,10 @@ public class RatingRepositoryTest {
     }
 
     @Test
-    void testFindAllByCaretakerEmail_shouldReturnRatingsWithNoNulls() throws IllegalAccessException {
-        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(caretaker, client, care));
+    void testFindAllByCaretakerEmail_shouldReturnRatingsWithNoNulls() {
+        ratingRepository.saveAndFlush(MockRatingProvider.createMockRating(care));
 
-        Page<Rating> ratings = ratingRepository.findAllByCaretakerEmail(caretaker.getEmail(), PageRequest.of(0, 10));
+        Page<Rating> ratings = ratingRepository.findAllByCare_Caretaker_Email(caretaker.getEmail(), PageRequest.of(0, 10));
         Rating rating = ratings.getContent().get(0);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(rating));

@@ -90,13 +90,9 @@ public class MockService {
         return voivodeships[faker.random().nextInt(voivodeships.length)];
     }
 
-    public Rating createMockRating(Caretaker caretaker, Care care, Client client) {
+    public Rating createMockRating(Care care) {
         return Rating.builder()
-                .caretakerEmail(caretaker.getEmail())
-                .clientEmail(client.getEmail())
                 .careId(care.getId())
-                .caretaker(caretaker)
-                .client(client)
                 .care(care)
                 .rating(faker.random().nextInt(1, 5))
                 .comment(faker.lorem().sentence())
@@ -104,14 +100,10 @@ public class MockService {
     }
 
     public List<Rating> createMockRatings(List<Caretaker> caretakers) {
-        List<Rating> ratings = new ArrayList<>();
-
-        caretakers.forEach(caretaker ->
-                caretaker.getCares().forEach(care ->
-                        ratings.add(createMockRating(caretaker, care, care.getClient())))
-        );
-
-        return ratings;
+        return caretakers.stream()
+                .flatMap(caretaker -> caretaker.getCares().stream())
+                .map(this::createMockRating)
+                .toList();
     }
 
 
@@ -431,7 +423,7 @@ public class MockService {
                 .findFirst()
                 .orElseThrow();
 
-        return Care.builder()
+        Care care = Care.builder()
                 .careStart(careStart)
                 .careEnd(careEnd)
                 .clientStatus(randomStatuses.getLeft())
@@ -444,6 +436,9 @@ public class MockService {
                 .client(client)
                 .build();
 
+        caretaker.getCares().add(care);
+        client.getCares().add(care);
+        return care;
     }
 
     private LocalDateTime getRandomDateBetween(LocalDate minDate, LocalDate maxDate) {

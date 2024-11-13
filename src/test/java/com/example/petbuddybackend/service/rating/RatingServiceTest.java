@@ -3,7 +3,6 @@ package com.example.petbuddybackend.service.rating;
 import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.rating.Rating;
-import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
@@ -14,7 +13,6 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
-import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.ValidationUtils;
 import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
@@ -109,8 +107,8 @@ public class RatingServiceTest {
 
 
     @Test
-    void testGetRating_sortingParamsShouldAlignWithDTO() {
-        List<String> fieldNames = ReflectionUtils.getPrimitiveNames(RatingResponse.class);
+    void testGetRating_shouldSortProperly() {
+        List<String> fieldNames = List.of("rating", "comment");
 
         for(String fieldName : fieldNames) {
             assertDoesNotThrow(() -> ratingService.getRatings(
@@ -121,32 +119,27 @@ public class RatingServiceTest {
     }
 
     @Test
-    void rateCaretaker_shouldSucceed() throws IllegalAccessException {
-        transactionTemplate.execute(status -> {
-            ratingService.rateCaretaker(
-                    client.getEmail(),
-                    paidCare.getId(),
-                    5,
-                    "comment"
-            );
-            return null;
-        });
+    void rateCaretaker_shouldSucceed() {
+        ratingService.rateCaretaker(
+                client.getEmail(),
+                paidCare.getId(),
+                5,
+                "comment"
+        );
 
         transactionTemplate.execute(status -> {
-            Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail(),
-                    paidCare.getId()));
+            Rating rating = ratingRepository.getReferenceById(paidCare.getId());
             assertEquals(1, ratingRepository.count());
             assertEquals(5, rating.getRating());
             assertTrue(ValidationUtils.fieldsNotNullRecursive(rating, Set.of("client", "caretaker", "care")));
             return null;
         });
-
     }
 
     @Test
     void rateCaretaker_ratingExists_shouldUpdateRating() {
         transactionTemplate.execute(status ->
-                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(caretaker, client, paidCare))
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(paidCare))
         );
 
         transactionTemplate.execute(status -> {
@@ -165,11 +158,11 @@ public class RatingServiceTest {
         });
 
         transactionTemplate.execute(status -> {
-            Rating rating = ratingRepository.getReferenceById(new RatingKey(caretaker.getEmail(), client.getEmail(), paidCare.getId()));
+            Rating rating = ratingRepository.getReferenceById(paidCare.getId());
             assertEquals(5, rating.getRating());
             assertEquals("new comment", rating.getComment());
-            assertEquals(client.getEmail(), rating.getClientEmail());
-            assertEquals(caretaker.getEmail(), rating.getCaretakerEmail());
+            assertEquals(client.getEmail(), rating.getCare().getClient().getEmail());
+            assertEquals(caretaker.getEmail(), rating.getCare().getCaretaker().getEmail());
             return null;
         });
     }
@@ -197,7 +190,7 @@ public class RatingServiceTest {
 
     @Test
     void rateCaretaker_clientRatesHimself_shouldThrowForbiddenException() {
-        assertThrows(ForbiddenException.class, () -> ratingService.rateCaretaker(
+        assertThrows(IllegalActionException.class, () -> ratingService.rateCaretaker(
                 clientSameAsCaretaker.getEmail(),
                 paidCare.getId(),
                 5,
@@ -226,7 +219,7 @@ public class RatingServiceTest {
     }
 
     @Test
-    void rateCaretaker_ClientIsNotSubjectInCare_ShouldThrowForbiddenException() {
+    void rateCaretaker_clientIsNotSubjectInCare_shouldThrowForbiddenException() {
 
         //given
         Care badCare = PersistenceUtils.addCare(
@@ -236,7 +229,7 @@ public class RatingServiceTest {
                 animalRepository.findById("DOG").get()
         );
         assertThrows(ForbiddenException.class, () -> ratingService.rateCaretaker(
-                caretaker.getEmail(),
+                "notSubjectClient",
                 badCare.getId(),
                 2,
                 "S"
@@ -247,7 +240,7 @@ public class RatingServiceTest {
     @Test
     void deleteRating_shouldSucceed() {
         transactionTemplate.execute(status ->
-                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(caretaker, client, paidCare))
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(paidCare))
         );
 
         transactionTemplate.execute(status ->
@@ -279,7 +272,7 @@ public class RatingServiceTest {
     @Test
     void getRatings_shouldReturnRatings() {
         transactionTemplate.execute(status ->
-                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(caretaker, client, paidCare))
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(paidCare))
         );
 
         Page<RatingResponse> ratings = transactionTemplate.execute(status ->

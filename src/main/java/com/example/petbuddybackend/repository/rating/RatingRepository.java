@@ -1,13 +1,12 @@
 package com.example.petbuddybackend.repository.rating;
 
 import com.example.petbuddybackend.entity.rating.Rating;
-import com.example.petbuddybackend.entity.rating.RatingKey;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
-public interface RatingRepository extends JpaRepository<Rating, RatingKey> {
+public interface RatingRepository extends JpaRepository<Rating, Long> {
 
-    Page<Rating> findAllByCaretakerEmail(String caretakerEmail, Pageable pageable);
+    Page<Rating> findAllByCare_Caretaker_Email(String caretakerEmail, Pageable pageable);
 }

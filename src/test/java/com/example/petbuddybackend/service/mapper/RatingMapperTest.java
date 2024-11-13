@@ -25,7 +25,7 @@ public class RatingMapperTest {
         Caretaker caretaker = createMockCaretaker();
         Care care = createMockCare(caretaker, client, createMockAnimal("DOG"));
 
-        Rating rating = MockRatingProvider.createMockRating(caretaker, client, care);
+        Rating rating = MockRatingProvider.createMockRating(care);
 
         RatingResponse ratingResponse = mapper.mapToRatingResponse(rating);
         assertTrue(ValidationUtils.fieldsNotNullRecursive(ratingResponse));

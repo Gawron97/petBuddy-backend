@@ -4,7 +4,6 @@ import com.example.petbuddybackend.dto.rating.RatingResponse;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.rating.Rating;
-import com.example.petbuddybackend.entity.rating.RatingKey;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.service.care.CareService;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
@@ -16,12 +15,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class RatingService {
 
     private static final String RATING = "Rating";
+    private static final String CANNOT_RATE_CARE_STATUS_EXCEPTION = "Cannot rate care of id %d. Required statuses: %s %s, actual statuses: %s %s";
+    private static final String USER_CANNOT_RATE_HIMSELF_MESSAGE = "User cannot rate himself";
+    private static final String NOT_CLIENT_MESSAGE = "User %s is not a client of care %d";
 
     private final RatingRepository ratingRepository;
     private final CareService careService;
@@ -29,40 +32,52 @@ public class RatingService {
     private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
 
     public Page<RatingResponse> getRatings(Pageable pageable, String caretakerEmail) {
-        return ratingRepository.findAllByCaretakerEmail(caretakerEmail, pageable)
+        return ratingRepository.findAllByCare_Caretaker_Email(caretakerEmail, pageable)
+                .map(this::refreshRatingPhotos)
                 .map(ratingMapper::mapToRatingResponse);
     }
 
+    @Transactional
     public RatingResponse rateCaretaker(String clientEmail, Long careId, int rating,
                                         String comment) {
 
         Care care = careService.getCareById(careId);
         String caretakerEmail = care.getCaretaker().getEmail();
-        assertCareBetweenCaretakerAndClientIsValid(clientEmail, care);
+        assertNotRatingSelf(clientEmail, caretakerEmail);
+        assertCareOfClient(care, clientEmail);
+        assertPaidState(care);
 
-        if(caretakerEmail.equals(clientEmail)) {
-            throw new IllegalActionException("User cannot rate himself");
-        }
-
-        return ratingMapper.mapToRatingResponse(
-                createOrUpdateRating(caretakerEmail, clientEmail, careId, rating, comment)
-        );
+        Rating ratingEntity = createOrUpdateRating(caretakerEmail, clientEmail, careId, rating, comment);
+        refreshRatingPhotos(ratingEntity);
+        return ratingMapper.mapToRatingResponse(ratingEntity);
     }
 
     public RatingResponse deleteRating(String clientEmail, Long careId) {
-        Care care = careService.getCareById(careId);
-        String caretakerEmail = care.getCaretaker().getEmail();
-
-        RatingKey ratingKey = new RatingKey(caretakerEmail, clientEmail, careId);
-        Rating rating = getRating(ratingKey);
-        ratingRepository.deleteById(ratingKey);
-
+        Rating rating = getRatingOfClient(careId, clientEmail);
+        ratingRepository.delete(rating);
+        refreshRatingPhotos(rating);
         return ratingMapper.mapToRatingResponse(rating);
+    }
+
+    private Rating refreshRatingPhotos(Rating rating) {
+        userService.renewProfilePicture(rating.getCare().getClient().getAccountData());
+        return rating;
     }
 
     private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, Long careId, int rating,
                                         String comment) {
-        Rating ratingEntity = getOrCreateRating(caretakerEmail, clientEmail, careId);
+
+        Care care = careService.getCareById(careId);
+        assertNotRatingSelf(clientEmail, caretakerEmail);
+        assertCareOfClient(care, clientEmail);
+        assertPaidState(care);
+
+        Rating ratingEntity = ratingRepository.findById(careId).orElseGet(() ->
+                Rating.builder()
+                        .careId(care.getId())
+                        .care(care)
+                        .build()
+        );
 
         ratingEntity.setRating(rating);
         ratingEntity.setComment(comment);
@@ -70,32 +85,48 @@ public class RatingService {
         return ratingRepository.save(ratingEntity);
     }
 
-    private void assertCareBetweenCaretakerAndClientIsValid(String clientEmail, Care care) {
-
+    private void assertCareOfClient(Care care, String clientEmail) {
         if(!care.getClient().getEmail().equals(clientEmail)) {
-            throw new ForbiddenException("You are not client in this care");
-        }
-
-        if(!care.getCaretakerStatus().equals(CareStatus.PAID) || !care.getClientStatus().equals(CareStatus.PAID)) {
-            throw new IllegalActionException("Cannot rate unpaid care");
+            throw new ForbiddenException(String.format(NOT_CLIENT_MESSAGE, clientEmail, care.getId()));
         }
     }
 
-    private Rating getOrCreateRating(String caretakerEmail, String clientEmail, Long careId) {
-        return ratingRepository.findById(new RatingKey(caretakerEmail, clientEmail, careId))
-                .orElse(
-                        Rating.builder()
-                                .clientEmail(clientEmail)
-                                .caretakerEmail(caretakerEmail)
-                                .careId(careId)
-                                .build()
-                );
+    private void assertPaidState(Care care) {
+        CareStatus caretakerStatus = care.getCaretakerStatus();
+        CareStatus clientStatus = care.getClientStatus();
+
+        if(caretakerStatus != CareStatus.PAID || clientStatus != CareStatus.PAID) {
+            throw new IllegalActionException(String.format(
+                    CANNOT_RATE_CARE_STATUS_EXCEPTION,
+                    care.getId(),
+                    CareStatus.PAID,
+                    CareStatus.PAID,
+                    caretakerStatus,
+                    clientStatus
+            ));
+        }
     }
 
-    private Rating getRating(RatingKey ratingKey) {
-        return ratingRepository.findById(ratingKey).orElseThrow(
-                () -> NotFoundException.withFormattedMessage(RATING, ratingKey.toString())
+    private Rating getRating(Long careId) {
+        return ratingRepository.findById(careId).orElseThrow(
+                () -> NotFoundException.withFormattedMessage(RATING, careId.toString())
         );
     }
 
+    private Rating getRatingOfClient(Long careId, String clientEmail) {
+        Rating rating = getRating(careId);
+        Care careEntity = careService.getCareById(careId);
+
+        if(!careEntity.getClient().getEmail().equals(clientEmail)) {
+            throw new ForbiddenException("This rating is not yours");
+        }
+
+        return rating;
+    }
+
+    private static void assertNotRatingSelf(String clientEmail, String caretakerEmail) {
+        if(caretakerEmail.equals(clientEmail)) {
+            throw new IllegalActionException(USER_CANNOT_RATE_HIMSELF_MESSAGE);
+        }
+    }
 }

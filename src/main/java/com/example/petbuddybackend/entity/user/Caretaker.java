@@ -5,7 +5,6 @@ import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.notification.CaretakerNotification;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
-import com.example.petbuddybackend.entity.rating.Rating;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Formula;
@@ -39,16 +38,18 @@ public class Caretaker {
     private AppUser accountData;
 
     @Basic(fetch = FetchType.LAZY)
-    @Formula("(SELECT COUNT(*) FROM Rating r WHERE r.caretaker_email = email)")
+    @Formula("(SELECT COUNT(*) " +
+            " FROM Rating r " +
+            " JOIN Care c ON r.care_id = c.id " +
+            " WHERE c.caretaker_email = email)")
     private Integer numberOfRatings;
 
     @Basic(fetch = FetchType.LAZY)
-    @Formula("(SELECT AVG(r.rating) FROM Rating r WHERE r.caretaker_email = email)")
+    @Formula("(SELECT AVG(r.rating) " +
+            " FROM Rating r " +
+            " JOIN Care c ON r.care_id = c.id " +
+            " WHERE c.caretaker_email = email)")
     private Float avgRating;
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "caretaker", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<Rating> ratings = new ArrayList<>();
 
     @OneToMany(mappedBy = "caretaker", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

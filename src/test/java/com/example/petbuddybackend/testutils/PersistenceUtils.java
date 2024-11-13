@@ -36,7 +36,6 @@ import java.util.Set;
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
 import static com.example.petbuddybackend.testutils.mock.MockNotificationProvider.createMockCaretakerNotification;
 import static com.example.petbuddybackend.testutils.mock.MockOfferProvider.*;
-import static com.example.petbuddybackend.testutils.mock.MockRatingProvider.createMockRatingForCaretaker;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 
 public class PersistenceUtils {
@@ -234,12 +233,6 @@ public class PersistenceUtils {
                 chatRepository,
                 chatMessageRepository
         );
-    }
-
-    public static Rating addRatingToCaretaker(Caretaker caretaker, Client client, Care care, Integer ratingNumber, String comment,
-                                              RatingRepository ratingRepository) {
-        Rating rating = createMockRatingForCaretaker(caretaker, client, care, ratingNumber, comment);
-        return ratingRepository.save(rating);
     }
 
     public static Rating addRatingToCaretaker(RatingRepository ratingRepository, Rating rating) {
