@@ -23,7 +23,6 @@ public class RatingService {
 
     private static final String RATING = "Rating";
     private static final String CANNOT_RATE_CARE_STATUS_EXCEPTION = "Cannot rate care of id %d. Required statuses: %s %s, actual statuses: %s %s";
-    private static final String USER_CANNOT_RATE_HIMSELF_MESSAGE = "User cannot rate himself";
     private static final String NOT_CLIENT_MESSAGE = "User %s is not a client of care %d";
 
     private final RatingRepository ratingRepository;
@@ -38,16 +37,12 @@ public class RatingService {
     }
 
     @Transactional
-    public RatingResponse rateCaretaker(String clientEmail, Long careId, int rating,
-                                        String comment) {
-
+    public RatingResponse rateCaretaker(String clientEmail, Long careId, int rating, String comment) {
         Care care = careService.getCareById(careId);
-        String caretakerEmail = care.getCaretaker().getEmail();
-        assertNotRatingSelf(clientEmail, caretakerEmail);
         assertCareOfClient(care, clientEmail);
         assertPaidState(care);
 
-        Rating ratingEntity = createOrUpdateRating(caretakerEmail, clientEmail, careId, rating, comment);
+        Rating ratingEntity = createOrUpdateRating(clientEmail, careId, rating, comment);
         refreshRatingPhotos(ratingEntity);
         return ratingMapper.mapToRatingResponse(ratingEntity);
     }
@@ -64,11 +59,9 @@ public class RatingService {
         return rating;
     }
 
-    private Rating createOrUpdateRating(String caretakerEmail, String clientEmail, Long careId, int rating,
-                                        String comment) {
+    private Rating createOrUpdateRating(String clientEmail, Long careId, int rating, String comment) {
 
         Care care = careService.getCareById(careId);
-        assertNotRatingSelf(clientEmail, caretakerEmail);
         assertCareOfClient(care, clientEmail);
         assertPaidState(care);
 
@@ -115,18 +108,12 @@ public class RatingService {
 
     private Rating getRatingOfClient(Long careId, String clientEmail) {
         Rating rating = getRating(careId);
-        Care careEntity = careService.getCareById(careId);
+        Care care = careService.getCareById(careId);
 
-        if(!careEntity.getClient().getEmail().equals(clientEmail)) {
+        if(!care.getClient().getEmail().equals(clientEmail)) {
             throw new ForbiddenException("This rating is not yours");
         }
 
         return rating;
-    }
-
-    private static void assertNotRatingSelf(String clientEmail, String caretakerEmail) {
-        if(caretakerEmail.equals(clientEmail)) {
-            throw new IllegalActionException(USER_CANNOT_RATE_HIMSELF_MESSAGE);
-        }
     }
 }

@@ -73,7 +73,6 @@ public class RatingServiceTest {
 
     private Caretaker caretaker;
     private Client client;
-    private Client clientSameAsCaretaker;
     private Care care;
     private Care paidCare;
 
@@ -82,14 +81,7 @@ public class RatingServiceTest {
     void init() {
         caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);
         client = PersistenceUtils.addClient(appUserRepository, clientRepository);
-        clientSameAsCaretaker = PersistenceUtils.addClient(
-                appUserRepository,
-                clientRepository,
-                Client.builder()
-                    .email(caretaker.getEmail())
-                    .accountData(caretaker.getAccountData())
-                    .build()
-        );
+
         care = PersistenceUtils.addCare(
                 careRepository, createMockCare(caretaker, client, animalRepository.findById("DOG").orElseThrow())
         );
@@ -184,16 +176,6 @@ public class RatingServiceTest {
                 client.getAccountData().getEmail(),
                 paidCare.getId(),
                 rating,
-                "comment"
-        ));
-    }
-
-    @Test
-    void rateCaretaker_clientRatesHimself_shouldThrowForbiddenException() {
-        assertThrows(IllegalActionException.class, () -> ratingService.rateCaretaker(
-                clientSameAsCaretaker.getEmail(),
-                paidCare.getId(),
-                5,
                 "comment"
         ));
     }
