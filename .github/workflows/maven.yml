@@ -1,4 +1,4 @@
-name: Java CI with Maven and Docker Publish
+name: Build and Deploy
 
 on:
   push:
