@@ -70,6 +70,14 @@ public class NotificationService {
         return notificationMapper.mapToSimplyNotificationDTO(notificationRepository.save(notification), timezone);
     }
 
+    public void markNotificationsAsRead(String username, Role role) {
+        if(role == Role.CARETAKER) {
+            caretakerNotificationRepository.markAllNotificationsOfCaretakerAsRead(username);
+        } else {
+            clientNotificationRepository.markAllNotificationsOfClientAsRead(username);
+        }
+    }
+
     private Notification getNotification(Role role, Long id) {
         return role == Role.CARETAKER
                 ? caretakerNotificationRepository.findById(id)

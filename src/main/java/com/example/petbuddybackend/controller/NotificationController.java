@@ -72,10 +72,22 @@ public class NotificationController {
     @PreAuthorize("isAuthenticated()")
     public SimplyNotificationDTO markNotificationAsRead(@PathVariable Long notificationId,
                                                         @RoleParameter
-                                                  @RequestHeader(value = "${header-name.role}") Role role,
+                                                        @RequestHeader(value = "${header-name.role}") Role role,
                                                         @TimeZoneParameter
-                                                  @RequestHeader(value = "${header-name.timezone}") String timezone) {
+                                                        @RequestHeader(value = "${header-name.timezone}", required = false) String timezone) {
         return notificationService.markNotificationAsRead(notificationId, role, TimeUtils.getOrSystemDefault(timezone));
+    }
+
+    @Operation(
+            summary = "Mark all notification of currently logged in user as read",
+            description = "Only notifications for current profile will be marked as read."
+    )
+    @PostMapping("/all-read")
+    @PreAuthorize("isAuthenticated()")
+    public void markNotificationsAsRead(Principal principal,
+                                        @RoleParameter
+                                        @RequestHeader(value = "${header-name.role}") Role role) {
+        notificationService.markNotificationsAsRead(principal.getName(), role);
     }
 
 }
