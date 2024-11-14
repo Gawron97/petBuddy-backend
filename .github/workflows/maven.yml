@@ -22,10 +22,7 @@ jobs:
           cache: maven
 
       - name: Build and check coverage
-        run: mvn -B clean install --file pom.xml -DskipTests
-
-      - name: List files in target directory (debug)
-        run: ls -la target/
+        run: mvn -B clean install --file pom.xml
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
@@ -51,9 +48,6 @@ jobs:
         with:
           name: app-jar
 
-      - name: List files after downloading (debug)
-        run: ls -la
-
       - name: Move JAR to Docker context
         run: mv petBuddy-backend-0.0.1-SNAPSHOT.jar target/petBuddy-backend-0.0.1-SNAPSHOT.jar
 
@@ -66,17 +60,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Extract version from tag
-        id: extract_version
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            VERSION="${GITHUB_REF#refs/tags/}"
-          else
-            VERSION="latest"
-          fi
-          echo "::set-output name=version::$VERSION" # Setting output for version
-          echo "Version is: $VERSION" # Debugging the version
-
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v3
@@ -84,4 +67,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: petbuddyzpi/petbuddy-backend:${{ env.version }}, petbuddyzpi/petbuddy-backend:latest
+          tags: petbuddyzpi/petbuddy-backend:latest
