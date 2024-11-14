@@ -20,7 +20,9 @@ import com.example.petbuddybackend.utils.conversion.serializer.LocalDateTimeSeri
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.SneakyThrows;
@@ -57,6 +59,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test-security-inject-user")
@@ -356,8 +359,9 @@ public class ChatWebSocketIntegrationTest {
     @Test
     @SneakyThrows
     void subscribeToMessageTopic_userNotParticipating_shouldSendExceptionMessage() {
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(false);
+        doThrow(new NotParticipateException(""))
+                .when(chatService)
+                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
 
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         subscribeToExceptionTopic(clientSession, CLIENT_USERNAME , new ExceptionFrameHandler());
@@ -372,8 +376,9 @@ public class ChatWebSocketIntegrationTest {
     @Test
     @SneakyThrows
     void subscribeToMessageTopic_chatNotFound_shouldSendExceptionMessage() {
-        when(chatService.getChatRoomById(any(Long.class)))
-                .thenThrow(new NotFoundException());
+        doThrow(new NotFoundException())
+                .when(chatService)
+                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
 
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         subscribeToExceptionTopic(clientSession, CLIENT_USERNAME , new ExceptionFrameHandler());
@@ -388,8 +393,9 @@ public class ChatWebSocketIntegrationTest {
     @Test
     @SneakyThrows
     void subscribeToMessageTopic_userBlocked_shouldSendExceptionMessage() {
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(true);
+        doThrow(new BlockedException())
+                .when(chatService)
+                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
 
         when(blockService.isBlockedByAny(any(String.class), any(String.class)))
                 .thenReturn(true);

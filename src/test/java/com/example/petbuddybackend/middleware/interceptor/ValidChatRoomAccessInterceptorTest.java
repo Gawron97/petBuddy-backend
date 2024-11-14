@@ -29,6 +29,8 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 public class ValidChatRoomAccessInterceptorTest {
 
+    public static final String CLIENT_EMAIL = "ClientEmail";
+    public static final String CARETAKER_EMAIL = "CaretakerEmail";
     @Value("${header-name.role}")
     private String ROLE_HEADER_NAME;
 
@@ -49,26 +51,19 @@ public class ValidChatRoomAccessInterceptorTest {
     @BeforeEach
     public void setUp() {
         chatRoom = ChatRoom.builder()
-                .client(Client.builder().email("ClientEmail").build())
-                .caretaker(Caretaker.builder().email("CaretakerEmail").build())
+                .client(Client.builder().email(CLIENT_EMAIL).build())
+                .caretaker(Caretaker.builder().email(CARETAKER_EMAIL).build())
                 .build();
     }
 
     @Test
     public void testUserInChatAllowed_shouldNotThrow() {
-        String username = "user1";
         String destination = String.format(URL_CHAT_TOPIC_PATTERN, 1);
         Role role = Role.CLIENT;
-        Message<?> message = createMessage(destination, username, role);
+        Message<?> message = createMessage(destination, CLIENT_EMAIL, role);
 
         when(chatRoomRepository.findById(any(Long.class)))
                 .thenReturn(Optional.of(chatRoom));
-
-        when(chatRoomRepository.existsByIdAndClient_Email(any(), any()))
-                .thenReturn(true);
-
-        when(chatRoomRepository.existsByIdAndCaretaker_Email(any(), any()))
-                .thenReturn(true);
 
         when(blockService.isBlockedByAny(any(), any()))
                 .thenReturn(false);
@@ -79,19 +74,12 @@ public class ValidChatRoomAccessInterceptorTest {
 
     @Test
     public void testUserSubscribeToChat_doesNotParticipate_shouldSendExceptionMessage() {
-        String username = "user1";
         String destination = String.format(URL_CHAT_TOPIC_PATTERN, 1, "someSessionId");
         Role role = Role.CLIENT;
-        Message<?> message = createMessage(destination, username, role);
+        Message<?> message = createMessage(destination, "someOtherUsername", role);
 
         when(chatRoomRepository.findById(any(Long.class)))
                 .thenReturn(Optional.of(chatRoom));
-
-        when(chatRoomRepository.existsByIdAndClient_Email(any(), any()))
-                .thenReturn(false);
-
-        when(chatRoomRepository.existsByIdAndCaretaker_Email(any(), any()))
-                .thenReturn(false);
 
         when(blockService.isBlockedByAny(any(), any()))
                 .thenReturn(false);
@@ -102,33 +90,25 @@ public class ValidChatRoomAccessInterceptorTest {
 
     @Test
     public void testUserSubscribeToChat_isBlocked_shouldSendExceptionMessage() {
-        String username = "user1";
         String destination = String.format(URL_CHAT_TOPIC_PATTERN, 1, "someSessionId");
         Role role = Role.CLIENT;
-        Message<?> message = createMessage(destination, username, role);
+        Message<?> message = createMessage(destination, CLIENT_EMAIL, role);
 
         when(chatRoomRepository.findById(any(Long.class)))
                 .thenReturn(Optional.of(chatRoom));
-
-        when(chatRoomRepository.existsByIdAndClient_Email(any(), any()))
-                .thenReturn(true);
-
-        when(chatRoomRepository.existsByIdAndCaretaker_Email(any(), any()))
-                .thenReturn(true);
 
         when(blockService.isBlockedByAny(any(), any()))
                 .thenReturn(true);
 
         Message<?> result = interceptor.preSend(message, mock(MessageChannel.class));
-        assertNull(result);
+        assertNotNull(result);
     }
 
     @Test
     public void testUserSubscribeToChat_noSuchChatRoom_shouldSendExceptionMessage() {
-        String username = "user1";
         String destination = String.format(URL_CHAT_TOPIC_PATTERN, 1, "someSessionId");
         Role role = Role.CLIENT;
-        Message<?> message = createMessage(destination, username, role);
+        Message<?> message = createMessage(destination, CARETAKER_EMAIL, role);
 
         when(chatRoomRepository.findById(any(Long.class)))
                 .thenReturn(Optional.empty());

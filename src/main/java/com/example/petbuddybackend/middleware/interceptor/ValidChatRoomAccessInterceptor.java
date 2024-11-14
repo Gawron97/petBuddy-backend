@@ -1,8 +1,6 @@
 package com.example.petbuddybackend.middleware.interceptor;
 
-import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
@@ -44,7 +42,6 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     private String ROLE_HEADER_NAME;
 
     private final ChatService chatService;
-    private final BlockService blockService;
     private SimpMessagingTemplate simpMessagingTemplate;
     private ApplicationContext applicationContext;
 
@@ -90,9 +87,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
 
     private boolean validateChatPermission(Long chatId, String username, String sessionId, Role role) {
         try {
-            ChatRoom chatRoom = chatService.getChatRoomById(chatId);
-            assertIsInChat(chatId, username, role);
-            assertNotBlocked(chatRoom);
+            chatService.assertHasAccessToChatRoom(chatId, username, role);
         } catch(NotParticipateException | NotFoundException | BlockedException e) {
             log.debug("User {} is not allowed to access chat room {}", username, chatId);
             log.trace("Exception: {}", e.getMessage());
@@ -108,21 +103,6 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
         }
 
         return true;
-    }
-
-    private void assertIsInChat(Long chatId, String username, Role role) {
-        if (!chatService.isUserInChat(chatId, username, role)) {
-            throw new NotParticipateException(String.format(USER_NOT_IN_CHAT_MESSAGE, username, chatId));
-        }
-    }
-
-    private void assertNotBlocked(ChatRoom chatRoom) {
-        String clientEmail = chatRoom.getClient().getEmail();
-        String caretakerEmail = chatRoom.getCaretaker().getEmail();
-
-        if(blockService.isBlockedByAny(clientEmail, caretakerEmail)) {
-            throw new BlockedException();
-        }
     }
 
     private Long extractChatId(String destination) {

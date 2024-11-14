@@ -12,6 +12,7 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
+import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -44,6 +45,7 @@ public class ChatService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatMapper chatMapper = ChatMapper.INSTANCE;
     private final ChatRoomRepository chatRoomRepository;
+    private final BlockService blockService;
 
     public Page<ChatMessageDTO> getChatMessagesByParticipantEmail(
             Long chatId,
@@ -52,7 +54,7 @@ public class ChatService {
             ZoneId timeZone
     ) {
         checkChatExists(chatId);
-        checkUserInChat(chatId, principalEmail);
+        assertUserInChat(chatId, principalEmail);
 
         return chatMessageRepository
                 .findByChatRoom_Id_OrderByCreatedAtDesc(chatId, pageable)
@@ -85,7 +87,7 @@ public class ChatService {
             ChatMessageSent chatMessage,
             boolean seenByRecipient
     ) {
-        checkUserInChat(chatRoom, senderEmail, senderRole);
+        assertUserInChat(chatRoom, senderEmail, senderRole);
 
         AppUser sender = senderRole.equals(Role.CLIENT) ?
                 chatRoom.getClient().getAccountData() :
@@ -106,7 +108,7 @@ public class ChatService {
     @Transactional
     public void markMessagesAsSeen(Long chatId, String username) {
         checkChatExists(chatId);
-        checkUserInChat(chatId, username);
+        assertUserInChat(chatId, username);
         chatMessageRepository.updateUnseenMessagesOfUser(chatId, username);
     }
 
@@ -141,6 +143,24 @@ public class ChatService {
         return role == Role.CLIENT ?
                 chatRoom.getClient().getEmail().equals(email) :
                 chatRoom.getCaretaker().getEmail().equals(email);
+    }
+
+    public void assertUserInChat(Long chatId, String email) {
+        if(!isUserInChat(chatId, email)) {
+            throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatId));
+        }
+    }
+
+    public void assertUserInChat(ChatRoom chatRoom, String email, Role role) {
+        if(!isUserInChat(chatRoom, email, role)) {
+            throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatRoom.getId()));
+        }
+    }
+
+    public void assertHasAccessToChatRoom(Long chatId, String username, Role role) {
+        ChatRoom chatRoom = getChatRoomById(chatId);
+        assertUserInChat(chatRoom, username, role);
+        blockService.assertNotBlockedByAny(chatRoom.getClient().getEmail(), chatRoom.getCaretaker().getEmail());
     }
 
     @Transactional(readOnly = true)
@@ -296,18 +316,6 @@ public class ChatService {
                         CHAT,
                         String.format("client: %s, caretaker: %s", clientEmail, caretakerEmail))
                 );
-    }
-
-    private void checkUserInChat(Long chatId, String email) {
-        if(!isUserInChat(chatId, email)) {
-            throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatId));
-        }
-    }
-
-    private void checkUserInChat(ChatRoom chatRoom, String email, Role role) {
-        if(!isUserInChat(chatRoom, email, role)) {
-            throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatRoom.getId()));
-        }
     }
 
     private void checkSenderIsNotTheSameAsReceiver(String senderEmail, String receiverEmail) {
