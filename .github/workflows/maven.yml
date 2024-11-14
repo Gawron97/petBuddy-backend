@@ -83,6 +83,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            petbuddyzpi/petbuddy-backend:${{ env.version }}
-            petbuddyzpi/petbuddy-backend:latest
+          tags: petbuddyzpi/petbuddy-backend:${{ env.version }}, petbuddyzpi/petbuddy-backend:latest
