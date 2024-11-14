@@ -2,6 +2,8 @@ package com.example.petbuddybackend.config.websocket;
 
 
 import com.example.petbuddybackend.middleware.interceptor.ValidChatRoomAccessInterceptor;
+import com.example.petbuddybackend.utils.conversion.serializer.LocalDateTimeDeserializer;
+import com.example.petbuddybackend.utils.conversion.serializer.LocalDateTimeSerializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +19,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -63,6 +66,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
         module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
+        module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer());
+        module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer());
 
         objectMapper.registerModule(module);
         return new MappingJackson2MessageConverter(objectMapper);

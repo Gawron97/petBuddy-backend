@@ -1,8 +1,11 @@
 package com.example.petbuddybackend.utils.exception.throweable.chat;
 
-public class ChatAlreadyExistsException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class ChatAlreadyExistsException extends HttpException {
 
     public ChatAlreadyExistsException(String message) {
-        super(message);
+        super(message, HttpStatus.CONFLICT);
     }
 }

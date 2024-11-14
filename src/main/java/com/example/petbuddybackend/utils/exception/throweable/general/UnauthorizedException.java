@@ -1,9 +1,12 @@
 package com.example.petbuddybackend.utils.exception.throweable.general;
 
-public class UnauthorizedException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class UnauthorizedException extends HttpException {
 
     public UnauthorizedException(String message) {
-        super(message);
+        super(message, HttpStatus.UNAUTHORIZED);
     }
 
 }

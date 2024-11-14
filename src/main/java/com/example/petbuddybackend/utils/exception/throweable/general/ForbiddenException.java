@@ -1,9 +1,12 @@
 package com.example.petbuddybackend.utils.exception.throweable.general;
 
-public class ForbiddenException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class ForbiddenException extends HttpException {
 
     public ForbiddenException(String message) {
-        super(message);
+        super(message, HttpStatus.FORBIDDEN);
     }
 
 }

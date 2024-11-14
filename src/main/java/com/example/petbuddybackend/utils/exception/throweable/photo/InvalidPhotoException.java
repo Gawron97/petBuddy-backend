@@ -1,8 +1,11 @@
 package com.example.petbuddybackend.utils.exception.throweable.photo;
 
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
 import java.util.Set;
 
-public class InvalidPhotoException extends RuntimeException {
+public class InvalidPhotoException extends HttpException {
 
     private static final String EMPTY_MULTIPART_FILE_MESSAGE = "The multipart file is empty";
     private static final String INVALID_PHOTO_PROVIDED_MESSAGE = "Invalid photo provided: %s";
@@ -10,7 +13,7 @@ public class InvalidPhotoException extends RuntimeException {
             "Invalid file type for file: %s. Provided: %s, allowed: %s";
 
     public InvalidPhotoException(String message) {
-        super(message);
+        super(message, HttpStatus.BAD_REQUEST);
     }
 
     public static InvalidPhotoException ofPhotoWithInvalidExtension(

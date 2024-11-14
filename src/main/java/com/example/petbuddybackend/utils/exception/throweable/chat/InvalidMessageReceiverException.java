@@ -1,8 +1,11 @@
 package com.example.petbuddybackend.utils.exception.throweable.chat;
 
-public class InvalidMessageReceiverException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class InvalidMessageReceiverException extends HttpException {
 
     public InvalidMessageReceiverException(String message) {
-        super(message);
+        super(message, HttpStatus.BAD_REQUEST);
     }
 }

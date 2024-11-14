@@ -1,9 +1,12 @@
 package com.example.petbuddybackend.utils.exception.throweable.offer;
 
-public class AvailabilityDatesOverlappingException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class AvailabilityDatesOverlappingException extends HttpException {
 
     public AvailabilityDatesOverlappingException(String message) {
-        super(message);
+        super(message, HttpStatus.CONFLICT);
     }
 
 }

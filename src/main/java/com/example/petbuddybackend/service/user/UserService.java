@@ -10,7 +10,7 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.UserMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
-import com.example.petbuddybackend.utils.exception.throweable.InvalidRoleException;
+import com.example.petbuddybackend.utils.exception.throweable.user.InvalidRoleException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

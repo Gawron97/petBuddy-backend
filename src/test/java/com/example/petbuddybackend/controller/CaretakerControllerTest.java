@@ -171,7 +171,7 @@ public class CaretakerControllerTest {
         // Given
         String caretakerEmail = "johndoe@example.com";
 
-        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenThrow(NotFoundException.class);
+        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenThrow(new NotFoundException());
 
         // When Then
         mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)

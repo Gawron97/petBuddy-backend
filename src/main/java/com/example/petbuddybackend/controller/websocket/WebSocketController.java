@@ -54,6 +54,13 @@ public class WebSocketController {
             String sessionId = accessor.getSessionId();
             wsMetadataService.storeUserTimeZoneWithSession(sessionId, zoneIdOpt.get());
         }
+
+        log.trace(
+                "Event subscription; sessionId: {}; user: {}; destination: {}",
+                accessor.getSessionId(),
+                accessor.getUser() == null ? "null" : accessor.getUser().getName(),
+                accessor.getDestination()
+        );
     }
 
     @EventListener
@@ -62,6 +69,10 @@ public class WebSocketController {
         String sessionId = accessor.getSessionId();
 
         wsMetadataService.removeUserSessionWithTimeZone(sessionId);
-        log.debug("Session {} disconnected", sessionId);
+        log.debug(
+                "Event disconnect; sessionId: {}; user: {}",
+                sessionId,
+                accessor.getUser() == null ? "null" : accessor.getUser().getName()
+        );
     }
 }
