@@ -29,7 +29,21 @@ public class NotificationController {
 
     @Operation(
             summary = "Get unread notifications",
-            description = "Get unread notifications for the current logged user for current profile"
+            description =
+                    """
+                            ## Endpoint description
+                            Get unread notifications for the current logged user for current profile.
+                                                        
+                            ## Docs for websocket notifications:
+                                                        
+                            Available translations:
+                            - care_reservation = when user making a reservation
+                            - care_update = when user updating price in reservation
+                            - care_accepted = when care is accepted
+                            - care_rejected = when care is rejected
+                                                        
+                            Note that notifications about unread chats has different structure.
+                            """
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
