@@ -3,6 +3,8 @@ package com.example.petbuddybackend.entity.address;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Data
 @AllArgsConstructor
@@ -30,4 +32,10 @@ public class Address {
 
     @Column(length = 10)
     private String apartmentNumber;
+
+    @Column(nullable = false, precision = 9, scale = 4)
+    private BigDecimal latitude;
+
+    @Column(nullable = false, precision = 9, scale = 4)
+    private BigDecimal longitude;
 }

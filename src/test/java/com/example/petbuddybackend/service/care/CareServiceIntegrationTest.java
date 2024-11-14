@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.service.care;
 
-import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
@@ -38,6 +37,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -73,6 +73,9 @@ public class CareServiceIntegrationTest {
     @Autowired
     private CareService careService;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     private Caretaker caretaker;
     private Client client;
 
@@ -101,7 +104,7 @@ public class CareServiceIntegrationTest {
                 .build();
 
         // When
-        CareDTO result = careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault());
+        DetailedCareDTO result = careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care care = careRepository.findById(result.id()).orElseThrow();
@@ -180,14 +183,19 @@ public class CareServiceIntegrationTest {
     @Test
     void updateCare_ShouldReturnProperUpdatedCare() {
         // Given
-        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
-        care.setClientStatus(CareStatus.ACCEPTED);
-        care.setCaretakerStatus(CareStatus.PENDING);
+        Care careAfterTransaction = transactionTemplate.execute(status -> {
+            Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+            care.setClientStatus(CareStatus.ACCEPTED);
+            care.setCaretakerStatus(CareStatus.PENDING);
+            return care;
+        });
 
         UpdateCareDTO updateCareDTO = createUpdateCareDTO("20.00");
 
         // When
-        CareDTO result = careService.updateCare(care.getId(), updateCareDTO, caretaker.getEmail(), ZoneId.systemDefault());
+        DetailedCareDTO result = transactionTemplate.execute(status ->
+                careService.updateCare(careAfterTransaction.getId(), updateCareDTO, caretaker.getEmail(), ZoneId.systemDefault())
+        );
 
         // Then
         Care updatedCare = careRepository.findById(result.id()).orElseThrow();
@@ -263,10 +271,14 @@ public class CareServiceIntegrationTest {
     void acceptCareByCaretaker_ShouldReturnProperAcceptedCare() {
 
         // Given
-        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+        Care care = transactionTemplate.execute(status ->
+                PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow())
+        );
 
         // When
-        CareDTO result = careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED);
+        DetailedCareDTO result = transactionTemplate.execute(status ->
+                careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)
+        );
 
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
@@ -334,12 +346,17 @@ public class CareServiceIntegrationTest {
     void acceptCareByClient_ShouldReturnProperAcceptedCare() {
 
         // Given
-        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
-        care.setClientStatus(CareStatus.PENDING);
-        careRepository.save(care);
+        Care careAfterTransaction = transactionTemplate.execute(status -> {
+            Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+            care.setClientStatus(CareStatus.PENDING);
+                    return careRepository.save(care);
+        });
+
 
         // When
-        CareDTO result = careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED);
+        DetailedCareDTO result = transactionTemplate.execute(status ->
+                careService.clientChangeCareStatus(careAfterTransaction.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)
+        );
 
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
@@ -392,10 +409,14 @@ public class CareServiceIntegrationTest {
     void rejectCareByCaretaker_ShouldReturnProperRejectedCare() {
 
         // Given
-        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+        Care care = transactionTemplate.execute(status ->
+                PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow())
+        );
 
         // When
-        CareDTO result = careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED);
+        DetailedCareDTO result = transactionTemplate.execute(status ->
+                careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED)
+        );
 
         // Then
         Care rejectedCare = careRepository.findById(result.id()).orElseThrow();
@@ -434,10 +455,14 @@ public class CareServiceIntegrationTest {
     void cancelCareByClient_ShouldReturnProperCancelledCare() {
 
         // Given
-        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+        Care care = transactionTemplate.execute(status ->
+                PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow())
+        );
 
         // When
-        CareDTO result = careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED);
+        DetailedCareDTO result = transactionTemplate.execute(status ->
+                careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED)
+        );
 
         // Then
         Care cancelledCare = careRepository.findById(result.id()).orElseThrow();

@@ -74,6 +74,8 @@ public class MockService {
                 .city(faker.address().city())
                 .streetNumber(faker.address().buildingNumber())
                 .apartmentNumber(faker.address().secondaryAddress())
+                .latitude(getLatitude())
+                .longitude(getLongitude())
                 .build();
 
         return Caretaker.builder()
@@ -83,6 +85,24 @@ public class MockService {
                 .description(faker.lorem().sentence())
                 .phoneNumber(faker.phoneNumber().cellPhone())
                 .build();
+    }
+
+    private BigDecimal getLatitude() {
+        BigDecimal min = BigDecimal.valueOf(53.1018);
+        BigDecimal max = BigDecimal.valueOf(53.1590);
+        BigDecimal range = max.subtract(min);
+        BigDecimal randFraction = BigDecimal.valueOf(faker.random().nextDouble());
+        BigDecimal randValue = min.add(range.multiply(randFraction));
+        return randValue.setScale(4, BigDecimal.ROUND_HALF_UP);
+    }
+
+    private BigDecimal getLongitude() {
+        BigDecimal min = BigDecimal.valueOf(23.0779);
+        BigDecimal max = BigDecimal.valueOf(23.1798);
+        BigDecimal range = max.subtract(min);
+        BigDecimal randFraction = BigDecimal.valueOf(faker.random().nextDouble());
+        BigDecimal randValue = min.add(range.multiply(randFraction));
+        return randValue.setScale(4, BigDecimal.ROUND_HALF_UP);
     }
 
     public Voivodeship randomVoivodeship() {

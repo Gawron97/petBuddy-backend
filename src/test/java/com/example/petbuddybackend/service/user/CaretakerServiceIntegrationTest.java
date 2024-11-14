@@ -28,6 +28,7 @@ import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
 import com.example.petbuddybackend.testutils.mock.MockRatingProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.provider.geolocation.GeolocationProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +37,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -51,6 +52,9 @@ import java.util.stream.Stream;
 import static com.example.petbuddybackend.testutils.ReflectionUtils.getPrimitiveNames;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 
 @SpringBootTest
@@ -87,6 +91,9 @@ public class CaretakerServiceIntegrationTest {
     @Autowired
     private CareRepository careRepository;
 
+    @MockBean
+    private GeolocationProvider geolocationProvider;
+
     private Caretaker caretaker;
     private Client clientSameAsCaretaker;
     private Client client;
@@ -96,6 +103,10 @@ public class CaretakerServiceIntegrationTest {
     void init() {
         initCaretakers();
         initClients(this.caretaker);
+        when(geolocationProvider.getCoordinatesOfAddress(anyString(), any()))
+                .thenReturn(createMockCoordinates());
+        when(geolocationProvider.getCoordinatesOfAddress(anyString(), anyString(), anyString()))
+                .thenReturn(createMockCoordinates());
     }
 
     private void initCaretakers() {
@@ -367,8 +378,8 @@ public class CaretakerServiceIntegrationTest {
 
         appUserRepository.deleteAll();
         createCaretakersWithComplexOffers();
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(Pageable.ofSize(10), filters, offerFilters);
-        assertEquals(expectedSize, resultPage.getContent().size());
+        SearchCaretakersResponseDTO result = caretakerService.getCaretakers(Pageable.ofSize(10), filters, offerFilters);
+        assertEquals(expectedSize, result.caretakers().getContent().size());
 
     }
 
@@ -1029,14 +1040,14 @@ public class CaretakerServiceIntegrationTest {
         PersistenceUtils.addRatingToCaretaker(ratingRepository, rating2);
 
         // When
-        Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(
+        SearchCaretakersResponseDTO result = caretakerService.getCaretakers(
                 Pageable.ofSize(10),
                 CaretakerSearchCriteria.builder()
                         .personalDataLike("John Doe")
                         .build(),
                 Collections.emptySet()
         );
-        CaretakerDTO resultCaretaker = resultPage.getContent().get(0);
+        CaretakerDTO resultCaretaker = result.caretakers().getContent().get(0);
         assertEquals(2, resultCaretaker.numberOfRatings());
         assertEquals(4.5f, resultCaretaker.avgRating());
 
@@ -1121,6 +1132,37 @@ public class CaretakerServiceIntegrationTest {
         //When Then
         assertThrows(NotFoundException.class,
                 () -> caretakerService.addCaretaker(caretakerToCreate, "Not existing email", new ArrayList<>()));
+
+    }
+
+    @Test
+    @Transactional
+    void addCaretaker_whenProvidedWrongAddress_shouldThrowException() {
+
+        //Given
+        AppUser appUser = PersistenceUtils.addAppUser(appUserRepository);
+
+        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
+                .phoneNumber("123456789")
+                .description("description")
+                .address(
+                        AddressDTO.builder()
+                                .city("city")
+                                .zipCode("zipCode")
+                                .voivodeship(Voivodeship.DOLNOSLASKIE)
+                                .street("street")
+                                .streetNumber("33HHD")
+                                .apartmentNumber("150SD")
+                                .build()
+                )
+                .build();
+
+
+        when(geolocationProvider.getCoordinatesOfAddress(anyString(), anyString(), anyString())).thenThrow(NotFoundException.class);
+
+        //When Then
+        assertThrows(NotFoundException.class,
+                () -> caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail(), new ArrayList<>()));
 
     }
 

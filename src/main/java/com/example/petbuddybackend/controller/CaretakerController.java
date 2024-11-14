@@ -6,10 +6,9 @@ import com.example.petbuddybackend.dto.paging.SortedPagingParams;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
 import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.dto.user.SearchCaretakersResponseDTO;
 import com.example.petbuddybackend.entity.user.Role;
-import com.example.petbuddybackend.service.care.CareService;
 import com.example.petbuddybackend.service.user.CaretakerService;
 import com.example.petbuddybackend.utils.annotation.validation.AcceptRole;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
@@ -21,7 +20,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +38,6 @@ import java.util.Set;
 public class CaretakerController {
 
     private final CaretakerService caretakerService;
-    private final CareService careService;
 
     @SecurityRequirements
     @PostMapping("/all")
@@ -51,7 +48,7 @@ public class CaretakerController {
                     " When sorting by availabilityDaysMatch this sort will be applied last, so it will be" +
                     " ordered priority by this field"
     )
-    public Page<CaretakerDTO> getCaretakers(
+    public SearchCaretakersResponseDTO getCaretakers(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             @ParameterObject @ModelAttribute CaretakerSearchCriteria filters,
             @RequestBody(required = false) Set<@Valid OfferFilterDTO> offerFilters

@@ -69,6 +69,10 @@ firebase:
       max-seconds: 21600
       threshold-seconds: 2300
 
+opencage:
+  api:
+    key: none
+
 notification:
   care:
     reservation: "care_reservation"
