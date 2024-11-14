@@ -74,7 +74,8 @@ jobs:
           else
             VERSION="latest"
           fi
-          echo "version=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=version::$VERSION" # Setting output for version
+          echo "Version is: $VERSION" # Debugging the version
 
       - name: Build and push Docker image
         id: push
