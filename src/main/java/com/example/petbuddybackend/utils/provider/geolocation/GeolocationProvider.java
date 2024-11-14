@@ -16,7 +16,7 @@ import java.math.RoundingMode;
 @RequiredArgsConstructor
 public class GeolocationProvider {
 
-    private static final String ADDRESS_FORMATT = "%s, %s, %s";
+    private static final String ADDRESS_FORMAT = "%s, %s, %s";
     private static final String GEOLOCATION = "Geolocation";
 
     private final JOpenCageGeocoder jOpenCageGeocoder;
@@ -44,7 +44,7 @@ public class GeolocationProvider {
     }
 
     private String formatAddress(String country, String city, String streetName) {
-        return String.format(ADDRESS_FORMATT, streetName, city, country);
+        return String.format(ADDRESS_FORMAT, streetName, city, country);
     }
 
     private JOpenCageResponse sendRequest(JOpenCageForwardRequest request) {

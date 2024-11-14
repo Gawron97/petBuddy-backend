@@ -55,7 +55,12 @@ public class CaretakerService {
                 .map(this::renewCaretakerPictures)
                 .map(caretakerMapper::mapToCaretakerDTO);
 
-        Coordinates coordinates = geolocationProvider.getCoordinatesOfAddress("Poland", filters.cityLike());
+        Coordinates coordinates;
+        try{
+            coordinates = geolocationProvider.getCoordinatesOfAddress("Poland", filters.cityLike());
+        } catch (NotFoundException e) {
+            coordinates = new Coordinates(null, null);
+        }
 
         return SearchCaretakersResponseDTO.builder()
                 .caretakers(caretakers)

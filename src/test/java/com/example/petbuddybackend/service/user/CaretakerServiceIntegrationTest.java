@@ -1133,6 +1133,37 @@ public class CaretakerServiceIntegrationTest {
 
     @Test
     @Transactional
+    void addCaretaker_whenProvidedWrongAddress_shouldThrowException() {
+
+        //Given
+        AppUser appUser = PersistenceUtils.addAppUser(appUserRepository);
+
+        ModifyCaretakerDTO caretakerToCreate = ModifyCaretakerDTO.builder()
+                .phoneNumber("123456789")
+                .description("description")
+                .address(
+                        AddressDTO.builder()
+                                .city("city")
+                                .zipCode("zipCode")
+                                .voivodeship(Voivodeship.DOLNOSLASKIE)
+                                .street("street")
+                                .streetNumber("33HHD")
+                                .apartmentNumber("150SD")
+                                .build()
+                )
+                .build();
+
+
+        when(geolocationProvider.getCoordinatesOfAddress(anyString(), anyString(), anyString())).thenThrow(NotFoundException.class);
+
+        //When Then
+        assertThrows(NotFoundException.class,
+                () -> caretakerService.addCaretaker(caretakerToCreate, appUser.getEmail(), new ArrayList<>()));
+
+    }
+
+    @Test
+    @Transactional
     void editCaretaker_whenCaretakerProfileExistsWithOffers_shouldEditOnlyProvidedProfileDataAndRemainRestData() {
 
         //Given
