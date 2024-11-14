@@ -43,6 +43,9 @@ public class NotificationController {
                             - care_rejected = when care is rejected
                                                         
                             Note that notifications about unread chats has different structure.
+                            Available dType for notifications:
+                            - SIMPLE_NOTIFICATION
+                            - CHAT_NOTIFICATION
                             """
     )
     @GetMapping

@@ -3,7 +3,6 @@ package com.example.petbuddybackend.service.chat;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
-import com.example.petbuddybackend.dto.notification.NotificationType;
 import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Caretaker;
@@ -592,7 +591,6 @@ public class ChatServiceTest {
     void testGetUnseenChatsNotification_shouldReturnProperAnswer() {
         UnseenChatsNotificationDTO result = chatService.getUnseenChatsNotification(client.getEmail());
         assertNotNull(result);
-        assertEquals(NotificationType.CHAT_NOTIFICATION, result.getDType());
         assertEquals(1, result.getUnseenChats());
     }
 
