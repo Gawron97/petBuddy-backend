@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build and Push Image
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
     - name: Build and check coverage
       run: mvn -B verify --file pom.xml
 
-  docker:
+  build-and-push-image:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
