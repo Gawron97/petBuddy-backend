@@ -48,11 +48,11 @@ jobs:
         with:
           name: app-jar
 
-      - name: Move JAR to Docker context
-        run: mv petBuddy-backend-0.0.1-SNAPSHOT.jar target/petBuddy-backend-0.0.1-SNAPSHOT.jar
-
       - name: List files after downloading (debug)
         run: ls -la
+
+      - name: Move JAR to Docker context
+        run: mv petBuddy-backend-0.0.1-SNAPSHOT.jar target/petBuddy-backend-0.0.1-SNAPSHOT.jar
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
