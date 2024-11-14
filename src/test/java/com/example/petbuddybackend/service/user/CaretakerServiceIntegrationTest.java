@@ -10,6 +10,7 @@ import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.availability.Availability;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.offer.Offer;
+import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -25,6 +26,7 @@ import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
+import com.example.petbuddybackend.testutils.mock.MockRatingProvider;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -1021,8 +1023,10 @@ public class CaretakerServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         Care care2 = PersistenceUtils.addCare(careRepository, caretaker, client2, animalRepository.findById("CAT").get());
 
-        PersistenceUtils.addRatingToCaretaker(caretaker, client, care, 5, "comment", ratingRepository);
-        PersistenceUtils.addRatingToCaretaker(caretaker, client2, care2, 4, "comment second", ratingRepository);
+        Rating rating1 = MockRatingProvider.createMockRating(care, 5, "comment");
+        Rating rating2 = MockRatingProvider.createMockRating(care2, 4, "commentSecond");
+        PersistenceUtils.addRatingToCaretaker(ratingRepository, rating1);
+        PersistenceUtils.addRatingToCaretaker(ratingRepository, rating2);
 
         // When
         Page<CaretakerDTO> resultPage = caretakerService.getCaretakers(

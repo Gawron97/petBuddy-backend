@@ -2,7 +2,6 @@ package com.example.petbuddybackend.entity.user;
 
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.notification.ClientNotification;
-import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,10 +25,6 @@ public class Client {
     @PrimaryKeyJoinColumn
     @OneToOne(mappedBy = "client", cascade = CascadeType.MERGE, optional = false)
     private AppUser accountData;
-
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "client", fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<Rating> ratings = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
