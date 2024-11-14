@@ -40,7 +40,7 @@ public class NotificationController {
             @RequestHeader(value = "${header-name.role}") Role role,
 
             @TimeZoneParameter
-            @RequestHeader(value = "${header-name.timezone}") String timezone) {
+            @RequestHeader(value = "${header-name.timezone}", required = false) String timezone) {
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return notificationService.getUnreadNotifications(
                 pageable,
