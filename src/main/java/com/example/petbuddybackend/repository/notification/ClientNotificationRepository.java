@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface ClientNotificationRepository extends JpaRepository<ClientNotification, Long> {
 
@@ -13,6 +14,7 @@ public interface ClientNotificationRepository extends JpaRepository<ClientNotifi
                                                                         Pageable pageable);
 
     @Modifying
+    @Transactional
     @Query("""
         UPDATE ClientNotification n
         SET n.isRead = true
