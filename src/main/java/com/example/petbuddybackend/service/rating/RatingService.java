@@ -6,6 +6,7 @@ import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.rating.Rating;
 import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.service.care.CareService;
+import com.example.petbuddybackend.service.care.state.CareStateMachine;
 import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.service.user.UserService;
 import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
@@ -28,6 +29,7 @@ public class RatingService {
     private final RatingRepository ratingRepository;
     private final CareService careService;
     private final UserService userService;
+    private final CareStateMachine careStateMachine;
     private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
 
     public Page<RatingResponse> getRatings(Pageable pageable, String caretakerEmail) {
@@ -40,7 +42,7 @@ public class RatingService {
     public RatingResponse rateCaretaker(String clientEmail, Long careId, int rating, String comment) {
         Care care = careService.getCareById(careId);
         assertCareOfClient(care, clientEmail);
-        assertPaidState(care);
+        assertStatePermitsRating(care);
 
         Rating ratingEntity = createOrUpdateRating(clientEmail, careId, rating, comment);
         refreshRatingPhotos(ratingEntity);
@@ -63,7 +65,7 @@ public class RatingService {
 
         Care care = careService.getCareById(careId);
         assertCareOfClient(care, clientEmail);
-        assertPaidState(care);
+        assertStatePermitsRating(care);
 
         Rating ratingEntity = ratingRepository.findById(careId).orElseGet(() ->
                 Rating.builder()
@@ -84,16 +86,16 @@ public class RatingService {
         }
     }
 
-    private void assertPaidState(Care care) {
+    private void assertStatePermitsRating(Care care) {
         CareStatus caretakerStatus = care.getCaretakerStatus();
         CareStatus clientStatus = care.getClientStatus();
 
-        if(caretakerStatus != CareStatus.PAID || clientStatus != CareStatus.PAID) {
+        if(careStateMachine.canBeRated(care)) {
             throw new IllegalActionException(String.format(
                     CANNOT_RATE_CARE_STATUS_EXCEPTION,
                     care.getId(),
-                    CareStatus.PAID,
-                    CareStatus.PAID,
+                    CareStatus.COMPLETED,
+                    CareStatus.COMPLETED,
                     caretakerStatus,
                     clientStatus
             ));

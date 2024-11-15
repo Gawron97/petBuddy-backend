@@ -18,10 +18,13 @@ public class CareStateMachine {
     private static final String ACCEPTED_CARE_EDIT_MESSAGE = "Cannot edit care that has been accepted by caretaker";
 
     private static final List<CareStatus> globalStatusesThatCanBeCancelled =
-            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.AWAITING_PAYMENT);
+            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.READY_TO_PROCEED);
 
     private static final List<CareStatus> globalStatusesThatCanBeOutdated =
-            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.AWAITING_PAYMENT);
+            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.READY_TO_PROCEED);
+
+    private static final List<CareStatus> globalStatusesThatCanBeRated =
+            List.of(CareStatus.READY_TO_PROCEED, CareStatus.COMPLETED);
 
     private final TransitionManager transitionManager = initTransitionManager();
     private final CareRepository careRepository;
@@ -65,6 +68,11 @@ public class CareStateMachine {
         return careRepository.outdateCaresBetweenClientAndCaretaker(globalStatusesThatCanBeOutdated);
     }
 
+    public boolean canBeRated(Care care) {
+        return globalStatusesThatCanBeRated.contains(care.getClientStatus()) &&
+                globalStatusesThatCanBeRated.contains(care.getCaretakerStatus());
+    }
+
     private TransitionManager initTransitionManager() {
         TransitionManager transitionManager = new TransitionManager();
         initClientTransitions(transitionManager);
@@ -90,8 +98,8 @@ public class CareStateMachine {
         transitionManager.addTransition(Role.CARETAKER, CareStatus.PENDING, CareStatus.CANCELLED, this::setBothStatuses);
         transitionManager.addTransition(Role.CARETAKER, CareStatus.ACCEPTED, CareStatus.CANCELLED, this::setBothStatuses);
 
-        // Pay care
-        transitionManager.addTransition(Role.CARETAKER, CareStatus.AWAITING_PAYMENT, CareStatus.PAID, this::setBothStatuses);
+        // Accept care
+        transitionManager.addTransition(Role.CARETAKER, CareStatus.READY_TO_PROCEED, CareStatus.COMPLETED, this::setBothStatuses);
     }
 
     private boolean clientShouldBeAccepted(Care care) {
@@ -110,8 +118,8 @@ public class CareStateMachine {
 
     private void awaitPaymentOnAccept(Care care) {
         if(care.getCaretakerStatus() == CareStatus.ACCEPTED && care.getClientStatus() == CareStatus.ACCEPTED) {
-            care.setClientStatus(CareStatus.AWAITING_PAYMENT);
-            care.setCaretakerStatus(CareStatus.AWAITING_PAYMENT);
+            care.setClientStatus(CareStatus.READY_TO_PROCEED);
+            care.setCaretakerStatus(CareStatus.READY_TO_PROCEED);
         }
     }
 
