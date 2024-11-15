@@ -9,5 +9,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UnseenChatsNotificationDTO extends NotificationDTO {
-    private int unseenChats;
+    private int unseenChatsAsClient;
+    private int unseenChatsAsCaretaker;
 }

@@ -26,8 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.example.petbuddybackend.testutils.mock.MockChatProvider.createMockChatMessage;
-import static com.example.petbuddybackend.testutils.mock.MockChatProvider.createMockChatRoom;
+import static com.example.petbuddybackend.testutils.mock.MockChatProvider.*;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -199,13 +198,13 @@ public class ChatRoomRepositoryTest {
 
     @Test
     void testCountUnreadChatsForUser_whenMessagesAtDifferentTime_shouldReturnCorrectCount() {
-        long unreadChats = chatRepository.countUnreadChatsForUser(chatRoomDifferentCreatedAt.getClient().getEmail());
+        long unreadChats = chatRepository.countUnreadChatsForUserAsClient(chatRoomDifferentCreatedAt.getClient().getEmail());
         assertEquals(1, unreadChats);
     }
 
     @Test
     void testCountUnreadChatsForUser_whenMessagesAtSameTime_shouldReturnCorrectCount() {
-        long unreadChats = chatRepository.countUnreadChatsForUser(chatRoomSameCreatedAtFst.getClient().getEmail());
+        long unreadChats = chatRepository.countUnreadChatsForUserAsClient(chatRoomSameCreatedAtFst.getClient().getEmail());
         assertEquals(1, unreadChats);
     }
 
@@ -225,8 +224,50 @@ public class ChatRoomRepositoryTest {
             )
         );
 
-        long unreadChats = chatRepository.countUnreadChatsForUser(chatRoomDifferentCreatedAt.getClient().getEmail());
+        long unreadChats = chatRepository.countUnreadChatsForUserAsClient(chatRoomDifferentCreatedAt.getClient().getEmail());
         assertEquals(2, unreadChats);
+    }
+
+    @Test
+    void testCountUnreadChatsForUser_whenUserHasUnreadChatAsClientButNotAsCaretaker_shouldReturnCorrectCount() {
+
+        //Given
+        String User1Email = transactionTemplate.execute(status -> {
+
+            Caretaker caretakerUser1 = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository, createMockCaretaker("user1"));
+            Client clientUser1 = clientRepository.save(
+                    Client.builder()
+                            .email(caretakerUser1.getEmail())
+                            .accountData(caretakerUser1.getAccountData())
+                            .build()
+            );
+
+            Client clientUser2 = PersistenceUtils.addClient(appUserRepository, clientRepository, createMockClient("user2"));
+            Caretaker caretakerUser2 = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository, createMockCaretaker("user2"));
+
+            ChatRoom unSeenChatRoom = PersistenceUtils.addChatRoom(
+                    createMockChatRoom(clientUser1, caretakerUser2),
+                    createMockChatMessages(clientUser1, caretakerUser2),
+                    chatRepository,
+                    chatMessageRepository
+            );
+
+            ChatMessage seenMessage = createMockChatMessage(clientUser2.getAccountData(), ZonedDateTime.now());
+            seenMessage.setSeenByRecipient(true);
+
+            ChatRoom seenChatRoom = PersistenceUtils.addChatRoom(
+                    createMockChatRoom(clientUser2, caretakerUser1),
+                    List.of(seenMessage),
+                    chatRepository,
+                    chatMessageRepository
+            );
+            return "user1";
+
+        });
+        long unreadChatsAsClient = chatRepository.countUnreadChatsForUserAsClient(User1Email);
+        long unreadChatsAsCaretaker = chatRepository.countUnreadChatsForUserAsCaretaker(User1Email);
+        assertEquals(1, unreadChatsAsClient);
+        assertEquals(0, unreadChatsAsCaretaker);
     }
 
     @Test
@@ -247,7 +288,7 @@ public class ChatRoomRepositoryTest {
         );
 
         //When
-        int countUnreadChats = chatRepository.countUnreadChatsForUser("client");
+        int countUnreadChats = chatRepository.countUnreadChatsForUserAsClient("client");
 
         //Then
         assertEquals(0, countUnreadChats);

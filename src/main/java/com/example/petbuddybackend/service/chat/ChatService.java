@@ -170,13 +170,12 @@ public class ChatService {
         return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, lastMessage, isSeenByPrincipal, timeZone);
     }
 
-    public Integer getUnreadChatsNumber(String userEmail) {
-        return chatRepository.countUnreadChatsForUser(userEmail);
-    }
-
-    public UnseenChatsNotificationDTO getUnseenChatsNotification(String userEmail) {
-        int unseenChatsOfUser = getUnreadChatsNumber(userEmail);
-        return createUnseenChatsNotification(unseenChatsOfUser);
+    public UnseenChatsNotificationDTO getUnseenChatsNumber(String userEmail) {
+        return UnseenChatsNotificationDTO.builder()
+                .createdAt(ZonedDateTime.now())
+                .unseenChatsAsClient(chatRepository.countUnreadChatsForUserAsClient(userEmail))
+                .unseenChatsAsCaretaker(chatRepository.countUnreadChatsForUserAsCaretaker(userEmail))
+                .build();
     }
 
     private void performPreviousMessagesSeenUpdate(Long chatId, String senderEmail, boolean seenByRecipient) {
@@ -235,13 +234,6 @@ public class ChatService {
 
         chatMessageRepository.updateUnseenMessagesOfUser(chatRoom.getId(), caretakerSenderEmail);
         return chatMapper.mapToChatMessageDTO(chatMessageRepository.save(chatMessage), timeZone);
-    }
-
-    private UnseenChatsNotificationDTO createUnseenChatsNotification(int unseenChats) {
-        return UnseenChatsNotificationDTO.builder()
-                .createdAt(ZonedDateTime.now())
-                .unseenChats(unseenChats)
-                .build();
     }
 
     private ChatMessage persistMessage(ChatRoom chatRoom, AppUser sender, String content, boolean seenByRecipient) {
