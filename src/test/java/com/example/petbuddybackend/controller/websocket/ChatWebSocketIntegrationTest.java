@@ -196,7 +196,6 @@ public class ChatWebSocketIntegrationTest {
         assertEquals(0, messageBlockingQueue.drainTo(new ArrayList<>()));
     }
 
-
     @Test
     void testSubscribeToChat_shouldSendJoinNotificationToUsersInChat() throws InterruptedException {
         when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
