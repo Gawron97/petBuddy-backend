@@ -136,7 +136,7 @@ public class CareScheduledIntegrationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("careStartTimeWithinAfter")
+    @MethodSource("careStartTimeAfterWindow")
     void terminateCares_dateAfterCompleteTimeWindow_shouldNotObsoleteCare(LocalDate startCare) {
         setupCaresWithCareStart(startCare);
 
@@ -179,14 +179,14 @@ public class CareScheduledIntegrationTest {
 
     static Stream<Arguments> careStartTimeWithinWindow() {
         return Stream.of(
-                Arguments.of(LocalDate.now()),
-                Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS /2)),
                 Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS)),
-                Arguments.of(LocalDate.now().plusDays(1))
+                Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS == 0 ? 1 : COMPLETE_WINDOW_DAYS / 2)),
+                Arguments.of(LocalDate.now().plusDays(1)),
+                Arguments.of(LocalDate.now())
         );
     }
 
-    static Stream<Arguments> careStartTimeWithinAfter() {
+    static Stream<Arguments> careStartTimeAfterWindow() {
         return Stream.of(
                 Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS + 1)),
                 Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS + 100))

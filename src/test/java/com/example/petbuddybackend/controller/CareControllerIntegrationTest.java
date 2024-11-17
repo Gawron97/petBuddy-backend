@@ -276,6 +276,7 @@ public class CareControllerIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         care.setClientStatus(CareStatus.READY_TO_PROCEED);
         care.setCaretakerStatus(CareStatus.READY_TO_PROCEED);
+        care.setCareStart(LocalDate.now());
         careRepository.saveAndFlush(care);
 
         // When and Then

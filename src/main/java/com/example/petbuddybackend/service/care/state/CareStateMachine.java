@@ -18,8 +18,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CareStateMachine {
 
-    private static final String ACCEPTED_CARE_EDIT_MESSAGE = "Cannot edit care that has been accepted by caretaker";
-
     private static final List<CareStatus> statusesThatCanBeCancelledBySystem =
             List.of(CareStatus.PENDING, CareStatus.ACCEPTED);
 
@@ -46,10 +44,6 @@ public class CareStateMachine {
     public void transitionToEditCare(Care care) {
         CareStatus clientStatus = care.getClientStatus();
         CareStatus caretakerStatus = care.getCaretakerStatus();
-
-        if(caretakerStatus.equals(CareStatus.ACCEPTED)) {
-            throw new StateTransitionException(ACCEPTED_CARE_EDIT_MESSAGE);
-        }
 
         if(!caretakerStatus.equals(CareStatus.PENDING)) {
             throw new StateTransitionException(new RoleTransition(Role.CARETAKER, caretakerStatus, CareStatus.PENDING));
@@ -117,9 +111,18 @@ public class CareStateMachine {
     }
 
     private boolean careWithinAcceptTimeWindow(Care care) {
-        return care.getCareStart()
-                .plusDays(COMPLETE_CARE_TIME_WINDOW.toDays())
-                .isAfter(care.getCareEnd());
+        LocalDate now = LocalDate.now();
+
+        // Care did not start yet
+        if(care.getCareStart().isAfter(now)) {
+            return false;
+        }
+
+        // Check if care can be accepted within time window after care start
+        LocalDate acceptThreshold = care.getCareStart()
+                .plusDays(COMPLETE_CARE_TIME_WINDOW.toDays());
+
+        return !now.isAfter(acceptThreshold);
     }
 
     private void acceptAsClient(Care care, CareStatus noop) {
