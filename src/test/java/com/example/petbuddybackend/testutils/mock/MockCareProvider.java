@@ -41,11 +41,11 @@ public class MockCareProvider {
         return createMockCare(caretaker, client, animal, CareStatus.ACCEPTED, CareStatus.PENDING);
     }
 
-    public static Care createMockPaidCare(Caretaker caretaker, Client client, Animal animal) {
+    public static Care createMockCompletedCare(Caretaker caretaker, Client client, Animal animal) {
 
         return Care.builder()
-                .caretakerStatus(CareStatus.PAID)
-                .clientStatus(CareStatus.PAID)
+                .caretakerStatus(CareStatus.COMPLETED)
+                .clientStatus(CareStatus.COMPLETED)
                 .careStart(LocalDate.now().plusDays(2))
                 .careEnd(LocalDate.now().plusDays(7))
                 .description("Test care description")

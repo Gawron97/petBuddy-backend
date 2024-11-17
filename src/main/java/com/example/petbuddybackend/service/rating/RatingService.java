@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RatingService {
 
     private static final String RATING = "Rating";
-    private static final String CANNOT_RATE_CARE_STATUS_EXCEPTION = "Cannot rate care of id %d. Required statuses: %s %s, actual statuses: %s %s";
+    private static final String CANNOT_RATE_CARE_STATUS_EXCEPTION = "Cannot rate care of id %d of statuses: %s %s";
     private static final String NOT_CLIENT_MESSAGE = "User %s is not a client of care %d";
 
     private final RatingRepository ratingRepository;
@@ -90,12 +90,10 @@ public class RatingService {
         CareStatus caretakerStatus = care.getCaretakerStatus();
         CareStatus clientStatus = care.getClientStatus();
 
-        if(careStateMachine.canBeRated(care)) {
+        if(!careStateMachine.canBeRated(care)) {
             throw new IllegalActionException(String.format(
                     CANNOT_RATE_CARE_STATUS_EXCEPTION,
                     care.getId(),
-                    CareStatus.COMPLETED,
-                    CareStatus.COMPLETED,
                     caretakerStatus,
                     clientStatus
             ));

@@ -39,12 +39,8 @@ import java.util.Set;
 public class CareService {
 
     private static final String CARE = "Care";
-    private static final String ATTRIBUTE_MISMATCH_FORMAT = "%s (attribute: %s)";
     private static final String CARETAKER_NOT_OWNER_MESSAGE = "Caretaker is not owner of the care";
     private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
-    private static final String ANIMAL_ATTRIBUTE_MISMATCH_MESSAGE = "Animal attributes must match animal type." +
-            " Mismatches: %s";
-
     private static final String CREATE_RESERVATION_MESSAGE = "message.care.reservation";
     private static final String UPDATE_RESERVATION_MESSAGE = "message.care.update_reservation";
     private static final String ACCEPT_RESERVATION_MESSAGE = "message.care.accepted_reservation";
@@ -142,6 +138,13 @@ public class CareService {
         Care care = getCareById(careId);
         assertUserParticipatingInCare(care, userEmail);
         return careMapper.mapToDetailedCareDTO(care, timezone);
+    }
+
+    public DetailedCareDTO markCareAsCompleted(Long careId, String name, Role role, ZoneId orSystemDefault) {
+        Care care = getCareById(careId);
+        careStateMachine.transition(role, care, CareStatus.COMPLETED);
+        Care savedCare = careRepository.save(care);
+        return careMapper.mapToDetailedCareDTO(savedCare, orSystemDefault);
     }
 
     private void assertNotReservationToYourself(String clientEmail, String caretakerEmail) {

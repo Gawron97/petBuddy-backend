@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -48,10 +49,10 @@ public interface CareRepository extends JpaRepository<Care, Long>, JpaSpecificat
                 c.clientStatus = com.example.petbuddybackend.entity.care.CareStatus.OUTDATED
             WHERE c.caretakerStatus IN :statusesPrerequisites
             AND c.clientStatus IN :statusesPrerequisites
-            AND c.careStart < CURRENT_DATE
+            AND c.careStart < :threshold
             """
     )
-    int outdateCaresBetweenClientAndCaretaker(Collection<CareStatus> statusesPrerequisites);
+    int outdateCaresBetweenClientAndCaretaker(Collection<CareStatus> statusesPrerequisites, LocalDate threshold);
 
     @Query("""
             SELECT new com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO(

@@ -6,9 +6,12 @@ import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.utils.exception.throweable.general.StateTransitionException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -17,14 +20,17 @@ public class CareStateMachine {
 
     private static final String ACCEPTED_CARE_EDIT_MESSAGE = "Cannot edit care that has been accepted by caretaker";
 
-    private static final List<CareStatus> globalStatusesThatCanBeCancelled =
-            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.READY_TO_PROCEED);
+    private static final List<CareStatus> statusesThatCanBeCancelledBySystem =
+            List.of(CareStatus.PENDING, CareStatus.ACCEPTED);
 
-    private static final List<CareStatus> globalStatusesThatCanBeOutdated =
-            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.READY_TO_PROCEED);
+    private static final List<CareStatus> statusesThatCanBeOutdatedBySystem =
+            List.of(CareStatus.PENDING, CareStatus.ACCEPTED);
 
     private static final List<CareStatus> globalStatusesThatCanBeRated =
             List.of(CareStatus.READY_TO_PROCEED, CareStatus.COMPLETED);
+
+    @Value("${care.accept-time-window}")
+    private Duration COMPLETE_CARE_TIME_WINDOW;
 
     private final TransitionManager transitionManager = initTransitionManager();
     private final CareRepository careRepository;
@@ -65,7 +71,10 @@ public class CareStateMachine {
 
     @Transactional
     public int outdateCaresIfStatePermitsAndSave() {
-        return careRepository.outdateCaresBetweenClientAndCaretaker(globalStatusesThatCanBeOutdated);
+        return careRepository.outdateCaresBetweenClientAndCaretaker(
+                statusesThatCanBeOutdatedBySystem,
+                LocalDate.now().minusDays(COMPLETE_CARE_TIME_WINDOW.toDays())
+        );
     }
 
     public boolean canBeRated(Care care) {
@@ -99,11 +108,18 @@ public class CareStateMachine {
         transitionManager.addTransition(Role.CARETAKER, CareStatus.ACCEPTED, CareStatus.CANCELLED, this::setBothStatuses);
 
         // Accept care
-        transitionManager.addTransition(Role.CARETAKER, CareStatus.READY_TO_PROCEED, CareStatus.COMPLETED, this::setBothStatuses);
+        transitionManager.addTransition(Role.CARETAKER, CareStatus.READY_TO_PROCEED, CareStatus.COMPLETED,
+                this::setBothStatuses, this::careWithinAcceptTimeWindow);
     }
 
     private boolean clientShouldBeAccepted(Care care) {
         return care.getClientStatus().equals(CareStatus.ACCEPTED);
+    }
+
+    private boolean careWithinAcceptTimeWindow(Care care) {
+        return care.getCareStart()
+                .plusDays(COMPLETE_CARE_TIME_WINDOW.toDays())
+                .isAfter(care.getCareEnd());
     }
 
     private void acceptAsClient(Care care, CareStatus noop) {
@@ -132,7 +148,7 @@ public class CareStateMachine {
         careRepository.cancelCaresBetweenClientAndCaretaker(
                 clientEmail,
                 caretakerEmail,
-                globalStatusesThatCanBeCancelled
+                statusesThatCanBeCancelledBySystem
         );
     }
 }

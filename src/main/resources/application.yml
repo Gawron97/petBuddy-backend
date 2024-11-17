@@ -102,3 +102,6 @@ notification:
     update_reservation: "care_update"
     accepted_reservation: "care_accepted"
     rejected_reservation: "care_rejected"
+
+care:
+  accept-time-window: P1D        # 1 day
