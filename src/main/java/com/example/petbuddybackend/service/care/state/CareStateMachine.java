@@ -22,13 +22,13 @@ public class CareStateMachine {
             List.of(CareStatus.PENDING, CareStatus.ACCEPTED);
 
     private static final List<CareStatus> statusesThatCanBeOutdatedBySystem =
-            List.of(CareStatus.PENDING, CareStatus.ACCEPTED);
+            List.of(CareStatus.PENDING, CareStatus.ACCEPTED, CareStatus.READY_TO_PROCEED);
 
     private static final List<CareStatus> globalStatusesThatCanBeRated =
-            List.of(CareStatus.READY_TO_PROCEED, CareStatus.COMPLETED);
+            List.of(CareStatus.READY_TO_PROCEED, CareStatus.CONFIRMED);
 
     @Value("${care.accept-time-window}")
-    private Duration COMPLETE_CARE_TIME_WINDOW;
+    private Duration CONFIRM_CARE_TIME_WINDOW;
 
     private final TransitionManager transitionManager = initTransitionManager();
     private final CareRepository careRepository;
@@ -67,7 +67,7 @@ public class CareStateMachine {
     public int outdateCaresIfStatePermitsAndSave() {
         return careRepository.outdateCaresBetweenClientAndCaretaker(
                 statusesThatCanBeOutdatedBySystem,
-                LocalDate.now().minusDays(COMPLETE_CARE_TIME_WINDOW.toDays())
+                LocalDate.now().minusDays(CONFIRM_CARE_TIME_WINDOW.toDays())
         );
     }
 
@@ -102,7 +102,7 @@ public class CareStateMachine {
         transitionManager.addTransition(Role.CARETAKER, CareStatus.ACCEPTED, CareStatus.CANCELLED, this::setBothStatuses);
 
         // Accept care
-        transitionManager.addTransition(Role.CARETAKER, CareStatus.READY_TO_PROCEED, CareStatus.COMPLETED,
+        transitionManager.addTransition(Role.CARETAKER, CareStatus.READY_TO_PROCEED, CareStatus.CONFIRMED,
                 this::setBothStatuses, this::careWithinAcceptTimeWindow);
     }
 
@@ -120,22 +120,22 @@ public class CareStateMachine {
 
         // Check if care can be accepted within time window after care start
         LocalDate acceptThreshold = care.getCareStart()
-                .plusDays(COMPLETE_CARE_TIME_WINDOW.toDays());
+                .plusDays(CONFIRM_CARE_TIME_WINDOW.toDays());
 
         return !now.isAfter(acceptThreshold);
     }
 
     private void acceptAsClient(Care care, CareStatus noop) {
         care.setClientStatus(CareStatus.ACCEPTED);
-        awaitPaymentOnAccept(care);
+        transitionToReadyToProceedOnAccept(care);
     }
 
     private void acceptAsCaretaker(Care care, CareStatus noop) {
         care.setCaretakerStatus(CareStatus.ACCEPTED);
-        awaitPaymentOnAccept(care);
+        transitionToReadyToProceedOnAccept(care);
     }
 
-    private void awaitPaymentOnAccept(Care care) {
+    private void transitionToReadyToProceedOnAccept(Care care) {
         if(care.getCaretakerStatus() == CareStatus.ACCEPTED && care.getClientStatus() == CareStatus.ACCEPTED) {
             care.setClientStatus(CareStatus.READY_TO_PROCEED);
             care.setCaretakerStatus(CareStatus.READY_TO_PROCEED);

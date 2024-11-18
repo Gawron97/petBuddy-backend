@@ -140,9 +140,9 @@ public class CareService {
         return careMapper.mapToDetailedCareDTO(care, timezone);
     }
 
-    public DetailedCareDTO markCareAsCompleted(Long careId, String name, Role role, ZoneId orSystemDefault) {
+    public DetailedCareDTO markCareAsConfirmed(Long careId, String name, Role role, ZoneId orSystemDefault) {
         Care care = getCareById(careId);
-        careStateMachine.transition(role, care, CareStatus.COMPLETED);
+        careStateMachine.transition(role, care, CareStatus.CONFIRMED);
         Care savedCare = careRepository.save(care);
         return careMapper.mapToDetailedCareDTO(savedCare, orSystemDefault);
     }

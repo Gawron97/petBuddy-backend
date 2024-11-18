@@ -4,7 +4,7 @@ public enum CareStatus {
     PENDING,
     ACCEPTED,
     READY_TO_PROCEED,
-    COMPLETED,
+    CONFIRMED,
     CANCELLED,
     OUTDATED
 }

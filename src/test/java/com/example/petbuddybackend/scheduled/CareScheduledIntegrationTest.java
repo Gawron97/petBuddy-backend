@@ -38,8 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ContextConfiguration(classes = TestDataConfiguration.class)
 public class CareScheduledIntegrationTest {
 
-    private static final Duration COMPLETE_WINDOW;
-    private static final int COMPLETE_WINDOW_DAYS;
+    private static final Duration CONFIRM_WINDOW;
+    private static final int CONFIRM_WINDOW_DAYS;
 
     @Autowired
     private CareScheduled careScheduled;
@@ -67,8 +67,8 @@ public class CareScheduledIntegrationTest {
     private Caretaker caretaker;
 
     static {
-        COMPLETE_WINDOW_DAYS = 60;
-        COMPLETE_WINDOW = Duration.ofDays(COMPLETE_WINDOW_DAYS);
+        CONFIRM_WINDOW_DAYS = 60;
+        CONFIRM_WINDOW = Duration.ofDays(CONFIRM_WINDOW_DAYS);
     }
 
 
@@ -94,11 +94,11 @@ public class CareScheduledIntegrationTest {
                 Pair.of(CareStatus.READY_TO_PROCEED, CareStatus.READY_TO_PROCEED),
 
                 // CareStatuses to be kept
-                Pair.of(CareStatus.COMPLETED, CareStatus.COMPLETED),
+                Pair.of(CareStatus.CONFIRMED, CareStatus.CONFIRMED),
                 Pair.of(CareStatus.CANCELLED, CareStatus.CANCELLED)
         );
 
-        ReflectionTestUtils.setField(careStateMachine, "COMPLETE_CARE_TIME_WINDOW", COMPLETE_WINDOW);
+        ReflectionTestUtils.setField(careStateMachine, "CONFIRM_CARE_TIME_WINDOW", CONFIRM_WINDOW);
     }
 
     @AfterEach
@@ -110,7 +110,7 @@ public class CareScheduledIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("careStartTimeWithinWindow")
-    void terminateCares_dateWithinCompleteTimeWindow_shouldNotObsoleteCare(LocalDate startCare) {
+    void terminateCares_dateWithinConfirmTimeWindow_shouldNotObsoleteCare(LocalDate startCare) {
         setupCaresWithCareStart(startCare);
 
         careScheduled.terminateCares();
@@ -122,7 +122,7 @@ public class CareScheduledIntegrationTest {
                 .toList();
 
         List<Care> paidCares = cares.stream()
-                .filter(care -> care.getClientStatus() == CareStatus.COMPLETED)
+                .filter(care -> care.getClientStatus() == CareStatus.CONFIRMED)
                 .toList();
 
         List<Care> cancelledCares = cares.stream()
@@ -137,7 +137,7 @@ public class CareScheduledIntegrationTest {
 
     @ParameterizedTest
     @MethodSource("careStartTimeAfterWindow")
-    void terminateCares_dateAfterCompleteTimeWindow_shouldNotObsoleteCare(LocalDate startCare) {
+    void terminateCares_dateAfterConfirmTimeWindow_shouldNotObsoleteCare(LocalDate startCare) {
         setupCaresWithCareStart(startCare);
 
         careScheduled.terminateCares();
@@ -149,7 +149,7 @@ public class CareScheduledIntegrationTest {
                 .toList();
 
         List<Care> paidCares = cares.stream()
-                .filter(care -> care.getClientStatus() == CareStatus.COMPLETED)
+                .filter(care -> care.getClientStatus() == CareStatus.CONFIRMED)
                 .toList();
 
         List<Care> cancelledCares = cares.stream()
@@ -157,7 +157,7 @@ public class CareScheduledIntegrationTest {
                 .toList();
 
         assertEquals(6, cares.size());
-        assertEquals(3, outdatedCares.size());
+        assertEquals(4, outdatedCares.size());
         assertEquals(1, paidCares.size());
         assertEquals(1, cancelledCares.size());
     }
@@ -179,8 +179,8 @@ public class CareScheduledIntegrationTest {
 
     static Stream<Arguments> careStartTimeWithinWindow() {
         return Stream.of(
-                Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS)),
-                Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS == 0 ? 1 : COMPLETE_WINDOW_DAYS / 2)),
+                Arguments.of(LocalDate.now().minusDays(CONFIRM_WINDOW_DAYS)),
+                Arguments.of(LocalDate.now().minusDays(CONFIRM_WINDOW_DAYS == 0 ? 1 : CONFIRM_WINDOW_DAYS / 2)),
                 Arguments.of(LocalDate.now().plusDays(1)),
                 Arguments.of(LocalDate.now())
         );
@@ -188,8 +188,8 @@ public class CareScheduledIntegrationTest {
 
     static Stream<Arguments> careStartTimeAfterWindow() {
         return Stream.of(
-                Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS + 1)),
-                Arguments.of(LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS + 100))
+                Arguments.of(LocalDate.now().minusDays(CONFIRM_WINDOW_DAYS + 1)),
+                Arguments.of(LocalDate.now().minusDays(CONFIRM_WINDOW_DAYS + 100))
         );
     }
 }

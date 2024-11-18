@@ -271,7 +271,7 @@ public class CareControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = CARETAKER_EMAIL)
-    void completeCareByCaretaker_ShouldReturnCompletedCare() throws Exception {
+    void confirmCareByCaretaker_ShouldReturnConfirmCare() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
         care.setClientStatus(CareStatus.READY_TO_PROCEED);
@@ -280,12 +280,12 @@ public class CareControllerIntegrationTest {
         careRepository.saveAndFlush(care);
 
         // When and Then
-        mockMvc.perform(post("/api/care/{careId}/complete", care.getId())
+        mockMvc.perform(post("/api/care/{careId}/confirm", care.getId())
                         .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.clientStatus").value(CareStatus.COMPLETED.name()))
-                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.COMPLETED.name()));
+                .andExpect(jsonPath("$.clientStatus").value(CareStatus.CONFIRMED.name()))
+                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.CONFIRMED.name()));
     }
 
     @Test

@@ -122,27 +122,27 @@ public class CareController {
         return careService.updateCare(careId, updateCare, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
 
-    @PostMapping("/{careId}/complete")
+    @PostMapping("/{careId}/confirm")
     @Operation(
-            summary = "Mark care as completed",
+            summary = "Mark care as confirmed",
             description = """
-                    Caretaker marks care as completed.
+                    Caretaker marks care as confirmed.
                     
-                    The care must be in the READY_TO_PROCEED status for caretaker to complete.
-                    When successful both statuses changes to COMPLETED.
+                    The care must be in the READY_TO_PROCEED status for caretaker to confirmed.
+                    When successful both statuses changes to CONFIRMED.
                     
-                    The care must be marked as completed by caretaker the same day the care starts.
+                    The care must be marked as confirmed by caretaker the same day the care starts.
                     """
     )
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO markCareAsCompleted(
+    public DetailedCareDTO markCareAsConfirmed(
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role,
             Principal principal,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             @PathVariable Long careId
     ) {
-        return careService.markCareAsCompleted(careId, principal.getName(), role, TimeUtils.getOrSystemDefault(timeZone));
+        return careService.markCareAsConfirmed(careId, principal.getName(), role, TimeUtils.getOrSystemDefault(timeZone));
     }
 
 

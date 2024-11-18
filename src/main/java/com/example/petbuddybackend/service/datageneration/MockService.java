@@ -556,7 +556,7 @@ public class MockService {
                 Pair.of(CareStatus.PENDING, CareStatus.ACCEPTED),
                 Pair.of(CareStatus.ACCEPTED, CareStatus.PENDING),
                 Pair.of(CareStatus.READY_TO_PROCEED, CareStatus.READY_TO_PROCEED),
-                Pair.of(CareStatus.COMPLETED, CareStatus.COMPLETED),
+                Pair.of(CareStatus.CONFIRMED, CareStatus.CONFIRMED),
                 Pair.of(CareStatus.OUTDATED, CareStatus.OUTDATED),
                 Pair.of(CareStatus.CANCELLED, CareStatus.CANCELLED)
         );

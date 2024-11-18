@@ -104,4 +104,4 @@ notification:
     rejected_reservation: "care_rejected"
 
 care:
-  accept-time-window: P0D        # 0 days, meaning the care must be accepted the day it has started
+  accept-time-window: P1D        # 2 days, meaning the care must be accepted within 2 days counting from the start date

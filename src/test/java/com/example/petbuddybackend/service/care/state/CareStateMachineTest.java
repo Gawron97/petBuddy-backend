@@ -22,20 +22,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 public class CareStateMachineTest {
 
-    private static final Duration COMPLETE_WINDOW;
-    private static final int COMPLETE_WINDOW_DAYS;
+    private static final Duration CONFIRM_WINDOW;
+    private static final int CONFIRM_WINDOW_DAYS;
 
     @Autowired
     private CareStateMachine careStateMachine;
 
     static {
-        COMPLETE_WINDOW_DAYS = 60;
-        COMPLETE_WINDOW = Duration.ofDays(COMPLETE_WINDOW_DAYS);
+        CONFIRM_WINDOW_DAYS = 60;
+        CONFIRM_WINDOW = Duration.ofDays(CONFIRM_WINDOW_DAYS);
     }
 
     @BeforeEach
     void setup() {
-        ReflectionTestUtils.setField(careStateMachine, "COMPLETE_CARE_TIME_WINDOW", COMPLETE_WINDOW);
+        ReflectionTestUtils.setField(careStateMachine, "CONFIRM_CARE_TIME_WINDOW", CONFIRM_WINDOW);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class CareStateMachineTest {
         Care care1 = careOfStatuses(CareStatus.READY_TO_PROCEED, CareStatus.PENDING);
         assertThrows(StateTransitionException.class, () -> careStateMachine.transitionToEditCare(care1));
 
-        Care care2 = careOfStatuses(CareStatus.COMPLETED, CareStatus.PENDING);
+        Care care2 = careOfStatuses(CareStatus.CONFIRMED, CareStatus.PENDING);
         assertThrows(StateTransitionException.class, () -> careStateMachine.transitionToEditCare(care2));
     }
 
@@ -74,18 +74,18 @@ public class CareStateMachineTest {
 
     @ParameterizedTest
     @MethodSource("provideValidCareStartDates")
-    void transition_caretakerMarksCareAsCompleted_shouldSucceed(LocalDate startCareDate) {
+    void transition_caretakerMarksCareAsConfirmed_shouldSucceed(LocalDate startCareDate) {
         Care care = careOfStatuses(CareStatus.READY_TO_PROCEED, CareStatus.READY_TO_PROCEED, startCareDate);
-        careStateMachine.transition(Role.CARETAKER, care, CareStatus.COMPLETED);
+        careStateMachine.transition(Role.CARETAKER, care, CareStatus.CONFIRMED);
     }
 
     @ParameterizedTest
     @MethodSource("provideInvalidCareStartDates")
-    void transition_caretakerMarksCareAsCompleted_invalidStartDate_shouldThrow(LocalDate startCareDate) {
+    void transition_caretakerMarksCareAsConfirmed_invalidStartDate_shouldThrow(LocalDate startCareDate) {
         Care care = careOfStatuses(CareStatus.READY_TO_PROCEED, CareStatus.READY_TO_PROCEED, startCareDate);
 
         assertThrows(StateTransitionException.class,
-                () -> careStateMachine.transition(Role.CARETAKER, care, CareStatus.COMPLETED));
+                () -> careStateMachine.transition(Role.CARETAKER, care, CareStatus.CONFIRMED));
     }
 
     private Care careOfStatuses(CareStatus clientStatus, CareStatus caretakerStatus, LocalDate careStart) {
@@ -102,15 +102,15 @@ public class CareStateMachineTest {
 
     private static Stream<LocalDate> provideValidCareStartDates() {
         return Stream.of(
-                LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS),
-                LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS-1),
+                LocalDate.now().minusDays(CONFIRM_WINDOW_DAYS),
+                LocalDate.now().minusDays(CONFIRM_WINDOW_DAYS -1),
                 LocalDate.now()
         );
     }
 
     private static Stream<LocalDate> provideInvalidCareStartDates() {
         return Stream.of(
-                LocalDate.now().minusDays(COMPLETE_WINDOW_DAYS+1),
+                LocalDate.now().minusDays(CONFIRM_WINDOW_DAYS +1),
                 LocalDate.now().plusDays(1)
         );
     }
