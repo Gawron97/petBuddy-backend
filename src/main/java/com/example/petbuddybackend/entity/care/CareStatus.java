@@ -3,8 +3,8 @@ package com.example.petbuddybackend.entity.care;
 public enum CareStatus {
     PENDING,
     ACCEPTED,
-    AWAITING_PAYMENT,
-    PAID,
+    READY_TO_PROCEED,
+    CONFIRMED,
     CANCELLED,
     OUTDATED
 }

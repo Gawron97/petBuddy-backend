@@ -283,8 +283,8 @@ public class CareServiceIntegrationTest {
         // Then
         Care acceptedCare = careRepository.findById(result.id()).orElseThrow();
         assertNotNull(acceptedCare);
-        assertEquals(CareStatus.AWAITING_PAYMENT, acceptedCare.getCaretakerStatus());
-        assertEquals(CareStatus.AWAITING_PAYMENT, acceptedCare.getClientStatus());
+        assertEquals(CareStatus.READY_TO_PROCEED, acceptedCare.getCaretakerStatus());
+        assertEquals(CareStatus.READY_TO_PROCEED, acceptedCare.getClientStatus());
 
     }
 
@@ -637,7 +637,7 @@ public class CareServiceIntegrationTest {
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
-                                .caretakerStatuses(Set.of(CareStatus.AWAITING_PAYMENT))
+                                .caretakerStatuses(Set.of(CareStatus.READY_TO_PROCEED))
                                 .build(),
                         Role.CARETAKER,
                         Set.of(),
@@ -646,7 +646,7 @@ public class CareServiceIntegrationTest {
                 ),
                 Arguments.of(
                         CareSearchCriteria.builder()
-                                .clientStatuses(Set.of(CareStatus.AWAITING_PAYMENT))
+                                .clientStatuses(Set.of(CareStatus.READY_TO_PROCEED))
                                 .build(),
                         Role.CARETAKER,
                         Set.of(),
@@ -762,8 +762,8 @@ public class CareServiceIntegrationTest {
                         LocalDate.of(2024, 5, 15),
                         LocalDate.of(2024, 5, 20),
                         new BigDecimal("10.00"),
-                        CareStatus.AWAITING_PAYMENT,
-                        CareStatus.AWAITING_PAYMENT
+                        CareStatus.READY_TO_PROCEED,
+                        CareStatus.READY_TO_PROCEED
                 ),
                 PersistenceUtils.addCare(
                         careRepository,

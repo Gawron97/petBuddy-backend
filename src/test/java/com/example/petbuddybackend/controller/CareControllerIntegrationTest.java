@@ -271,6 +271,25 @@ public class CareControllerIntegrationTest {
 
     @Test
     @WithMockUser(username = CARETAKER_EMAIL)
+    void confirmCareByCaretaker_ShouldReturnConfirmCare() throws Exception {
+        // Given
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
+        care.setClientStatus(CareStatus.READY_TO_PROCEED);
+        care.setCaretakerStatus(CareStatus.READY_TO_PROCEED);
+        care.setCareStart(LocalDate.now());
+        careRepository.saveAndFlush(care);
+
+        // When and Then
+        mockMvc.perform(post("/api/care/{careId}/confirm", care.getId())
+                        .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.clientStatus").value(CareStatus.CONFIRMED.name()))
+                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.CONFIRMED.name()));
+    }
+
+    @Test
+    @WithMockUser(username = CARETAKER_EMAIL)
     void acceptCareByCaretaker_ShouldReturnAcceptedCare() throws Exception {
         // Given
         PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
@@ -280,8 +299,8 @@ public class CareControllerIntegrationTest {
                         .header(TIMEZONE_HEADER_NAME, "Europe/Warsaw")
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.clientStatus").value(CareStatus.AWAITING_PAYMENT.name()))
-                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.AWAITING_PAYMENT.name()));
+                .andExpect(jsonPath("$.clientStatus").value(CareStatus.READY_TO_PROCEED.name()))
+                .andExpect(jsonPath("$.caretakerStatus").value(CareStatus.READY_TO_PROCEED.name()));
     }
 
     @Test
@@ -313,7 +332,7 @@ public class CareControllerIntegrationTest {
     void acceptCareByCaretaker_WhenCaretakerStatusIsNotPending_ShouldThrowIllegalActionException() throws Exception {
         // Given
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").get());
-        care.setCaretakerStatus(CareStatus.AWAITING_PAYMENT);
+        care.setCaretakerStatus(CareStatus.READY_TO_PROCEED);
         careRepository.save(care);
         // When and Then
         Long careId = careRepository.findAll().get(0).getId();

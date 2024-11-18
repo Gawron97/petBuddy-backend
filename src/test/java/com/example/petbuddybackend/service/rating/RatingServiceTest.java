@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockCare;
-import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockPaidCare;
+import static com.example.petbuddybackend.testutils.mock.MockCareProvider.createMockConfirmedCare;
 import static com.example.petbuddybackend.testutils.mock.MockRatingProvider.createMockRating;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
 import static org.junit.jupiter.api.Assertions.*;
@@ -86,7 +86,7 @@ public class RatingServiceTest {
                 careRepository, createMockCare(caretaker, client, animalRepository.findById("DOG").orElseThrow())
         );
         paidCare = PersistenceUtils.addCare(
-                careRepository, createMockPaidCare(caretaker, client, animalRepository.findById("DOG").orElseThrow())
+                careRepository, createMockConfirmedCare(caretaker, client, animalRepository.findById("DOG").orElseThrow())
         );
     }
 

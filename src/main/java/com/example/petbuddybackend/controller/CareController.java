@@ -122,6 +122,30 @@ public class CareController {
         return careService.updateCare(careId, updateCare, principal.getName(), TimeUtils.getOrSystemDefault(timeZone));
     }
 
+    @PostMapping("/{careId}/confirm")
+    @Operation(
+            summary = "Mark care as confirmed",
+            description = """
+                    Caretaker marks care as confirmed.
+                    
+                    The care must be in the READY_TO_PROCEED status for caretaker to confirmed.
+                    When successful both statuses changes to CONFIRMED.
+                    
+                    The care must be marked as confirmed by caretaker the same day the care starts.
+                    """
+    )
+    @PreAuthorize("isAuthenticated()")
+    public DetailedCareDTO markCareAsConfirmed(
+            @AcceptRole(acceptRole = Role.CARETAKER)
+            @RequestHeader(value = "${header-name.role}") Role role,
+            Principal principal,
+            @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
+            @PathVariable Long careId
+    ) {
+        return careService.markCareAsConfirmed(careId, principal.getName(), role, TimeUtils.getOrSystemDefault(timeZone));
+    }
+
+
     @PostMapping("/{careId}/accept")
     @Operation(
             summary = "Accept a care",
@@ -130,7 +154,7 @@ public class CareController {
                     caretaker.
                     
                     The care must be in the PENDING status for caretaker and ACCEPT status for client to accept.
-                    When successful both statuses changes to AWAITING_PAYMENT.
+                    When successful both statuses changes to READY_TO_PROCEED.
                     """
     )
     @ApiResponses(value = {
