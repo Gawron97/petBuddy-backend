@@ -82,7 +82,7 @@ public class ChatWebSocketController {
         if(!seenByRecipient) {
             wsNotificationSender.sendNotification(
                     recipientUsername,
-                    chatService.getUnseenChatsNotification(recipientUsername)
+                    chatService.getUnseenChatsNumberNotification(recipientUsername)
             );
         }
     }
@@ -103,7 +103,7 @@ public class ChatWebSocketController {
         wsChatMessageSender.onUserJoinChatRoom(subscriberUsername, chatId);
         wsNotificationSender.sendNotification(
                 subscriberUsername,
-                chatService.getUnseenChatsNotification(subscriberUsername)
+                chatService.getUnseenChatsNumberNotification(subscriberUsername)
         );
 
         log.debug(

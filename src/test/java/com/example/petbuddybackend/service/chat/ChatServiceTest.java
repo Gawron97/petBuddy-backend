@@ -3,8 +3,8 @@ package com.example.petbuddybackend.service.chat;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
-import com.example.petbuddybackend.dto.notification.NotificationType;
 import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
+import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -32,12 +32,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.example.petbuddybackend.testutils.mock.MockChatProvider.*;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -48,6 +50,7 @@ public class ChatServiceTest {
     private static Client otherClientWithCaretakerAccount;
     private static Caretaker caretaker;
     private static Caretaker otherCaretaker;
+    private static Caretaker otherCaretakerWithClientAccount;
 
     @Autowired
     private ChatRoomRepository chatRepository;
@@ -67,6 +70,9 @@ public class ChatServiceTest {
     @Autowired
     private CaretakerRepository caretakerRepository;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
     private ChatRoom chatRoom;
 
     @BeforeEach
@@ -84,7 +90,7 @@ public class ChatServiceTest {
         );
 
         chatRoom = PersistenceUtils.addChatRoom(
-                MockChatProvider.createMockChatRoom(client, caretaker),
+                createMockChatRoom(client, caretaker),
                 MockChatProvider.createMockChatMessages(client, caretaker),
                 chatRepository,
                 chatMessageRepository
@@ -103,7 +109,7 @@ public class ChatServiceTest {
                 MockUserProvider.createMockClient("newClientEmail")
         );
 
-        PersistenceUtils.addCaretaker(
+        otherCaretakerWithClientAccount = PersistenceUtils.addCaretaker(
                 caretakerRepository,
                 appUserRepository,
                 MockUserProvider.createMockCaretaker("newClientEmail")
@@ -460,11 +466,11 @@ public class ChatServiceTest {
     @Test
     void testMarkMessagesAsSeen_clientUpdatesLastMessageSeen_shouldSucceed() {
         chatMessageRepository.save(
-                MockChatProvider.createMockChatMessage(client.getAccountData(),  ZonedDateTime.now().plusYears(1), chatRoom)
+                createMockChatMessage(client.getAccountData(),  ZonedDateTime.now().plusYears(1), chatRoom)
         );
 
         chatMessageRepository.save(
-                MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now(), chatRoom)
+                createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now(), chatRoom)
         );
 
         chatService.markMessagesAsSeen(chatRoom.getId(), client.getEmail());
@@ -488,11 +494,11 @@ public class ChatServiceTest {
     @Test
     void testMarkMessagesAsSeen_caretakerUpdatesLastMessageSeen_shouldSucceed() {
         chatMessageRepository.save(
-                MockChatProvider.createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now().plusYears(1), chatRoom)
+                createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now().plusYears(1), chatRoom)
         );
 
         chatMessageRepository.save(
-                MockChatProvider.createMockChatMessage(client.getAccountData(), ZonedDateTime.now(), chatRoom)
+                createMockChatMessage(client.getAccountData(), ZonedDateTime.now(), chatRoom)
         );
 
         chatService.markMessagesAsSeen(chatRoom.getId(), caretaker.getEmail());
@@ -584,16 +590,37 @@ public class ChatServiceTest {
 
     @Test
     void getUnreadChatsNumber_shouldReturnProperAnswer() {
-        int unreadChatsNumber = chatService.getUnreadChatsNumber(client.getEmail());
-        assertEquals(1, unreadChatsNumber);
+        UnseenChatsNotificationDTO unreadChatsNumber = chatService.getUnseenChatsNumberNotification(client.getEmail());
+        assertEquals(1, unreadChatsNumber.getUnseenChatsAsClient());
+        assertEquals(0, unreadChatsNumber.getUnseenChatsAsCaretaker());
     }
 
     @Test
-    void testGetUnseenChatsNotification_shouldReturnProperAnswer() {
-        UnseenChatsNotificationDTO result = chatService.getUnseenChatsNotification(client.getEmail());
-        assertNotNull(result);
-        assertEquals(NotificationType.CHAT_NOTIFICATION, result.getDType());
-        assertEquals(1, result.getUnseenChats());
+    void getUnreadChatsNumber_WhenUserHasChatsAsClientAndAsCaretaker_shouldReturnProperAnswer() {
+
+        transactionTemplate.execute(status -> {
+            ChatMessage seenMessage = createMockChatMessage(caretaker.getAccountData(), ZonedDateTime.now());
+            seenMessage.setSeenByRecipient(true);
+
+            ChatRoom seenChatRoom = PersistenceUtils.addChatRoom(
+                    createMockChatRoom(otherClientWithCaretakerAccount, caretaker),
+                    List.of(seenMessage),
+                    chatRepository,
+                    chatMessageRepository
+            );
+
+            ChatRoom unSeenChatRoom = PersistenceUtils.addChatRoom(
+                    createMockChatRoom(client, otherCaretakerWithClientAccount),
+                    createMockChatMessages(client, otherCaretakerWithClientAccount),
+                    chatRepository,
+                    chatMessageRepository
+            );
+            return null;
+        });
+
+        UnseenChatsNotificationDTO unreadChatsNumber = chatService.getUnseenChatsNumberNotification(otherClientWithCaretakerAccount.getEmail());
+        assertEquals(0, unreadChatsNumber.getUnseenChatsAsClient());
+        assertEquals(1, unreadChatsNumber.getUnseenChatsAsCaretaker());
     }
 
     private static Stream<String> provideTimeZones() {

@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.service.notification.WebsocketNotificationSender;
 import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
 import com.example.petbuddybackend.utils.annotation.swaggerdocs.TimeZoneParameter;
@@ -94,7 +95,7 @@ public class ChatController {
 
         wsNotificationSender.sendNotification(
                 messageReceiverEmail,
-                chatService.getUnseenChatsNotification(messageReceiverEmail)
+                chatService.getUnseenChatsNumberNotification(messageReceiverEmail)
         );
         return chatMessage;
     }
@@ -154,11 +155,14 @@ public class ChatController {
 
     @GetMapping("/unread/count")
     @Operation(
-            summary = "Get number of unread chats of currently logged in user"
+            summary = "Get number of unread chats of currently logged in user",
+            description =
+            "number of unread chats will be split into separate profiles of user " +
+            "meaning that will be number of chats unread as client and number of chats unread as caretaker"
     )
     @PreAuthorize("isAuthenticated()")
-    public Integer getUnreadChatsNumber(Principal principal) {
-        return chatService.getUnreadChatsNumber(principal.getName());
+    public UnseenChatsNotificationDTO getUnreadChatsNumber(Principal principal) {
+        return chatService.getUnseenChatsNumberNotification(principal.getName());
     }
 
 }

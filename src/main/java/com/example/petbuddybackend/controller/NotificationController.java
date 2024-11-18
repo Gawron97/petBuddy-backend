@@ -29,7 +29,24 @@ public class NotificationController {
 
     @Operation(
             summary = "Get unread notifications",
-            description = "Get unread notifications for the current logged user for current profile"
+            description =
+                    """
+                            ## Endpoint description
+                            Get unread notifications for the current logged user for current profile.
+                                                        
+                            ## Docs for websocket notifications:
+                                                        
+                            Available translations:
+                            - care_reservation = when user making a reservation
+                            - care_update = when user updating price in reservation
+                            - care_accepted = when care is accepted
+                            - care_rejected = when care is rejected
+                                                        
+                            Note that notifications about unread chats has different structure.
+                            Available dType for notifications:
+                            - SIMPLE_NOTIFICATION
+                            - CHAT_NOTIFICATION
+                            """
     )
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -40,7 +57,7 @@ public class NotificationController {
             @RequestHeader(value = "${header-name.role}") Role role,
 
             @TimeZoneParameter
-            @RequestHeader(value = "${header-name.timezone}") String timezone) {
+            @RequestHeader(value = "${header-name.timezone}", required = false) String timezone) {
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
         return notificationService.getUnreadNotifications(
                 pageable,
@@ -55,10 +72,22 @@ public class NotificationController {
     @PreAuthorize("isAuthenticated()")
     public SimplyNotificationDTO markNotificationAsRead(@PathVariable Long notificationId,
                                                         @RoleParameter
-                                                  @RequestHeader(value = "${header-name.role}") Role role,
+                                                        @RequestHeader(value = "${header-name.role}") Role role,
                                                         @TimeZoneParameter
-                                                  @RequestHeader(value = "${header-name.timezone}") String timezone) {
+                                                        @RequestHeader(value = "${header-name.timezone}", required = false) String timezone) {
         return notificationService.markNotificationAsRead(notificationId, role, TimeUtils.getOrSystemDefault(timezone));
+    }
+
+    @Operation(
+            summary = "Mark all notification of currently logged in user as read",
+            description = "Only notifications for current profile will be marked as read."
+    )
+    @PostMapping("/mark-read")
+    @PreAuthorize("isAuthenticated()")
+    public void markNotificationsAsRead(Principal principal,
+                                        @RoleParameter
+                                        @RequestHeader(value = "${header-name.role}") Role role) {
+        notificationService.markNotificationsAsRead(principal.getName(), role);
     }
 
 }

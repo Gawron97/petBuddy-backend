@@ -13,8 +13,6 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SimplyNotificationDTO extends NotificationDTO {
-    @Builder.Default
-    private NotificationType dType = NotificationType.SIMPLE_NOTIFICATION;
     private Long notificationId;
     private Long objectId;
     private ObjectType objectType;

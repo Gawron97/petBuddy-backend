@@ -18,11 +18,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,6 +65,15 @@ public class NotificationControllerTest {
 
         mockMvc.perform(patch("/api/notifications/{notificationId}", 1L)
                         .header(TIMEZONE_HEADER_NAME, "UTC")
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser("caretakerEmail")
+    void markNotificationsAsRead_shouldReturnProperAnswer() throws Exception {
+
+        mockMvc.perform(post("/api/notifications/mark-read")
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk());
     }
