@@ -190,7 +190,7 @@ public class ChatService {
         return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, lastMessage, isSeenByPrincipal, timeZone);
     }
 
-    public UnseenChatsNotificationDTO getUnseenChatsNumber(String userEmail) {
+    public UnseenChatsNotificationDTO getUnseenChatsNumberNotification(String userEmail) {
         return UnseenChatsNotificationDTO.builder()
                 .createdAt(ZonedDateTime.now())
                 .unseenChatsAsClient(chatRepository.countUnreadChatsForUserAsClient(userEmail))

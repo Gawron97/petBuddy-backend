@@ -590,7 +590,7 @@ public class ChatServiceTest {
 
     @Test
     void getUnreadChatsNumber_shouldReturnProperAnswer() {
-        UnseenChatsNotificationDTO unreadChatsNumber = chatService.getUnseenChatsNumber(client.getEmail());
+        UnseenChatsNotificationDTO unreadChatsNumber = chatService.getUnseenChatsNumberNotification(client.getEmail());
         assertEquals(1, unreadChatsNumber.getUnseenChatsAsClient());
         assertEquals(0, unreadChatsNumber.getUnseenChatsAsCaretaker());
     }
@@ -618,7 +618,7 @@ public class ChatServiceTest {
             return null;
         });
 
-        UnseenChatsNotificationDTO unreadChatsNumber = chatService.getUnseenChatsNumber(otherClientWithCaretakerAccount.getEmail());
+        UnseenChatsNotificationDTO unreadChatsNumber = chatService.getUnseenChatsNumberNotification(otherClientWithCaretakerAccount.getEmail());
         assertEquals(0, unreadChatsNumber.getUnseenChatsAsClient());
         assertEquals(1, unreadChatsNumber.getUnseenChatsAsCaretaker());
     }

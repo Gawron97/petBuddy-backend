@@ -95,7 +95,7 @@ public class ChatController {
 
         wsNotificationSender.sendNotification(
                 messageReceiverEmail,
-                chatService.getUnseenChatsNumber(messageReceiverEmail)
+                chatService.getUnseenChatsNumberNotification(messageReceiverEmail)
         );
         return chatMessage;
     }
@@ -162,7 +162,7 @@ public class ChatController {
     )
     @PreAuthorize("isAuthenticated()")
     public UnseenChatsNotificationDTO getUnreadChatsNumber(Principal principal) {
-        return chatService.getUnseenChatsNumber(principal.getName());
+        return chatService.getUnseenChatsNumberNotification(principal.getName());
     }
 
 }
