@@ -217,4 +217,31 @@ public class NotificationServiceTest {
         );
     }
 
+    @Test
+    void testMarkNotificationsAsRead_shouldMarkNotificationsAsRead() {
+
+        //Given
+        Long notificationId = transactionTemplate.execute(status -> {
+            CaretakerNotification notification = PersistenceUtils.addCaretakerNotification(
+                    caretakerNotificationRepository, caretaker
+            );
+            return notification.getId();
+        });
+
+        //When
+        transactionTemplate.execute(status -> {
+            notificationService.markNotificationsAsRead(
+                    caretaker.getEmail(),
+                    Role.CARETAKER
+            );
+            return null;
+        });
+
+        transactionTemplate.execute(status -> {
+            CaretakerNotification notification = caretakerNotificationRepository.findById(notificationId).get();
+            assertTrue(notification.isRead());
+            return null;
+        });
+    }
+
 }

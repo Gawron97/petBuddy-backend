@@ -1,5 +1,7 @@
 package com.example.petbuddybackend.dto.notification;
 
+import com.example.petbuddybackend.utils.time.TimeUtils;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.AllArgsConstructor;
@@ -26,5 +28,6 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotificationDTO {
+    @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
     private ZonedDateTime createdAt;
 }

@@ -26,6 +26,7 @@ import com.example.petbuddybackend.utils.exception.throweable.general.IllegalAct
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.specification.CareSpecificationUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -41,10 +42,18 @@ public class CareService {
     private static final String CARE = "Care";
     private static final String CARETAKER_NOT_OWNER_MESSAGE = "Caretaker is not owner of the care";
     private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
-    private static final String CREATE_RESERVATION_MESSAGE = "message.care.reservation";
-    private static final String UPDATE_RESERVATION_MESSAGE = "message.care.update_reservation";
-    private static final String ACCEPT_RESERVATION_MESSAGE = "message.care.accepted_reservation";
-    private static final String REJECT_RESERVATION_MESSAGE = "message.care.rejected_reservation";
+
+    @Value("${notification.care.reservation}")
+    private String CREATE_RESERVATION_MESSAGE;
+
+    @Value("${notification.care.update_reservation}")
+    private String UPDATE_RESERVATION_MESSAGE;
+
+    @Value("${notification.care.accepted_reservation}")
+    private String ACCEPT_RESERVATION_MESSAGE;
+
+    @Value("${notification.care.rejected_reservation}")
+    private String REJECT_RESERVATION_MESSAGE;
 
     private final CareRepository careRepository;
     private final AnimalService animalService;

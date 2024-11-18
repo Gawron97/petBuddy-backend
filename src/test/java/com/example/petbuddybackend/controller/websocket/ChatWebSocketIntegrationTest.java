@@ -140,7 +140,7 @@ public class ChatWebSocketIntegrationTest {
         when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
                 .thenReturn(true);
 
-        when(chatService.getUnseenChatsNotification(any()))
+        when(chatService.getUnseenChatsNumberNotification(any()))
                 .thenReturn(UnseenChatsNotificationDTO.builder().createdAt(ZonedDateTime.now()).build());
 
         when(chatService.getMessageReceiverEmail(eq(CLIENT_USERNAME), any()))
@@ -230,7 +230,6 @@ public class ChatWebSocketIntegrationTest {
         // No messages should be left in the queue
         assertEquals(0, messageBlockingQueue.drainTo(new ArrayList<>()));
     }
-
 
     @Test
     void testSubscribeToChat_shouldSendJoinNotificationToUsersInChat() throws InterruptedException {

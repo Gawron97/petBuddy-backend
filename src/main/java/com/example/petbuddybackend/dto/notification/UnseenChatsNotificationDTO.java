@@ -9,7 +9,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UnseenChatsNotificationDTO extends NotificationDTO {
-    @Builder.Default
-    private NotificationType dType = NotificationType.CHAT_NOTIFICATION;
-    private int unseenChats;
+    private int unseenChatsAsClient;
+    private int unseenChatsAsCaretaker;
 }
