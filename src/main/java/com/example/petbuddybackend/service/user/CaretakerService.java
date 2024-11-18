@@ -3,21 +3,20 @@ package com.example.petbuddybackend.service.user;
 import com.example.petbuddybackend.dto.criteriaSearch.CaretakerSearchCriteria;
 import com.example.petbuddybackend.dto.offer.OfferFilterDTO;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.dto.user.*;
+import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.PhotoMapper;
-import com.example.petbuddybackend.service.mapper.RatingMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.photo.PhotoLimitException;
+import com.example.petbuddybackend.utils.provider.geolocation.GeolocationProvider;
+import com.example.petbuddybackend.utils.provider.geolocation.dto.Coordinates;
 import com.example.petbuddybackend.utils.specification.CaretakerSpecificationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,27 +34,40 @@ import java.util.Set;
 public class CaretakerService {
 
     private static final String CARETAKER = "Caretaker";
-    private static final String CLIENT = "Client";
     private static final String PHOTO_LIMIT_EXCEEDED_MESSAGE = "Photo limit exceeded for Caretaker. Provided: %d, expected %s";
     public static final String CARETAKER_EXISTS_MESSAGE = "Caretaker with email %s already exists";
 
     private final CaretakerRepository caretakerRepository;
     private final CaretakerMapper caretakerMapper = CaretakerMapper.INSTANCE;
-    private final RatingMapper ratingMapper = RatingMapper.INSTANCE;
     private final PhotoMapper photoMapper = PhotoMapper.INSTANCE;
 
     private final UserService userService;
     private final PhotoService photoService;
+    private final GeolocationProvider geolocationProvider;
 
     @Transactional(readOnly = true)
-    public Page<CaretakerDTO> getCaretakers(Pageable pageable,
-                                            CaretakerSearchCriteria filters,
-                                            Set<OfferFilterDTO> offerFilters) {
+    public SearchCaretakersResponseDTO getCaretakers(Pageable pageable,
+                                                           CaretakerSearchCriteria filters,
+                                                           Set<OfferFilterDTO> offerFilters) {
         Specification<Caretaker> spec = CaretakerSpecificationUtils.toSpecification(filters, offerFilters);
 
-        return caretakerRepository.findAll(spec, pageable)
+        Page<CaretakerDTO> caretakers = caretakerRepository.findAll(spec, pageable)
                 .map(this::renewCaretakerPictures)
                 .map(caretakerMapper::mapToCaretakerDTO);
+
+        Coordinates coordinates;
+        try{
+            coordinates = geolocationProvider.getCoordinatesOfAddress("Poland", filters.cityLike());
+        } catch (NotFoundException e) {
+            coordinates = new Coordinates(null, null);
+        }
+
+        return SearchCaretakersResponseDTO.builder()
+                .caretakers(caretakers)
+                .cityLatitude(coordinates.latitude())
+                .cityLongitude(coordinates.longitude())
+                .build();
+
     }
 
     public CaretakerComplexPublicDTO getOtherCaretaker(String caretakerEmail) {
@@ -90,6 +102,7 @@ public class CaretakerService {
         AppUser appUser = userService.getAppUser(email);
         List<PhotoLink> uploadedOfferPhotos = photoService.uploadPhotos(newOfferPhotos);
         Caretaker caretaker = caretakerMapper.mapToCaretaker(createCaretakerDTO, appUser, uploadedOfferPhotos);
+        updateCaretakerGeolocation(caretaker.getAddress());
 
         renewCaretakerPictures(caretaker);
         return caretakerMapper.mapToCaretakerComplexDTO(caretakerRepository.save(caretaker));
@@ -104,6 +117,7 @@ public class CaretakerService {
     ) {
         Caretaker caretaker = getCaretakerByEmail(email);
         caretakerMapper.updateCaretakerFromDTO(caretaker, modifyCaretakerDTO);
+        updateCaretakerGeolocation(caretaker.getAddress());
 
         applyOfferPhotosPatch(caretaker, offerBlobsToKeep, newOfferPhotos);
         renewCaretakerPictures(caretaker);
@@ -123,6 +137,16 @@ public class CaretakerService {
         return caretakerRepository.save(caretaker).getOfferPhotos().stream()
                 .map(photoMapper::mapToPhotoLinkDTO)
                 .toList();
+    }
+
+    private void updateCaretakerGeolocation(Address address) {
+        Coordinates coordinates = geolocationProvider.getCoordinatesOfAddress(
+                "Poland",
+                address.getCity(),
+                address.getStreet()
+        );
+        address.setLatitude(coordinates.latitude());
+        address.setLongitude(coordinates.longitude());
     }
 
     private void applyOfferPhotosPatch(Caretaker caretaker, Set<String> blobsToKeep, List<MultipartFile> newPhotos) {

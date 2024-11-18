@@ -2,11 +2,7 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.address.AddressDTO;
 import com.example.petbuddybackend.dto.photo.PhotoLinkDTO;
-import com.example.petbuddybackend.dto.user.AccountDataDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexDTO;
-import com.example.petbuddybackend.dto.user.CaretakerComplexPublicDTO;
-import com.example.petbuddybackend.dto.user.CaretakerDTO;
-import com.example.petbuddybackend.dto.user.ModifyCaretakerDTO;
+import com.example.petbuddybackend.dto.user.*;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.CaretakerService;
@@ -29,6 +25,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -126,8 +123,13 @@ public class CaretakerControllerTest {
                 caretakerComplexInfoDTOS,
                 PageRequest.of(0, 10), caretakerComplexInfoDTOS.size()
         );
+        SearchCaretakersResponseDTO responseDTO = SearchCaretakersResponseDTO.builder()
+                .caretakers(page)
+                .cityLatitude(BigDecimal.valueOf(23.2312))
+                .cityLongitude(BigDecimal.valueOf(32.2313))
+                .build();
 
-        when(caretakerService.getCaretakers(any(), any(), any())).thenReturn(page);
+        when(caretakerService.getCaretakers(any(), any(), any())).thenReturn(responseDTO);
 
         mockMvc.perform(post("/api/caretaker/all")
                         .param("page", "0")
@@ -136,9 +138,9 @@ public class CaretakerControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.content[0].accountData.name").value("John Doe"))
-                .andExpect(jsonPath("$.content[1].accountData.name").value("Jane Doe"));
+                .andExpect(jsonPath("$.caretakers.content.length()").value(2))
+                .andExpect(jsonPath("$.caretakers.content[0].accountData.name").value("John Doe"))
+                .andExpect(jsonPath("$.caretakers.content[1].accountData.name").value("Jane Doe"));
     }
 
     @Test
@@ -169,7 +171,7 @@ public class CaretakerControllerTest {
         // Given
         String caretakerEmail = "johndoe@example.com";
 
-        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenThrow(NotFoundException.class);
+        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenThrow(new NotFoundException());
 
         // When Then
         mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)

@@ -1,6 +1,5 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.care.CareDTO;
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
@@ -111,7 +110,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public CareDTO changeCarePrice(
+    public DetailedCareDTO changeCarePrice(
             @RequestHeader(value = "${header-name.role}")
             @AcceptRole(acceptRole = Role.CARETAKER)
             Role role,
@@ -141,7 +140,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public CareDTO acceptCare(
+    public DetailedCareDTO acceptCare(
             @RequestHeader(value = "${header-name.role}")
             @RoleParameter
             Role role,
@@ -168,7 +167,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public CareDTO rejectCareByCaretaker(
+    public DetailedCareDTO rejectCareByCaretaker(
             @RequestHeader(value = "${header-name.role}")
             @RoleParameter
             Role role,
@@ -196,7 +195,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public CareDTO makeReservation(
+    public DetailedCareDTO makeReservation(
             @AcceptRole(acceptRole = Role.CLIENT)
             @RequestHeader(value = "${header-name.role}") Role role,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,

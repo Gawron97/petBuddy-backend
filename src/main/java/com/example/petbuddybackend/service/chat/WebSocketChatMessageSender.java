@@ -75,10 +75,7 @@ public class WebSocketChatMessageSender {
     }
 
     public boolean isRecipientInChat(String recipientUsername, ChatRoom chatRoom) {
-        return webSocketSessionService.getUserSubscriptionStartingWithDestination(
-                recipientUsername,
-                CHAT_TOPIC_URL_PREFIX
-            )
+        return webSocketSessionService.getUserSubscriptionStartingWithDestination(recipientUsername, CHAT_TOPIC_URL_PREFIX)
                 .stream()
                 .map(SimpSubscription::getDestination)
                 .map(destination -> HeaderUtils.getLongFromDestination(destination, CHAT_ID_INDEX_IN_TOPIC_URL))

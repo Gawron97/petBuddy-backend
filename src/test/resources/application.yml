@@ -30,6 +30,8 @@ logging:
           service:
             chat:
               session: TRACE
+          middleware:
+            interceptor: TRACE
 
 server:
   port: 8081
@@ -54,6 +56,11 @@ url:
       subscribe-prefix: "/user/topic/notification"
       send-url: "/topic/notification"
       client-subscribe-pattern: "/user/topic/notification"
+  exception:
+    topic:
+      client-subscribe-pattern: "/user/topic/exceptions"
+      send-url: "/topic/exceptions"
+      subscribe-prefix: "/user/topic/exceptions"
 
 
 firebase:
@@ -68,6 +75,10 @@ firebase:
     expiration:
       max-seconds: 21600
       threshold-seconds: 2300
+
+opencage:
+  api:
+    key: none
 
 notification:
   care:

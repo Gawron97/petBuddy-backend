@@ -72,6 +72,11 @@ url:
       subscribe-prefix: "/user/topic/notification"
       send-url: "/topic/notification"
       client-subscribe-pattern: "/user/topic/notification"
+  exception:
+    topic:
+      client-subscribe-pattern: "/user/topic/exceptions"
+      send-url: "/topic/exceptions"
+      subscribe-prefix: "/user/topic/exceptions"
 
 firebase:
   key:
@@ -86,6 +91,10 @@ firebase:
       max-seconds: 21600        # 6 hours
       threshold-seconds: 2300   # 0.5 hour
 
+
+opencage:
+  api:
+    key: ${OPENCAGE_API_KEY}
 
 notification:
   care:

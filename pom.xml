@@ -138,6 +138,11 @@
             <artifactId>tika-core</artifactId>
             <version>2.9.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.opencagedata</groupId>
+            <artifactId>jopencage</artifactId>
+            <version>2.2.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -153,6 +158,7 @@
                             <exclude>com/example/petbuddybackend/entity/**</exclude>
                             <exclude>com/example/petbuddybackend/utils/exception/**</exclude>
                             <exclude>com/example/petbuddybackend/utils/annotations/swaggerdocs</exclude>
+                            <exclude>com/example/petbuddybackend/utils/provider/**</exclude>
                             <exclude>com/example/petbuddybackend/PetBuddyBackendApplication.class</exclude>
                             <exclude>com/example/petbuddybackend/config/datageneration/**</exclude>
                             <exclude>com/example/petbuddybackend/config/security/**</exclude>
@@ -265,6 +271,22 @@
                             <version>${org.mapstruct.version}</version>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Main-Class>com.example.petbuddybackend.PetBuddyBackendApplication</Main-Class>
+                        </manifestEntries>
+                    </archive>
                 </configuration>
             </plugin>
         </plugins>

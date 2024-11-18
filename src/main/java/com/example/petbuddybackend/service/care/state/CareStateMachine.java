@@ -4,7 +4,7 @@ import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
-import com.example.petbuddybackend.utils.exception.throweable.StateTransitionException;
+import com.example.petbuddybackend.utils.exception.throweable.general.StateTransitionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

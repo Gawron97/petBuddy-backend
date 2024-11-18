@@ -12,4 +12,6 @@ public final class DefaultFormatter {
     public static final DateTimeFormatter ZONED_DATETIME_FORMATTER = DateTimeFormatter.ofPattern(TimeUtils.ZONED_DATETIME_FORMAT);
 
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(TimeUtils.DATE_FORMAT);
+
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(TimeUtils.DATE_TIME_FORMAT);
 }

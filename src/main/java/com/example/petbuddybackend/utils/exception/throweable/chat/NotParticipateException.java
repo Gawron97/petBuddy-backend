@@ -1,8 +1,11 @@
 package com.example.petbuddybackend.utils.exception.throweable.chat;
 
-public class NotParticipateException extends RuntimeException {
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
+import org.springframework.http.HttpStatus;
+
+public class NotParticipateException extends HttpException {
 
     public NotParticipateException(String message) {
-        super(message);
+        super(message, HttpStatus.FORBIDDEN);
     }
 }

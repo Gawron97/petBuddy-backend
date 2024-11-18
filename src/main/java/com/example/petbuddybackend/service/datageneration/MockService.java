@@ -74,6 +74,8 @@ public class MockService {
                 .city(faker.address().city())
                 .streetNumber(faker.address().buildingNumber())
                 .apartmentNumber(faker.address().secondaryAddress())
+                .latitude(getLatitude())
+                .longitude(getLongitude())
                 .build();
 
         return Caretaker.builder()
@@ -85,18 +87,32 @@ public class MockService {
                 .build();
     }
 
+    private BigDecimal getLatitude() {
+        BigDecimal min = BigDecimal.valueOf(53.1018);
+        BigDecimal max = BigDecimal.valueOf(53.1590);
+        BigDecimal range = max.subtract(min);
+        BigDecimal randFraction = BigDecimal.valueOf(faker.random().nextDouble());
+        BigDecimal randValue = min.add(range.multiply(randFraction));
+        return randValue.setScale(4, BigDecimal.ROUND_HALF_UP);
+    }
+
+    private BigDecimal getLongitude() {
+        BigDecimal min = BigDecimal.valueOf(23.0779);
+        BigDecimal max = BigDecimal.valueOf(23.1798);
+        BigDecimal range = max.subtract(min);
+        BigDecimal randFraction = BigDecimal.valueOf(faker.random().nextDouble());
+        BigDecimal randValue = min.add(range.multiply(randFraction));
+        return randValue.setScale(4, BigDecimal.ROUND_HALF_UP);
+    }
+
     public Voivodeship randomVoivodeship() {
         Voivodeship[] voivodeships = Voivodeship.values();
         return voivodeships[faker.random().nextInt(voivodeships.length)];
     }
 
-    public Rating createMockRating(Caretaker caretaker, Care care, Client client) {
+    public Rating createMockRating(Care care) {
         return Rating.builder()
-                .caretakerEmail(caretaker.getEmail())
-                .clientEmail(client.getEmail())
                 .careId(care.getId())
-                .caretaker(caretaker)
-                .client(client)
                 .care(care)
                 .rating(faker.random().nextInt(1, 5))
                 .comment(faker.lorem().sentence())
@@ -104,14 +120,10 @@ public class MockService {
     }
 
     public List<Rating> createMockRatings(List<Caretaker> caretakers) {
-        List<Rating> ratings = new ArrayList<>();
-
-        caretakers.forEach(caretaker ->
-                caretaker.getCares().forEach(care ->
-                        ratings.add(createMockRating(caretaker, care, care.getClient())))
-        );
-
-        return ratings;
+        return caretakers.stream()
+                .flatMap(caretaker -> caretaker.getCares().stream())
+                .map(this::createMockRating)
+                .toList();
     }
 
 
@@ -431,7 +443,7 @@ public class MockService {
                 .findFirst()
                 .orElseThrow();
 
-        return Care.builder()
+        Care care = Care.builder()
                 .careStart(careStart)
                 .careEnd(careEnd)
                 .clientStatus(randomStatuses.getLeft())
@@ -444,6 +456,9 @@ public class MockService {
                 .client(client)
                 .build();
 
+        caretaker.getCares().add(care);
+        client.getCares().add(care);
+        return care;
     }
 
     private LocalDateTime getRandomDateBetween(LocalDate minDate, LocalDate maxDate) {

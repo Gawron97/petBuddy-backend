@@ -37,6 +37,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -226,6 +227,8 @@ public class MockDataCreator {
                 .zipCode("12345")
                 .streetNumber("1")
                 .voivodeship(Voivodeship.SLASKIE)
+                .latitude(BigDecimal.valueOf(54.00))
+                .longitude(BigDecimal.valueOf(18.00))
                 .build();
 
         Caretaker caretaker = Caretaker.builder()

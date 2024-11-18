@@ -1,27 +1,43 @@
 package com.example.petbuddybackend.utils.exception;
 
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
 import com.example.petbuddybackend.utils.time.TimeUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Value;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 import java.time.LocalDateTime;
 
-@Value
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ApiExceptionResponse {
 
-    String type;
-    String message;
+    private String type;
+    private String message;
+    private int code;
 
     @JsonFormat(pattern = TimeUtils.DATE_TIME_FORMAT)
-    LocalDateTime timestamp;
+    private LocalDateTime timestamp;
 
-    public ApiExceptionResponse(Throwable e, String message) {
+    public ApiExceptionResponse(Throwable e, String message, HttpStatusCode code) {
         this.type = e.getClass().getSimpleName();
         this.message = message;
         this.timestamp = LocalDateTime.now();
+        this.code = code.value();
+    }
+
+    public ApiExceptionResponse(HttpException e, String message) {
+        this.type = e.getClass().getSimpleName();
+        this.message = message;
+        this.timestamp = LocalDateTime.now();
+        this.code = e.getCode().value();
     }
 
     public ApiExceptionResponse(Throwable e) {
-        this(e, "An unexpected error occurred");
+        this(e, "An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -2,16 +2,27 @@ package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
-import com.example.petbuddybackend.dto.chat.notification.*;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationType;
+import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
+import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.testconfig.NoSecurityInjectUserConfig;
 import com.example.petbuddybackend.testutils.websocket.WebsocketUtils;
+import com.example.petbuddybackend.utils.conversion.serializer.LocalDateTimeDeserializer;
+import com.example.petbuddybackend.utils.conversion.serializer.LocalDateTimeSerializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeDeserializer;
 import com.example.petbuddybackend.utils.conversion.serializer.ZonedDateTimeSerializer;
+import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
+import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import lombok.SneakyThrows;
@@ -35,6 +46,7 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 
 import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -45,7 +57,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test-security-inject-user")
@@ -62,6 +76,9 @@ public class ChatWebSocketIntegrationTest {
     @Value("${url.chat.topic.client-subscribe-pattern}")
     private String SUBSCRIPTION_URL_PATTERN;
 
+    @Value("${url.exception.topic.client-subscribe-pattern}")
+    public String EXCEPTIONS_PATH;
+
     @Value("${header-name.timezone}")
     private String HEADER_NAME_TIMEZONE;
 
@@ -74,6 +91,9 @@ public class ChatWebSocketIntegrationTest {
     @MockBean
     private ChatService chatService;
 
+    @MockBean
+    private BlockService blockService;
+
     @Autowired
     private MappingJackson2MessageConverter messageConverter;
 
@@ -82,7 +102,9 @@ public class ChatWebSocketIntegrationTest {
     private BlockingQueue<ChatNotificationJoined> joinBlockingQueue;
     private BlockingQueue<ChatNotificationLeft> leaveBlockingQueue;
     private List<StompSession> sessions;
+    private BlockingQueue<ApiExceptionResponse> exceptionBlockingQueue;
 
+    private ChatRoom chatRoom;
 
     @BeforeEach
     void setup() {
@@ -90,6 +112,7 @@ public class ChatWebSocketIntegrationTest {
         messageBlockingQueue = new LinkedBlockingDeque<>();
         joinBlockingQueue = new LinkedBlockingDeque<>();
         leaveBlockingQueue = new LinkedBlockingDeque<>();
+        exceptionBlockingQueue = new LinkedBlockingDeque<>();
 
         stompClient = new WebSocketStompClient(new SockJsClient(WebsocketUtils.createTransportClient()));
         stompClient.setMessageConverter(messageConverter);
@@ -102,7 +125,7 @@ public class ChatWebSocketIntegrationTest {
                 .email(CARETAKER_USERNAME)
                 .build();
 
-        ChatRoom chatRoom = ChatRoom.builder()
+        chatRoom = ChatRoom.builder()
                 .id(1L)
                 .client(client)
                 .caretaker(caretaker)
@@ -110,6 +133,21 @@ public class ChatWebSocketIntegrationTest {
 
         when(chatService.getChatRoomById(any(Long.class)))
                 .thenReturn(chatRoom);
+
+        when(blockService.isBlockedByAny(any(String.class), any(String.class)))
+                .thenReturn(false);
+
+        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
+                .thenReturn(true);
+
+        when(chatService.getUnseenChatsNotification(any()))
+                .thenReturn(UnseenChatsNotificationDTO.builder().createdAt(ZonedDateTime.now()).build());
+
+        when(chatService.getMessageReceiverEmail(eq(CLIENT_USERNAME), any()))
+                .thenReturn(CARETAKER_USERNAME);
+
+        when(chatService.getMessageReceiverEmail(eq(CARETAKER_USERNAME), any()))
+                .thenReturn(CLIENT_USERNAME);
     }
 
     @AfterEach
@@ -128,9 +166,6 @@ public class ChatWebSocketIntegrationTest {
     void testSendChatMessage_shouldSucceed() {
         ChatMessageSent chatMessageSent = new ChatMessageSent("hello");
         StompSession stompSession = connectToWebSocket(CLIENT_USERNAME);
-
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(true);
 
         when(chatService.createMessage(any(), any(), any(), any(), eq(false)))
                 .thenReturn(createChatMessageDTO(CLIENT_USERNAME));
@@ -198,9 +233,6 @@ public class ChatWebSocketIntegrationTest {
 
     @Test
     void testSubscribeToChat_shouldSendJoinNotificationToUsersInChat() throws InterruptedException {
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(true);
-
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
@@ -228,9 +260,6 @@ public class ChatWebSocketIntegrationTest {
 
     @Test
     void testSubscribeToChat_multipleJoins_shouldNotSendDuplicatedJoins() throws InterruptedException {
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(true);
-
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
@@ -254,9 +283,6 @@ public class ChatWebSocketIntegrationTest {
 
     @Test
     void testDisconnectFromChat_shouldSendNotificationToOtherUserLeftInChat() throws InterruptedException {
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(true);
-
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
@@ -276,9 +302,6 @@ public class ChatWebSocketIntegrationTest {
 
     @Test
     void testDisconnectFromChat_multipleSubs_shouldNotSendNotification() throws InterruptedException {
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(true);
-
         StompSession clientFirstSession = connectToWebSocket(CLIENT_USERNAME);
         StompSession clientSecondSession = connectToWebSocket(CLIENT_USERNAME);
         StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
@@ -298,9 +321,6 @@ public class ChatWebSocketIntegrationTest {
     @Test
     @SneakyThrows
     void testUnsubscribeToMessageTopic_shouldCallUnsubscribeAndSendNotification() {
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(true);
-
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
 
@@ -318,9 +338,6 @@ public class ChatWebSocketIntegrationTest {
     @Test
     @SneakyThrows
     void testUnsubscribeToMessageTopic_multipleSubscriptionsToSameTopic_shouldNotSendNotification() {
-        when(chatService.isUserInChat(any(Long.class), any(String.class), any(Role.class)))
-                .thenReturn(true);
-
         StompSession clientFirstSession = connectToWebSocket(CLIENT_USERNAME);
         StompSession clientOtherSession = connectToWebSocket(CLIENT_USERNAME);
         StompSession caretakerSession = connectToWebSocket(CARETAKER_USERNAME);
@@ -338,6 +355,60 @@ public class ChatWebSocketIntegrationTest {
         assertNull(clientLeftNotification);
     }
 
+    @Test
+    @SneakyThrows
+    void subscribeToMessageTopic_userNotParticipating_shouldSendExceptionMessage() {
+        doThrow(new NotParticipateException(""))
+                .when(chatService)
+                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
+
+        StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
+        subscribeToExceptionTopic(clientSession, CLIENT_USERNAME , new ExceptionFrameHandler());
+        subscribeToMessageTopic(clientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT, new ExceptionFrameHandler());
+
+        ApiExceptionResponse exception = exceptionBlockingQueue.poll(TIMEOUT, SECONDS);
+        assertNotNull(exception);
+        assertEquals(403, exception.getCode());
+        assertEquals("NotParticipateException", exception.getType());
+    }
+
+    @Test
+    @SneakyThrows
+    void subscribeToMessageTopic_chatNotFound_shouldSendExceptionMessage() {
+        doThrow(new NotFoundException())
+                .when(chatService)
+                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
+
+        StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
+        subscribeToExceptionTopic(clientSession, CLIENT_USERNAME , new ExceptionFrameHandler());
+        subscribeToMessageTopic(clientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT, new ExceptionFrameHandler());
+
+        ApiExceptionResponse exception = exceptionBlockingQueue.poll(TIMEOUT, SECONDS);
+        assertNotNull(exception);
+        assertEquals(404, exception.getCode());
+        assertEquals("NotFoundException", exception.getType());
+    }
+
+    @Test
+    @SneakyThrows
+    void subscribeToMessageTopic_userBlocked_shouldSendExceptionMessage() {
+        doThrow(new BlockedException())
+                .when(chatService)
+                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
+
+        when(blockService.isBlockedByAny(any(String.class), any(String.class)))
+                .thenReturn(true);
+
+        StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
+        subscribeToExceptionTopic(clientSession, CLIENT_USERNAME , new ExceptionFrameHandler());
+        subscribeToMessageTopic(clientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT, new ExceptionFrameHandler());
+
+        ApiExceptionResponse exception = exceptionBlockingQueue.poll(TIMEOUT, SECONDS);
+        assertNotNull(exception);
+        assertEquals(403, exception.getCode());
+        assertEquals("BlockedException", exception.getType());
+    }
+
     private void sendMessageToMessageTopic(StompSession stompSession, ChatMessageSent chatMessageSent) {
         StompHeaders sendMessageHeaders = createHeaders(SEND_MESSAGE_ENDPOINT, "Europe/Warsaw", Role.CLIENT);
         stompSession.send(sendMessageHeaders, chatMessageSent);
@@ -349,14 +420,63 @@ public class ChatWebSocketIntegrationTest {
             String timeZone,
             Role role
     ) {
+        return subscribeToMessageTopic(
+                stompSession,
+                connectingUserEmail,
+                timeZone,
+                role,
+                new ChatNotificationFrameHandler()
+        );
+    }
+
+    private StompSession.Subscription subscribeToMessageTopic(
+            StompSession stompSession,
+            String connectingUserEmail,
+            String timeZone,
+            Role role,
+            StompFrameHandler stompFrameHandler
+    ) {
         NoSecurityInjectUserConfig.injectedUsername = connectingUserEmail;
         String destinationFormatted = String.format(SUBSCRIPTION_URL_PATTERN, 1L);
         StompHeaders headers = createHeaders(destinationFormatted, timeZone, role);
-        return WebsocketUtils.subscribeToTopic(
-                stompSession,
-                headers,
-                new ChatNotificationFrameHandler()
-        );
+        return WebsocketUtils.subscribeToTopic(stompSession, headers, stompFrameHandler);
+    }
+
+    private StompSession.Subscription subscribeToExceptionTopic(
+            StompSession session,
+            String username,
+            ExceptionFrameHandler exceptionFrameHandler
+    ) {
+        NoSecurityInjectUserConfig.injectedUsername = username;
+        return WebsocketUtils.subscribeToTopic(session, createHeaders(EXCEPTIONS_PATH), exceptionFrameHandler);
+    }
+
+    private class ExceptionFrameHandler implements StompFrameHandler {
+
+        private final static ObjectMapper objectMapper;
+
+        static {
+            objectMapper = new ObjectMapper();
+            SimpleModule module = new SimpleModule();
+
+            module.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer());
+            module.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer());
+            module.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+            module.addSerializer(ZonedDateTime.class, new ZonedDateTimeSerializer());
+
+            objectMapper.registerModule(module);
+        }
+
+        @Override
+        public Type getPayloadType(StompHeaders headers) {
+            return ApiExceptionResponse.class;
+        }
+
+        @Override
+        public void handleFrame(StompHeaders headers, Object payload) {
+            ApiExceptionResponse payloadConverted = (ApiExceptionResponse) payload;
+            exceptionBlockingQueue.add(objectMapper.convertValue(payloadConverted, ApiExceptionResponse.class));
+        }
     }
 
     private class ChatNotificationFrameHandler implements StompFrameHandler {
@@ -411,9 +531,14 @@ public class ChatWebSocketIntegrationTest {
         return newSession;
     }
 
-    private StompHeaders createHeaders(String destination, String timezone, Role role) {
+    private StompHeaders createHeaders(String destination) {
         StompHeaders headers = new StompHeaders();
         headers.setDestination(destination);
+        return headers;
+    }
+
+    private StompHeaders createHeaders(String destination, String timezone, Role role) {
+        StompHeaders headers = createHeaders(destination);
         headers.add(HEADER_NAME_TIMEZONE, timezone);
         headers.add(HEADER_NAME_ROLE, role.name());
         return headers;

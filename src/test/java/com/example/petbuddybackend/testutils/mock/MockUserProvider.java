@@ -6,8 +6,10 @@ import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
+import com.example.petbuddybackend.utils.provider.geolocation.dto.Coordinates;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,11 +24,20 @@ public final class MockUserProvider {
                 .zipCode("12-123")
                 .streetNumber("5A")
                 .apartmentNumber("10")
+                .latitude(BigDecimal.valueOf(52.22977))
+                .longitude(BigDecimal.valueOf(21.01178))
                 .build();
     }
 
     public static Address createMockAddress() {
         return createMockAddress(Voivodeship.MAZOWIECKIE, "Warszawa");
+    }
+
+    public static Coordinates createMockCoordinates() {
+        return Coordinates.builder()
+                .latitude(BigDecimal.valueOf(52.2297))
+                .longitude(BigDecimal.valueOf(21.0118))
+                .build();
     }
 
     public static Caretaker createMockCaretaker(String name, String surname, String email, Address address) {
