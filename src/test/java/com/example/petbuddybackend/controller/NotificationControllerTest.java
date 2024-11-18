@@ -73,7 +73,7 @@ public class NotificationControllerTest {
     @WithMockUser("caretakerEmail")
     void markNotificationsAsRead_shouldReturnProperAnswer() throws Exception {
 
-        mockMvc.perform(post("/api/notifications/all-read")
+        mockMvc.perform(post("/api/notifications/mark-read")
                         .header(ROLE_HEADER_NAME, Role.CARETAKER))
                 .andExpect(status().isOk());
     }

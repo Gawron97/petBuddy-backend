@@ -18,10 +18,10 @@ public interface CaretakerNotificationRepository extends JpaRepository<Caretaker
     @Query("""
         UPDATE CaretakerNotification n
         SET n.isRead = true
-        WHERE n.caretaker.email = :caretaker_email
+        WHERE n.caretaker.email = :caretakerEmail
             AND n.isRead = false
 
     """)
-    void markAllNotificationsOfCaretakerAsRead(String caretaker_email);
+    void markAllNotificationsOfCaretakerAsRead(String caretakerEmail);
 
 }

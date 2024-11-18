@@ -82,7 +82,7 @@ public class NotificationController {
             summary = "Mark all notification of currently logged in user as read",
             description = "Only notifications for current profile will be marked as read."
     )
-    @PostMapping("/all-read")
+    @PostMapping("/mark-read")
     @PreAuthorize("isAuthenticated()")
     public void markNotificationsAsRead(Principal principal,
                                         @RoleParameter

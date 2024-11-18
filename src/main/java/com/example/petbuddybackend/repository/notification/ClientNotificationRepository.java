@@ -18,9 +18,9 @@ public interface ClientNotificationRepository extends JpaRepository<ClientNotifi
     @Query("""
         UPDATE ClientNotification n
         SET n.isRead = true
-        WHERE n.client.email = :client_email
+        WHERE n.client.email = :clientEmail
             AND n.isRead = false
 
     """)
-    void markAllNotificationsOfClientAsRead(String client_email);
+    void markAllNotificationsOfClientAsRead(String clientEmail);
 }
