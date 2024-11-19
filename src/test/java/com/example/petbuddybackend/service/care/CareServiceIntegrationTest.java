@@ -113,7 +113,7 @@ public class CareServiceIntegrationTest {
                 .build();
 
         // When
-        DetailedCareDTO result = careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault());
+        DetailedCareWithHistoryDTO result = careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault());
 
         // Then
         Care care = careRepository.findById(result.id()).orElseThrow();
@@ -202,7 +202,7 @@ public class CareServiceIntegrationTest {
         UpdateCareDTO updateCareDTO = createUpdateCareDTO("20.00");
 
         // When
-        DetailedCareDTO result = transactionTemplate.execute(status ->
+        DetailedCareWithHistoryDTO result = transactionTemplate.execute(status ->
                 careService.updateCare(careAfterTransaction.getId(), updateCareDTO, caretaker.getEmail(), ZoneId.systemDefault())
         );
 
@@ -285,7 +285,7 @@ public class CareServiceIntegrationTest {
         );
 
         // When
-        DetailedCareDTO result = transactionTemplate.execute(status ->
+        DetailedCareWithHistoryDTO result = transactionTemplate.execute(status ->
                 careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)
         );
 
@@ -363,7 +363,7 @@ public class CareServiceIntegrationTest {
 
 
         // When
-        DetailedCareDTO result = transactionTemplate.execute(status ->
+        DetailedCareWithHistoryDTO result = transactionTemplate.execute(status ->
                 careService.clientChangeCareStatus(careAfterTransaction.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)
         );
 
@@ -423,7 +423,7 @@ public class CareServiceIntegrationTest {
         );
 
         // When
-        DetailedCareDTO result = transactionTemplate.execute(status ->
+        DetailedCareWithHistoryDTO result = transactionTemplate.execute(status ->
                 careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED)
         );
 
@@ -469,7 +469,7 @@ public class CareServiceIntegrationTest {
         );
 
         // When
-        DetailedCareDTO result = transactionTemplate.execute(status ->
+        DetailedCareWithHistoryDTO result = transactionTemplate.execute(status ->
                 careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED)
         );
 

@@ -74,7 +74,7 @@ public class CareService {
     private final BlockService blockService;
     private final CareStatusesHistoryService careStatusesHistoryService;
 
-    public DetailedCareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail,
+    public DetailedCareWithHistoryDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail,
                                    ZoneId timeZone) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
@@ -91,10 +91,10 @@ public class CareService {
 
         careStatusesHistoryService.addCareStatusesHistory(care);
         sendCaretakerCareNotification(care, CREATE_RESERVATION_MESSAGE);
-        return careMapper.mapToDetailedCareDTO(care, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
 
-    public DetailedCareDTO updateCare(Long careId, UpdateCareDTO updateCare, String caretakerEmail, ZoneId timeZone) {
+    public DetailedCareWithHistoryDTO updateCare(Long careId, UpdateCareDTO updateCare, String caretakerEmail, ZoneId timeZone) {
         Care care = getCareOfCaretaker(careId, caretakerEmail);
 
         careStateMachine.transitionToEditCare(care);
@@ -103,10 +103,10 @@ public class CareService {
         Care savedCare = careRepository.save(care);
         careStatusesHistoryService.addCareStatusesHistory(savedCare);
         sendClientCareNotification(savedCare, UPDATE_RESERVATION_MESSAGE);
-        return careMapper.mapToDetailedCareDTO(savedCare, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timeZone);
     }
 
-    public DetailedCareDTO clientChangeCareStatus(Long careId, String clientEmail, ZoneId timeZone,
+    public DetailedCareWithHistoryDTO clientChangeCareStatus(Long careId, String clientEmail, ZoneId timeZone,
                                                   CareStatus newStatus) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         Care care = getCareOfClient(careId, clientEmail);
@@ -116,10 +116,10 @@ public class CareService {
         careStatusesHistoryService.addCareStatusesHistory(care);
         sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
 
-        return careMapper.mapToDetailedCareDTO(care, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
 
-    public DetailedCareDTO caretakerChangeCareStatus(Long careId, String caretakerEmail, ZoneId timeZone,
+    public DetailedCareWithHistoryDTO caretakerChangeCareStatus(Long careId, String caretakerEmail, ZoneId timeZone,
                                              CareStatus newStatus) {
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
         Care care = getCareOfCaretaker(careId, caretakerEmail);
@@ -129,7 +129,7 @@ public class CareService {
         careStatusesHistoryService.addCareStatusesHistory(care);
         sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
 
-        return careMapper.mapToDetailedCareDTO(care, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
 
 
@@ -162,12 +162,12 @@ public class CareService {
         return careMapper.mapToDetailedCareWithHistoryDTO(care, timezone);
     }
 
-    public DetailedCareDTO markCareAsConfirmed(Long careId, String caretakerUsername, Role role, ZoneId timezone) {
+    public DetailedCareWithHistoryDTO markCareAsConfirmed(Long careId, String caretakerUsername, Role role, ZoneId timezone) {
         Care care = getCareOfCaretaker(careId, caretakerUsername);
         careStateMachine.transition(role, care, CareStatus.CONFIRMED);
         Care savedCare = careRepository.save(care);
         careStatusesHistoryService.addCareStatusesHistory(savedCare);
-        return careMapper.mapToDetailedCareDTO(savedCare, timezone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timezone);
     }
 
     @Transactional

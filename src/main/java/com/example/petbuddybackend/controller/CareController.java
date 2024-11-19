@@ -111,7 +111,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO changeCarePrice(
+    public DetailedCareWithHistoryDTO changeCarePrice(
             @RequestHeader(value = "${header-name.role}")
             @AcceptRole(acceptRole = Role.CARETAKER)
             Role role,
@@ -136,7 +136,7 @@ public class CareController {
                     """
     )
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO markCareAsConfirmed(
+    public DetailedCareWithHistoryDTO markCareAsConfirmed(
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role,
             Principal principal,
@@ -170,7 +170,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO acceptCare(
+    public DetailedCareWithHistoryDTO acceptCare(
             @RequestHeader(value = "${header-name.role}")
             @RoleParameter
             Role role,
@@ -197,7 +197,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO rejectCareByCaretaker(
+    public DetailedCareWithHistoryDTO rejectCareByCaretaker(
             @RequestHeader(value = "${header-name.role}")
             @RoleParameter
             Role role,
@@ -225,7 +225,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO makeReservation(
+    public DetailedCareWithHistoryDTO makeReservation(
             @AcceptRole(acceptRole = Role.CLIENT)
             @RequestHeader(value = "${header-name.role}") Role role,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
