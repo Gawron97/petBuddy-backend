@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.care;
 
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareDTO;
+import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
@@ -904,7 +905,7 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         //When
-        DetailedCareDTO result = careService.getCare(care.getId(), ZoneId.systemDefault(), client.getEmail());
+        DetailedCareWithHistoryDTO result = careService.getCare(care.getId(), ZoneId.systemDefault(), client.getEmail());
 
         //Then
         assertEquals(care.getId(), result.id());
