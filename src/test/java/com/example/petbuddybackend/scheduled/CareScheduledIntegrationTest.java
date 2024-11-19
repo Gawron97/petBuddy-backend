@@ -121,7 +121,7 @@ public class CareScheduledIntegrationTest {
                 .filter(care -> care.getClientStatus() == CareStatus.OUTDATED)
                 .toList();
 
-        List<Care> paidCares = cares.stream()
+        List<Care> confirmedCares = cares.stream()
                 .filter(care -> care.getClientStatus() == CareStatus.CONFIRMED)
                 .toList();
 
@@ -131,7 +131,7 @@ public class CareScheduledIntegrationTest {
 
         assertEquals(6, cares.size());
         assertEquals(0, outdatedCares.size());
-        assertEquals(1, paidCares.size());
+        assertEquals(1, confirmedCares.size());
         assertEquals(1, cancelledCares.size());
     }
 
@@ -148,7 +148,7 @@ public class CareScheduledIntegrationTest {
                 .filter(care -> care.getClientStatus() == CareStatus.OUTDATED)
                 .toList();
 
-        List<Care> paidCares = cares.stream()
+        List<Care> confirmedCares = cares.stream()
                 .filter(care -> care.getClientStatus() == CareStatus.CONFIRMED)
                 .toList();
 
@@ -158,7 +158,7 @@ public class CareScheduledIntegrationTest {
 
         assertEquals(6, cares.size());
         assertEquals(4, outdatedCares.size());
-        assertEquals(1, paidCares.size());
+        assertEquals(1, confirmedCares.size());
         assertEquals(1, cancelledCares.size());
     }
 

@@ -74,7 +74,7 @@ public class RatingServiceTest {
     private Caretaker caretaker;
     private Client client;
     private Care care;
-    private Care paidCare;
+    private Care confirmedCare;
 
 
     @BeforeEach
@@ -85,7 +85,7 @@ public class RatingServiceTest {
         care = PersistenceUtils.addCare(
                 careRepository, createMockCare(caretaker, client, animalRepository.findById("DOG").orElseThrow())
         );
-        paidCare = PersistenceUtils.addCare(
+        confirmedCare = PersistenceUtils.addCare(
                 careRepository, createMockConfirmedCare(caretaker, client, animalRepository.findById("DOG").orElseThrow())
         );
     }
@@ -114,13 +114,13 @@ public class RatingServiceTest {
     void rateCaretaker_shouldSucceed() {
         ratingService.rateCaretaker(
                 client.getEmail(),
-                paidCare.getId(),
+                confirmedCare.getId(),
                 5,
                 "comment"
         );
 
         transactionTemplate.execute(status -> {
-            Rating rating = ratingRepository.getReferenceById(paidCare.getId());
+            Rating rating = ratingRepository.getReferenceById(confirmedCare.getId());
             assertEquals(1, ratingRepository.count());
             assertEquals(5, rating.getRating());
             assertTrue(ValidationUtils.fieldsNotNullRecursive(rating, Set.of("client", "caretaker", "care")));
@@ -131,13 +131,13 @@ public class RatingServiceTest {
     @Test
     void rateCaretaker_ratingExists_shouldUpdateRating() {
         transactionTemplate.execute(status ->
-                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(paidCare))
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(confirmedCare))
         );
 
         transactionTemplate.execute(status -> {
             ratingService.rateCaretaker(
                     client.getAccountData().getEmail(),
-                    paidCare.getId(),
+                    confirmedCare.getId(),
                     5,
                     "new comment"
             );
@@ -150,7 +150,7 @@ public class RatingServiceTest {
         });
 
         transactionTemplate.execute(status -> {
-            Rating rating = ratingRepository.getReferenceById(paidCare.getId());
+            Rating rating = ratingRepository.getReferenceById(confirmedCare.getId());
             assertEquals(5, rating.getRating());
             assertEquals("new comment", rating.getComment());
             assertEquals(client.getEmail(), rating.getCare().getClient().getEmail());
@@ -165,7 +165,7 @@ public class RatingServiceTest {
         if(shouldSucceed) {
             ratingService.rateCaretaker(
                     client.getAccountData().getEmail(),
-                    paidCare.getId(),
+                    confirmedCare.getId(),
                     rating,
                     "comment"
             );
@@ -174,7 +174,7 @@ public class RatingServiceTest {
 
         assertThrows(DataIntegrityViolationException.class, () -> ratingService.rateCaretaker(
                 client.getAccountData().getEmail(),
-                paidCare.getId(),
+                confirmedCare.getId(),
                 rating,
                 "comment"
         ));
@@ -191,7 +191,7 @@ public class RatingServiceTest {
     }
 
     @Test
-    void rateCaretaker_careNotPaid_shouldThrowIllegalActionException() {
+    void rateCaretaker_careNotConfirmed_shouldThrowIllegalActionException() {
         assertThrows(IllegalActionException.class, () -> ratingService.rateCaretaker(
                 client.getAccountData().getEmail(),
                 care.getId(),
@@ -222,11 +222,11 @@ public class RatingServiceTest {
     @Test
     void deleteRating_shouldSucceed() {
         transactionTemplate.execute(status ->
-                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(paidCare))
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(confirmedCare))
         );
 
         transactionTemplate.execute(status ->
-                ratingService.deleteRating(client.getAccountData().getEmail(), paidCare.getId())
+                ratingService.deleteRating(client.getAccountData().getEmail(), confirmedCare.getId())
         );
 
         transactionTemplate.execute(status -> {
@@ -247,14 +247,14 @@ public class RatingServiceTest {
     void deleteRating_ratingDoesNotExist_shouldThrow() {
         assertThrows(NotFoundException.class, () -> ratingService.deleteRating(
                 client.getAccountData().getEmail(),
-                paidCare.getId()
+                confirmedCare.getId()
         ));
     }
 
     @Test
     void getRatings_shouldReturnRatings() {
         transactionTemplate.execute(status ->
-                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(paidCare))
+                PersistenceUtils.addRatingToCaretaker(ratingRepository, createMockRating(confirmedCare))
         );
 
         Page<RatingResponse> ratings = transactionTemplate.execute(status ->
