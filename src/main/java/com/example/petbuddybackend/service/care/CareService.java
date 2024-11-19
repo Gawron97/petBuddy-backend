@@ -194,7 +194,8 @@ public class CareService {
         notificationService.addNotificationForClientAndSend(
                 care.getId(),
                 ObjectType.CARE,
-                client, message,
+                client,
+                message,
                 Set.of(
                         MessageFormat.format(NAME_SURNAME_FORMAT,
                                 caretaker.getAccountData().getName(), caretaker.getAccountData().getSurname())
