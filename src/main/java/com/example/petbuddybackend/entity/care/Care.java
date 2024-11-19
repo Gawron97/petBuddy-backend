@@ -11,6 +11,9 @@ import org.hibernate.annotations.Check;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -57,7 +60,8 @@ public class Care {
             joinColumns = @JoinColumn(name = "careId"),
             inverseJoinColumns = @JoinColumn(name = "animalAttributeId")
     )
-    private Set<AnimalAttribute> animalAttributes;
+    @Builder.Default
+    private Set<AnimalAttribute> animalAttributes = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "caretakerEmail", nullable = false, updatable = false)
@@ -66,6 +70,11 @@ public class Care {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clientEmail", nullable = false, updatable = false)
     private Client client;
+
+    @OneToMany(mappedBy = "care", fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
+    @Builder.Default
+    private List<CareStatusesHistory> careStatusesHistory = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

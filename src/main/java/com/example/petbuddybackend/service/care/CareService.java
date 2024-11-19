@@ -71,6 +71,7 @@ public class CareService {
     private final CareMapper careMapper = CareMapper.INSTANCE;
     private final CareStateMachine careStateMachine;
     private final BlockService blockService;
+    private final CareStatusesHistoryService careStatusesHistoryService;
 
     public DetailedCareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail,
                                    ZoneId timeZone) {
@@ -87,6 +88,7 @@ public class CareService {
                 createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes)
         );
 
+        careStatusesHistoryService.addCareStatusesHistory(care);
         sendCaretakerCareNotification(care, CREATE_RESERVATION_MESSAGE);
         return careMapper.mapToDetailedCareDTO(care, timeZone);
     }
@@ -98,6 +100,7 @@ public class CareService {
         careMapper.updateCareFromDTO(updateCare, care);
 
         Care savedCare = careRepository.save(care);
+        careStatusesHistoryService.addCareStatusesHistory(savedCare);
         sendClientCareNotification(savedCare, UPDATE_RESERVATION_MESSAGE);
         return careMapper.mapToDetailedCareDTO(savedCare, timeZone);
     }
@@ -109,6 +112,7 @@ public class CareService {
 
         careStateMachine.transition(Role.CLIENT, care, newStatus);
         care = careRepository.save(care);
+        careStatusesHistoryService.addCareStatusesHistory(care);
         sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
 
         return careMapper.mapToDetailedCareDTO(care, timeZone);
@@ -121,6 +125,7 @@ public class CareService {
 
         careStateMachine.transition(Role.CARETAKER, care, newStatus);
         care = careRepository.save(care);
+        careStatusesHistoryService.addCareStatusesHistory(care);
         sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
 
         return careMapper.mapToDetailedCareDTO(care, timeZone);
@@ -156,11 +161,12 @@ public class CareService {
         return careMapper.mapToDetailedCareDTO(care, timezone);
     }
 
-    public DetailedCareDTO markCareAsConfirmed(Long careId, String name, Role role, ZoneId orSystemDefault) {
-        Care care = getCareById(careId);
+    public DetailedCareDTO markCareAsConfirmed(Long careId, String caretakerUsername, Role role, ZoneId timezone) {
+        Care care = getCareOfCaretaker(careId, caretakerUsername);
         careStateMachine.transition(role, care, CareStatus.CONFIRMED);
         Care savedCare = careRepository.save(care);
-        return careMapper.mapToDetailedCareDTO(savedCare, orSystemDefault);
+        careStatusesHistoryService.addCareStatusesHistory(savedCare);
+        return careMapper.mapToDetailedCareDTO(savedCare, timezone);
     }
 
     @Transactional
