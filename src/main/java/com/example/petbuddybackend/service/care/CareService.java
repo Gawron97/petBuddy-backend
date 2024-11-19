@@ -33,7 +33,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -156,6 +159,23 @@ public class CareService {
         return careMapper.mapToDetailedCareDTO(savedCare, orSystemDefault);
     }
 
+    public void sendNotificationForConfirmCares() {
+//        Map<Caretaker, List<Care>> caresOfCaretakersStartedToday = getCaresOfCaretakersStartedToday();
+        List<Care> caresStaredToday = careRepository.findAllCaresWithStartDateToday();
+        for (Care care : caresStaredToday) {
+            sendCaretakerCareNotification(care, CREATE_RESERVATION_MESSAGE);
+        }
+    }
+
+    private Map<Caretaker, List<Care>> getCaresOfCaretakersStartedToday() {
+        List<Care> caresStartedToday = careRepository.findAllCaresWithStartDateToday();
+        return caresStartedToday
+                .stream()
+                .collect(
+                        Collectors.groupingBy(Care::getCaretaker)
+                );
+    }
+
     private void assertNotReservationToYourself(String clientEmail, String caretakerEmail) {
         if(clientEmail.equals(caretakerEmail)) {
             throw new IllegalActionException("Cannot make reservation to yourself");
@@ -172,17 +192,19 @@ public class CareService {
 
     private void sendClientCareNotification(Care care, String message) {
         Client client = care.getClient();
+        Caretaker caretaker = care.getCaretaker();
 
         notificationService.addNotificationForClientAndSend(
-                care.getId(), ObjectType.CARE, client, message, Set.of(client.getEmail())
+                care.getId(), ObjectType.CARE, client, message, Set.of(caretaker.getEmail())
         );
     }
 
     private void sendCaretakerCareNotification(Care care, String message) {
         Caretaker caretaker = care.getCaretaker();
+        Client client = care.getClient();
 
         notificationService.addNotificationForCaretakerAndSend(
-                care.getId(), ObjectType.CARE, caretaker, message, Set.of(caretaker.getEmail())
+                care.getId(), ObjectType.CARE, caretaker, message, Set.of(client.getEmail())
         );
     }
 

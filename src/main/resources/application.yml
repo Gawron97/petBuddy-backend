@@ -102,6 +102,7 @@ notification:
     update_reservation: "care_update"
     accepted_reservation: "care_accepted"
     rejected_reservation: "care_rejected"
+    confirm: "confirmation_needed"
 
 care:
   accept-time-window: P1D        # 2 days, meaning the care must be accepted within 2 days counting from the start date

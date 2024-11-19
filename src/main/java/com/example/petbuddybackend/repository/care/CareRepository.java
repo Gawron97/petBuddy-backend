@@ -77,4 +77,14 @@ public interface CareRepository extends JpaRepository<Care, Long>, JpaSpecificat
             """
     )
     Page<SimplifiedAccountDataDTO> findCaretakersRelatedToYourCares(String clientEmail, Pageable pageable);
+
+    @Query("""
+            SELECT c
+            FROM Care c
+            WHERE c.careStart = current_date
+            """
+    )
+    List<Care> findAllCaresWithStartDateToday();
+
 }
+
