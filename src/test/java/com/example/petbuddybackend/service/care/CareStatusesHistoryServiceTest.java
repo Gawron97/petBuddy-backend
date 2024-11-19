@@ -11,6 +11,7 @@ import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,6 +48,14 @@ public class CareStatusesHistoryServiceTest {
     @Autowired
     private TransactionTemplate transactionTemplate;
 
+    @AfterEach
+    void tearDown() {
+        careStatusesHistoryRepository.deleteAll();
+        careRepository.deleteAll();
+        caretakerRepository.deleteAll();
+        clientRepository.deleteAll();
+        appUserRepository.deleteAll();
+    }
 
     @Test
     void testAddCareStatusesHistory() {
