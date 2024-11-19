@@ -31,8 +31,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -42,6 +45,7 @@ public class CareService {
     private static final String CARE = "Care";
     private static final String CARETAKER_NOT_OWNER_MESSAGE = "Caretaker is not owner of the care";
     private static final String CLIENT_NOT_OWNER_MESSAGE = "Client is not owner of the care";
+    private static final String NAME_SURNAME_FORMAT = "{0} {1}";
 
     @Value("${notification.care.reservation}")
     private String CREATE_RESERVATION_MESSAGE;
@@ -54,6 +58,9 @@ public class CareService {
 
     @Value("${notification.care.rejected_reservation}")
     private String REJECT_RESERVATION_MESSAGE;
+
+    @Value("${notification.care.confirm}")
+    private String CONFIRM_NEEDED_MESSAGE;
 
     private final CareRepository careRepository;
     private final AnimalService animalService;
@@ -156,6 +163,14 @@ public class CareService {
         return careMapper.mapToDetailedCareDTO(savedCare, orSystemDefault);
     }
 
+    @Transactional
+    public void sendNotificationForConfirmCares() {
+        List<Care> caresStaredToday = careRepository.findAllCaresWithStartDateToday();
+        caresStaredToday.forEach(
+                care -> sendCaretakerCareNotification(care, CONFIRM_NEEDED_MESSAGE)
+        );
+    }
+
     private void assertNotReservationToYourself(String clientEmail, String caretakerEmail) {
         if(clientEmail.equals(caretakerEmail)) {
             throw new IllegalActionException("Cannot make reservation to yourself");
@@ -172,17 +187,33 @@ public class CareService {
 
     private void sendClientCareNotification(Care care, String message) {
         Client client = care.getClient();
+        Caretaker caretaker = care.getCaretaker();
 
         notificationService.addNotificationForClientAndSend(
-                care.getId(), ObjectType.CARE, client, message, Set.of(client.getEmail())
+                care.getId(),
+                ObjectType.CARE,
+                client,
+                message,
+                Set.of(
+                        MessageFormat.format(NAME_SURNAME_FORMAT,
+                                caretaker.getAccountData().getName(), caretaker.getAccountData().getSurname())
+                )
         );
     }
 
     private void sendCaretakerCareNotification(Care care, String message) {
         Caretaker caretaker = care.getCaretaker();
+        Client client = care.getClient();
 
         notificationService.addNotificationForCaretakerAndSend(
-                care.getId(), ObjectType.CARE, caretaker, message, Set.of(caretaker.getEmail())
+                care.getId(),
+                ObjectType.CARE,
+                caretaker,
+                message,
+                Set.of(
+                        MessageFormat.format(NAME_SURNAME_FORMAT,
+                                client.getAccountData().getName(), client.getAccountData().getSurname())
+                )
         );
     }
 

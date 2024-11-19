@@ -86,6 +86,7 @@ notification:
     update_reservation: "care_update"
     accepted_reservation: "care_accepted"
     rejected_reservation: "care_rejected"
+    confirm: "confirmation_needed"
 
 care:
   accept-time-window: P10D        # 10 days

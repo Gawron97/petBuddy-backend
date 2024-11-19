@@ -33,15 +33,16 @@ public class NotificationController {
                     """
                             ## Endpoint description
                             Get unread notifications for the current logged user for current profile.
-                                                        
+                            
                             ## Docs for websocket notifications:
-                                                        
+                            
                             Available translations:
                             - care_reservation = when user making a reservation
                             - care_update = when user updating price in reservation
                             - care_accepted = when care is accepted
                             - care_rejected = when care is rejected
-                                                        
+                            - confirmation_needed = when care needs confirmation
+                            
                             Note that notifications about unread chats has different structure.
                             Available dType for notifications:
                             - SIMPLE_NOTIFICATION
