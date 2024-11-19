@@ -27,14 +27,14 @@ public record CareSearchCriteria(
 
         @Schema(
                 description = "Filters by caretaker statuses",
-                allowableValues = {"PENDING", "ACCEPTED", "AWAITING_PAYMENT", "PAID", "CANCELLED", "OUTDATED"},
+                allowableValues = {"PENDING", "ACCEPTED", "READY_TO_PROCEED", "CONFIRMED", "CANCELLED", "OUTDATED"},
                 type = "array"
         )
         Set<CareStatus> caretakerStatuses,
 
         @Schema(
                 description = "Filters by client statuses",
-                allowableValues = {"PENDING", "ACCEPTED", "AWAITING_PAYMENT", "PAID", "CANCELLED", "OUTDATED"},
+                allowableValues = {"PENDING", "ACCEPTED", "READY_TO_PROCEED", "CONFIRMED", "CANCELLED", "OUTDATED"},
                 type = "array"
         )
         Set<CareStatus> clientStatuses,
