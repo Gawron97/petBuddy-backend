@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.care;
 
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareDTO;
+import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
@@ -155,10 +156,10 @@ public class CareService {
         : careRepository.findCaretakersRelatedToYourCares(userEmail, pageable);
     }
 
-    public DetailedCareDTO getCare(Long careId, ZoneId timezone, String userEmail) {
+    public DetailedCareWithHistoryDTO getCare(Long careId, ZoneId timezone, String userEmail) {
         Care care = getCareById(careId);
         assertUserParticipatingInCare(care, userEmail);
-        return careMapper.mapToDetailedCareDTO(care, timezone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timezone);
     }
 
     public DetailedCareDTO markCareAsConfirmed(Long careId, String caretakerUsername, Role role, ZoneId timezone) {

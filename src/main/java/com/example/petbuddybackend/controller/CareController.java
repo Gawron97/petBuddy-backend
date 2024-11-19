@@ -2,6 +2,7 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareDTO;
+import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.dto.paging.PagingParams;
@@ -88,7 +89,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO getCare(
+    public DetailedCareWithHistoryDTO getCare(
             @PathVariable Long careId,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             Principal principal
