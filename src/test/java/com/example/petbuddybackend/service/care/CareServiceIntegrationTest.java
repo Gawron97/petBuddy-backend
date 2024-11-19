@@ -15,6 +15,7 @@ import com.example.petbuddybackend.repository.care.CareRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
+import com.example.petbuddybackend.service.notification.NotificationService;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
@@ -31,6 +32,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -49,7 +51,10 @@ import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 
 @SpringBootTest
 @ContextConfiguration(classes = TestDataConfiguration.class)
@@ -75,6 +80,9 @@ public class CareServiceIntegrationTest {
 
     @Autowired
     private TransactionTemplate transactionTemplate;
+
+    @SpyBean
+    private NotificationService notificationService;
 
     private Caretaker caretaker;
     private Client client;
@@ -924,6 +932,27 @@ public class CareServiceIntegrationTest {
         //When Then
         assertThrows(ForbiddenException.class,
                 () -> careService.getCare(care.getId(), ZoneId.systemDefault(), "wrong@email"));
+
+    }
+
+    @Test
+    void testSendNotificationForConfirmCares_shouldTriggerSendingAndPersistingNotification() {
+
+        //Given
+        Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
+        care.setCareStart(LocalDate.now());
+        careRepository.save(care);
+
+        Care care2 = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("CAT").orElseThrow());
+        care2.setCareStart(LocalDate.now());
+        careRepository.save(care2);
+
+        //When
+        careService.sendNotificationForConfirmCares();
+
+        //Then
+        verify(notificationService, times(2))
+                .addNotificationForCaretakerAndSend(anyLong(), any(), any(), anyString(), any());
 
     }
 

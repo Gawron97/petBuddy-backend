@@ -81,7 +81,7 @@ public interface CareRepository extends JpaRepository<Care, Long>, JpaSpecificat
     @Query("""
             SELECT c
             FROM Care c
-            WHERE c.careStart = current_date
+            WHERE c.careStart = CURRENT_DATE
             """
     )
     List<Care> findAllCaresWithStartDateToday();

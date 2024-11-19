@@ -27,9 +27,6 @@ public class CareScheduled {
     private final NotificationService notificationService;
     private final CareService careService;
 
-    @Value("${notification.care.confirm}")
-    private String confirmNeededMessage;
-
     @Scheduled(cron = "0 1 0 * * *")
     public void terminateCares() {
         int obsoletedCaresCount = careStateMachine.outdateCaresIfStatePermitsAndSave();

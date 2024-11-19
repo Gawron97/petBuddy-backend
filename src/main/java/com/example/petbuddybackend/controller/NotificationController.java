@@ -41,6 +41,7 @@ public class NotificationController {
                             - care_update = when user updating price in reservation
                             - care_accepted = when care is accepted
                             - care_rejected = when care is rejected
+                            - confirmation_needed = when care needs confirmation
                                                         
                             Note that notifications about unread chats has different structure.
                             Available dType for notifications:
