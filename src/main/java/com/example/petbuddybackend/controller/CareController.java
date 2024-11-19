@@ -143,7 +143,12 @@ public class CareController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             @PathVariable Long careId
     ) {
-        return careService.markCareAsConfirmed(careId, principal.getName(), role, TimeUtils.getOrSystemDefault(timeZone));
+        return careService.markCareAsConfirmed(
+                careId,
+                principal.getName(),
+                role,
+                TimeUtils.getOrSystemDefault(timeZone)
+        );
     }
 
 
