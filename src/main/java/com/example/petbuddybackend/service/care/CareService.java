@@ -186,7 +186,7 @@ public class CareService {
     }
 
     private Care renewPhotosOfCareParticipants(Care care) {
-        userService.renewAllPhotosOfUsers(
+        userService.renewProfilePictureOfUsers(
                 List.of(care.getCaretaker().getAccountData(), care.getClient().getAccountData())
         );
         return care;

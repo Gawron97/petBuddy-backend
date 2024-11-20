@@ -112,6 +112,10 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void renewProfilePictureOfUsers(List<AppUser> users) {
+        users.forEach(this::renewProfilePicture);
+    }
+
     public AppUser renewProfilePicture(AppUser user) {
         PhotoLink photoLink = user.getProfilePicture();
 
@@ -120,10 +124,6 @@ public class UserService {
         }
 
         return user;
-    }
-
-    public void renewAllPhotosOfUsers(List<AppUser> users) {
-        users.forEach(this::renewAllPhotosOfUser);
     }
 
     public void renewAllPhotosOfUser(AppUser user) {
