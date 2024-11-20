@@ -7,6 +7,9 @@ import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
+import com.example.petbuddybackend.entity.care.Care;
+import com.example.petbuddybackend.entity.care.CareStatus;
+import com.example.petbuddybackend.entity.care.CareStatusesHistory;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.offer.Offer;
 import com.example.petbuddybackend.entity.rating.Rating;
@@ -19,6 +22,7 @@ import com.example.petbuddybackend.repository.animal.AnimalAttributeRepository;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.availability.AvailabilityRepository;
 import com.example.petbuddybackend.repository.care.CareRepository;
+import com.example.petbuddybackend.repository.care.CareStatusesHistoryRepository;
 import com.example.petbuddybackend.repository.chat.ChatMessageRepository;
 import com.example.petbuddybackend.repository.chat.ChatRoomRepository;
 import com.example.petbuddybackend.repository.offer.OfferConfigurationRepository;
@@ -38,6 +42,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 
@@ -73,6 +78,7 @@ public class MockDataCreator {
     private final ChatMessageRepository chatMessageRepository;
     private final CareRepository careRepository;
     private final ChatService chatService;
+    private final CareStatusesHistoryRepository careStatusesHistoryRepository;
 
     List<AppUser> caretakerAppUsers;
     List<AppUser> clientAppUsers;
@@ -131,19 +137,11 @@ public class MockDataCreator {
         offers = offerRepository.findAll();
         availabilityRepository.saveAllAndFlush(mockService.createMockAvailabilitiesForOffers(offers));
 
-        // chat
-        Client client = createKnownClient();
-        Caretaker caretaker = createKnownCaretaker();
-        createChat(client, caretaker);
-
         // cares
         clients = clientRepository.findAll();
         caretakers = caretakerRepository.findAll();
         careRepository.saveAllAndFlush(
-                mockService.createMockCares(clients, caretakers, animals, animalAttributes, CARE_COUNT)
-        );
-        careRepository.saveAllAndFlush(
-                mockService.createMockCares(List.of(client), List.of(caretaker), animals, animalAttributes, 10)
+                mockService.createMockCares(clients, caretakers, animals, animalAttributes, LocalDate.now(), CARE_COUNT)
         );
 
         // ratings
@@ -156,6 +154,8 @@ public class MockDataCreator {
         clientRepository.saveAllAndFlush(
                 mockService.addFollowingCaretakersToClients(clients, caretakers, FOLLOWING_CARETAKERS_COUNT)
         );
+
+        createKnownMockUsers();
 
         // clean cache
         log.info("Mock data created successfully!");
@@ -184,6 +184,28 @@ public class MockDataCreator {
                 chatRoomRepository.count() != 0 ||
                 chatMessageRepository.count() != 0 ||
                 careRepository.count() != 0;
+    }
+
+    private void createKnownMockUsers() {
+        Client client = createKnownClient();
+        Caretaker caretaker = createKnownCaretaker();
+        createChat(client, caretaker);
+        Care care = careRepository.saveAndFlush(mockService.createMockCare(
+                client,
+                caretaker,
+                animals.get(0),
+                animalAttributes,
+                LocalDate.now(),
+                CareStatus.READY_TO_PROCEED,
+                CareStatus.READY_TO_PROCEED
+        ));
+
+        careStatusesHistoryRepository.save(CareStatusesHistory.builder()
+                        .clientStatus(CareStatus.READY_TO_PROCEED)
+                        .caretakerStatus(CareStatus.READY_TO_PROCEED)
+                        .care(care)
+                        .build()
+        );
     }
 
     private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers) {
