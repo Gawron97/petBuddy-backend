@@ -2,6 +2,7 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareDTO;
+import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.dto.paging.PagingParams;
@@ -88,7 +89,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO getCare(
+    public DetailedCareWithHistoryDTO getCare(
             @PathVariable Long careId,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             Principal principal
@@ -110,7 +111,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO changeCarePrice(
+    public DetailedCareWithHistoryDTO changeCarePrice(
             @RequestHeader(value = "${header-name.role}")
             @AcceptRole(acceptRole = Role.CARETAKER)
             Role role,
@@ -135,14 +136,19 @@ public class CareController {
                     """
     )
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO markCareAsConfirmed(
+    public DetailedCareWithHistoryDTO markCareAsConfirmed(
             @AcceptRole(acceptRole = Role.CARETAKER)
             @RequestHeader(value = "${header-name.role}") Role role,
             Principal principal,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,
             @PathVariable Long careId
     ) {
-        return careService.markCareAsConfirmed(careId, principal.getName(), role, TimeUtils.getOrSystemDefault(timeZone));
+        return careService.markCareAsConfirmed(
+                careId,
+                principal.getName(),
+                role,
+                TimeUtils.getOrSystemDefault(timeZone)
+        );
     }
 
 
@@ -164,7 +170,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO acceptCare(
+    public DetailedCareWithHistoryDTO acceptCare(
             @RequestHeader(value = "${header-name.role}")
             @RoleParameter
             Role role,
@@ -191,7 +197,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO rejectCareByCaretaker(
+    public DetailedCareWithHistoryDTO rejectCareByCaretaker(
             @RequestHeader(value = "${header-name.role}")
             @RoleParameter
             Role role,
@@ -219,7 +225,7 @@ public class CareController {
             @ApiResponse(responseCode = "404", description = "When data provided is not found in the system")
     })
     @PreAuthorize("isAuthenticated()")
-    public DetailedCareDTO makeReservation(
+    public DetailedCareWithHistoryDTO makeReservation(
             @AcceptRole(acceptRole = Role.CLIENT)
             @RequestHeader(value = "${header-name.role}") Role role,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String timeZone,

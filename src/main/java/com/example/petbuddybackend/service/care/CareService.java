@@ -2,6 +2,7 @@ package com.example.petbuddybackend.service.care;
 
 import com.example.petbuddybackend.dto.care.CreateCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareDTO;
+import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
@@ -71,8 +72,9 @@ public class CareService {
     private final CareMapper careMapper = CareMapper.INSTANCE;
     private final CareStateMachine careStateMachine;
     private final BlockService blockService;
+    private final CareStatusesHistoryService careStatusesHistoryService;
 
-    public DetailedCareDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail,
+    public DetailedCareWithHistoryDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail,
                                    ZoneId timeZone) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
@@ -87,43 +89,51 @@ public class CareService {
                 createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes)
         );
 
+        careStatusesHistoryService.addCareStatusesHistory(care);
+        renewPhotosOfCareParticipants(care);
         sendCaretakerCareNotification(care, CREATE_RESERVATION_MESSAGE);
-        return careMapper.mapToDetailedCareDTO(care, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
 
-    public DetailedCareDTO updateCare(Long careId, UpdateCareDTO updateCare, String caretakerEmail, ZoneId timeZone) {
+    public DetailedCareWithHistoryDTO updateCare(Long careId, UpdateCareDTO updateCare, String caretakerEmail, ZoneId timeZone) {
         Care care = getCareOfCaretaker(careId, caretakerEmail);
 
         careStateMachine.transitionToEditCare(care);
         careMapper.updateCareFromDTO(updateCare, care);
 
         Care savedCare = careRepository.save(care);
+        careStatusesHistoryService.addCareStatusesHistory(savedCare);
+        renewPhotosOfCareParticipants(savedCare);
         sendClientCareNotification(savedCare, UPDATE_RESERVATION_MESSAGE);
-        return careMapper.mapToDetailedCareDTO(savedCare, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timeZone);
     }
 
-    public DetailedCareDTO clientChangeCareStatus(Long careId, String clientEmail, ZoneId timeZone,
+    public DetailedCareWithHistoryDTO clientChangeCareStatus(Long careId, String clientEmail, ZoneId timeZone,
                                                   CareStatus newStatus) {
         userService.assertHasRole(clientEmail, Role.CLIENT);
         Care care = getCareOfClient(careId, clientEmail);
 
         careStateMachine.transition(Role.CLIENT, care, newStatus);
         care = careRepository.save(care);
-        sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
 
-        return careMapper.mapToDetailedCareDTO(care, timeZone);
+        careStatusesHistoryService.addCareStatusesHistory(care);
+        renewPhotosOfCareParticipants(care);
+        sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
 
-    public DetailedCareDTO caretakerChangeCareStatus(Long careId, String caretakerEmail, ZoneId timeZone,
+    public DetailedCareWithHistoryDTO caretakerChangeCareStatus(Long careId, String caretakerEmail, ZoneId timeZone,
                                              CareStatus newStatus) {
         userService.assertHasRole(caretakerEmail, Role.CARETAKER);
         Care care = getCareOfCaretaker(careId, caretakerEmail);
 
         careStateMachine.transition(Role.CARETAKER, care, newStatus);
         care = careRepository.save(care);
-        sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
 
-        return careMapper.mapToDetailedCareDTO(care, timeZone);
+        careStatusesHistoryService.addCareStatusesHistory(care);
+        renewPhotosOfCareParticipants(care);
+        sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
 
 
@@ -135,12 +145,14 @@ public class CareService {
                 : CareSpecificationUtils.toSpecificationForClient(filters, emails, userEmail);
 
         return careRepository.findAll(spec, pageable)
+                .map(this::renewPhotosOfCareParticipants)
                 .map(care -> careMapper.mapToDetailedCareDTO(care, zoneId));
 
     }
 
     public Care getCareById(Long careId) {
         return careRepository.findById(careId)
+                .map(this::renewPhotosOfCareParticipants)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
     }
 
@@ -150,17 +162,19 @@ public class CareService {
         : careRepository.findCaretakersRelatedToYourCares(userEmail, pageable);
     }
 
-    public DetailedCareDTO getCare(Long careId, ZoneId timezone, String userEmail) {
+    public DetailedCareWithHistoryDTO getCare(Long careId, ZoneId timezone, String userEmail) {
         Care care = getCareById(careId);
         assertUserParticipatingInCare(care, userEmail);
-        return careMapper.mapToDetailedCareDTO(care, timezone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timezone);
     }
 
-    public DetailedCareDTO markCareAsConfirmed(Long careId, String name, Role role, ZoneId orSystemDefault) {
-        Care care = getCareById(careId);
+    public DetailedCareWithHistoryDTO markCareAsConfirmed(Long careId, String caretakerUsername, Role role, ZoneId timezone) {
+        Care care = getCareOfCaretaker(careId, caretakerUsername);
         careStateMachine.transition(role, care, CareStatus.CONFIRMED);
         Care savedCare = careRepository.save(care);
-        return careMapper.mapToDetailedCareDTO(savedCare, orSystemDefault);
+        careStatusesHistoryService.addCareStatusesHistory(savedCare);
+        renewPhotosOfCareParticipants(savedCare);
+        return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timezone);
     }
 
     @Transactional
@@ -169,6 +183,13 @@ public class CareService {
         caresStaredToday.forEach(
                 care -> sendCaretakerCareNotification(care, CONFIRM_NEEDED_MESSAGE)
         );
+    }
+
+    private Care renewPhotosOfCareParticipants(Care care) {
+        userService.renewProfilePictureOfUsers(
+                List.of(care.getCaretaker().getAccountData(), care.getClient().getAccountData())
+        );
+        return care;
     }
 
     private void assertNotReservationToYourself(String clientEmail, String caretakerEmail) {

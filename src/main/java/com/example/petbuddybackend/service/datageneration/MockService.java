@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 @Profile("dev | test")
 @Service
@@ -402,52 +403,49 @@ public class MockService {
     }
 
     public List<Care> createMockCares(List<Client> clients, List<Caretaker> caretakers, List<Animal> animals,
-                                      List<AnimalAttribute> animalAttributes, int count) {
+                                      List<AnimalAttribute> animalAttributes, LocalDate startCare, int count) {
 
         List<Care> cares = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             Client client = clients.get(faker.random().nextInt(clients.size()));
             Caretaker caretaker = caretakers.get(faker.random().nextInt(caretakers.size()));
             Animal animal = animals.get(faker.random().nextInt(animals.size()));
-            List<AnimalAttribute> availableAnimalAttributes = getAnimalAttributeForAnimalType(
-                    animal.getAnimalType(),
-                    animalAttributes
-            );
-            Set<AnimalAttribute> animalAttributesForCare =
-                    new HashSet<>(getSomeRandomUniqueAnimalAttributes(
-                            availableAnimalAttributes,
-                            faker.random().nextInt(availableAnimalAttributes.size()))
-                    );
-            cares.add(createMockCare(client, caretaker, animal, animalAttributesForCare));
+            cares.add(createMockCare(client, caretaker, animal, animalAttributes, startCare));
         }
         return cares;
     }
 
+    public Care createMockCare(
+            Client client,
+            Caretaker caretaker,
+            Animal animal,
+            List<AnimalAttribute> animalAttributes,
+            LocalDate careStart,
+            CareStatus clientStatus,
+            CareStatus caretakerStatus
+    ) {
 
+        List<AnimalAttribute> availableAnimalAttributes = getAnimalAttributeForAnimalType(
+                animal.getAnimalType(),
+                animalAttributes
+        );
 
-    private Care createMockCare(Client client, Caretaker caretaker, Animal animal,
-                                Set<AnimalAttribute> animalAttributesForCare) {
-
-        LocalDate careStart = getRandomDateBetween(
-                LocalDate.now(),
-                LocalDate.now().plusDays(10)
-        ).toLocalDate();
+        Set<AnimalAttribute> animalAttributesForCare =
+                new HashSet<>(getSomeRandomUniqueAnimalAttributes(
+                        availableAnimalAttributes,
+                        faker.random().nextInt(availableAnimalAttributes.size()))
+                );
 
         LocalDate careEnd = getRandomDateBetween(
                 careStart,
                 LocalDate.ofEpochDay(careStart.toEpochDay() + 10)
         ).toLocalDate();
 
-        Pair<CareStatus, CareStatus> randomStatuses = validClientCaretakerCareStatuses.stream()
-                .skip(faker.random().nextInt(validClientCaretakerCareStatuses.size()))
-                .findFirst()
-                .orElseThrow();
-
         Care care = Care.builder()
                 .careStart(careStart)
                 .careEnd(careEnd)
-                .clientStatus(randomStatuses.getLeft())
-                .caretakerStatus(randomStatuses.getRight())
+                .clientStatus(clientStatus)
+                .caretakerStatus(caretakerStatus)
                 .description(faker.lorem().sentence())
                 .dailyPrice(BigDecimal.valueOf(faker.number().randomDouble(2, 10, 100)))
                 .animal(animal)
@@ -459,6 +457,40 @@ public class MockService {
         caretaker.getCares().add(care);
         client.getCares().add(care);
         return care;
+    }
+
+    public Care createMockCare(
+            Client client,
+            Caretaker caretaker,
+            Animal animal,
+            List<AnimalAttribute> animalAttributes,
+            LocalDate careStart
+    ) {
+        Pair<CareStatus, CareStatus> randomStatuses = validClientCaretakerCareStatuses.stream()
+                .skip(faker.random().nextInt(validClientCaretakerCareStatuses.size()))
+                .findFirst()
+                .orElseThrow();
+
+        return createMockCare(
+                client,
+                caretaker,
+                animal,
+                animalAttributes,
+                careStart,
+                randomStatuses.getLeft(),
+                randomStatuses.getRight()
+        );
+    }
+
+    public Care createMockCare(Client client, Caretaker caretaker,
+                               Animal animal, List<AnimalAttribute> animalAttributes) {
+
+        LocalDate careStart = getRandomDateBetween(
+                LocalDate.now(),
+                LocalDate.now().plusDays(10)
+        ).toLocalDate();
+
+        return createMockCare(client, caretaker, animal, animalAttributes, careStart);
     }
 
     private LocalDateTime getRandomDateBetween(LocalDate minDate, LocalDate maxDate) {
@@ -479,6 +511,12 @@ public class MockService {
         return availabilities;
     }
 
+    public Set<Availability> createAvailabilityForOffers(List<Offer> offers, LocalDate start, LocalDate end) {
+        return offers.stream()
+                .map(offer -> createMockAvailability(offer, start, end))
+                .collect(Collectors.toSet());
+    }
+
     private Set<Availability> createMockAvailabilitiesForOffer(Offer offer) {
 
         int availabilitiesCount = faker.random().nextInt(0, 10);
@@ -492,6 +530,14 @@ public class MockService {
 
         return availabilities;
 
+    }
+
+    private Availability createMockAvailability(Offer offer, LocalDate start, LocalDate end) {
+        return Availability.builder()
+                .availableFrom(start)
+                .availableTo(end)
+                .offer(offer)
+                .build();
     }
 
     private Availability createMockAvailability(Offer offer) {
