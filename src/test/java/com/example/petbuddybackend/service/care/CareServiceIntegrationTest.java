@@ -113,7 +113,9 @@ public class CareServiceIntegrationTest {
                 .build();
 
         // When
-        DetailedCareWithHistoryDTO result = careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault());
+        DetailedCareWithHistoryDTO result = transactionTemplate.execute(status ->
+                careService.makeReservation(createCareDTO, client.getEmail(), caretaker.getEmail(), ZoneId.systemDefault()));
+
 
         // Then
         Care care = careRepository.findById(result.id()).orElseThrow();
@@ -225,7 +227,8 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         // When Then
-        assertThrows(expectedExceptionClass, () -> careService.updateCare(care.getId(), updateCare, userEmail, ZoneId.systemDefault()));
+        transactionTemplate.execute(status ->
+                assertThrows(expectedExceptionClass, () -> careService.updateCare(care.getId(), updateCare, userEmail, ZoneId.systemDefault())));
 
     }
 
@@ -255,8 +258,10 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail(), ZoneId.systemDefault()));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail(), ZoneId.systemDefault())));
+
 
     }
 
@@ -271,8 +276,9 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail(), ZoneId.systemDefault()));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.updateCare(care.getId(), updateCare, caretaker.getEmail(), ZoneId.systemDefault())));
 
     }
 
@@ -318,8 +324,9 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)));
 
     }
 
@@ -332,8 +339,10 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)));
+
 
     }
 
@@ -346,8 +355,9 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)));
 
     }
 
@@ -395,8 +405,10 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)));
+
 
     }
 
@@ -409,8 +421,10 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.ACCEPTED)));
+
 
     }
 
@@ -455,8 +469,9 @@ public class CareServiceIntegrationTest {
         careRepository.saveAndFlush(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.caretakerChangeCareStatus(care.getId(), caretaker.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED)));
 
     }
 
@@ -501,8 +516,10 @@ public class CareServiceIntegrationTest {
         careRepository.save(care);
 
         // When Then
-        assertThrows(StateTransitionException.class,
-                () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED));
+        transactionTemplate.execute(status ->
+                assertThrows(StateTransitionException.class,
+                        () -> careService.clientChangeCareStatus(care.getId(), client.getEmail(), ZoneId.systemDefault(), CareStatus.CANCELLED)));
+
 
     }
 
@@ -931,8 +948,9 @@ public class CareServiceIntegrationTest {
         Care care = PersistenceUtils.addCare(careRepository, caretaker, client, animalRepository.findById("DOG").orElseThrow());
 
         //When Then
-        assertThrows(ForbiddenException.class,
-                () -> careService.getCare(care.getId(), ZoneId.systemDefault(), "wrong@email"));
+        transactionTemplate.execute(status ->
+                assertThrows(ForbiddenException.class,
+                        () -> careService.getCare(care.getId(), ZoneId.systemDefault(), "wrong@email")));
 
     }
 
