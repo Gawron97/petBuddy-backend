@@ -90,6 +90,7 @@ public class CareService {
         );
 
         careStatusesHistoryService.addCareStatusesHistory(care);
+        renewPhotosOfCareParticipants(care);
         sendCaretakerCareNotification(care, CREATE_RESERVATION_MESSAGE);
         return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
@@ -102,6 +103,7 @@ public class CareService {
 
         Care savedCare = careRepository.save(care);
         careStatusesHistoryService.addCareStatusesHistory(savedCare);
+        renewPhotosOfCareParticipants(savedCare);
         sendClientCareNotification(savedCare, UPDATE_RESERVATION_MESSAGE);
         return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timeZone);
     }
@@ -113,9 +115,10 @@ public class CareService {
 
         careStateMachine.transition(Role.CLIENT, care, newStatus);
         care = careRepository.save(care);
-        careStatusesHistoryService.addCareStatusesHistory(care);
-        sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
 
+        careStatusesHistoryService.addCareStatusesHistory(care);
+        renewPhotosOfCareParticipants(care);
+        sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
         return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
 
@@ -126,9 +129,10 @@ public class CareService {
 
         careStateMachine.transition(Role.CARETAKER, care, newStatus);
         care = careRepository.save(care);
-        careStatusesHistoryService.addCareStatusesHistory(care);
-        sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
 
+        careStatusesHistoryService.addCareStatusesHistory(care);
+        renewPhotosOfCareParticipants(care);
+        sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
         return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
     }
 
@@ -141,12 +145,14 @@ public class CareService {
                 : CareSpecificationUtils.toSpecificationForClient(filters, emails, userEmail);
 
         return careRepository.findAll(spec, pageable)
+                .map(this::renewPhotosOfCareParticipants)
                 .map(care -> careMapper.mapToDetailedCareDTO(care, zoneId));
 
     }
 
     public Care getCareById(Long careId) {
         return careRepository.findById(careId)
+                .map(this::renewPhotosOfCareParticipants)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CARE, careId.toString()));
     }
 
@@ -167,6 +173,7 @@ public class CareService {
         careStateMachine.transition(role, care, CareStatus.CONFIRMED);
         Care savedCare = careRepository.save(care);
         careStatusesHistoryService.addCareStatusesHistory(savedCare);
+        renewPhotosOfCareParticipants(savedCare);
         return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timezone);
     }
 
@@ -176,6 +183,13 @@ public class CareService {
         caresStaredToday.forEach(
                 care -> sendCaretakerCareNotification(care, CONFIRM_NEEDED_MESSAGE)
         );
+    }
+
+    private Care renewPhotosOfCareParticipants(Care care) {
+        userService.renewAllPhotosOfUsers(
+                List.of(care.getCaretaker().getAccountData(), care.getClient().getAccountData())
+        );
+        return care;
     }
 
     private void assertNotReservationToYourself(String clientEmail, String caretakerEmail) {

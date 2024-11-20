@@ -164,10 +164,8 @@ public class CaretakerService {
 
     private Caretaker renewCaretakerPictures(Caretaker caretaker) {
         AppUser appUser = caretaker.getAccountData();
-        List<PhotoLink> userPhotos = caretaker.getOfferPhotos();
 
-        userService.renewProfilePicture(appUser);
-        photoService.updatePhotoExpirations(userPhotos);
+        userService.renewAllPhotosOfUser(appUser);
         return caretakerRepository.save(caretaker);
     }
 

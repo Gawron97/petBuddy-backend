@@ -15,10 +15,10 @@ public class CareStatusesHistoryService {
     private final CareStatusesHistoryRepository careStatusesHistoryRepository;
 
     public void addCareStatusesHistory(Care care) {
-        careStatusesHistoryRepository.save(careStatusesHistory(care));
+        careStatusesHistoryRepository.save(createCareStatusesHistory(care));
     }
 
-    private CareStatusesHistory careStatusesHistory(Care care) {
+    private CareStatusesHistory createCareStatusesHistory(Care care) {
         return CareStatusesHistory
                 .builder()
                 .createdAt(ZonedDateTime.now())

@@ -58,7 +58,7 @@ public class CareStatusesHistoryServiceTest {
     }
 
     @Test
-    void testAddCareStatusesHistory() {
+    void testAddCreateCareStatusesHistory() {
 
         //Given
         Caretaker caretaker = PersistenceUtils.addCaretaker(caretakerRepository, appUserRepository);

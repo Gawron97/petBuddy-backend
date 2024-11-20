@@ -4,20 +4,23 @@ import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.UserProfilesData;
 import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
+import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
 import com.example.petbuddybackend.service.mapper.UserMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
-import com.example.petbuddybackend.utils.exception.throweable.user.InvalidRoleException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.user.InvalidRoleException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -117,6 +120,22 @@ public class UserService {
         }
 
         return user;
+    }
+
+    public void renewAllPhotosOfUsers(List<AppUser> users) {
+        users.forEach(this::renewAllPhotosOfUser);
+    }
+
+    public void renewAllPhotosOfUser(AppUser user) {
+        renewProfilePicture(user);
+        renewOfferPhotos(user);
+    }
+
+    private void renewOfferPhotos(AppUser user) {
+        if(user.getCaretaker() != null) {
+            Caretaker caretaker = user.getCaretaker();
+            photoService.updatePhotoExpirations(caretaker.getOfferPhotos());
+        }
     }
 
     public void assertHasRole(String clientEmail, Role role) {
