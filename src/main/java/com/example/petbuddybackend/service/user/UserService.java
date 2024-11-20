@@ -131,13 +131,6 @@ public class UserService {
         renewOfferPhotos(user);
     }
 
-    private void renewOfferPhotos(AppUser user) {
-        if(user.getCaretaker() != null) {
-            Caretaker caretaker = user.getCaretaker();
-            photoService.updatePhotoExpirations(caretaker.getOfferPhotos());
-        }
-    }
-
     public void assertHasRole(String clientEmail, Role role) {
         if(role == Role.CARETAKER && isCaretaker(clientEmail)) {
             return;
@@ -157,13 +150,10 @@ public class UserService {
         return caretakerRepository.existsById(email);
     }
 
-    public void assertCaretakerAndClientExist(String caretakerEmail, String clientEmail) {
-        if (!isCaretaker(caretakerEmail)) {
-            throw NotFoundException.withFormattedMessage(CARETAKER, caretakerEmail);
-        }
-
-        if (!isClient(clientEmail)) {
-            throw NotFoundException.withFormattedMessage(CLIENT, clientEmail);
+    private void renewOfferPhotos(AppUser user) {
+        if(user.getCaretaker() != null) {
+            Caretaker caretaker = user.getCaretaker();
+            photoService.updatePhotoExpirations(caretaker.getOfferPhotos());
         }
     }
 
