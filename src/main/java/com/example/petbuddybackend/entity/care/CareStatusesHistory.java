@@ -35,12 +35,4 @@ public class CareStatusesHistory {
             createdAt = ZonedDateTime.now();
         }
     }
-
-    @PreUpdate
-    public void preUpdate() {
-        if(createdAt == null) {
-            createdAt = ZonedDateTime.now();
-        }
-    }
-
 }
