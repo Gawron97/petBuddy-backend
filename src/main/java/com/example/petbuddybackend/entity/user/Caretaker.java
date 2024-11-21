@@ -51,13 +51,9 @@ public class Caretaker {
             " WHERE c.caretaker_email = email)")
     private Float avgRating;
 
-    @Basic(fetch = FetchType.LAZY)
-    @Formula("(SELECT COUNT(*) * AVG(r.rating) " +
-            " FROM Rating r " +
-            " JOIN Care c ON r.care_id = c.id " +
-            " WHERE c.caretaker_email = email" +
-            "   AND r.rating > 3)")
-    private Float ratingScore;
+    @Column(nullable = false)
+    @Builder.Default
+    private Float ratingScore = 0.0f;
 
     @OneToMany(mappedBy = "caretaker", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

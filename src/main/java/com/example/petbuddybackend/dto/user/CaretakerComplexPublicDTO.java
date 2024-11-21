@@ -15,7 +15,6 @@ public record CaretakerComplexPublicDTO(
         List<String> animals,
         List<OfferDTO> offers,
         Integer numberOfRatings,
-        Float avgRating,
-        Float ratingScore
+        Float avgRating
 ) {
 }
