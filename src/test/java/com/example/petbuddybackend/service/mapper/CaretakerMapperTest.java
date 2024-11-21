@@ -125,6 +125,7 @@ public class CaretakerMapperTest {
     private void setCalculatedFields(Caretaker caretaker) {
         caretaker.setAvgRating(4.5f);
         caretaker.setNumberOfRatings(2);
+        caretaker.setRatingScore(9.0f);
     }
 
 }
