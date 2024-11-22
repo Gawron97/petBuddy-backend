@@ -45,7 +45,7 @@ public class Caretaker {
     private Integer numberOfRatings;
 
     @Basic(fetch = FetchType.LAZY)
-    @Formula("(SELECT AVG(r.rating) " +
+    @Formula("(SELECT COALESCE(AVG(r.rating), 0.0) " +
             " FROM Rating r " +
             " JOIN Care c ON r.care_id = c.id " +
             " WHERE c.caretaker_email = email)")

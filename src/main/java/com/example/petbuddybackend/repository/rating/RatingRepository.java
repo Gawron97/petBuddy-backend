@@ -17,4 +17,22 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
         """)
     Float getAvgRating();
 
+    /**
+     * Find the percentile of the number of ratings of caretakers that have at least one rating.
+     */
+    @Query(value = """
+        
+        WITH number_of_ratings_query AS ( 
+            SELECT COUNT(*) AS number_of_ratings
+            FROM Rating r
+            JOIN Care c ON r.care_id = c.id
+            GROUP BY c.caretaker_email
+        )
+        SELECT PERCENTILE_CONT(:percentile)
+        WITHIN GROUP (ORDER BY number_of_ratings)
+        FROM number_of_ratings_query
+        """, nativeQuery = true)
+    Integer findPercentileOfNumberOfRatings(Float percentile);
+
+
 }

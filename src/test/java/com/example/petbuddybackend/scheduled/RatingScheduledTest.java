@@ -32,12 +32,11 @@ public class RatingScheduledTest {
         List<Caretaker> caretakers = getCaretakers();
 
         float expectedM = 4.5f;
-        when(caretakerRepository.findAllByOrderByNumberOfRatingsDesc()).thenReturn(caretakers);
+        int expectedC = 8;
+        when(ratingRepository.findPercentileOfNumberOfRatings(0.75f)).thenReturn(expectedC);
         when(ratingRepository.getAvgRating()).thenReturn(expectedM);
 
         ratingScheduled.updateRatingScoreOfCaretaker();
-
-        int expectedC = 8;
 
         verify(caretakerRepository).updateRatingScore(expectedM, expectedC);
 
