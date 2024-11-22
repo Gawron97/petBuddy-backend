@@ -15,6 +15,9 @@ public class RatingScheduled {
     private final RatingRepository ratingRepository;
     private final CaretakerRepository caretakerRepository;
 
+    /**
+     * Refreshing every 20 seconds for testing purpose, need to be change to every 30 minutes for production
+     */
     @Scheduled(cron = "0/20 * * * * *")
     public void updateRatingScoreOfCaretaker() {
 
