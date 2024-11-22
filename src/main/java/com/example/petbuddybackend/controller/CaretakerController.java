@@ -43,10 +43,9 @@ public class CaretakerController {
     @PostMapping("/all")
     @Operation(
             summary = "Get list of caretakers",
-            description = "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters." +
-                    " Request body is not required!" +
-                    " When sorting by availabilityDaysMatch this sort will be applied last, so it will be" +
-                    " ordered priority by this field"
+            description =
+                    "Retrieves a paginated list of caretakers based on provided search criteria and paging parameters." +
+                    " Request body is not required!"
     )
     public SearchCaretakersResponseDTO getCaretakers(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,

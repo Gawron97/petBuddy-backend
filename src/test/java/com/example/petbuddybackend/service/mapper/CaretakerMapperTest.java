@@ -68,9 +68,7 @@ public class CaretakerMapperTest {
         List<PhotoLink> offerPhotos = new ArrayList<>();
         Caretaker caretakerMappingResult = mapper.mapToCaretaker(dto, accountData, offerPhotos);
 
-        // Set calculated fields to pass the test
-        caretakerMappingResult.setAvgRating(4.5f);
-        caretakerMappingResult.setNumberOfRatings(2);
+        setCalculatedFields(caretakerMappingResult);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerMappingResult));
         assertSame(caretakerMappingResult.getOfferPhotos(), offerPhotos);
@@ -82,9 +80,7 @@ public class CaretakerMapperTest {
         PhotoLink profilePicture = MockUserProvider.createMockPhotoLink();
         caretaker.getAccountData().setProfilePicture(profilePicture);
 
-        // Set calculated fields to pass the test
-        caretaker.setNumberOfRatings(1);
-        caretaker.setAvgRating(4.5f);
+        setCalculatedFields(caretaker);
 
         CaretakerDTO caretakerMappingResult = mapper.mapToCaretakerDTO(caretaker);
 
@@ -96,8 +92,8 @@ public class CaretakerMapperTest {
         Caretaker caretaker = MockUserProvider.createMockCaretaker();
         PhotoLink profilePicture = MockUserProvider.createMockPhotoLink();
         caretaker.getAccountData().setProfilePicture(profilePicture);
-        caretaker.setNumberOfRatings(1);
-        caretaker.setAvgRating(4.5f);
+
+        setCalculatedFields(caretaker);
 
         ModifyCaretakerDTO dto = ModifyCaretakerDTO.builder()
                         .phoneNumber("12345678")
@@ -125,6 +121,7 @@ public class CaretakerMapperTest {
     private void setCalculatedFields(Caretaker caretaker) {
         caretaker.setAvgRating(4.5f);
         caretaker.setNumberOfRatings(2);
+        caretaker.setRatingScore(9.0f);
     }
 
 }
