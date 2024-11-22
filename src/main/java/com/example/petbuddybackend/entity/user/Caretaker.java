@@ -45,15 +45,14 @@ public class Caretaker {
     private Integer numberOfRatings;
 
     @Basic(fetch = FetchType.LAZY)
-    @Formula("(SELECT COALESCE(AVG(r.rating), 0.0) " +
+    @Formula("(SELECT AVG(r.rating) " +
             " FROM Rating r " +
             " JOIN Care c ON r.care_id = c.id " +
             " WHERE c.caretaker_email = email)")
     private Float avgRating;
 
-    @Column(nullable = false)
-    @Builder.Default
-    private Float ratingScore = 0.0f;
+    @Column
+    private Float ratingScore;
 
     @OneToMany(mappedBy = "caretaker", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

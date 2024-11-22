@@ -19,9 +19,9 @@ public interface CaretakerRepository extends JpaRepository<Caretaker, String>, J
     @Modifying
     @Query("""
         UPDATE Caretaker c
-        SET c.ratingScore = (((c.avgRating * c.numberOfRatings) + (:numberOfRatingsPercentile * :avgOfAllCaretakersRating)) /
-                 (c.numberOfRatings + :numberOfRatingsPercentile))
+        SET c.ratingScore = (((c.avgRating * c.numberOfRatings) + (:confidence * :avgGlobalRating)) /
+                 (c.numberOfRatings + :confidence))
         """)
-    void updateRatingScore(Float avgOfAllCaretakersRating, Integer numberOfRatingsPercentile);
+    void updateRatingScore(Float avgGlobalRating, Integer confidence);
 
 }

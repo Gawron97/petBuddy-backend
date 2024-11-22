@@ -15,12 +15,13 @@ public class RatingScheduled {
     private final RatingRepository ratingRepository;
     private final CaretakerRepository caretakerRepository;
 
-    @Scheduled(cron = "0 */30 * * * *")
+    @Scheduled(cron = "0/20 * * * * *")
     public void updateRatingScoreOfCaretaker() {
 
-        Float averageOfAllCaretakersRating = ratingRepository.getAvgRating();
-        Integer numberOfRatingsPercentile = ratingRepository.findPercentileOfNumberOfRatings(0.75f);
-        caretakerRepository.updateRatingScore(averageOfAllCaretakersRating, numberOfRatingsPercentile);
+        Float avgGlobalRating = ratingRepository.getAvgRating();
+        Integer confidence = ratingRepository.findPercentileOfNumberOfRatings(0.75f);
+        caretakerRepository.updateRatingScore(avgGlobalRating, confidence);
+        log.info("Updated rating score of caretakers");
 
     }
 
