@@ -60,6 +60,18 @@ public class ChatService {
                 .map(message -> chatMapper.mapToChatMessageDTO(message, timeZone));
     }
 
+    @Transactional(readOnly = true)
+    public Page<ChatRoomDTO> getChatRoomsByParticipantEmailSortedByLastMessage(String principalEmail,
+                                                                               Role role,
+                                                                               Pageable pageable,
+                                                                               ZoneId timeZone) {
+        Page<ChatRoom> principalChatRooms = role == Role.CLIENT ?
+                chatRoomRepository.findByClientEmailOrderByLastMessageDesc(principalEmail, pageable) :
+                chatRoomRepository.findByCaretakerEmailOrderByLastMessageDesc(principalEmail, pageable);
+
+        return principalChatRooms.map(room -> mapToChatRoomDTO(principalEmail, room, timeZone));
+    }
+
     public ChatRoom getChatRoomById(Long chatId) {
         return chatRepository.findById(chatId).orElseThrow(() ->
                 NotFoundException.withFormattedMessage(CHAT, chatId.toString())
@@ -76,17 +88,6 @@ public class ChatService {
                 getByClientEmailAndCaretakerEmail(participantUsername, username);
 
         return mapToChatRoomDTO(username, chatRoom, timeZone);
-    }
-
-    public Page<ChatRoomDTO> getChatRoomsByParticipantEmailSortedByLastMessage(String principalEmail,
-                                                                               Role role,
-                                                                               Pageable pageable,
-                                                                               ZoneId timeZone) {
-        Page<ChatRoom> principalChatRooms = role == Role.CLIENT ?
-                chatRoomRepository.findByClientEmailOrderByLastMessageDesc(principalEmail, pageable) :
-                chatRoomRepository.findByCaretakerEmailOrderByLastMessageDesc(principalEmail, pageable);
-
-        return principalChatRooms.map(room -> mapToChatRoomDTO(principalEmail, room, timeZone));
     }
 
     public String getMessageReceiverEmail(String senderEmail, ChatRoom chatRoom) {
