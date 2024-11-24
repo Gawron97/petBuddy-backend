@@ -190,13 +190,13 @@ public class ChatServiceTest {
     void testGetChatRoomsByParticipantEmail_shouldSucceed() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatRoomDTO> clientChatRooms = chatService.getChatRoomsByParticipantEmail(
+        Page<ChatRoomDTO> clientChatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
                 client.getEmail(),
                 Role.CLIENT,
                 pageable,
                 ZoneId.of("Europe/Warsaw")
         );
-        Page<ChatRoomDTO> caretakerChatRooms = chatService.getChatRoomsByParticipantEmail(
+        Page<ChatRoomDTO> caretakerChatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
                 caretaker.getEmail(),
                 Role.CARETAKER,
                 pageable,
@@ -207,17 +207,17 @@ public class ChatServiceTest {
         ChatRoomDTO caretakerChatRoom = caretakerChatRooms.getContent().get(0);
 
         assertEquals(1, clientChatRooms.getContent().size());
-        assertEquals(caretaker.getEmail(), clientChatRoom.getChatterEmail());
-        assertEquals(client.getEmail(), caretakerChatRoom.getChatterEmail());
+        assertEquals(caretaker.getEmail(), clientChatRoom.getChatter().email());
+        assertEquals(client.getEmail(), caretakerChatRoom.getChatter().email());
 
-        assertEquals(caretaker.getAccountData().getName(), clientChatRoom.getChatterName());
-        assertEquals(client.getAccountData().getName(), caretakerChatRoom.getChatterName());
+        assertEquals(caretaker.getAccountData().getName(), clientChatRoom.getChatter().name());
+        assertEquals(client.getAccountData().getName(), caretakerChatRoom.getChatter().name());
 
-        assertEquals(caretaker.getAccountData().getSurname(), clientChatRoom.getChatterSurname());
-        assertEquals(client.getAccountData().getSurname(), caretakerChatRoom.getChatterSurname());
+        assertEquals(caretaker.getAccountData().getSurname(), clientChatRoom.getChatter().surname());
+        assertEquals(client.getAccountData().getSurname(), caretakerChatRoom.getChatter().surname());
 
-        assertNotNull(clientChatRoom.getLastMessageCreatedAt());
-        assertNotNull(caretakerChatRoom.getLastMessageCreatedAt());
+        assertNotNull(clientChatRoom.getLastMessage().getCreatedAt());
+        assertNotNull(caretakerChatRoom.getLastMessage().getCreatedAt());
     }
 
     @ParameterizedTest
@@ -225,7 +225,7 @@ public class ChatServiceTest {
     void testGetChatRoomsByParticipantEmailWithZone_shouldSucceed(String timeZone) {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByParticipantEmail(
+        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
                 client.getEmail(),
                 Role.CLIENT,
                 pageable,
@@ -233,7 +233,7 @@ public class ChatServiceTest {
         );
 
         for(ChatRoomDTO chatRoomDTO : chatRooms.getContent()) {
-            assertEquals(ZoneId.of(timeZone), chatRoomDTO.getLastMessageCreatedAt().getZone());
+            assertEquals(ZoneId.of(timeZone), chatRoomDTO.getLastMessage().getCreatedAt().getZone());
         }
     }
 
@@ -545,8 +545,8 @@ public class ChatServiceTest {
     ) {
         ChatRoomDTO chatRoomDTO = chatService.getChatRoomWithParticipant(username, role, participantUsername, ZoneId.systemDefault());
         assertEquals(chatRoom.getId(), chatRoomDTO.getId());
-        assertEquals(participantUsername, chatRoomDTO.getChatterEmail());
-        assertNotNull(chatRoomDTO.getLastMessageCreatedAt());
+        assertEquals(participantUsername, chatRoomDTO.getChatter().email());
+        assertNotNull(chatRoomDTO.getLastMessage().getCreatedAt());
     }
 
     @ParameterizedTest

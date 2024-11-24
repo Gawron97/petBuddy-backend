@@ -67,11 +67,14 @@ public class ChatMapperTest {
     @Test
     void mapTimeZoneFromChatRoomDTO_shouldChangeTimeZone() {
         ChatRoomDTO chatRoomDTO = ChatRoomDTO.builder()
-                .lastMessageCreatedAt(ZonedDateTime.now().withZoneSameInstant(tokyoZone))
+                .lastMessage(
+                        ChatMessageDTO.builder()
+                                .createdAt(ZonedDateTime.now().withZoneSameInstant(tokyoZone))
+                                .build())
                 .build();
 
         ChatRoomDTO mappedChatMessageWithNewZone = mapper.mapTimeZone(chatRoomDTO, warsawZone);
-        ZoneId newZone = mappedChatMessageWithNewZone.getLastMessageCreatedAt().getZone();
+        ZoneId newZone = mappedChatMessageWithNewZone.getLastMessage().getCreatedAt().getZone();
 
         assertEquals(warsawZone, newZone);
     }
@@ -80,9 +83,8 @@ public class ChatMapperTest {
     void mapToChatRoomDTO_shouldNotLeaveNullFields() {
         ChatRoomDTO mappedChatRoom = mapper.mapToChatRoomDTO(
                 1L,
-                MockUserProvider.createMockAppUser(),
+                MockUserProvider.createMockAppUserWithPhoto(),
                 chatMessage,
-                true,
                 ZoneId.systemDefault()
         );
         assertTrue(ValidationUtils.fieldsNotNullRecursive(mappedChatRoom));

@@ -33,7 +33,7 @@ public class ChatRoom {
     @JoinColumn(name = "caretakerEmail", referencedColumnName = "email")
     private Caretaker caretaker;
 
-    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ChatMessage> messages = new ArrayList<>();
 }

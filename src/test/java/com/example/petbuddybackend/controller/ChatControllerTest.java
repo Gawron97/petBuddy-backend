@@ -2,6 +2,7 @@ package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,11 +72,16 @@ public class ChatControllerTest {
 
         expectedChatRoom = ChatRoomDTO.builder()
                 .id(1L)
-                .chatterEmail("chatter1")
-                .chatterName("name1")
-                .chatterSurname("surname1")
-                .lastMessage("lastMessage1")
-                .lastMessageCreatedAt(ZonedDateTime.now())
+                .chatter(AccountDataDTO.builder()
+                        .email("chatter1")
+                        .name("chatter1")
+                        .surname("chatterSurname1")
+                        .build())
+                .lastMessage(ChatMessageDTO.builder()
+                        .createdAt(ZonedDateTime.now())
+                        .content("lastMessage1")
+                        .chatId(1L)
+                        .build())
                 .build();
 
         expectedChatRoomPage = new PageImpl<>(
@@ -87,7 +93,7 @@ public class ChatControllerTest {
     @Test
     @WithMockUser
     void getChatRooms_includeTimeZone_shouldSucceed() throws Exception {
-        when(chatService.getChatRoomsByParticipantEmail(any(), any(), any(), any()))
+        when(chatService.getChatRoomsByParticipantEmailSortedByLastMessage(any(), any(), any(), any()))
                 .thenReturn(expectedChatRoomPage);
 
         mockMvc.perform(get("/api/chat")
