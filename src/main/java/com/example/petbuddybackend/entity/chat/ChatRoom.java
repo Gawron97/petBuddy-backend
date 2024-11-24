@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Check;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,5 +34,6 @@ public class ChatRoom {
     private Caretaker caretaker;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<ChatMessage> messages;
+    @Builder.Default
+    private List<ChatMessage> messages = new ArrayList<>();
 }

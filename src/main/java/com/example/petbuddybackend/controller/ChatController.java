@@ -135,7 +135,8 @@ public class ChatController {
             summary = "Get all chat rooms",
             description = """
                         Retrieves a paginated list of chat rooms where the user is a participant. Useful for connecting
-                        to existing chat room via websocket.
+                        to existing chat room via websocket. The chat rooms are sorted by the date of last message in
+                        chat.
                         """
     )
     public Page<ChatRoomDTO> getChatRooms(
@@ -145,7 +146,7 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return chatService.getChatRoomsByParticipantEmail(
+        return chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
                 principal.getName(),
                 acceptRole,
                 pageable,

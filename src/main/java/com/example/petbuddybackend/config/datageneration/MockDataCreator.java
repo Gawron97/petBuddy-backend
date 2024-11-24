@@ -37,8 +37,10 @@ import com.example.petbuddybackend.service.datageneration.MockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -186,10 +188,10 @@ public class MockDataCreator {
                 careRepository.count() != 0;
     }
 
-    private void createKnownMockUsers() {
+    public void createKnownMockUsers() {
         Client client = createKnownClient();
         Caretaker caretaker = createKnownCaretaker();
-        createChat(client, caretaker);
+
         Care care = careRepository.saveAndFlush(mockService.createMockCare(
                 client,
                 caretaker,
@@ -206,6 +208,18 @@ public class MockDataCreator {
                         .care(care)
                         .build()
         );
+
+        ChatRoom knownUsersChatRoom = createChat(client, caretaker);
+
+        createChat(client, caretakers.get(1));
+
+//        chatService.createMessage(
+//                knownUsersChatRoom,
+//                caretaker.getEmail(),
+//                Role.CARETAKER,
+//                new ChatMessageSent("Message after other chats"),
+//                false
+//        );
     }
 
     private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers) {
@@ -263,7 +277,8 @@ public class MockDataCreator {
         return caretakerRepository.save(caretaker);
     }
 
-    private void createChat(Client client, Caretaker caretaker) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ChatRoom createChat(Client client, Caretaker caretaker) {
         chatService.createChatRoomWithMessage(
                 client.getEmail(),
                 Role.CLIENT,
@@ -272,13 +287,14 @@ public class MockDataCreator {
                 ZoneId.systemDefault()
         );
 
-        ChatRoomDTO createdChatRoomDTO = chatService.getChatRoomsByParticipantEmail(
+        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
                 client.getEmail(),
                 Role.CLIENT,
                 PageRequest.of(0, 1),
                 ZoneId.systemDefault()
-        ).stream().findFirst().orElseThrow();
+        );
 
+        ChatRoomDTO createdChatRoomDTO = chatRooms.getContent().get(0);
         ChatRoom chatRoom = chatRoomRepository.findById(createdChatRoomDTO.getId()).orElseThrow();
 
         for (int i = 0; i < 10; i++) {
@@ -299,5 +315,7 @@ public class MockDataCreator {
                     false
             );
         }
+
+        return chatRoom;
     }
 }
