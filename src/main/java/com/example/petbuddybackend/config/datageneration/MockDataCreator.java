@@ -209,17 +209,8 @@ public class MockDataCreator {
                         .build()
         );
 
-        ChatRoom knownUsersChatRoom = createChat(client, caretaker);
-
+        createChat(client, caretaker);
         createChat(client, caretakers.get(1));
-
-//        chatService.createMessage(
-//                knownUsersChatRoom,
-//                caretaker.getEmail(),
-//                Role.CARETAKER,
-//                new ChatMessageSent("Message after other chats"),
-//                false
-//        );
     }
 
     private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers) {
