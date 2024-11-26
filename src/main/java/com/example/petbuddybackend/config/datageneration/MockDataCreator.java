@@ -188,7 +188,7 @@ public class MockDataCreator {
                 careRepository.count() != 0;
     }
 
-    public void createKnownMockUsers() {
+    private void createKnownMockUsers() {
         Client client = createKnownClient();
         Caretaker caretaker = createKnownCaretaker();
 

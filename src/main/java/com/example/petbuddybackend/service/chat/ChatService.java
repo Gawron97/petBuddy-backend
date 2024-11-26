@@ -65,11 +65,11 @@ public class ChatService {
                                                                                Role role,
                                                                                Pageable pageable,
                                                                                ZoneId timeZone) {
-        Page<ChatRoom> principalChatRooms = role == Role.CLIENT ?
-                chatRoomRepository.findByClientEmailOrderByLastMessageDesc(principalEmail, pageable) :
-                chatRoomRepository.findByCaretakerEmailOrderByLastMessageDesc(principalEmail, pageable);
+        Page<ChatMessage> principalChatMessages = role == Role.CLIENT ?
+                chatMessageRepository.findLastMessagesOfChatRoomsOfClient(principalEmail, pageable) :
+                chatMessageRepository.findLastMessagesOfChatRoomsOfCaretaker(principalEmail, pageable);
 
-        return principalChatRooms.map(room -> mapToChatRoomDTO(principalEmail, room, timeZone));
+        return principalChatMessages.map(message -> mapToChatRoomDTO(principalEmail, message, timeZone));
     }
 
     public ChatRoom getChatRoomById(Long chatId) {
@@ -187,6 +187,17 @@ public class ChatService {
 
         userService.renewProfilePicture(chatter);
         return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, message, zoneId);
+    }
+
+    private ChatRoomDTO mapToChatRoomDTO(String principalUsername, ChatMessage lastMessage, ZoneId zoneId) {
+        ChatRoom chatRoom = lastMessage.getChatRoom();
+
+        AppUser chatter = chatRoom.getClient().getEmail().equals(principalUsername) ?
+                chatRoom.getCaretaker().getAccountData() :
+                chatRoom.getClient().getAccountData();
+
+        userService.renewProfilePicture(chatter);
+        return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, lastMessage, zoneId);
     }
 
     private void performPreviousMessagesSeenUpdate(Long chatId, String senderEmail, boolean seenByRecipient) {
