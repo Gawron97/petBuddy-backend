@@ -85,6 +85,11 @@ public class ChatWebSocketController {
                     chatService.getUnseenChatsNumberNotification(recipientUsername)
             );
         }
+
+        wsNotificationSender.sendNotification(
+                principalUsername,
+                chatService.getUnseenChatsNumberNotification(principalUsername)
+        );
     }
 
     @EventListener
