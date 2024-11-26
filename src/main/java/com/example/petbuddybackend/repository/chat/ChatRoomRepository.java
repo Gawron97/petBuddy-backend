@@ -1,8 +1,6 @@
 package com.example.petbuddybackend.repository.chat;
 
 import com.example.petbuddybackend.entity.chat.ChatRoom;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -46,24 +44,4 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
         )
     """)
     Integer countUnreadChatsForUserAsCaretaker(String userEmail);
-
-    @Query("""
-        SELECT cr
-        FROM ChatRoom cr
-        JOIN cr.messages cm
-        WHERE cr.caretaker.email = :email
-        GROUP BY cr
-        ORDER BY MAX(cm.createdAt) DESC
-    """)
-    Page<ChatRoom> findByCaretakerEmailOrderByLastMessageDesc(String email, Pageable pageable);
-
-    @Query("""
-        SELECT cr
-        FROM ChatRoom cr
-        JOIN cr.messages cm
-        WHERE cr.client.email = :email
-        GROUP BY cr
-        ORDER BY MAX(cm.createdAt) DESC
-    """)
-    Page<ChatRoom> findByClientEmailOrderByLastMessageDesc(String email, Pageable pageable);
 }
