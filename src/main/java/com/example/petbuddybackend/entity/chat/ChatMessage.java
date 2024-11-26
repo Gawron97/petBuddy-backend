@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.ZonedDateTime;
 
 @Entity
-@Table(indexes = @Index(name = "chatRoomCreatedAtIndex", columnList = "chatRoom, createdAt DESC"))
+@Table(indexes = @Index(name = "chatRoomCreatedAtIndex", columnList = "chat_room_id, createdAt DESC"))
 @Builder
 @Getter @Setter
 @NoArgsConstructor
