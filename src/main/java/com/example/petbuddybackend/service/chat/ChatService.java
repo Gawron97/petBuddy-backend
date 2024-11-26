@@ -97,9 +97,11 @@ public class ChatService {
     }
 
     public UnseenChatsNotificationDTO getUnseenChatsNumberNotification(String userEmail) {
-        return UnseenChatsNotificationDTO.builder().createdAt(ZonedDateTime.now())
+        return UnseenChatsNotificationDTO.builder()
+                .createdAt(ZonedDateTime.now())
                 .unseenChatsAsClient(chatRepository.countUnreadChatsForUserAsClient(userEmail))
-                .unseenChatsAsCaretaker(chatRepository.countUnreadChatsForUserAsCaretaker(userEmail)).build();
+                .unseenChatsAsCaretaker(chatRepository.countUnreadChatsForUserAsCaretaker(userEmail))
+                .build();
     }
 
     @Transactional
