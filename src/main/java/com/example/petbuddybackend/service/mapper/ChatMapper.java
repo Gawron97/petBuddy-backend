@@ -13,7 +13,7 @@ import org.mapstruct.factory.Mappers;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 
-@Mapper
+@Mapper(uses = UserMapper.class)
 public interface ChatMapper {
 
     ChatMapper INSTANCE = Mappers.getMapper(ChatMapper.class);
@@ -27,30 +27,23 @@ public interface ChatMapper {
     @Mapping(target = "chatId", source = "chatRoom.id")
     ChatMessageDTO mapToChatMessageDTO(ChatMessage chatMessage);
 
-    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "mapToZonedDateTime")
-    ChatMessageDTO mapTimeZone(ChatMessageDTO chatMessage, @Context ZoneId zoneId);
-
-    @Mapping(target = "lastMessageCreatedAt", source = "lastMessageCreatedAt", qualifiedByName = "mapToZonedDateTime")
-    ChatRoomDTO mapTimeZone(ChatRoomDTO chatRoom, @Context ZoneId zoneId);
-
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "chatterEmail", source = "chatter.email")
-    @Mapping(target = "chatterName", source = "chatter.name")
-    @Mapping(target = "chatterSurname", source = "chatter.surname")
-    @Mapping(target = "lastMessageSendBy", source = "lastMessage.sender.email")
-    @Mapping(target = "lastMessage", source = "lastMessage.content")
-    @Mapping(target = "lastMessageCreatedAt", source = "lastMessage.createdAt", qualifiedByName = "mapToZonedDateTime")
+    @Mapping(target = "lastMessage", expression = "java(mapToChatMessageDTO(lastMessage, zoneId))")
     ChatRoomDTO mapToChatRoomDTO(
             Long id,
             AppUser chatter,
             ChatMessage lastMessage,
-            boolean seenByPrincipal,
             @Context ZoneId zoneId
     );
+
+    @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "mapToZonedDateTime")
+    ChatMessageDTO mapTimeZone(ChatMessageDTO chatMessage, @Context ZoneId zoneId);
+
+    @Mapping(target = "lastMessage.createdAt", source = "lastMessage.createdAt", qualifiedByName = "mapToZonedDateTime")
+    ChatRoomDTO mapTimeZone(ChatRoomDTO chatRoom, @Context ZoneId zoneId);
 
     @Named("mapToZonedDateTime")
     default ZonedDateTime mapToZonedDateTime(ZonedDateTime date, @Context ZoneId zoneId) {
         return date.withZoneSameInstant(zoneId);
     }
-
 }

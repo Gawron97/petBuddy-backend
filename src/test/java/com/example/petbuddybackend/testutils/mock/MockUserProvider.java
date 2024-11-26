@@ -138,6 +138,12 @@ public final class MockUserProvider {
                 .build();
     }
 
+    public static AppUser createMockAppUserWithPhoto() {
+        AppUser user = createMockAppUser();
+        user.setProfilePicture(createMockPhotoLink());
+        return user;
+    }
+
     public static AppUser createMockAppUser() {
         return createMockAppUser("name", "surname", "email");
     }

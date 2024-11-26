@@ -1,13 +1,10 @@
 package com.example.petbuddybackend.dto.chat;
 
-import com.example.petbuddybackend.utils.time.TimeUtils;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.ZonedDateTime;
 
 @Data
 @Builder
@@ -15,12 +12,6 @@ import java.time.ZonedDateTime;
 @AllArgsConstructor
 public class ChatRoomDTO {
     private Long id;
-    private String chatterEmail;
-    private String chatterName;
-    private String chatterSurname;
-    @JsonFormat(pattern = TimeUtils.ZONED_DATETIME_FORMAT)
-    private ZonedDateTime lastMessageCreatedAt;
-    private String lastMessage;
-    private String lastMessageSendBy;
-    private Boolean seenByPrincipal;
+    private AccountDataDTO chatter;
+    private ChatMessageDTO lastMessage;
 }

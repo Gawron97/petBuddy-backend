@@ -79,12 +79,15 @@ public class ChatWebSocketController {
 
         wsChatMessageSender.sendMessages(chatRoom, new ChatNotificationMessage(messageDTO));
 
-        if(!seenByRecipient) {
-            wsNotificationSender.sendNotification(
-                    recipientUsername,
-                    chatService.getUnseenChatsNumberNotification(recipientUsername)
-            );
-        }
+        wsNotificationSender.sendNotification(
+                recipientUsername,
+                chatService.getUnseenChatsNumberNotification(recipientUsername)
+        );
+
+        wsNotificationSender.sendNotification(
+                principalUsername,
+                chatService.getUnseenChatsNumberNotification(principalUsername)
+        );
     }
 
     @EventListener
