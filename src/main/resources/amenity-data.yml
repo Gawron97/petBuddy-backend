@@ -2,13 +2,12 @@ amenity-data:
   amenityConfigs:
     - amenity: scratching post
     - amenity: toys
-    - amenity: garden
+    - amenity: secured outdoor open area
     - amenity: litter tray
-    - amenity: specious cage
-    - amenity: aquarium maintenance
+    - amenity: spacious cage
     - amenity: tank decorations
     - amenity: water filtration
-    - amenity: temperature control
+    - amenity: thermal regulation
     - amenity: terrarium
     - amenity: heat lamp
     - amenity: basking area

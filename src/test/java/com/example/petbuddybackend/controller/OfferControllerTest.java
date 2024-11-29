@@ -195,7 +195,7 @@ public class OfferControllerTest {
         // Given
         OfferDTO offerDTO = OfferDTO.builder()
                 .description("Test Offer with new amenities")
-                .animalAmenities(List.of("toys", "garden"))
+                .animalAmenities(List.of("toys", "secured outdoor open area"))
                 .build();
 
         when(offerService.setAmenitiesForOffer(anyLong(), anySet(), anyString())).thenReturn(offerDTO);
@@ -208,7 +208,7 @@ public class OfferControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Test Offer with new amenities"))
                 .andExpect(jsonPath("$.animalAmenities[0]").value("toys"))
-                .andExpect(jsonPath("$.animalAmenities[1]").value("garden"));
+                .andExpect(jsonPath("$.animalAmenities[1]").value("secured outdoor open area"));
 
         verify(offerService, times(1)).setAmenitiesForOffer(anyLong(), anySet(), anyString());
     }

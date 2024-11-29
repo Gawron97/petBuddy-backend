@@ -192,7 +192,7 @@ public class OfferServiceIntegrationTest {
                                                         .build()
                                         ))
                                 )
-                                .animalAmenities(new HashSet<>(List.of("garden", "toys")))
+                                .animalAmenities(new HashSet<>(List.of("secured outdoor open area", "toys")))
                                 .build(),
                         true , // Expected to be an existing offer
                         2, // Expected number of configurations after addition
@@ -202,7 +202,7 @@ public class OfferServiceIntegrationTest {
                         ModifyOfferDTO.builder()
                                 .description("Third Configuration")
                                 .animal(AnimalDTO.builder().animalType("DOG").build())
-                                .animalAmenities(new HashSet<>(List.of("garden")))
+                                .animalAmenities(new HashSet<>(List.of("secured outdoor open area")))
                                 .build(),
                         true , // Expected to be an existing offer
                         1, // Expected number of configurations after addition
@@ -344,7 +344,7 @@ public class OfferServiceIntegrationTest {
     void setAmenitiesForOffer_ShouldAddAmenitiesProperly() {
 
         //Given
-        Set<String> amenitiesToSet = Set.of("garden");
+        Set<String> amenitiesToSet = Set.of("secured outdoor open area");
 
         //When
         OfferDTO resultOfferDTO = offerService.setAmenitiesForOffer(
@@ -365,7 +365,7 @@ public class OfferServiceIntegrationTest {
     void setAmenitiesForOffer_whenAddingByNotOwner_ShouldThrowUnauthorizedException() {
 
         //Given
-        Set<String> amenitiesToSet = Set.of("garden");
+        Set<String> amenitiesToSet = Set.of("secured outdoor open area");
 
         //When Then
         assertThrows(UnauthorizedException.class,
@@ -382,7 +382,7 @@ public class OfferServiceIntegrationTest {
     void setAmenitiesForOffer_whenAddingDuplicateAmenity_ShouldSkipDuplicatedAmenityAndAddUnique() {
 
         //Given
-        Set<String> amenitiesToSet = Set.of("toys", "garden");
+        Set<String> amenitiesToSet = Set.of("toys", "secured outdoor open area");
 
         //When
         OfferDTO resultOfferDTO = offerService.setAmenitiesForOffer(
@@ -877,14 +877,14 @@ public class OfferServiceIntegrationTest {
                 BigDecimal.valueOf(50.0),
                 List.of(
                         animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("toys", "DOG").orElseThrow(),
-                        animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("garden", "DOG").orElseThrow()
+                        animalAmenityRepository.findByAmenity_NameAndAnimal_AnimalType("secured outdoor open area", "DOG").orElseThrow()
                 ),
                 offerRepository
         );
 
         // When
         OfferDTO resultOfferDTO = offerService.deleteAmenitiesFromOffer(
-                List.of("garden"),
+                List.of("secured outdoor open area"),
                 caretakerWithComplexOffer.getEmail(),
                 existingOffer.getId()
         );
@@ -901,7 +901,7 @@ public class OfferServiceIntegrationTest {
         // When Then
         assertThrows(UnauthorizedException.class,
                 () -> offerService.deleteAmenitiesFromOffer(
-                        List.of("garden"),
+                        List.of("secured outdoor open area"),
                         "badEmail",
                         existingOffer.getId()
                 ));

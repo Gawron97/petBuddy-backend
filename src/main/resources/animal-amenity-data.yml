@@ -3,7 +3,7 @@ animal-amenity-data:
     - animalType: DOG
       amenity: toys
     - animalType: DOG
-      amenity: garden
+      amenity: secured outdoor open area
 
     - animalType: CAT
       amenity: scratching post
@@ -13,20 +13,22 @@ animal-amenity-data:
       amenity: litter tray
     - animalType: CAT
       amenity: catnip
+    - animalType: CAT
+      amenity: toys
 
     - animalType: BIRD
-      amenity: specious cage
+      amenity: spacious cage
     - animalType: BIRD
       amenity: secure flying space
+    - animalType: BIRD
+      amenity: toys
 
-    - animalType: FISH
-      amenity: aquarium maintenance
     - animalType: FISH
       amenity: tank decorations
     - animalType: FISH
       amenity: water filtration
     - animalType: FISH
-      amenity: temperature control
+      amenity: thermal regulation
 
     - animalType: TURTLE
       amenity: terrarium
@@ -49,7 +51,7 @@ animal-amenity-data:
       amenity: humidity control
 
     - animalType: HAMSTER
-      amenity: specious cage
+      amenity: spacious cage
     - animalType: HAMSTER
       amenity: exercise wheel
     - animalType: HAMSTER
@@ -60,16 +62,16 @@ animal-amenity-data:
       amenity: toys
 
     - animalType: RABBIT
-      amenity: specious cage
+      amenity: spacious cage
     - animalType: RABBIT
       amenity: toys
     - animalType: RABBIT
-      amenity: garden
+      amenity: secured outdoor open area
     - animalType: RABBIT
       amenity: hiding spots
 
     - animalType: GUINEA_PIG
-      amenity: specious cage
+      amenity: spacious cage
     - animalType: GUINEA_PIG
       amenity: hiding spots
     - animalType: GUINEA_PIG
@@ -78,7 +80,7 @@ animal-amenity-data:
       amenity: toys
 
     - animalType: HEDGEHOG
-      amenity: specious cage
+      amenity: spacious cage
     - animalType: HEDGEHOG
       amenity: hiding spots
     - animalType: HEDGEHOG
@@ -87,7 +89,7 @@ animal-amenity-data:
       amenity: bedding
 
     - animalType: MOUSE
-      amenity: specious cage
+      amenity: spacious cage
     - animalType: MOUSE
       amenity: exercise wheel
     - animalType: MOUSE
