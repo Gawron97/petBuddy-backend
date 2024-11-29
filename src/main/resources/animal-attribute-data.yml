@@ -2,11 +2,15 @@ animal-attribute-data:
   animalAttributeConfigs:
     - animalType: DOG
       attributeName: SIZE
-      attributeValue: BIG
+      attributeValue: SMALL <10 KG
 
     - animalType: DOG
       attributeName: SIZE
-      attributeValue: SMALL
+      attributeValue: MEDIUM 10-25 KG
+
+    - animalType: DOG
+      attributeName: SIZE
+      attributeValue: BIG >25 KG
 
     - animalType: DOG
       attributeName: SEX
@@ -16,13 +20,29 @@ animal-attribute-data:
       attributeName: SEX
       attributeValue: SHE
 
-    - animalType: CAT
-      attributeName: SIZE
-      attributeValue: BIG
+    - animalType: DOG
+      attributeName: AGE
+      attributeValue: YOUNG <1 YEAR
+
+    - animalType: DOG
+      attributeName: AGE
+      attributeValue: ADULT 1-8 YEARS
+
+    - animalType: DOG
+      attributeName: AGE
+      attributeValue: SENIOR >8 YEARS
 
     - animalType: CAT
       attributeName: SIZE
-      attributeValue: SMALL
+      attributeValue: BIG >6 KG
+
+    - animalType: CAT
+      attributeName: SIZE
+      attributeValue: MEDIUM 3-6 KG
+
+    - animalType: CAT
+      attributeName: SIZE
+      attributeValue: SMALL <3 KG
 
     - animalType: CAT
       attributeName: SEX
@@ -32,13 +52,25 @@ animal-attribute-data:
       attributeName: SEX
       attributeValue: SHE
 
-    - animalType: BIRD
-      attributeName: SIZE
-      attributeValue: BIG
+    - animalType: CAT
+      attributeName: AGE
+      attributeValue: YOUNG <1 YEAR
+
+    - animalType: CAT
+      attributeName: AGE
+      attributeValue: ADULT 1-8 YEARS
+
+    - animalType: CAT
+      attributeName: AGE
+      attributeValue: SENIOR >8 YEARS
 
     - animalType: BIRD
       attributeName: SIZE
-      attributeValue: SMALL
+      attributeValue: BIG >0.3 KG
+
+    - animalType: BIRD
+      attributeName: SIZE
+      attributeValue: SMALL <0.05 KG
 
     - animalType: BIRD
       attributeName: SEX
@@ -49,49 +81,113 @@ animal-attribute-data:
       attributeValue: SHE
 
     - animalType: FISH
-      attributeName: AQUARIUM
+      attributeName: SEX
+      attributeValue: MALE
+
+    - animalType: FISH
+      attributeName: SEX
+      attributeValue: SHE
+
+    - animalType: FISH
+      attributeName: WATER
+      attributeValue: FRESH
+
+    - animalType: FISH
+      attributeName: WATER
+      attributeValue: SALT
+
+    - animalType: TURTLE
+      attributeName: SIZE
+      attributeValue: SMALL <0.5 KG
+
+    - animalType: TURTLE
+      attributeName: SIZE
+      attributeValue: MEDIUM 0.5-5 KG
+
+    - animalType: TURTLE
+      attributeName: SIZE
+      attributeValue: BIG >5 KG
+
+    - animalType: TURTLE
+      attributeName: AGE
+      attributeValue: YOUNG <2 YEARS
+
+    - animalType: TURTLE
+      attributeName: AGE
+      attributeValue: ADULT >2 YEARS
+
+    - animalType: SNAKE
+      attributeName: SIZE
+      attributeValue: SMALL <0.5 KG
+
+    - animalType: SNAKE
+      attributeName: SIZE
+      attributeValue: MEDIUM 0.5-2 KG
+
+    - animalType: SNAKE
+      attributeName: SIZE
+      attributeValue: BIG >2 KG
+
+    - animalType: SNAKE
+      attributeName: VENOMOUS
       attributeValue: "YES"
 
-    - animalType: FISH
-      attributeName: AQUARIUM
+    - animalType: SNAKE
+      attributeName: VENOMOUS
       attributeValue: "NO"
 
-    - animalType: FISH
-      attributeName: SEX
-      attributeValue: MALE
-
-    - animalType: FISH
-      attributeName: SEX
-      attributeValue: SHE
-
-    - animalType: REPTILE
-      attributeName: DANGEROUS
-      attributeValue: "YES"
-
-    - animalType: REPTILE
-      attributeName: DANGEROUS
-      attributeValue: "NO"
-
-    - animalType: REPTILE
-      attributeName: SEX
-      attributeValue: MALE
-
-    - animalType: REPTILE
-      attributeName: SEX
-      attributeValue: SHE
-
-    - animalType: HORSE
+    - animalType: HAMSTER
       attributeName: SIZE
-      attributeValue: BIG
+      attributeValue: SMALL <0.05 KG
 
-    - animalType: HORSE
+    - animalType: HAMSTER
       attributeName: SIZE
-      attributeValue: SMALL
+      attributeValue: MEDIUM 0.05-0.15 KG
 
-    - animalType: HORSE
-      attributeName: SEX
-      attributeValue: MALE
+    - animalType: HAMSTER
+      attributeName: SIZE
+      attributeValue: BIG >0.15 KG
 
-    - animalType: HORSE
-      attributeName: SEX
-      attributeValue: SHE
+    - animalType: RABBIT
+      attributeName: SIZE
+      attributeValue: SMALL <1 KG
+
+    - animalType: RABBIT
+      attributeName: SIZE
+      attributeValue: MEDIUM 1-3 KG
+
+    - animalType: RABBIT
+      attributeName: SIZE
+      attributeValue: BIG >3 KG
+
+    - animalType: GUINEA_PIG
+      attributeName: SIZE
+      attributeValue: SMALL <0.5 KG
+
+    - animalType: GUINEA_PIG
+      attributeName: SIZE
+      attributeValue: MEDIUM 0.5-1 KG
+
+    - animalType: GUINEA_PIG
+      attributeName: SIZE
+      attributeValue: BIG >1 KG
+
+    - animalType: HEDGEHOG
+      attributeName: SIZE
+      attributeValue: SMALL <0.3 KG
+
+    - animalType: HEDGEHOG
+      attributeName: SIZE
+      attributeValue: MEDIUM 0.3-0.6 KG
+
+    - animalType: HEDGEHOG
+      attributeName: SIZE
+      attributeValue: BIG >0.6 KG
+
+    - animalType: MOUSE
+      attributeName: AGE
+      attributeValue: YOUNG <2 MONTHS
+
+    - animalType: MOUSE
+      attributeName: AGE
+      attributeValue: ADULT >2 MONTHS

@@ -57,8 +57,7 @@ public class MockDataCreator {
 
     private static final int CARETAKER_COUNT = 50;
     private static final int CLIENT_COUNT = 50;
-    private static final int CARETAKER_OFFER_COUNT = 5;
-    private static final int CARETAKER_OFFER_CONFIGURATION_COUNT = 2;
+    private static final int CARETAKER_OFFER_COUNT = 7;
     private static final int OPTIONS_IN_CONFIGURATION_COUNT = 2;
     private static final int ANIMAL_AMENITY_IN_OFFER_COUNT = 2;
     private static final int CARE_COUNT = 300;
@@ -114,7 +113,11 @@ public class MockDataCreator {
 
         // offers configurations
         offerConfigurationRepository.saveAllAndFlush(
-                        mockService.createMockOffersConfigurations(offers, CARETAKER_OFFER_CONFIGURATION_COUNT)
+                        mockService.createMockOffersConfigurations(
+                                offers,
+                                animalAttributes,
+                                OPTIONS_IN_CONFIGURATION_COUNT
+                        )
         );
 
         // offers configurations options
