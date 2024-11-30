@@ -7,4 +7,4 @@ animal-amenity-data:
     - animalType: DOG
       amenity: toys
     - animalType: DOG
-      amenity: secured outdoor open area
+      amenity: secured garden

@@ -65,14 +65,6 @@ animal-attribute-data:
       attributeValue: SENIOR >8 YEARS
 
     - animalType: BIRD
-      attributeName: SIZE
-      attributeValue: BIG >0.3 KG
-
-    - animalType: BIRD
-      attributeName: SIZE
-      attributeValue: SMALL <0.05 KG
-
-    - animalType: BIRD
       attributeName: SEX
       attributeValue: MALE
 
@@ -136,18 +128,6 @@ animal-attribute-data:
       attributeName: VENOMOUS
       attributeValue: "NO"
 
-    - animalType: HAMSTER
-      attributeName: SIZE
-      attributeValue: SMALL <0.05 KG
-
-    - animalType: HAMSTER
-      attributeName: SIZE
-      attributeValue: MEDIUM 0.05-0.15 KG
-
-    - animalType: HAMSTER
-      attributeName: SIZE
-      attributeValue: BIG >0.15 KG
-
     - animalType: RABBIT
       attributeName: SIZE
       attributeValue: SMALL <1 KG
@@ -159,30 +139,6 @@ animal-attribute-data:
     - animalType: RABBIT
       attributeName: SIZE
       attributeValue: BIG >3 KG
-
-    - animalType: GUINEA_PIG
-      attributeName: SIZE
-      attributeValue: SMALL <0.5 KG
-
-    - animalType: GUINEA_PIG
-      attributeName: SIZE
-      attributeValue: MEDIUM 0.5-1 KG
-
-    - animalType: GUINEA_PIG
-      attributeName: SIZE
-      attributeValue: BIG >1 KG
-
-    - animalType: HEDGEHOG
-      attributeName: SIZE
-      attributeValue: SMALL <0.3 KG
-
-    - animalType: HEDGEHOG
-      attributeName: SIZE
-      attributeValue: MEDIUM 0.3-0.6 KG
-
-    - animalType: HEDGEHOG
-      attributeName: SIZE
-      attributeValue: BIG >0.6 KG
 
     - animalType: MOUSE
       attributeName: AGE

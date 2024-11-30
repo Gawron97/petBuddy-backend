@@ -3,7 +3,7 @@ animal-amenity-data:
     - animalType: DOG
       amenity: toys
     - animalType: DOG
-      amenity: secured outdoor open area
+      amenity: secured garden
 
     - animalType: CAT
       amenity: scratching post
@@ -13,13 +13,11 @@ animal-amenity-data:
       amenity: litter tray
     - animalType: CAT
       amenity: catnip
-    - animalType: CAT
-      amenity: toys
 
     - animalType: BIRD
       amenity: spacious cage
     - animalType: BIRD
-      amenity: secure flying space
+      amenity: aviary
     - animalType: BIRD
       amenity: toys
 
@@ -66,7 +64,7 @@ animal-amenity-data:
     - animalType: RABBIT
       amenity: toys
     - animalType: RABBIT
-      amenity: secured outdoor open area
+      amenity: secured garden
     - animalType: RABBIT
       amenity: hiding spots
 

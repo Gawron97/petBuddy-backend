@@ -2,7 +2,7 @@ amenity-data:
   amenityConfigs:
     - amenity: scratching post
     - amenity: toys
-    - amenity: secured outdoor open area
+    - amenity: secured garden
     - amenity: litter tray
     - amenity: spacious cage
     - amenity: tank decorations
@@ -20,4 +20,4 @@ amenity-data:
     - amenity: bedding
     - amenity: tunnels
     - amenity: catnip
-    - amenity: secure flying space
+    - amenity: aviary
