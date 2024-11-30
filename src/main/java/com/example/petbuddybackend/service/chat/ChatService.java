@@ -63,7 +63,6 @@ public class ChatService {
                 .map(message -> chatMapper.mapToChatMessageDTO(message, timeZone));
     }
 
-    // TODO: test chatterLike
     @Transactional(readOnly = true)
     public Page<ChatRoomDTO> getChatRoomsByCriteriaSortedByLastMessage(String principalEmail,
                                                                        Role role,
@@ -93,7 +92,6 @@ public class ChatService {
                                                   Role userRole,
                                                   String participantUsername,
                                                   ZoneId timeZone) {
-        userService.assertHasRole(username, userRole);
         ChatRoom chatRoom = userRole == Role.CLIENT ?
                 getByClientEmailAndCaretakerEmail(username, participantUsername) :
                 getByClientEmailAndCaretakerEmail(participantUsername, username);

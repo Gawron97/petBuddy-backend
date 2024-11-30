@@ -20,7 +20,6 @@ import static com.example.petbuddybackend.utils.specification.SpecificationCommo
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ChatSpecificationUtils {
 
-    // TODO: pass joins for better performance?
     /**
      * Creates a specification for filtering and sorting ChatMessages based on the given criteria.
      * This includes filtering by personal data and ensuring that only the last message
