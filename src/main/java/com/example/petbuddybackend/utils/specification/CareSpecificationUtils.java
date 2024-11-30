@@ -16,27 +16,16 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
+import static com.example.petbuddybackend.utils.specification.SpecificationCommons.*;
+
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class CareSpecificationUtils {
 
-    public static final String CLIENT = "client";
-    public static final String CARETAKER = "caretaker";
-    public static final String EMAIL = "email";
-    public static final String ANIMAL = "animal";
-    public static final String ANIMAL_TYPE = "animalType";
-    public static final String CARETAKER_STATUS = "caretakerStatus";
-    public static final String CLIENT_STATUS = "clientStatus";
-    public static final String SUBMITTED_AT = "submittedAt";
-    public static final String CARE_START = "careStart";
-    public static final String CARE_END = "careEnd";
-    public static final String DAILY_PRICE = "dailyPrice";
+    public static Specification<Care> toSpecificationForCaretaker(CareSearchCriteria filters,
+                                                                  Set<String> clientEmails,
+                                                                  String caretakerEmail) {
 
-    public static Specification<Care> toSpecificationForCaretaker(CareSearchCriteria filters, Set<String> clientEmails,
-                                                             String caretakerEmail) {
-
-
-        Specification<Care> spec = toSpecification(filters)
-                        .and(addCaretakerEmailFilter(caretakerEmail));
+        Specification<Care> spec = toSpecification(filters).and(addCaretakerEmailFilter(caretakerEmail));
 
         if(CollectionUtil.isNotEmpty(clientEmails)) {
             spec = spec.and(addClientEmailsFilter(clientEmails));
@@ -46,8 +35,9 @@ public final class CareSpecificationUtils {
 
     }
 
-    public static Specification<Care> toSpecificationForClient(CareSearchCriteria filters, Set<String> caretakerEmails,
-                                                          String clientEmail) {
+    public static Specification<Care> toSpecificationForClient(CareSearchCriteria filters,
+                                                               Set<String> caretakerEmails,
+                                                               String clientEmail) {
 
         Specification<Care> spec = toSpecification(filters)
                         .and(addClientEmailFilter(clientEmail));

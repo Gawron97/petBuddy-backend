@@ -190,13 +190,13 @@ public class ChatServiceTest {
     void testGetChatRoomsByParticipantEmail_shouldSucceed() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatRoomDTO> clientChatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
+        Page<ChatRoomDTO> clientChatRooms = chatService.getChatRoomsByCriteriaSortedByLastMessage(
                 client.getEmail(),
                 Role.CLIENT,
                 pageable,
                 ZoneId.of("Europe/Warsaw")
         );
-        Page<ChatRoomDTO> caretakerChatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
+        Page<ChatRoomDTO> caretakerChatRooms = chatService.getChatRoomsByCriteriaSortedByLastMessage(
                 caretaker.getEmail(),
                 Role.CARETAKER,
                 pageable,
@@ -225,7 +225,7 @@ public class ChatServiceTest {
     void testGetChatRoomsByParticipantEmailWithZone_shouldSucceed(String timeZone) {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
+        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByCriteriaSortedByLastMessage(
                 client.getEmail(),
                 Role.CLIENT,
                 pageable,

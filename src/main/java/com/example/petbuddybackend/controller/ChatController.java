@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.ChatRoomSearchCriteria;
 import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.service.notification.WebsocketNotificationSender;
 import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
@@ -142,13 +143,15 @@ public class ChatController {
     public Page<ChatRoomDTO> getChatRooms(
             Principal principal,
             @Valid @ModelAttribute @ParameterObject PagingParams pagingParams,
+            @ParameterObject @ModelAttribute ChatRoomSearchCriteria chatRoomSearchCriteria,
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
+        return chatService.getChatRoomsByCriteriaSortedByLastMessage(
                 principal.getName(),
                 acceptRole,
+                chatRoomSearchCriteria,
                 pageable,
                 TimeUtils.getOrSystemDefault(acceptTimeZone)
         );

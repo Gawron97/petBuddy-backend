@@ -93,7 +93,7 @@ public class ChatControllerTest {
     @Test
     @WithMockUser
     void getChatRooms_includeTimeZone_shouldSucceed() throws Exception {
-        when(chatService.getChatRoomsByParticipantEmailSortedByLastMessage(any(), any(), any(), any()))
+        when(chatService.getChatRoomsByCriteriaSortedByLastMessage(any(), any(), any(), any()))
                 .thenReturn(expectedChatRoomPage);
 
         mockMvc.perform(get("/api/chat")

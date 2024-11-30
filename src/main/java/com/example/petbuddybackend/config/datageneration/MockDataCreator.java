@@ -2,6 +2,7 @@ package com.example.petbuddybackend.config.datageneration;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.ChatRoomSearchCriteria;
 import com.example.petbuddybackend.entity.address.Address;
 import com.example.petbuddybackend.entity.address.Voivodeship;
 import com.example.petbuddybackend.entity.amenity.AnimalAmenity;
@@ -209,8 +210,16 @@ public class MockDataCreator {
                         .build()
         );
 
-        createChat(client, caretaker);
+        ChatRoom chatRoom = createChat(client, caretaker);
         createChat(client, caretakers.get(1));
+
+        chatService.createMessage(
+                chatRoom,
+                client.getEmail(),
+                Role.CLIENT,
+                new ChatMessageSent("Message from client: dfdddd"),
+                false
+        );
     }
 
     private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers) {
@@ -278,9 +287,10 @@ public class MockDataCreator {
                 ZoneId.systemDefault()
         );
 
-        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
+        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByCriteriaSortedByLastMessage(
                 client.getEmail(),
                 Role.CLIENT,
+                new ChatRoomSearchCriteria(""),
                 PageRequest.of(0, 1),
                 ZoneId.systemDefault()
         );
