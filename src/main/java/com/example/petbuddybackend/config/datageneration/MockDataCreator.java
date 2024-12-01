@@ -210,16 +210,8 @@ public class MockDataCreator {
                         .build()
         );
 
-        ChatRoom chatRoom = createChat(client, caretaker);
+        createChat(client, caretaker);
         createChat(client, caretakers.get(1));
-
-        chatService.createMessage(
-                chatRoom,
-                client.getEmail(),
-                Role.CLIENT,
-                new ChatMessageSent("Message from client: dfdddd"),
-                false
-        );
     }
 
     private List<Rating> addRatingsToSliceOfCaretakers(List<Caretaker> allCaretakers) {
