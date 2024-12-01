@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.ChatRoomSearchCriteria;
 import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.service.notification.WebsocketNotificationSender;
 import com.example.petbuddybackend.utils.annotation.swaggerdocs.RoleParameter;
@@ -54,7 +55,7 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return chatService.getChatMessagesByParticipantEmail(
+        return chatService.getChatMessages(
                 chatId,
                 principal.getName(),
                 pageable,
@@ -68,8 +69,8 @@ public class ChatController {
             summary = "Send chat message and initialize chat room with given user",
             description =
                     """
-                    Creates a new chat room with the given user and sends the first message to him. This is the 
-                    first step of the communication between a Caretaker and a Client. After this step, websocket 
+                    Creates a new chat room with the given user and sends the first message to him. This is the
+                    first step of the communication between a Caretaker and a Client. After this step, websocket
                     endpoint should be used instead of this endpoint.
                     """
     )
@@ -121,7 +122,7 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone,
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole
     ) {
-        return chatService.getChatRoomWithParticipant(
+        return chatService.getChatRoom(
                 principal.getName(),
                 acceptRole,
                 participantEmail,
@@ -142,13 +143,15 @@ public class ChatController {
     public Page<ChatRoomDTO> getChatRooms(
             Principal principal,
             @Valid @ModelAttribute @ParameterObject PagingParams pagingParams,
+            @ParameterObject @ModelAttribute ChatRoomSearchCriteria chatRoomSearchCriteria,
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole,
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
+        return chatService.getChatRooms(
                 principal.getName(),
                 acceptRole,
+                chatRoomSearchCriteria,
                 pageable,
                 TimeUtils.getOrSystemDefault(acceptTimeZone)
         );

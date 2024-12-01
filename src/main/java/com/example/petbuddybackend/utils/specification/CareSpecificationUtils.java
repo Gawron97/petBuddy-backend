@@ -16,27 +16,16 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
+import static com.example.petbuddybackend.utils.specification.SpecificationCommons.*;
+
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class CareSpecificationUtils {
 
-    public static final String CLIENT = "client";
-    public static final String CARETAKER = "caretaker";
-    public static final String EMAIL = "email";
-    public static final String ANIMAL = "animal";
-    public static final String ANIMAL_TYPE = "animalType";
-    public static final String CARETAKER_STATUS = "caretakerStatus";
-    public static final String CLIENT_STATUS = "clientStatus";
-    public static final String SUBMITTED_AT = "submittedAt";
-    public static final String CARE_START = "careStart";
-    public static final String CARE_END = "careEnd";
-    public static final String DAILY_PRICE = "dailyPrice";
+    public static Specification<Care> toSpecificationForCaretaker(CareSearchCriteria filters,
+                                                                  Set<String> clientEmails,
+                                                                  String caretakerEmail) {
 
-    public static Specification<Care> toSpecificationForCaretaker(CareSearchCriteria filters, Set<String> clientEmails,
-                                                             String caretakerEmail) {
-
-
-        Specification<Care> spec = toSpecification(filters)
-                        .and(addCaretakerEmailFilter(caretakerEmail));
+        Specification<Care> spec = toSpecification(filters).and(addCaretakerEmailFilter(caretakerEmail));
 
         if(CollectionUtil.isNotEmpty(clientEmails)) {
             spec = spec.and(addClientEmailsFilter(clientEmails));
@@ -46,8 +35,9 @@ public final class CareSpecificationUtils {
 
     }
 
-    public static Specification<Care> toSpecificationForClient(CareSearchCriteria filters, Set<String> caretakerEmails,
-                                                          String clientEmail) {
+    public static Specification<Care> toSpecificationForClient(CareSearchCriteria filters,
+                                                               Set<String> caretakerEmails,
+                                                               String clientEmail) {
 
         Specification<Care> spec = toSpecification(filters)
                         .and(addClientEmailFilter(clientEmail));
@@ -122,65 +112,53 @@ public final class CareSpecificationUtils {
     }
 
     private static Specification<Care> caretakerStatusesIn(Set<CareStatus> caretakerStatuses) {
-
-        return (root, query, criteriaBuilder) -> {
-            return root.get(CARETAKER_STATUS).in(caretakerStatuses);
-        };
-
+        return (root, query, criteriaBuilder) ->
+                root.get(CARETAKER_STATUS).in(caretakerStatuses);
     }
 
     private static Specification<Care> clientStatusesIn(Set<CareStatus> clientStatuses) {
-        return (root, query, criteriaBuilder) -> {
-            return root.get(CLIENT_STATUS).in(clientStatuses);
-        };
+        return (root, query, criteriaBuilder) ->
+                root.get(CLIENT_STATUS).in(clientStatuses);
     }
 
     private static Specification<Care> minCreatedTime(ZonedDateTime minCreatedTime) {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.greaterThanOrEqualTo(root.get(SUBMITTED_AT), minCreatedTime);
-        };
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(root.get(SUBMITTED_AT), minCreatedTime);
     }
 
     private static Specification<Care> maxCreatedTime(ZonedDateTime maxCreatedTime) {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.lessThanOrEqualTo(root.get(SUBMITTED_AT), maxCreatedTime);
-        };
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(root.get(SUBMITTED_AT), maxCreatedTime);
     }
 
     private static Specification<Care> minCareStart(LocalDate minCareStart) {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.greaterThanOrEqualTo(root.get(CARE_START), minCareStart);
-        };
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(root.get(CARE_START), minCareStart);
     }
 
     private static Specification<Care> maxCareStart(LocalDate maxCareStart) {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.lessThanOrEqualTo(root.get(CARE_START), maxCareStart);
-        };
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(root.get(CARE_START), maxCareStart);
     }
 
     private static Specification<Care> minCareEnd(LocalDate minCareEnd) {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.greaterThanOrEqualTo(root.get(CARE_END), minCareEnd);
-        };
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(root.get(CARE_END), minCareEnd);
     }
 
     private static Specification<Care> maxCareEnd(LocalDate maxCareEnd) {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.lessThanOrEqualTo(root.get(CARE_END), maxCareEnd);
-        };
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(root.get(CARE_END), maxCareEnd);
     }
 
     private static Specification<Care> minDailyPrice(BigDecimal minDailyPrice) {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.greaterThanOrEqualTo(root.get(DAILY_PRICE), minDailyPrice);
-        };
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.greaterThanOrEqualTo(root.get(DAILY_PRICE), minDailyPrice);
     }
 
     private static Specification<Care> maxDailyPrice(BigDecimal maxDailyPrice) {
-        return (root, query, criteriaBuilder) -> {
-            return criteriaBuilder.lessThanOrEqualTo(root.get(DAILY_PRICE), maxDailyPrice);
-        };
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.lessThanOrEqualTo(root.get(DAILY_PRICE), maxDailyPrice);
     }
 
     public static Specification<Care> addClientEmailsFilter(Set<String> clientEmails) {

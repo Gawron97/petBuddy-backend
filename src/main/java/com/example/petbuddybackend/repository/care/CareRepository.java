@@ -18,9 +18,6 @@ import java.util.List;
 
 public interface CareRepository extends JpaRepository<Care, Long>, JpaSpecificationExecutor<Care> {
 
-    List<Care> findAllByCaretakerStatusNotInOrClientStatusNotIn(Collection<CareStatus> caretakerStatus,
-                                                                Collection<CareStatus> clientStatus);
-
     Page<Care> findAll(Specification<Care> spec, Pageable pageable);
 
     @Transactional

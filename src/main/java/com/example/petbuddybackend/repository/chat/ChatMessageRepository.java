@@ -3,12 +3,14 @@ package com.example.petbuddybackend.repository.chat;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
-public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
+public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long>, JpaSpecificationExecutor<ChatMessage> {
 
     Page<ChatMessage> findByChatRoom_Id_OrderByCreatedAtDesc(Long chatId, Pageable pageable);
 
@@ -60,4 +62,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
         ORDER BY cm.createdAt DESC
     """)
     Page<ChatMessage> findLastMessagesOfChatRoomsOfCaretaker(String caretakerUsername, Pageable pageable);
+
+    Page<ChatMessage> findAll(Specification<ChatMessage> spec, Pageable pageable);
 }

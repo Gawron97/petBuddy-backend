@@ -3,6 +3,7 @@ package com.example.petbuddybackend.service.chat;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.ChatRoomSearchCriteria;
 import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
@@ -37,6 +38,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.mock.MockChatProvider.*;
@@ -45,6 +47,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 public class ChatServiceTest {
+
+    private static final String CLIENT_EMAIL = "ClientEmail";
+    private static final String CARETAKER_EMAIL = "CaretakerEmail";
 
     private static Client client;
     private static Client otherClientWithCaretakerAccount;
@@ -80,13 +85,13 @@ public class ChatServiceTest {
         caretaker = PersistenceUtils.addCaretaker(
                 caretakerRepository,
                 appUserRepository,
-                MockUserProvider.createMockCaretaker()
+                MockUserProvider.createMockCaretaker(CARETAKER_EMAIL)
         );
 
         client = PersistenceUtils.addClient(
                 appUserRepository,
                 clientRepository,
-                MockUserProvider.createMockClient()
+                MockUserProvider.createMockClient(CLIENT_EMAIL)
         );
 
         chatRoom = PersistenceUtils.addChatRoom(
@@ -126,13 +131,13 @@ public class ChatServiceTest {
     void testGetChatMessages_shouldSucceed() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessagesByParticipantEmail(
+        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessages(
                 chatRoom.getId(),
                 client.getEmail(),
                 pageable,
                 ZoneId.of("Europe/Warsaw")
         );
-        Page<ChatMessageDTO> caretakerChatMessages = chatService.getChatMessagesByParticipantEmail(
+        Page<ChatMessageDTO> caretakerChatMessages = chatService.getChatMessages(
                 chatRoom.getId(),
                 caretaker.getEmail(),
                 pageable,
@@ -149,7 +154,7 @@ public class ChatServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         ZoneId zoneId = ZoneId.of(timeZone);
 
-        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessagesByParticipantEmail(chatRoom.getId(), client.getEmail(), pageable, zoneId);
+        Page<ChatMessageDTO> clientChatMessages = chatService.getChatMessages(chatRoom.getId(), client.getEmail(), pageable, zoneId);
 
         for(ChatMessageDTO chatMessageDTO : clientChatMessages.getContent()) {
             assertEquals(zoneId, chatMessageDTO.getCreatedAt().getZone());
@@ -160,7 +165,7 @@ public class ChatServiceTest {
     void testGetChatMessages_chatDoesNotExist_shouldThrowNotFoundException() {
         assertThrows(
                 NotFoundException.class,
-                () -> chatService.getChatMessagesByParticipantEmail(-1L, "", null, ZoneId.of("Europe/Warsaw"))
+                () -> chatService.getChatMessages(-1L, "", null, ZoneId.of("Europe/Warsaw"))
         );
     }
 
@@ -168,7 +173,7 @@ public class ChatServiceTest {
     void testGetChatMessages_userDoesNotParticipateChat_shouldThrowNotParticipateException() {
         assertThrows(
                 NotParticipateException.class,
-                () -> chatService.getChatMessagesByParticipantEmail(chatRoom.getId(), "notAParticipant", null, ZoneId.of("Europe/Warsaw"))
+                () -> chatService.getChatMessages(chatRoom.getId(), "notAParticipant", null, ZoneId.of("Europe/Warsaw"))
         );
     }
 
@@ -190,18 +195,10 @@ public class ChatServiceTest {
     void testGetChatRoomsByParticipantEmail_shouldSucceed() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatRoomDTO> clientChatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
-                client.getEmail(),
-                Role.CLIENT,
-                pageable,
-                ZoneId.of("Europe/Warsaw")
-        );
-        Page<ChatRoomDTO> caretakerChatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
-                caretaker.getEmail(),
-                Role.CARETAKER,
-                pageable,
-                ZoneId.of("Europe/Warsaw")
-        );
+        Page<ChatRoomDTO> clientChatRooms = getClientChatRooms(
+                pageable);
+        Page<ChatRoomDTO> caretakerChatRooms = getCaretakerChatRooms(
+                pageable);
 
         ChatRoomDTO clientChatRoom = clientChatRooms.getContent().get(0);
         ChatRoomDTO caretakerChatRoom = caretakerChatRooms.getContent().get(0);
@@ -220,14 +217,51 @@ public class ChatServiceTest {
         assertNotNull(caretakerChatRoom.getLastMessage().getCreatedAt());
     }
 
+    @Test
+    void testGetChatRoomsByParticipantEmail_filterByChatterData_strictFilter_shouldReturnNothing() {
+        Pageable pageable = PageRequest.of(0, 10);
+        ChatRoomSearchCriteria searchCriteria = new ChatRoomSearchCriteria(UUID.randomUUID().toString());
+
+        Page<ChatRoomDTO> clientChatRooms = getClientChatRooms(pageable, searchCriteria);
+        Page<ChatRoomDTO> caretakerChatRooms = getCaretakerChatRooms(pageable, searchCriteria);
+
+        assertTrue(clientChatRooms.isEmpty());
+        assertTrue(caretakerChatRooms.isEmpty());
+    }
+
+    @Test
+    void testGetChatRoomsByParticipantEmail_filterByClientEmail_shouldSucceed() {
+        Pageable pageable = PageRequest.of(0, 10);
+        ChatRoomSearchCriteria searchCriteria = new ChatRoomSearchCriteria(CLIENT_EMAIL);
+
+        Page<ChatRoomDTO> clientChatRooms = getClientChatRooms(pageable, searchCriteria);
+        Page<ChatRoomDTO> caretakerChatRooms = getCaretakerChatRooms(pageable, searchCriteria);
+
+        assertTrue(clientChatRooms.isEmpty());
+        assertEquals(1, caretakerChatRooms.getContent().size());
+    }
+
+    @Test
+    void testGetChatRoomsByParticipantEmail_filterByCaretakerEmail_shouldSucceed() {
+        Pageable pageable = PageRequest.of(0, 10);
+        ChatRoomSearchCriteria searchCriteria = new ChatRoomSearchCriteria(CARETAKER_EMAIL);
+
+        Page<ChatRoomDTO> clientChatRooms = getClientChatRooms(pageable, searchCriteria);
+        Page<ChatRoomDTO> caretakerChatRooms = getCaretakerChatRooms(pageable, searchCriteria);
+
+        assertEquals(1, clientChatRooms.getContent().size());
+        assertTrue(caretakerChatRooms.isEmpty());
+    }
+
     @ParameterizedTest
     @MethodSource("provideTimeZones")
     void testGetChatRoomsByParticipantEmailWithZone_shouldSucceed(String timeZone) {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByParticipantEmailSortedByLastMessage(
+        Page<ChatRoomDTO> chatRooms = chatService.getChatRooms(
                 client.getEmail(),
                 Role.CLIENT,
+                ChatRoomSearchCriteria.builder().build(),
                 pageable,
                 ZoneId.of(timeZone)
         );
@@ -303,7 +337,7 @@ public class ChatServiceTest {
                 false
         );
 
-        List<ChatMessageDTO> clientMessages = chatService.getChatMessagesByParticipantEmail(
+        List<ChatMessageDTO> clientMessages = chatService.getChatMessages(
                 chatRoom.getId(),
                 client.getEmail(),
                 PageRequest.of(0, 10),
@@ -474,7 +508,7 @@ public class ChatServiceTest {
         );
 
         chatService.markMessagesAsSeen(chatRoom.getId(), client.getEmail());
-        List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
+        List<ChatMessageDTO> chatMessages = chatService.getChatMessages(
                 chatRoom.getId(),
                 client.getEmail(),
                 PageRequest.of(0, 10),
@@ -503,7 +537,7 @@ public class ChatServiceTest {
 
         chatService.markMessagesAsSeen(chatRoom.getId(), caretaker.getEmail());
 
-        List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
+        List<ChatMessageDTO> chatMessages = chatService.getChatMessages(
                 chatRoom.getId(),
                 caretaker.getEmail(),
                 PageRequest.of(0, 10),
@@ -543,7 +577,7 @@ public class ChatServiceTest {
             Role role,
             String participantUsername
     ) {
-        ChatRoomDTO chatRoomDTO = chatService.getChatRoomWithParticipant(username, role, participantUsername, ZoneId.systemDefault());
+        ChatRoomDTO chatRoomDTO = chatService.getChatRoom(username, role, participantUsername, ZoneId.systemDefault());
         assertEquals(chatRoom.getId(), chatRoomDTO.getId());
         assertEquals(participantUsername, chatRoomDTO.getChatter().email());
         assertNotNull(chatRoomDTO.getLastMessage().getCreatedAt());
@@ -558,7 +592,7 @@ public class ChatServiceTest {
     ) {
         assertThrows(
                 NotFoundException.class,
-                () -> chatService.getChatRoomWithParticipant(username, role, participantUsername, ZoneId.systemDefault())
+                () -> chatService.getChatRoom(username, role, participantUsername, ZoneId.systemDefault())
         );
     }
 
@@ -574,7 +608,7 @@ public class ChatServiceTest {
 
         chatService.markMessagesAsSeen(chatRoom.getId(), client.getEmail());
 
-        List<ChatMessageDTO> chatMessages = chatService.getChatMessagesByParticipantEmail(
+        List<ChatMessageDTO> chatMessages = chatService.getChatMessages(
                 chatRoom.getId(),
                 client.getEmail(),
                 PageRequest.of(0, 10),
@@ -623,6 +657,34 @@ public class ChatServiceTest {
         assertEquals(1, unreadChatsNumber.getUnseenChatsAsCaretaker());
     }
 
+    private Page<ChatRoomDTO> getCaretakerChatRooms(Pageable pageable, ChatRoomSearchCriteria searchCriteria) {
+        return chatService.getChatRooms(
+                caretaker.getEmail(),
+                Role.CARETAKER,
+                searchCriteria,
+                pageable,
+                ZoneId.of("Europe/Warsaw")
+        );
+    }
+
+    private Page<ChatRoomDTO> getClientChatRooms(Pageable pageable, ChatRoomSearchCriteria searchCriteria) {
+        return chatService.getChatRooms(
+                client.getEmail(),
+                Role.CLIENT,
+                searchCriteria,
+                pageable,
+                ZoneId.of("Europe/Warsaw")
+        );
+    }
+
+    private Page<ChatRoomDTO> getCaretakerChatRooms(Pageable pageable) {
+        return getCaretakerChatRooms(pageable, ChatRoomSearchCriteria.builder().build());
+    }
+
+    private Page<ChatRoomDTO> getClientChatRooms(Pageable pageable) {
+        return getClientChatRooms(pageable, ChatRoomSearchCriteria.builder().build());
+    }
+
     private static Stream<String> provideTimeZones() {
         return Stream.of(
             "UTC",
@@ -640,8 +702,8 @@ public class ChatServiceTest {
 
     private static Stream<Arguments> provideInvalidUserAndParticipant() {
         return Stream.of(
-                Arguments.of(client.getEmail(), Role.CARETAKER, caretaker.getEmail()),
-                Arguments.of(caretaker.getEmail(), Role.CLIENT, client.getEmail())
+                Arguments.of(CLIENT_EMAIL, Role.CARETAKER, CARETAKER_EMAIL),
+                Arguments.of(CARETAKER_EMAIL, Role.CLIENT, CLIENT_EMAIL)
         );
     }
 }

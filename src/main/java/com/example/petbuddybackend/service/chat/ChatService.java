@@ -3,6 +3,7 @@ package com.example.petbuddybackend.service.chat;
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
 import com.example.petbuddybackend.dto.chat.ChatRoomDTO;
+import com.example.petbuddybackend.dto.criteriaSearch.ChatRoomSearchCriteria;
 import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.entity.chat.ChatMessage;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
@@ -21,9 +22,11 @@ import com.example.petbuddybackend.utils.exception.throweable.chat.ChatAlreadyEx
 import com.example.petbuddybackend.utils.exception.throweable.chat.InvalidMessageReceiverException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.specification.ChatSpecificationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,10 +52,10 @@ public class ChatService {
     private final BlockService blockService;
     private final UserService userService;
 
-    public Page<ChatMessageDTO> getChatMessagesByParticipantEmail(Long chatId,
-                                                                  String principalEmail,
-                                                                  Pageable pageable,
-                                                                  ZoneId timeZone) {
+    public Page<ChatMessageDTO> getChatMessages(Long chatId,
+                                                String principalEmail,
+                                                Pageable pageable,
+                                                ZoneId timeZone) {
         checkChatExists(chatId);
         assertUserInChat(chatId, principalEmail);
 
@@ -61,14 +64,19 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ChatRoomDTO> getChatRoomsByParticipantEmailSortedByLastMessage(String principalEmail,
-                                                                               Role role,
-                                                                               Pageable pageable,
-                                                                               ZoneId timeZone) {
-        Page<ChatMessage> principalChatMessages = role == Role.CLIENT ?
-                chatMessageRepository.findLastMessagesOfChatRoomsOfClient(principalEmail, pageable) :
-                chatMessageRepository.findLastMessagesOfChatRoomsOfCaretaker(principalEmail, pageable);
+    public Page<ChatRoomDTO> getChatRooms(String principalEmail,
+                                          Role role,
+                                          ChatRoomSearchCriteria searchCriteria,
+                                          Pageable pageable,
+                                          ZoneId timeZone) {
 
+        Specification<ChatMessage> chatMessageSpec = ChatSpecificationUtils.filtersToSpecificationSorted(
+                searchCriteria,
+                principalEmail,
+                role
+        );
+
+        Page<ChatMessage> principalChatMessages = chatMessageRepository.findAll(chatMessageSpec, pageable);
         return principalChatMessages.map(message -> mapToChatRoomDTO(principalEmail, message, timeZone));
     }
 
@@ -79,10 +87,10 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
-    public ChatRoomDTO getChatRoomWithParticipant(String username,
-                                                  Role userRole,
-                                                  String participantUsername,
-                                                  ZoneId timeZone) {
+    public ChatRoomDTO getChatRoom(String username,
+                                   Role userRole,
+                                   String participantUsername,
+                                   ZoneId timeZone) {
         ChatRoom chatRoom = userRole == Role.CLIENT ?
                 getByClientEmailAndCaretakerEmail(username, participantUsername) :
                 getByClientEmailAndCaretakerEmail(participantUsername, username);
