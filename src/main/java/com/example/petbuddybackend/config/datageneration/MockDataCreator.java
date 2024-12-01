@@ -279,7 +279,7 @@ public class MockDataCreator {
                 ZoneId.systemDefault()
         );
 
-        Page<ChatRoomDTO> chatRooms = chatService.getChatRoomsByCriteriaSortedByLastMessage(
+        Page<ChatRoomDTO> chatRooms = chatService.getChatRooms(
                 client.getEmail(),
                 Role.CLIENT,
                 new ChatRoomSearchCriteria(""),

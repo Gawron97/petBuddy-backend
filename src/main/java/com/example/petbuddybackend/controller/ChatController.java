@@ -55,7 +55,7 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return chatService.getChatMessagesByParticipantEmail(
+        return chatService.getChatMessages(
                 chatId,
                 principal.getName(),
                 pageable,
@@ -69,8 +69,8 @@ public class ChatController {
             summary = "Send chat message and initialize chat room with given user",
             description =
                     """
-                    Creates a new chat room with the given user and sends the first message to him. This is the 
-                    first step of the communication between a Caretaker and a Client. After this step, websocket 
+                    Creates a new chat room with the given user and sends the first message to him. This is the
+                    first step of the communication between a Caretaker and a Client. After this step, websocket
                     endpoint should be used instead of this endpoint.
                     """
     )
@@ -122,7 +122,7 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone,
             @RoleParameter @RequestHeader(value = "${header-name.role}") Role acceptRole
     ) {
-        return chatService.getChatRoomWithParticipant(
+        return chatService.getChatRoom(
                 principal.getName(),
                 acceptRole,
                 participantEmail,
@@ -148,7 +148,7 @@ public class ChatController {
             @TimeZoneParameter @RequestHeader(value = "${header-name.timezone}", required = false) String acceptTimeZone
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return chatService.getChatRoomsByCriteriaSortedByLastMessage(
+        return chatService.getChatRooms(
                 principal.getName(),
                 acceptRole,
                 chatRoomSearchCriteria,

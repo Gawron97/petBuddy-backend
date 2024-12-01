@@ -93,7 +93,7 @@ public class ChatControllerTest {
     @Test
     @WithMockUser
     void getChatRooms_includeTimeZone_shouldSucceed() throws Exception {
-        when(chatService.getChatRoomsByCriteriaSortedByLastMessage(any(), any(), any(), any(), any()))
+        when(chatService.getChatRooms(any(), any(), any(), any(), any()))
                 .thenReturn(expectedChatRoomPage);
 
         mockMvc.perform(get("/api/chat")
@@ -111,7 +111,7 @@ public class ChatControllerTest {
     @Test
     @WithMockUser
     void getChatMessages_includeTimeZone_shouldSucceed() throws Exception {
-        when(chatService.getChatMessagesByParticipantEmail(any(), any(), any(), any())).thenReturn(expectedMessagePage);
+        when(chatService.getChatMessages(any(), any(), any(), any())).thenReturn(expectedMessagePage);
 
         mockMvc.perform(get("/api/chat/1/messages")
                         .param("page", "0")
@@ -146,7 +146,7 @@ public class ChatControllerTest {
     @Test
     @WithMockUser
     void getChatRoom_shouldSucceed() throws Exception {
-        when(chatService.getChatRoomWithParticipant(any(), any(), any(), any()))
+        when(chatService.getChatRoom(any(), any(), any(), any()))
                 .thenReturn(expectedChatRoom);
 
         mockMvc.perform(get("/api/chat/caretaker@example.com")
