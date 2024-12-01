@@ -70,7 +70,6 @@ public class ChatService {
                                                                        Pageable pageable,
                                                                        ZoneId timeZone) {
 
-        userService.assertHasRole(principalEmail, role);
         Specification<ChatMessage> chatMessageSpec = ChatSpecificationUtils.filtersToSpecificationSorted(
                 searchCriteria,
                 principalEmail,
