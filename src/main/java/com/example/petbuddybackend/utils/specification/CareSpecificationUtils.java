@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.utils.specification;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CareStatisticsSearchCriteria;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -90,6 +91,63 @@ public final class CareSpecificationUtils {
 
         if(filters.maxCareEnd() != null) {
             spec = spec.and(maxCareEnd(filters.maxCareEnd()));
+        }
+
+        if(filters.minDailyPrice() != null) {
+            spec = spec.and(minDailyPrice(filters.minDailyPrice()));
+        }
+
+        if(filters.maxDailyPrice() != null) {
+            spec = spec.and(maxDailyPrice(filters.maxDailyPrice()));
+        }
+
+        return spec;
+
+    }
+
+    public static Specification<Care> toSpecificationForCaretaker(CareStatisticsSearchCriteria filters,
+                                                                  Set<String> clientEmails,
+                                                                  Set<CareStatus> caretakerStatuses,
+                                                                  Set<CareStatus> clientStatuses,
+                                                                  String caretakerEmail) {
+
+        Specification<Care> spec = toSpecification(filters, caretakerStatuses, clientStatuses)
+                .and(addCaretakerEmailFilter(caretakerEmail));
+
+        if(CollectionUtil.isNotEmpty(clientEmails)) {
+            spec = spec.and(addClientEmailsFilter(clientEmails));
+        }
+
+        return spec;
+
+    }
+
+    public static Specification<Care> toSpecification(CareStatisticsSearchCriteria filters,
+                                                      Set<CareStatus> caretakerStatuses,
+                                                      Set<CareStatus> clientStatuses) {
+
+        Specification<Care> spec = Specification.where(
+                (root, query, criteriaBuilder) -> criteriaBuilder.conjunction()
+        );
+
+        if(CollectionUtil.isNotEmpty(filters.animalTypes())) {
+            spec = spec.and(animalTypesIn(filters.animalTypes()));
+        }
+
+        if(CollectionUtil.isNotEmpty(caretakerStatuses)) {
+            spec = spec.and(caretakerStatusesIn(caretakerStatuses));
+        }
+
+        if(CollectionUtil.isNotEmpty(clientStatuses)) {
+            spec = spec.and(clientStatusesIn(clientStatuses));
+        }
+
+        if(filters.minCareStart() != null) {
+            spec = spec.and(minCareStart(filters.minCareStart()));
+        }
+
+        if(filters.maxCareStart() != null) {
+            spec = spec.and(maxCareStart(filters.maxCareStart()));
         }
 
         if(filters.minDailyPrice() != null) {

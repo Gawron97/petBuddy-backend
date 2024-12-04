@@ -598,5 +598,14 @@ public class CareControllerIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @WithMockUser(username = CARETAKER_EMAIL)
+    void getMonthlyRevenue_ShouldReturnProperAnswer() throws Exception {
+        mockMvc.perform(get("/api/care/monthly-revenue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header(ROLE_HEADER_NAME, Role.CARETAKER))
+                .andExpect(status().isOk());
+    }
+
 
 }
