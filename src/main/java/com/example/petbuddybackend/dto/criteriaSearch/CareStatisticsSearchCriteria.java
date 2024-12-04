@@ -7,7 +7,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.Builder;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Set;
 
 @Builder
@@ -23,20 +23,20 @@ public record CareStatisticsSearchCriteria(
         Set<String> animalTypes,
 
         @Schema(
-                description = "Filters by min care start - NOT PRESENT DATE",
-                example = "2020-02-03",
+                description = "Filters by min care start - NOT PRESENT DATE, ONLY YEAR AND MONTH",
+                example = "2020-01",
                 type = "string"
         )
         @PastOrPresent(message = "Care start date must be before or equal to today")
-        LocalDate minCareStart,
+        YearMonth minCareStart,
 
         @Schema(
-                description = "Filters by max care start - NOT PRESENT DATE",
-                example = "2020-02-07",
+                description = "Filters by max care start - NOT PRESENT DATE, ONLY YEAR AND MONTH",
+                example = "2020-02",
                 type = "string"
         )
         @PastOrPresent(message = "Care start date must be before or equal to today")
-        LocalDate maxCareStart,
+        YearMonth maxCareStart,
 
         @Schema(
                 description = "Filters by min daily price",

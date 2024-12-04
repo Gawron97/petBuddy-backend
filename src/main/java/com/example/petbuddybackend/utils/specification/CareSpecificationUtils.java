@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -143,11 +144,11 @@ public final class CareSpecificationUtils {
         }
 
         if(filters.minCareStart() != null) {
-            spec = spec.and(minCareStart(filters.minCareStart()));
+            spec = spec.and(minYearMonthCareStart(filters.minCareStart()));
         }
 
         if(filters.maxCareStart() != null) {
-            spec = spec.and(maxCareStart(filters.maxCareStart()));
+            spec = spec.and(maxYearMonthCareStart(filters.maxCareStart()));
         }
 
         if(filters.minDailyPrice() != null) {
@@ -197,6 +198,20 @@ public final class CareSpecificationUtils {
     private static Specification<Care> maxCareStart(LocalDate maxCareStart) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get(CARE_START), maxCareStart);
+    }
+
+    private static Specification<Care> minYearMonthCareStart(YearMonth minCareStart) {
+        return (root, query, criteriaBuilder) -> {
+            LocalDate formattedMinCareStart = minCareStart.atDay(1);
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(CARE_START), formattedMinCareStart);
+        };
+    }
+
+    private static Specification<Care> maxYearMonthCareStart(YearMonth maxCareStart) {
+        return (root, query, criteriaBuilder) -> {
+            LocalDate formattedMaxCareStart = maxCareStart.atEndOfMonth();
+            return criteriaBuilder.lessThanOrEqualTo(root.get(CARE_START), formattedMaxCareStart);
+        };
     }
 
     private static Specification<Care> minCareEnd(LocalDate minCareEnd) {

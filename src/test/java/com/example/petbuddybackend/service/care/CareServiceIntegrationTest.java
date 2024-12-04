@@ -46,6 +46,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -1029,8 +1030,8 @@ public class CareServiceIntegrationTest {
                 ),
                 Arguments.of(
                         CareStatisticsSearchCriteria.builder()
-                                .minCareStart(LocalDate.of(2024, 5, 1))
-                                .maxCareStart(LocalDate.of(2024, 5, 31))
+                                .minCareStart(YearMonth.of(2024, 5))
+                                .maxCareStart(YearMonth.of(2024, 5))
                                 .build(),
                         BigDecimal.valueOf(60.06)
                 ),
