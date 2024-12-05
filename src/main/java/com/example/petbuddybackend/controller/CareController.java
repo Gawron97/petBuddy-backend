@@ -262,13 +262,13 @@ public class CareController {
             summary = "Get monthly revenue for the logged in user",
             description = "Returns monthly revenue from cares for logged in user"
     )
-//    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()")
     public MonthlyRevenueDTO getMonthlyRevenue(Principal principal,
 
                                                @ParameterObject @ModelAttribute @Valid CareStatisticsSearchCriteria filters,
                                                @RequestParam(required = false) Set<String> emails,
                                                @RequestHeader(value = "${header-name.role}") @AcceptRole(acceptRole = Role.CARETAKER) Role role) {
-        return careService.getMonthlyRevenue("william.crona@gmail.com", filters, emails);
+        return careService.getMonthlyRevenue(principal.getName(), filters, emails);
     }
 
 }
