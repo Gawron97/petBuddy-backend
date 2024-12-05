@@ -191,11 +191,20 @@ public class MockService {
     }
 
     public List<OfferConfiguration> createMockOffersConfigurations(List<Offer> offers,
-                                                                   int caretakerOfferConfigurationCount) {
+                                                                   List<AnimalAttribute> animalAttributes,
+                                                                   int optionsInConfigurationCount) {
         List<OfferConfiguration> offerConfigurations = new ArrayList<>();
 
         for (Offer offer : offers) {
-            offerConfigurations.addAll(createMockOfferConfigurations(offer, caretakerOfferConfigurationCount));
+            int numberOfAnimalAttributes =
+                    getAnimalAttributeForAnimalType(offer.getAnimal().getAnimalType(), animalAttributes).size();
+
+            if(numberOfAnimalAttributes == 0) {
+                return offerConfigurations;
+            }
+
+            int configurationsToMake = optionsInConfigurationCount / numberOfAnimalAttributes;
+            offerConfigurations.addAll(createMockOfferConfigurations(offer, configurationsToMake));
         }
 
         return offerConfigurations;
@@ -264,6 +273,10 @@ public class MockService {
         List<List<AnimalAttribute>> uniqueRandomListOfAnimalAttributes =
                 getSomeRandomUniqueListOfAnimalAttributes(animalAttributes, offer, optionsInConfigurationCount);
 
+        if(uniqueRandomListOfAnimalAttributes.isEmpty()) {
+            return offerOptions;
+        }
+
         for (int i = 0; i < offer.getOfferConfigurations().size(); i++) {
             OfferConfiguration offerConfiguration = offer.getOfferConfigurations().get(i);
             List<AnimalAttribute> uniqueRandomAnimalAttributes = uniqueRandomListOfAnimalAttributes.get(i);
@@ -304,10 +317,15 @@ public class MockService {
         List<AnimalAttribute> animalAttributesForAnimalType =
                 getAnimalAttributeForAnimalType(offer.getAnimal().getAnimalType(), animalAttributes);
 
+        if(animalAttributesForAnimalType.size() < optionsInConfigurationCount) {
+            return List.of(animalAttributesForAnimalType);
+        }
+
         Set<List<AnimalAttribute>> uniqueListOfAnimalAttributes = new HashSet<>();
         while (uniqueListOfAnimalAttributes.size() < offer.getOfferConfigurations().size()) {
             uniqueListOfAnimalAttributes.add(
-                    getSomeRandomUniqueAnimalAttributes(animalAttributesForAnimalType, optionsInConfigurationCount));
+                    getSomeRandomUniqueAnimalAttributes(animalAttributesForAnimalType, optionsInConfigurationCount)
+            );
         }
         return new ArrayList<>(uniqueListOfAnimalAttributes);
 
@@ -315,6 +333,10 @@ public class MockService {
 
     private List<AnimalAttribute> getSomeRandomUniqueAnimalAttributes(List<AnimalAttribute> animalAttributes,
                                                                       int count) {
+
+        if(animalAttributes.isEmpty()) {
+            return List.of();
+        }
 
         if (count > animalAttributes.size()) {
             return List.of(animalAttributes.get(faker.random().nextInt(animalAttributes.size())));
@@ -340,9 +362,12 @@ public class MockService {
 
         return offers.stream()
                 .map(offer ->
-                        createMockOfferAmenities(offer,
+                        createMockOfferAmenities(
+                                offer,
                                 getAnimalAmenitiesForAnimalType(offer.getAnimal().getAnimalType(), animalAmenities),
-                                animalAmenityInOfferCount))
+                                animalAmenityInOfferCount
+                        )
+                )
                 .toList();
 
     }
@@ -433,7 +458,7 @@ public class MockService {
         Set<AnimalAttribute> animalAttributesForCare =
                 new HashSet<>(getSomeRandomUniqueAnimalAttributes(
                         availableAnimalAttributes,
-                        faker.random().nextInt(availableAnimalAttributes.size()))
+                        faker.random().nextInt(Math.max(1, availableAnimalAttributes.size())))
                 );
 
         LocalDate careEnd = getRandomDateBetween(

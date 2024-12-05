@@ -4,5 +4,11 @@ animal-data:
     - animalType: CAT
     - animalType: BIRD
     - animalType: FISH
-    - animalType: REPTILE
-    - animalType: HORSE
+    - animalType: TURTLE
+    - animalType: SNAKE
+    - animalType: HAMSTER
+    - animalType: RABBIT
+    - animalType: GUINEA_PIG
+    - animalType: HEDGEHOG
+    - animalType: MOUSE
+    - animalType: OTHER

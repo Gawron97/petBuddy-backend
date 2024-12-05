@@ -1,10 +1,100 @@
 animal-amenity-data:
   animalAmenityConfigs:
+    - animalType: DOG
+      amenity: toys
+    - animalType: DOG
+      amenity: secured garden
+
     - animalType: CAT
       amenity: scratching post
     - animalType: CAT
       amenity: toys
-    - animalType: DOG
+    - animalType: CAT
+      amenity: litter tray
+    - animalType: CAT
+      amenity: catnip
+
+    - animalType: BIRD
+      amenity: spacious cage
+    - animalType: BIRD
+      amenity: aviary
+    - animalType: BIRD
       amenity: toys
-    - animalType: DOG
-      amenity: garden
+
+    - animalType: FISH
+      amenity: tank decorations
+    - animalType: FISH
+      amenity: water filtration
+    - animalType: FISH
+      amenity: thermal regulation
+
+    - animalType: TURTLE
+      amenity: terrarium
+    - animalType: TURTLE
+      amenity: heat lamp
+    - animalType: TURTLE
+      amenity: basking area
+    - animalType: TURTLE
+      amenity: UVB lighting
+    - animalType: TURTLE
+      amenity: water area
+
+    - animalType: SNAKE
+      amenity: secure terrarium
+    - animalType: SNAKE
+      amenity: heat lamp
+    - animalType: SNAKE
+      amenity: hiding spots
+    - animalType: SNAKE
+      amenity: humidity control
+
+    - animalType: HAMSTER
+      amenity: spacious cage
+    - animalType: HAMSTER
+      amenity: exercise wheel
+    - animalType: HAMSTER
+      amenity: bedding
+    - animalType: HAMSTER
+      amenity: tunnels
+    - animalType: HAMSTER
+      amenity: toys
+
+    - animalType: RABBIT
+      amenity: spacious cage
+    - animalType: RABBIT
+      amenity: toys
+    - animalType: RABBIT
+      amenity: secured garden
+    - animalType: RABBIT
+      amenity: hiding spots
+
+    - animalType: GUINEA_PIG
+      amenity: spacious cage
+    - animalType: GUINEA_PIG
+      amenity: hiding spots
+    - animalType: GUINEA_PIG
+      amenity: bedding
+    - animalType: GUINEA_PIG
+      amenity: toys
+
+    - animalType: HEDGEHOG
+      amenity: spacious cage
+    - animalType: HEDGEHOG
+      amenity: hiding spots
+    - animalType: HEDGEHOG
+      amenity: exercise wheel
+    - animalType: HEDGEHOG
+      amenity: bedding
+
+    - animalType: MOUSE
+      amenity: spacious cage
+    - animalType: MOUSE
+      amenity: exercise wheel
+    - animalType: MOUSE
+      amenity: tunnels
+    - animalType: MOUSE
+      amenity: hiding spots
+    - animalType: MOUSE
+      amenity: bedding
+    - animalType: MOUSE
+      amenity: toys
