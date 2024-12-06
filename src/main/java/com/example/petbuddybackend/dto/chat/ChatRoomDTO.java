@@ -14,4 +14,5 @@ public class ChatRoomDTO {
     private Long id;
     private AccountDataDTO chatter;
     private ChatMessageDTO lastMessage;
+    private boolean blocked;
 }

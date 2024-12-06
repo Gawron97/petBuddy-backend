@@ -33,6 +33,7 @@ public interface ChatMapper {
             Long id,
             AppUser chatter,
             ChatMessage lastMessage,
+            boolean blocked,
             @Context ZoneId zoneId
     );
 

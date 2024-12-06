@@ -171,13 +171,13 @@ public class ChatService {
     }
 
     public void assertUserInChat(Long chatId, String email) {
-        if (!isUserInChat(chatId, email)) {
+        if(!isUserInChat(chatId, email)) {
             throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatId));
         }
     }
 
     public void assertUserInChat(ChatRoom chatRoom, String email, Role role) {
-        if (!isUserInChat(chatRoom, email, role)) {
+        if(!isUserInChat(chatRoom, email, role)) {
             throw new NotParticipateException(String.format(PARTICIPATE_EXCEPTION_MESSAGE, email, chatRoom.getId()));
         }
     }
@@ -190,28 +190,37 @@ public class ChatService {
 
     private ChatRoomDTO mapToChatRoomDTO(String principalUsername, ChatRoom chatRoom, ZoneId zoneId) {
         ChatMessage message = chatMessageRepository.findFirstByChatRoom_IdOrderByCreatedAtDesc(chatRoom.getId());
-
-        AppUser chatter = chatRoom.getClient().getEmail().equals(principalUsername) ?
-                chatRoom.getCaretaker().getAccountData() :
-                chatRoom.getClient().getAccountData();
-
-        userService.renewProfilePicture(chatter);
-        return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, message, zoneId);
+        return mapToChatRoomDTO(principalUsername, message, zoneId, chatRoom);
     }
 
     private ChatRoomDTO mapToChatRoomDTO(String principalUsername, ChatMessage lastMessage, ZoneId zoneId) {
         ChatRoom chatRoom = lastMessage.getChatRoom();
+        return mapToChatRoomDTO(principalUsername, lastMessage, zoneId, chatRoom);
+    }
 
-        AppUser chatter = chatRoom.getClient().getEmail().equals(principalUsername) ?
-                chatRoom.getCaretaker().getAccountData() :
-                chatRoom.getClient().getAccountData();
+    private ChatRoomDTO mapToChatRoomDTO(String principalUsername,
+                                         ChatMessage lastMessage,
+                                         ZoneId zoneId,
+                                         ChatRoom chatRoom) {
+
+        Client client = chatRoom.getClient();
+        Caretaker caretaker = chatRoom.getCaretaker();
+
+        AppUser chatter = client.getEmail()
+                .equals(principalUsername) ? caretaker.getAccountData() : client.getAccountData();
 
         userService.renewProfilePicture(chatter);
-        return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, lastMessage, zoneId);
+
+        boolean isBlocked = blockService.isBlockedByAny(
+                caretaker.getEmail(),
+                client.getEmail()
+        );
+
+        return chatMapper.mapToChatRoomDTO(chatRoom.getId(), chatter, lastMessage, isBlocked, zoneId);
     }
 
     private void performPreviousMessagesSeenUpdate(Long chatId, String senderEmail, boolean seenByRecipient) {
-        if (seenByRecipient) {
+        if(seenByRecipient) {
             chatMessageRepository.updateMessagesSeenOfBothUsers(chatId);
         } else {
             chatMessageRepository.updateUnseenMessagesOfUser(chatId, senderEmail);
@@ -272,7 +281,7 @@ public class ChatService {
     }
 
     private void checkChatExists(Long chatId) {
-        if (!chatRepository.existsById(chatId)) {
+        if(!chatRepository.existsById(chatId)) {
             throw NotFoundException.withFormattedMessage(CHAT, chatId.toString());
         }
     }
@@ -281,7 +290,7 @@ public class ChatService {
                                                   String otherParticipantEmail,
                                                   Role principalRole) {
 
-        if (principalRole == Role.CLIENT) {
+        if(principalRole == Role.CLIENT) {
             checkChatNotExistsByParticipants(otherParticipantEmail, principalEmail);
         } else {
             checkChatNotExistsByParticipants(principalEmail, otherParticipantEmail);
@@ -289,7 +298,7 @@ public class ChatService {
     }
 
     private void checkChatNotExistsByParticipants(String clientEmail, String caretakerEmail) {
-        if (chatRepository.existsByClient_EmailAndCaretaker_Email(clientEmail, caretakerEmail)) {
+        if(chatRepository.existsByClient_EmailAndCaretaker_Email(clientEmail, caretakerEmail)) {
             throw new ChatAlreadyExistsException(String.format(
                     CHAT_PARTICIPANTS_ALREADY_EXIST_MESSAGE,
                     clientEmail,
@@ -301,13 +310,14 @@ public class ChatService {
     private ChatRoom getByClientEmailAndCaretakerEmail(String clientEmail, String caretakerEmail) {
         return chatRoomRepository.findByClient_EmailAndCaretaker_Email(clientEmail, caretakerEmail)
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(
-                        CHAT,
-                        String.format("client: %s, caretaker: %s", clientEmail, caretakerEmail))
+                                CHAT,
+                                String.format("client: %s, caretaker: %s", clientEmail, caretakerEmail)
+                        )
                 );
     }
 
     private void checkSenderIsNotTheSameAsReceiver(String senderEmail, String receiverEmail) {
-        if (senderEmail.equals(receiverEmail)) {
+        if(senderEmail.equals(receiverEmail)) {
             throw new InvalidMessageReceiverException(SENT_TO_YOURSELF_MESSAGE);
         }
     }
