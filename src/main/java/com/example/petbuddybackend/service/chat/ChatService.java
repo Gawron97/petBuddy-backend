@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -84,6 +85,10 @@ public class ChatService {
         return chatRepository.findById(chatId).orElseThrow(() ->
                 NotFoundException.withFormattedMessage(CHAT, chatId.toString())
         );
+    }
+
+    public Optional<ChatRoom> findChatRoomByParticipants(String clientEmail, String caretakerEmail) {
+        return chatRepository.findByClient_EmailAndCaretaker_Email(clientEmail, caretakerEmail);
     }
 
     @Transactional(readOnly = true)

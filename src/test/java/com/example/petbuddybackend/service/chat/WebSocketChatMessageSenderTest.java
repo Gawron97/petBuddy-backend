@@ -1,9 +1,9 @@
 package com.example.petbuddybackend.service.chat;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoin;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeave;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationSend;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.service.session.WebSocketSessionService;
 import com.example.petbuddybackend.testutils.mock.MockUserProvider;
@@ -102,12 +102,12 @@ public class WebSocketChatMessageSenderTest {
                 .content("Hello")
                 .build();
 
-        chatSessionService.sendMessages(chatRoom, new ChatNotificationMessage(message));
+        chatSessionService.sendMessages(chatRoom, new ChatNotificationSend(message));
 
         verify(simpMessagingTemplate)
-                .convertAndSendToUser(eq(CLIENT_EMAIL), any(), any(ChatNotificationMessage.class), any(Map.class));
+                .convertAndSendToUser(eq(CLIENT_EMAIL), any(), any(ChatNotificationSend.class), any(Map.class));
         verify(simpMessagingTemplate)
-                .convertAndSendToUser(eq(CARETAKER_EMAIL), any(), any(ChatNotificationMessage.class), any(Map.class));
+                .convertAndSendToUser(eq(CARETAKER_EMAIL), any(), any(ChatNotificationSend.class), any(Map.class));
     }
 
     @Test
@@ -124,7 +124,7 @@ public class WebSocketChatMessageSenderTest {
         verify(chatService)
                 .markMessagesAsSeen(eq(chatRoom.getId()), eq(CLIENT_EMAIL));
         verify(simpMessagingTemplate)
-                .convertAndSendToUser(eq(CLIENT_EMAIL), any(), any(ChatNotificationJoined.class), any(Map.class));
+                .convertAndSendToUser(eq(CLIENT_EMAIL), any(), any(ChatNotificationJoin.class), any(Map.class));
     }
 
     @Test
@@ -140,7 +140,7 @@ public class WebSocketChatMessageSenderTest {
         chatSessionService.onUserUnsubscribe(CLIENT_EMAIL, chatRoom.getId());
 
         verify(simpMessagingTemplate)
-                .convertAndSendToUser(eq(CARETAKER_EMAIL), any(), any(ChatNotificationLeft.class), any(Map.class));
+                .convertAndSendToUser(eq(CARETAKER_EMAIL), any(), any(ChatNotificationLeave.class), any(Map.class));
     }
 
     @Test
@@ -156,7 +156,7 @@ public class WebSocketChatMessageSenderTest {
         chatSessionService.onUserDisconnect(CLIENT_EMAIL, Map.of("subId1", chatRoom.getId()));
 
         verify(simpMessagingTemplate)
-                .convertAndSendToUser(eq(CARETAKER_EMAIL), any(), any(ChatNotificationLeft.class), any(Map.class));
+                .convertAndSendToUser(eq(CARETAKER_EMAIL), any(), any(ChatNotificationLeave.class), any(Map.class));
     }
 
     @Test

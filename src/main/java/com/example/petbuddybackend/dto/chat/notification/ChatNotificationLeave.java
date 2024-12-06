@@ -5,16 +5,16 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ChatNotificationLeft extends ChatNotification {
+public class ChatNotificationLeave extends ChatNotification {
 
     private Long chatId;
     private String leavingUserEmail;
 
-    public ChatNotificationLeft() {
+    private ChatNotificationLeave() {
         super(ChatNotificationType.LEAVE);
     }
 
-    public ChatNotificationLeft(Long chatId, String userEmail) {
+    public ChatNotificationLeave(Long chatId, String userEmail) {
         this();
         this.chatId = chatId;
         this.leavingUserEmail = userEmail;

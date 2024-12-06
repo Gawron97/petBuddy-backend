@@ -2,7 +2,7 @@ package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationSend;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.chat.ChatService;
@@ -77,7 +77,7 @@ public class ChatWebSocketController {
                 seenByRecipient
         );
 
-        wsChatMessageSender.sendMessages(chatRoom, new ChatNotificationMessage(messageDTO));
+        wsChatMessageSender.sendMessages(chatRoom, new ChatNotificationSend(messageDTO));
 
         wsNotificationSender.sendNotification(
                 recipientUsername,

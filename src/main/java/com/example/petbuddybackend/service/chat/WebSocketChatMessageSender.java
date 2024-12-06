@@ -1,10 +1,7 @@
 package com.example.petbuddybackend.service.chat;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotification;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
+import com.example.petbuddybackend.dto.chat.notification.*;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.service.mapper.ChatMapper;
 import com.example.petbuddybackend.service.session.WebSocketSessionService;
@@ -50,6 +47,26 @@ public class WebSocketChatMessageSender {
                 .forEach((simpSession) -> sendToUser(chatId, caretakerEmail, simpSession.getId(), notification));
     }
 
+    /**
+     * Sends block message to chat room of users. Users can have two chats but as different role for example:
+     * user1: client - user2: caretaker
+     * and other chat
+     * user1: caretaker - user2: client
+     * */
+    public void sendBlockMessageToUsers(String firstUsername, String secondUsername, BlockType blockType) {
+        chatService.findChatRoomByParticipants(firstUsername, secondUsername)
+                .ifPresent(chatRoom -> sendMessages(
+                        chatRoom,
+                        new ChatNotificationBlock(chatRoom.getId(), blockType))
+                );
+
+        chatService.findChatRoomByParticipants(secondUsername, firstUsername)
+                .ifPresent(chatRoom -> sendMessages(
+                        chatRoom,
+                        new ChatNotificationBlock(chatRoom.getId(), blockType))
+                );
+    }
+
     public void onUserJoinChatRoom(String joiningUsername, Long chatId) {
         ChatRoom chatRoom = chatService.getChatRoomById(chatId);
         Map<Long, Integer> allChatRoomSessions = webSocketSessionService.countChatRoomSessions(joiningUsername);
@@ -57,7 +74,7 @@ public class WebSocketChatMessageSender {
         if(allChatRoomSessions.containsKey(chatId) && allChatRoomSessions.get(chatId) == 1) {
             log.trace("Sending join message to chat room: {}", chatId);
             chatService.markMessagesAsSeen(chatId, joiningUsername);
-            sendMessages(chatRoom, new ChatNotificationJoined(chatId, joiningUsername));
+            sendMessages(chatRoom, new ChatNotificationJoin(chatId, joiningUsername));
         }
     }
 
@@ -89,13 +106,13 @@ public class WebSocketChatMessageSender {
             log.trace("Sending leave message to chat room: {}", chatId);
             sendMessages(
                     chatService.getChatRoomById(chatId),
-                    new ChatNotificationLeft(chatId, leavingUsername)
+                    new ChatNotificationLeave(chatId, leavingUsername)
             );
         }
     }
 
     private void sendToUser(Long chatId, String receiverUsername, String sessionId, ChatNotification notification) {
-        if(notification instanceof ChatNotificationMessage messageNotification) {
+        if(notification instanceof ChatNotificationSend messageNotification) {
             log.trace("Sending message notification to user: {}, session {}", receiverUsername, sessionId);
             notifyWithMessage(chatId, receiverUsername, sessionId, messageNotification);
         } else {
@@ -108,7 +125,7 @@ public class WebSocketChatMessageSender {
             Long chatId,
             String receiverUsername,
             String sessionId,
-            ChatNotificationMessage message
+            ChatNotificationSend message
     ) {
         ZoneId zoneId = webSocketSessionService.getTimezoneOrDefault(sessionId);
         convertNotificationMessageTimezone(message, zoneId);
@@ -130,7 +147,7 @@ public class WebSocketChatMessageSender {
     }
 
     private void convertNotificationMessageTimezone(ChatNotification notification, ZoneId zoneId) {
-        ChatNotificationMessage notificationMessage = (ChatNotificationMessage) notification;
+        ChatNotificationSend notificationMessage = (ChatNotificationSend) notification;
         ChatMessageDTO mappedMessage = chatMapper.mapTimeZone(notificationMessage.getContent(), zoneId);
         notificationMessage.setContent(mappedMessage);
     }
