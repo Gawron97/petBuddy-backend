@@ -1306,7 +1306,7 @@ public class CaretakerServiceIntegrationTest {
         String email = "testmail@mail.com";
 
         //When
-        CaretakerComplexPublicDTO result = caretakerService.getOtherCaretaker(email);
+        CaretakerComplexPublicDTO result = caretakerService.getCaretaker(email);
 
         //Then
         assertNotNull(result);
@@ -1321,7 +1321,7 @@ public class CaretakerServiceIntegrationTest {
         String email = "notexists@mail.com";
 
         //When Then
-        assertThrows(NotFoundException.class, () -> caretakerService.getOtherCaretaker(email));
+        assertThrows(NotFoundException.class, () -> caretakerService.getCaretaker(email));
 
     }
 

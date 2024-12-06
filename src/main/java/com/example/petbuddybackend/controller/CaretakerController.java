@@ -64,22 +64,29 @@ public class CaretakerController {
     @GetMapping("/{caretakerEmail}")
     @Operation(
             summary = "Get caretaker information",
-            description = "Get caretaker with details information"
+            description = """
+                        Get caretaker with details information
+                        
+                        Parameter "blocked" as true means that either principal have blocked the caretaker or
+                        the other way around. The "blocked" param will be null if no JWT token is provided.
+                        """
     )
-    public CaretakerComplexPublicDTO getOtherCaretaker(@PathVariable String caretakerEmail) {
-        return caretakerService.getOtherCaretaker(caretakerEmail);
+    public CaretakerComplexPublicDTO getOtherCaretaker(
+            @PathVariable String caretakerEmail,
+            Principal principal
+    ) {
+        return principal == null ?
+                caretakerService.getCaretaker(caretakerEmail) :
+                caretakerService.getCaretaker(caretakerEmail, principal.getName());
     }
 
     @GetMapping
-    @Operation(
-            summary = "Get currently logged in caretaker information",
-            description = "Get currently logged in caretaker with details information"
-    )
+    @Operation(summary = "Get currently logged in caretaker information", description = "Get currently logged in " +
+            "caretaker with details information")
     @PreAuthorize("isAuthenticated()")
     public CaretakerComplexDTO getMyCaretakerProfile(Principal principal,
-
-                                                 @AcceptRole(acceptRole = Role.CARETAKER)
-                                            @RequestHeader(value = "${header-name.role}") Role role) {
+                                                     @AcceptRole(acceptRole = Role.CARETAKER)
+                                                     @RequestHeader(value = "${header-name.role}") Role role) {
         return caretakerService.getMyCaretakerProfile(principal.getName());
     }
 

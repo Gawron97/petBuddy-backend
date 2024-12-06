@@ -155,7 +155,7 @@ public class CaretakerControllerTest {
                 .description("Experienced pet caretaker")
                 .build();
 
-        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenReturn(caretakerComplexInfoDTO);
+        when(caretakerService.getCaretaker(caretakerEmail)).thenReturn(caretakerComplexInfoDTO);
 
         // When Then
         mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)
@@ -171,7 +171,7 @@ public class CaretakerControllerTest {
         // Given
         String caretakerEmail = "johndoe@example.com";
 
-        when(caretakerService.getOtherCaretaker(caretakerEmail)).thenThrow(new NotFoundException());
+        when(caretakerService.getCaretaker(caretakerEmail)).thenThrow(new NotFoundException());
 
         // When Then
         mockMvc.perform(get("/api/caretaker/{caretakerEmail}", caretakerEmail)

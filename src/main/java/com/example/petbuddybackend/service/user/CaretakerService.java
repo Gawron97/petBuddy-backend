@@ -9,6 +9,7 @@ import com.example.petbuddybackend.entity.photo.PhotoLink;
 import com.example.petbuddybackend.entity.user.AppUser;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
+import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.mapper.CaretakerMapper;
 import com.example.petbuddybackend.service.mapper.PhotoMapper;
 import com.example.petbuddybackend.service.photo.PhotoService;
@@ -44,6 +45,7 @@ public class CaretakerService {
     private final UserService userService;
     private final PhotoService photoService;
     private final GeolocationProvider geolocationProvider;
+    private final BlockService blockService;
 
     @Transactional(readOnly = true)
     public SearchCaretakersResponseDTO getCaretakers(Pageable pageable,
@@ -67,13 +69,19 @@ public class CaretakerService {
                 .cityLatitude(coordinates.latitude())
                 .cityLongitude(coordinates.longitude())
                 .build();
-
     }
 
-    public CaretakerComplexPublicDTO getOtherCaretaker(String caretakerEmail) {
+    public CaretakerComplexPublicDTO getCaretaker(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
-        this.renewCaretakerPictures(caretaker);
-        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker);
+        renewCaretakerPictures(caretaker);
+        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker, null);
+    }
+
+    public CaretakerComplexPublicDTO getCaretaker(String caretakerEmail, String principalEmail) {
+        Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
+        renewCaretakerPictures(caretaker);
+        boolean blocked = blockService.isBlockedByAny(caretakerEmail, principalEmail);
+        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker, blocked);
     }
 
     public CaretakerComplexDTO getMyCaretakerProfile(String caretakerEmail) {
