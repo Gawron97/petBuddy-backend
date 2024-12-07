@@ -23,7 +23,7 @@ public class Client {
     private String email;
 
     @PrimaryKeyJoinColumn
-    @OneToOne(mappedBy = "client", cascade = CascadeType.MERGE, optional = false)
+    @OneToOne(cascade = CascadeType.MERGE, optional = false)
     private AppUser accountData;
 
     @ManyToMany(fetch = FetchType.LAZY)

@@ -24,6 +24,7 @@ public interface CaretakerMapper {
 
     @Mapping(target = "offerPhotos", source = "offerPhotos")
     @Mapping(target = "accountData", source = "accountData")
+    @Mapping(target = "email", source = "accountData.email")
     Caretaker mapToCaretaker(ModifyCaretakerDTO caretakerDTO, AppUser accountData, List<PhotoLink> offerPhotos);
 
     @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")

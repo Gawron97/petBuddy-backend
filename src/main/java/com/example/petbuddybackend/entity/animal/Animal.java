@@ -18,7 +18,7 @@ import java.util.List;
 public class Animal {
 
     @Id
-    @Column(length = 60)
+    @Column(length = 15)
     private String animalType;
 
     @OneToMany(mappedBy = "animal", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)
