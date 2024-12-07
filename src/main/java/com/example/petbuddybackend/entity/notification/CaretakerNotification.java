@@ -25,7 +25,7 @@ public class CaretakerNotification extends Notification {
     private Caretaker caretaker;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "triggeredBy", nullable = false, updatable = false)
-    private Client triggeredBy;
+    @JoinColumn(name = "clientTriggerEmail", nullable = false, updatable = false)
+    private Client clientTrigger;
 
 }

@@ -37,10 +37,20 @@ public class NotificationService {
 
     private final NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
-    public void addNotificationForCaretakerAndSend(Long objectId, ObjectType objectType, Caretaker caretaker,
-                                                   Client triggeredBy, String messageKey, Set<String> args) {
-        CaretakerNotification notification = createCaretakerNotification(objectId, objectType, caretaker, triggeredBy,
-                messageKey, args);
+    public void addNotificationForCaretakerAndSend(Long objectId,
+                                                   ObjectType objectType,
+                                                   Caretaker caretaker,
+                                                   Client triggeredBy,
+                                                   String messageKey,
+                                                   Set<String> args) {
+        CaretakerNotification notification = createCaretakerNotification(
+                objectId,
+                objectType,
+                caretaker,
+                triggeredBy,
+                messageKey,
+                args
+        );
         userService.renewProfilePicture(triggeredBy.getAccountData());
         CaretakerNotification savedNotification = caretakerNotificationRepository.save(notification);
         websocketNotificationSender.sendNotification(
@@ -49,10 +59,20 @@ public class NotificationService {
         );
     }
 
-    public void addNotificationForClientAndSend(Long objectId, ObjectType objectType, Client client,
-                                                Caretaker triggeredBy, String messageKey, Set<String> args) {
-        ClientNotification notification = createClientNotification(objectId, objectType, client, triggeredBy,
-                messageKey, args);
+    public void addNotificationForClientAndSend(Long objectId,
+                                                ObjectType objectType,
+                                                Client client,
+                                                Caretaker triggeredBy,
+                                                String messageKey,
+                                                Set<String> args) {
+        ClientNotification notification = createClientNotification(
+                objectId,
+                objectType,
+                client,
+                triggeredBy,
+                messageKey,
+                args
+        );
         userService.renewProfilePicture(triggeredBy.getAccountData());
         ClientNotification savedNotification = clientNotificationRepository.save(notification);
         websocketNotificationSender.sendNotification(
@@ -91,7 +111,8 @@ public class NotificationService {
                 .orElseThrow(() -> NotFoundException.withFormattedMessage(CLIENT_NOTIFICATION, id.toString()));
     }
 
-    private Page<SimplyNotificationDTO> getCaretakerUnreadNotifications(Pageable pageable, String caretakerEmail,
+    private Page<SimplyNotificationDTO> getCaretakerUnreadNotifications(Pageable pageable,
+                                                                        String caretakerEmail,
                                                                         ZoneId timezone) {
         return caretakerNotificationRepository.getCaretakerNotificationByCaretaker_EmailAndIsRead(
                 caretakerEmail,
@@ -103,7 +124,8 @@ public class NotificationService {
                         notificationMapper.mapToSimplyNotificationDTO(caretakerNotification, timezone));
     }
 
-    private Page<SimplyNotificationDTO> getClientUnreadNotifications(Pageable pageable, String clientEmail,
+    private Page<SimplyNotificationDTO> getClientUnreadNotifications(Pageable pageable,
+                                                                     String clientEmail,
                                                                      ZoneId timezone) {
         return clientNotificationRepository.getClientNotificationByClient_EmailAndIsRead(
                 clientEmail,
@@ -114,37 +136,45 @@ public class NotificationService {
                 .map(clientNotification -> notificationMapper.mapToSimplyNotificationDTO(clientNotification, timezone));
     }
 
-    private CaretakerNotification createCaretakerNotification(Long objectId, ObjectType objectType, Caretaker caretaker,
-                                                              Client triggeredBy, String messageKey, Set<String> args) {
+    private CaretakerNotification createCaretakerNotification(Long objectId,
+                                                              ObjectType objectType,
+                                                              Caretaker caretaker,
+                                                              Client triggeredBy,
+                                                              String messageKey,
+                                                              Set<String> args) {
         return CaretakerNotification.builder()
                 .objectId(objectId)
                 .objectType(objectType)
                 .messageKey(messageKey)
                 .args(args)
                 .caretaker(caretaker)
-                .triggeredBy(triggeredBy)
+                .clientTrigger(triggeredBy)
                 .build();
     }
 
-    private ClientNotification createClientNotification(Long objectId, ObjectType objectType, Client client,
-                                                        Caretaker triggeredBy, String messageKey, Set<String> args) {
+    private ClientNotification createClientNotification(Long objectId,
+                                                        ObjectType objectType,
+                                                        Client client,
+                                                        Caretaker triggeredBy,
+                                                        String messageKey,
+                                                        Set<String> args) {
         return ClientNotification.builder()
                 .objectId(objectId)
                 .objectType(objectType)
                 .messageKey(messageKey)
                 .args(args)
                 .client(client)
-                .triggeredBy(triggeredBy)
+                .caretakerTriggered(triggeredBy)
                 .build();
     }
 
     private Notification renewProfilePictureOfTriggeredByUser(Notification notification) {
         if(notification instanceof CaretakerNotification) {
             CaretakerNotification caretakerNotification = (CaretakerNotification) notification;
-            userService.renewProfilePicture(caretakerNotification.getTriggeredBy().getAccountData());
+            userService.renewProfilePicture(caretakerNotification.getClientTrigger().getAccountData());
         } else {
             ClientNotification clientNotification = (ClientNotification) notification;
-            userService.renewProfilePicture(clientNotification.getTriggeredBy().getAccountData());
+            userService.renewProfilePicture(clientNotification.getCaretakerTriggered().getAccountData());
         }
         return notification;
     }

@@ -43,7 +43,7 @@ public interface NotificationMapper {
         } else if(notification instanceof CaretakerNotification) {
             return Role.CARETAKER;
         } else {
-            throw new IllegalStateException("Unknown receiver profile type");
+            throw new UnsupportedOperationException("Unknown receiver profile type");
         }
     }
 
@@ -51,14 +51,14 @@ public interface NotificationMapper {
     default AccountDataDTO mapTriggeredByToUserDTO(Notification notification) {
         if(notification instanceof ClientNotification) {
             return UserMapper.INSTANCE.mapToAccountDataDTO(
-                    ((ClientNotification) notification).getTriggeredBy().getAccountData()
+                    ((ClientNotification) notification).getCaretakerTriggered().getAccountData()
             );
         } else if(notification instanceof CaretakerNotification) {
             return UserMapper.INSTANCE.mapToAccountDataDTO(
-                    ((CaretakerNotification) notification).getTriggeredBy().getAccountData()
+                    ((CaretakerNotification) notification).getClientTrigger().getAccountData()
             );
         } else {
-            throw new IllegalStateException("Unknown receiver profile type");
+            throw new UnsupportedOperationException("Unknown receiver profile type");
         }
     }
 
