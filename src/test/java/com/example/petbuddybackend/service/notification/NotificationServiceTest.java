@@ -137,7 +137,6 @@ public class NotificationServiceTest {
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
                     "test",
                     Role.CARETAKER,
-                    false,
                     ZoneId.systemDefault()
             ));
         }
@@ -168,7 +167,6 @@ public class NotificationServiceTest {
                     PageRequest.of(0, 10),
                     caretaker.getEmail(),
                     Role.CARETAKER,
-                    false,
                     ZoneId.systemDefault()
             );
             assertEquals(2, result.getTotalElements());

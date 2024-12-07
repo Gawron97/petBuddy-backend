@@ -10,8 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface ClientNotificationRepository extends JpaRepository<ClientNotification, Long> {
 
-    Page<ClientNotification> getClientNotificationByClient_EmailAndIsRead(String client_email, boolean isRead,
-                                                                        Pageable pageable);
+    Page<ClientNotification> getClientNotificationByClient_Email(String client_email, Pageable pageable);
 
     @Modifying
     @Transactional

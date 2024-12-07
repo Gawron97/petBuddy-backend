@@ -46,7 +46,7 @@ public class NotificationControllerTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<SimplyNotificationDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        when(notificationService.getNotifications(any(), any(), any(), any(), any()))
+        when(notificationService.getNotifications(any(), any(), any(), any()))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/notifications")

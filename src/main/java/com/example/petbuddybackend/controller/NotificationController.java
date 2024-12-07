@@ -55,7 +55,6 @@ public class NotificationController {
     @PreAuthorize("isAuthenticated()")
     public Page<SimplyNotificationDTO> getNotifications(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
-            @RequestParam(required = false, defaultValue = "false") Boolean read,
             Principal principal,
             @RoleParameter
             @RequestHeader(value = "${header-name.role}") Role role,
@@ -67,7 +66,6 @@ public class NotificationController {
                 pageable,
                 principal.getName(),
                 role,
-                read,
                 TimeUtils.getOrSystemDefault(timezone)
         );
     }

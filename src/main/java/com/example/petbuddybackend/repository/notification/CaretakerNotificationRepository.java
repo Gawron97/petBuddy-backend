@@ -10,8 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface CaretakerNotificationRepository extends JpaRepository<CaretakerNotification, Long> {
 
-    Page<CaretakerNotification> getCaretakerNotificationByCaretaker_EmailAndIsRead(String caretaker_email, boolean isRead,
-                                                                                 Pageable pageable);
+    Page<CaretakerNotification> getCaretakerNotificationByCaretaker_Email(String caretaker_email, Pageable pageable);
 
     @Modifying
     @Transactional
