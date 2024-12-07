@@ -30,9 +30,8 @@ public interface CaretakerMapper {
     CaretakerDTO mapToCaretakerDTO(Caretaker caretaker);
 
     @Mapping(target = "animals", source = "caretaker.offers", qualifiedByName = "mapAnimalFromOffer")
-    CaretakerComplexPublicDTO mapToCaretakerComplexPublicDTO(Caretaker caretaker);
+    CaretakerComplexPublicDTO mapToCaretakerComplexPublicDTO(Caretaker caretaker, Boolean blocked);
 
-    void updateCaretakerFromDTO(ModifyCaretakerDTO caretakerDTO, @MappingTarget Caretaker caretaker);
     void updateCaretakerFromDTO(@MappingTarget Caretaker caretaker, ModifyCaretakerDTO caretakerDTO);
 
     @Named("mapAnimalFromOffer")

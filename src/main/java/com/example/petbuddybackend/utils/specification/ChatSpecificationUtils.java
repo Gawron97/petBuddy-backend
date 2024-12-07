@@ -29,7 +29,9 @@ public final class ChatSpecificationUtils {
      * @param principalRole The role of the principal (client or caretaker) for dynamic filtering.
      * @return A Specification that can be used for querying ChatMessage entities.
      */
-    public static Specification<ChatMessage> filtersToSpecificationSorted(ChatRoomSearchCriteria filters, String principalEmail, Role principalRole) {
+    public static Specification<ChatMessage> filtersToSpecificationSorted(ChatRoomSearchCriteria filters,
+                                                                          String principalEmail,
+                                                                          Role principalRole) {
         Specification<ChatMessage> spec = Specification.where(
                 (root, query, criteriaBuilder) -> criteriaBuilder.conjunction()
         );

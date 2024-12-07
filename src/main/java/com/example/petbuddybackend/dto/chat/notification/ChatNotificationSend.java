@@ -6,15 +6,15 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class ChatNotificationMessage extends ChatNotification {
+public class ChatNotificationSend extends ChatNotification {
 
     private ChatMessageDTO content;
 
-    public ChatNotificationMessage() {
+    private ChatNotificationSend() {
         super(ChatNotificationType.SEND);
     }
 
-    public ChatNotificationMessage(ChatMessageDTO chatMessage) {
+    public ChatNotificationSend(ChatMessageDTO chatMessage) {
         this();
         this.content = chatMessage;
     }

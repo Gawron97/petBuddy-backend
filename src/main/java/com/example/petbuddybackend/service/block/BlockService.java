@@ -4,7 +4,7 @@ import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.entity.block.Block;
 import com.example.petbuddybackend.entity.block.BlockId;
 import com.example.petbuddybackend.repository.block.BlockRepository;
-import com.example.petbuddybackend.service.care.state.CareStateMachine;
+import com.example.petbuddybackend.service.block.event.BlockEvent;
 import com.example.petbuddybackend.service.mapper.UserMapper;
 import com.example.petbuddybackend.service.user.UserService;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
@@ -13,6 +13,7 @@ import com.example.petbuddybackend.utils.exception.throweable.user.AlreadyBlocke
 import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
 import com.example.petbuddybackend.utils.paging.PagingUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,9 +30,9 @@ public class BlockService {
     private static final String BLOCK = "Block";
 
     private final BlockRepository blockRepository;
-    private final CareStateMachine careStateMachine;
     private final UserService userService;
     private final UserMapper userMapper = UserMapper.INSTANCE;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Page<AccountDataDTO> getUsersBlockedByUserSortedByBlockedUsername(String username, Pageable pageable) {
         Pageable sortedPageable = PagingUtils.sortedBy(
@@ -53,7 +54,7 @@ public class BlockService {
         assertNotAlreadyBlocked(blockerUsername, blockedUsername);
 
         blockRepository.save(new Block(blockerUsername, blockedUsername));
-        careStateMachine.cancelCaresIfStatePermitsAndSave(blockerUsername, blockedUsername);
+        eventPublisher.publishEvent(new BlockEvent(blockerUsername, blockedUsername, BlockType.BLOCKED));
     }
 
     public void unblockUser(String blockerUsername, String blockedUsername) {
@@ -61,6 +62,7 @@ public class BlockService {
 
         Block block = getBlock(blockerUsername, blockedUsername);
         blockRepository.delete(block);
+        eventPublisher.publishEvent(new BlockEvent(blockerUsername, blockedUsername, BlockType.UNBLOCKED));
     }
 
     public boolean isBlocked(String blockerUsername, String blockedUsername) {

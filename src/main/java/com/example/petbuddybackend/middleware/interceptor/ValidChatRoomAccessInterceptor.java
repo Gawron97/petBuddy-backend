@@ -1,6 +1,8 @@
 package com.example.petbuddybackend.middleware.interceptor;
 
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationBlock;
 import com.example.petbuddybackend.entity.user.Role;
+import com.example.petbuddybackend.service.block.BlockType;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
@@ -26,11 +28,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, ApplicationContextAware {
 
-    private static final String CHAT = "Chat";
-    private static final String USER_NOT_IN_CHAT_MESSAGE = "User %s is not in chat %d";
-
     @Value("${url.chat.topic.subscribe-prefix}")
     private String URL_CHAT_TOPIC_BASE;
+
+    @Value("${url.notification.topic.send-url}")
+    private String NOTIFICATION_BASE_URL;
 
     @Value("${url.exception.topic.send-url}")
     public String EXCEPTIONS_PATH;
@@ -99,10 +101,23 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
                     HeaderUtils.createMessageHeadersWithSessionId(sessionId)
             );
 
+            if(e instanceof BlockedException) {
+                sendBlockNotificationToChatTopic(chatId, username, sessionId);
+            }
+
             return false;
         }
 
         return true;
+    }
+
+    private void sendBlockNotificationToChatTopic(Long chatId, String username, String sessionId) {
+        simpMessagingTemplate.convertAndSendToUser(
+                username,
+                NOTIFICATION_BASE_URL,
+                new ChatNotificationBlock(chatId, BlockType.BLOCKED),
+                HeaderUtils.createMessageHeadersWithSessionId(sessionId)
+        );
     }
 
     private Long extractChatId(String destination) {

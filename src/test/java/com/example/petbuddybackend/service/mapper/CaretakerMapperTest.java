@@ -49,7 +49,7 @@ public class CaretakerMapperTest {
         setIds(caretaker);
         setCalculatedFields(caretaker);
 
-        CaretakerComplexPublicDTO caretakerPublicComplexDTO = mapper.mapToCaretakerComplexPublicDTO(caretaker);
+        CaretakerComplexPublicDTO caretakerPublicComplexDTO = mapper.mapToCaretakerComplexPublicDTO(caretaker, true);
 
         assertTrue(ValidationUtils.fieldsNotNullRecursive(caretakerPublicComplexDTO));
     }

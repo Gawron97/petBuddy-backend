@@ -2,9 +2,9 @@ package com.example.petbuddybackend.controller.websocket;
 
 import com.example.petbuddybackend.dto.chat.ChatMessageDTO;
 import com.example.petbuddybackend.dto.chat.ChatMessageSent;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoined;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeft;
-import com.example.petbuddybackend.dto.chat.notification.ChatNotificationMessage;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationJoin;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationLeave;
+import com.example.petbuddybackend.dto.chat.notification.ChatNotificationSend;
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationType;
 import com.example.petbuddybackend.dto.notification.UnseenChatsNotificationDTO;
 import com.example.petbuddybackend.entity.chat.ChatRoom;
@@ -98,9 +98,9 @@ public class ChatWebSocketIntegrationTest {
     private MappingJackson2MessageConverter messageConverter;
 
     private WebSocketStompClient stompClient;
-    private BlockingQueue<ChatNotificationMessage> messageBlockingQueue;
-    private BlockingQueue<ChatNotificationJoined> joinBlockingQueue;
-    private BlockingQueue<ChatNotificationLeft> leaveBlockingQueue;
+    private BlockingQueue<ChatNotificationSend> messageBlockingQueue;
+    private BlockingQueue<ChatNotificationJoin> joinBlockingQueue;
+    private BlockingQueue<ChatNotificationLeave> leaveBlockingQueue;
     private List<StompSession> sessions;
     private BlockingQueue<ApiExceptionResponse> exceptionBlockingQueue;
 
@@ -175,7 +175,7 @@ public class ChatWebSocketIntegrationTest {
         sendMessageToMessageTopic(stompSession, chatMessageSent);
 
         ChatMessageDTO chatMessageDTO = (messageBlockingQueue.poll(TIMEOUT, SECONDS)).getContent();
-        ChatNotificationJoined notificationJoined = joinBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationJoin notificationJoined = joinBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNotNull(chatMessageDTO);
         assertNotNull(notificationJoined);
@@ -238,12 +238,12 @@ public class ChatWebSocketIntegrationTest {
 
         // Subscribe to the chat room topic. Should receive only one notification
         subscribeToMessageTopic(clientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
-        ChatNotificationJoined firstNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationJoin firstNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
 
         // Subscribe to the chat room topic. Should receive two notifications
         subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CARETAKER);
-        ChatNotificationJoined secondNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
-        ChatNotificationJoined thirdNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationJoin secondNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationJoin thirdNotification = joinBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNotNull(firstNotification);
         assertEquals(CLIENT_USERNAME, firstNotification.getJoiningUserEmail());
@@ -275,7 +275,7 @@ public class ChatWebSocketIntegrationTest {
         // This should not send a notification
         StompSession anotherClientSession = connectToWebSocket(CLIENT_USERNAME);
         subscribeToMessageTopic(anotherClientSession, CLIENT_USERNAME, "Europe/Warsaw", Role.CLIENT);
-        ChatNotificationJoined shouldBeNull = joinBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationJoin shouldBeNull = joinBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNull(shouldBeNull);
         assertEquals(0, joinBlockingQueue.drainTo(new ArrayList<>()));
@@ -291,7 +291,7 @@ public class ChatWebSocketIntegrationTest {
         subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CARETAKER);
 
         clientSession.disconnect();
-        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationLeave clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNotNull(clientLeftNotification);
         assertEquals(CLIENT_USERNAME, clientLeftNotification.getLeavingUserEmail());
@@ -312,7 +312,7 @@ public class ChatWebSocketIntegrationTest {
         subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CARETAKER);
 
         clientFirstSession.disconnect();
-        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationLeave clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
 
         assertNull(clientLeftNotification);
         assertEquals(0, leaveBlockingQueue.drainTo(new ArrayList<>()));
@@ -330,7 +330,7 @@ public class ChatWebSocketIntegrationTest {
         subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CLIENT);
         clientSubscription.unsubscribe();
 
-        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationLeave clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
         assertNotNull(clientLeftNotification);
         assertEquals(0, leaveBlockingQueue.drainTo(new ArrayList<>()));
     }
@@ -351,7 +351,7 @@ public class ChatWebSocketIntegrationTest {
         subscribeToMessageTopic(caretakerSession, CARETAKER_USERNAME, "Europe/Warsaw", Role.CLIENT);
         clientFirstSubscription.unsubscribe();
 
-        ChatNotificationLeft clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
+        ChatNotificationLeave clientLeftNotification = leaveBlockingQueue.poll(TIMEOUT, SECONDS);
         assertNull(clientLeftNotification);
     }
 
@@ -505,13 +505,13 @@ public class ChatWebSocketIntegrationTest {
 
             switch(type) {
                 case JOIN:
-                    joinBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationJoined.class));
+                    joinBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationJoin.class));
                     break;
                 case LEAVE:
-                    leaveBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationLeft.class));
+                    leaveBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationLeave.class));
                     break;
                 case SEND:
-                    messageBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationMessage.class));
+                    messageBlockingQueue.add(objectMapper.convertValue(payloadConverted, ChatNotificationSend.class));
                     break;
             }
         }
