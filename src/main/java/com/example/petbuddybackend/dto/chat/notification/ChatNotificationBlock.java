@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.dto.chat.notification;
 
+import com.example.petbuddybackend.service.block.BlockType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
