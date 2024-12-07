@@ -144,18 +144,18 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void getNotifications_shouldGetOnlyNotifications() {
+    void getNotifications_shouldGetAllNotifications() {
 
         //Given
         transactionTemplate.execute(status -> {
             CaretakerNotification notification1 = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker, client
+                    caretakerNotificationRepository, caretaker, client, 1L
             );
             CaretakerNotification notification2 = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker, client
+                    caretakerNotificationRepository, caretaker, client, 2L
             );
             CaretakerNotification readNotification = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker, client
+                    caretakerNotificationRepository, caretaker, client, 3L
             );
             readNotification.setRead(true);
             return null;
@@ -169,7 +169,7 @@ public class NotificationServiceTest {
                     Role.CARETAKER,
                     ZoneId.systemDefault()
             );
-            assertEquals(2, result.getTotalElements());
+            assertEquals(3, result.getTotalElements());
             return null;
         });
 

@@ -262,4 +262,10 @@ public class PersistenceUtils {
         return caretakerNotificationRepository.saveAndFlush(notification);
     }
 
+    public static CaretakerNotification addCaretakerNotification(CaretakerNotificationRepository caretakerNotificationRepository,
+                                                                 Caretaker caretaker, Client client, Long id) {
+        CaretakerNotification notification = createMockCaretakerNotification(caretaker, client, id);
+        return caretakerNotificationRepository.saveAndFlush(notification);
+    }
+
 }

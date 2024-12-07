@@ -27,6 +27,20 @@ public final class MockNotificationProvider {
                 .build();
     }
 
+    public static CaretakerNotification createMockCaretakerNotification(Caretaker caretaker, Client client, Long id) {
+        return CaretakerNotification.builder()
+                                    .id(id)
+                                    .objectId(1L)
+                                    .objectType(ObjectType.CARE)
+                                    .messageKey("care_reservation")
+                                    .args(Set.of("clientEmail"))
+                                    .createdAt(ZonedDateTime.now())
+                                    .isRead(false)
+                                    .caretaker(caretaker)
+                                    .clientTrigger(client)
+                                    .build();
+    }
+
     public static ClientNotification createMockClientNotification(Client client, Caretaker caretaker) {
         return ClientNotification.builder()
                 .objectId(1L)
