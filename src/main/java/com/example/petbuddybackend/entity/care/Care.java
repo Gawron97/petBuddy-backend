@@ -22,7 +22,6 @@ import java.util.Set;
 @Entity
 @Getter @Setter
 @Check(constraints = "client_email <> caretaker_email")
-@Check(constraints = "care_start < care_end")
 @Check(constraints = "daily_price >= 0")
 public class Care {
 
