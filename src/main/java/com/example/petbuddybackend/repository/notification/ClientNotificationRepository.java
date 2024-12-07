@@ -16,9 +16,9 @@ public interface ClientNotificationRepository extends JpaRepository<ClientNotifi
     @Transactional
     @Query("""
         UPDATE ClientNotification n
-        SET n.isRead = true
+        SET n.read = true
         WHERE n.client.email = :clientEmail
-            AND n.isRead = false
+            AND n.read = false
 
     """)
     void markAllNotificationsOfClientAsRead(String clientEmail);

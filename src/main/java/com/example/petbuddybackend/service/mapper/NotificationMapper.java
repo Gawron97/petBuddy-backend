@@ -24,11 +24,13 @@ public interface NotificationMapper {
     @Mapping(target = "createdAt", source = "createdAt", qualifiedByName = "mapToZonedDateTime")
     @Mapping(target = "receiverProfile", source = "notification", qualifiedByName = "mapToReceiverProfile")
     @Mapping(target = "triggeredBy", source = "notification", qualifiedByName = "mapTriggeredByToUserDTO")
+    @Mapping(target = "read", source = "notification.read")
     SimplyNotificationDTO mapToSimplyNotificationDTO(Notification notification, @Context ZoneId zoneId);
 
     @Mapping(target = "notificationId", source = "id")
     @Mapping(target = "receiverProfile", source = "notification", qualifiedByName = "mapToReceiverProfile")
     @Mapping(target = "triggeredBy", source = "notification", qualifiedByName = "mapTriggeredByToUserDTO")
+    @Mapping(target = "read", source = "notification.read")
     SimplyNotificationDTO mapToSimplyNotificationDTO(Notification notification);
 
     @Named("mapToZonedDateTime")

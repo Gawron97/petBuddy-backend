@@ -3,7 +3,10 @@ package com.example.petbuddybackend.dto.notification;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Role;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Set;
@@ -21,5 +24,5 @@ public class SimplyNotificationDTO extends NotificationDTO {
     private Set<String> args;
     private Role receiverProfile;
     private AccountDataDTO triggeredBy;
-    private boolean isRead;
+    private boolean read;
 }
