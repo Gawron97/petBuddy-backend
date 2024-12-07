@@ -35,6 +35,7 @@ public class BlockEventService {
         sendMessagesOnBlockEvent(blockerUsername, blockedUsername, BlockType.UNBLOCKED);
     }
 
+    // TODO: test "ifPresent"
     /**
      * Sends block message to chat room of users. Users can have two chats but as different role for example:
      * user1: client - user2: caretaker
