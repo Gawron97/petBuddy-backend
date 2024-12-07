@@ -12,6 +12,7 @@ import com.example.petbuddybackend.repository.notification.CaretakerNotification
 import com.example.petbuddybackend.repository.notification.ClientNotificationRepository;
 import com.example.petbuddybackend.repository.notification.NotificationRepository;
 import com.example.petbuddybackend.service.mapper.NotificationMapper;
+import com.example.petbuddybackend.service.user.UserService;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class NotificationService {
     private final ClientNotificationRepository clientNotificationRepository;
     private final NotificationRepository notificationRepository;
     private final WebsocketNotificationSender websocketNotificationSender;
+    private final UserService userService;
 
     private final NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
@@ -39,6 +41,7 @@ public class NotificationService {
                                                    Client triggeredBy, String messageKey, Set<String> args) {
         CaretakerNotification notification = createCaretakerNotification(objectId, objectType, caretaker, triggeredBy,
                 messageKey, args);
+        userService.renewProfilePicture(triggeredBy.getAccountData());
         CaretakerNotification savedNotification = caretakerNotificationRepository.save(notification);
         websocketNotificationSender.sendNotification(
                 caretaker.getEmail(),
@@ -50,6 +53,7 @@ public class NotificationService {
                                                 Caretaker triggeredBy, String messageKey, Set<String> args) {
         ClientNotification notification = createClientNotification(objectId, objectType, client, triggeredBy,
                 messageKey, args);
+        userService.renewProfilePicture(triggeredBy.getAccountData());
         ClientNotification savedNotification = clientNotificationRepository.save(notification);
         websocketNotificationSender.sendNotification(
                 client.getEmail(),
