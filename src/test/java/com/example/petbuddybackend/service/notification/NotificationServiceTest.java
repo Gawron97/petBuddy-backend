@@ -125,7 +125,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void testGetUnreadNotifications_sortingParamsShouldAlignWithDTO() {
+    void testGetNotifications_sortingParamsShouldAlignWithDTO() {
 
         List<String> fieldNames = ReflectionUtils.getPrimitiveNames(SimplyNotificationDTO.class);
         fieldNames.remove("notificationId");
@@ -133,10 +133,11 @@ public class NotificationServiceTest {
         fieldNames.remove("dType");
 
         for(String fieldName : fieldNames) {
-            assertDoesNotThrow(() -> notificationService.getUnreadNotifications(
+            assertDoesNotThrow(() -> notificationService.getNotifications(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
                     "test",
                     Role.CARETAKER,
+                    false,
                     ZoneId.systemDefault()
             ));
         }
@@ -144,7 +145,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void getUnreadNotifications_shouldGetOnlyUnreadNotifications() {
+    void getNotifications_shouldGetOnlyNotifications() {
 
         //Given
         transactionTemplate.execute(status -> {
@@ -163,10 +164,11 @@ public class NotificationServiceTest {
 
         //When Then
         transactionTemplate.execute(status -> {
-            Page<SimplyNotificationDTO> result = notificationService.getUnreadNotifications(
+            Page<SimplyNotificationDTO> result = notificationService.getNotifications(
                     PageRequest.of(0, 10),
                     caretaker.getEmail(),
                     Role.CARETAKER,
+                    false,
                     ZoneId.systemDefault()
             );
             assertEquals(2, result.getTotalElements());

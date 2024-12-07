@@ -81,11 +81,14 @@ public class NotificationService {
         );
     }
 
-    public Page<SimplyNotificationDTO> getUnreadNotifications(Pageable pageable, String userEmail, Role userRole,
-                                                              ZoneId timezone) {
+    public Page<SimplyNotificationDTO> getNotifications(Pageable pageable,
+                                                        String userEmail,
+                                                        Role userRole,
+                                                        Boolean read,
+                                                        ZoneId timezone) {
         return userRole == Role.CARETAKER
-                ? getCaretakerUnreadNotifications(pageable, userEmail, timezone)
-                : getClientUnreadNotifications(pageable, userEmail, timezone);
+                ? getCaretakerUnreadNotifications(pageable, userEmail, read, timezone)
+                : getClientUnreadNotifications(pageable, userEmail, read, timezone);
     }
 
     public SimplyNotificationDTO markNotificationAsRead(Long notificationId, Role role, ZoneId timezone) {
@@ -96,7 +99,7 @@ public class NotificationService {
     }
 
     public void markNotificationsAsRead(String username, Role role) {
-        if(role == Role.CARETAKER) {
+        if (role == Role.CARETAKER) {
             caretakerNotificationRepository.markAllNotificationsOfCaretakerAsRead(username);
         } else {
             clientNotificationRepository.markAllNotificationsOfClientAsRead(username);
@@ -106,34 +109,43 @@ public class NotificationService {
     private Notification getNotification(Role role, Long id) {
         return role == Role.CARETAKER
                 ? caretakerNotificationRepository.findById(id)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(CARETAKER_NOTIFICATION, id.toString()))
+                                                 .orElseThrow(() -> NotFoundException.withFormattedMessage(
+                                                         CARETAKER_NOTIFICATION,
+                                                         id.toString()
+                                                 ))
                 : clientNotificationRepository.findById(id)
-                .orElseThrow(() -> NotFoundException.withFormattedMessage(CLIENT_NOTIFICATION, id.toString()));
+                                              .orElseThrow(() -> NotFoundException.withFormattedMessage(
+                                                      CLIENT_NOTIFICATION,
+                                                      id.toString()
+                                              ));
     }
 
     private Page<SimplyNotificationDTO> getCaretakerUnreadNotifications(Pageable pageable,
                                                                         String caretakerEmail,
+                                                                        Boolean read,
                                                                         ZoneId timezone) {
         return caretakerNotificationRepository.getCaretakerNotificationByCaretaker_EmailAndIsRead(
-                caretakerEmail,
-                false,
-                pageable
-                )
-                .map(this::renewProfilePictureOfTriggeredByUser)
-                .map(caretakerNotification ->
-                        notificationMapper.mapToSimplyNotificationDTO(caretakerNotification, timezone));
+                                                      caretakerEmail,
+                                                      read,
+                                                      pageable
+                                              )
+                                              .map(this::renewProfilePictureOfTriggeredByUser)
+                                              .map(caretakerNotification -> notificationMapper.mapToSimplyNotificationDTO(
+                                                      caretakerNotification,
+                                                      timezone
+                                              ));
     }
 
     private Page<SimplyNotificationDTO> getClientUnreadNotifications(Pageable pageable,
                                                                      String clientEmail,
+                                                                     Boolean read,
                                                                      ZoneId timezone) {
-        return clientNotificationRepository.getClientNotificationByClient_EmailAndIsRead(
-                clientEmail,
-                false,
-                pageable
-                )
-                .map(this::renewProfilePictureOfTriggeredByUser)
-                .map(clientNotification -> notificationMapper.mapToSimplyNotificationDTO(clientNotification, timezone));
+        return clientNotificationRepository.getClientNotificationByClient_EmailAndIsRead(clientEmail, read, pageable)
+                                           .map(this::renewProfilePictureOfTriggeredByUser)
+                                           .map(clientNotification -> notificationMapper.mapToSimplyNotificationDTO(
+                                                   clientNotification,
+                                                   timezone
+                                           ));
     }
 
     private CaretakerNotification createCaretakerNotification(Long objectId,
@@ -143,13 +155,13 @@ public class NotificationService {
                                                               String messageKey,
                                                               Set<String> args) {
         return CaretakerNotification.builder()
-                .objectId(objectId)
-                .objectType(objectType)
-                .messageKey(messageKey)
-                .args(args)
-                .caretaker(caretaker)
-                .clientTrigger(triggeredBy)
-                .build();
+                                    .objectId(objectId)
+                                    .objectType(objectType)
+                                    .messageKey(messageKey)
+                                    .args(args)
+                                    .caretaker(caretaker)
+                                    .clientTrigger(triggeredBy)
+                                    .build();
     }
 
     private ClientNotification createClientNotification(Long objectId,
@@ -159,22 +171,24 @@ public class NotificationService {
                                                         String messageKey,
                                                         Set<String> args) {
         return ClientNotification.builder()
-                .objectId(objectId)
-                .objectType(objectType)
-                .messageKey(messageKey)
-                .args(args)
-                .client(client)
-                .caretakerTriggered(triggeredBy)
-                .build();
+                                 .objectId(objectId)
+                                 .objectType(objectType)
+                                 .messageKey(messageKey)
+                                 .args(args)
+                                 .client(client)
+                                 .caretakerTriggered(triggeredBy)
+                                 .build();
     }
 
     private Notification renewProfilePictureOfTriggeredByUser(Notification notification) {
-        if(notification instanceof CaretakerNotification) {
+        if (notification instanceof CaretakerNotification) {
             CaretakerNotification caretakerNotification = (CaretakerNotification) notification;
-            userService.renewProfilePicture(caretakerNotification.getClientTrigger().getAccountData());
+            userService.renewProfilePicture(caretakerNotification.getClientTrigger()
+                                                                 .getAccountData());
         } else {
             ClientNotification clientNotification = (ClientNotification) notification;
-            userService.renewProfilePicture(clientNotification.getCaretakerTriggered().getAccountData());
+            userService.renewProfilePicture(clientNotification.getCaretakerTriggered()
+                                                              .getAccountData());
         }
         return notification;
     }
