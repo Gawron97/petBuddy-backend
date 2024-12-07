@@ -7,6 +7,8 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.care.CareRepository;
+import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
+import com.example.petbuddybackend.repository.notification.ClientNotificationRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
@@ -62,6 +64,12 @@ public class CareControllerIntegrationTest {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    private ClientNotificationRepository clientNotificationRepository;
+
+    @Autowired
+    private CaretakerNotificationRepository caretakerNotificationRepository;
+
     private static final String CREATE_CARE_BODY = """
             {
                 "careStart": "%s",
@@ -92,6 +100,8 @@ public class CareControllerIntegrationTest {
 
     @AfterEach
     void tearDown() {
+        clientNotificationRepository.deleteAll();
+        caretakerNotificationRepository.deleteAll();
         careRepository.deleteAll();
         appUserRepository.deleteAll();
     }

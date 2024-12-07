@@ -13,7 +13,7 @@ import java.util.Set;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class MockNotificationProvider {
 
-    public static CaretakerNotification createMockCaretakerNotification(Caretaker caretaker) {
+    public static CaretakerNotification createMockCaretakerNotification(Caretaker caretaker, Client client) {
         return CaretakerNotification.builder()
                 .id(1L)
                 .objectId(1L)
@@ -23,10 +23,11 @@ public final class MockNotificationProvider {
                 .createdAt(ZonedDateTime.now())
                 .isRead(false)
                 .caretaker(caretaker)
+                .triggeredBy(client)
                 .build();
     }
 
-    public static ClientNotification createMockClientNotification(Client client) {
+    public static ClientNotification createMockClientNotification(Client client, Caretaker caretaker) {
         return ClientNotification.builder()
                 .objectId(1L)
                 .objectType(ObjectType.CARE)
@@ -35,6 +36,7 @@ public final class MockNotificationProvider {
                 .createdAt(ZonedDateTime.now())
                 .isRead(false)
                 .client(client)
+                .triggeredBy(caretaker)
                 .build();
     }
 

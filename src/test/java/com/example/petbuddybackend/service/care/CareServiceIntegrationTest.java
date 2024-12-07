@@ -13,6 +13,8 @@ import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.animal.AnimalRepository;
 import com.example.petbuddybackend.repository.care.CareRepository;
+import com.example.petbuddybackend.repository.notification.CaretakerNotificationRepository;
+import com.example.petbuddybackend.repository.notification.ClientNotificationRepository;
 import com.example.petbuddybackend.repository.user.AppUserRepository;
 import com.example.petbuddybackend.repository.user.CaretakerRepository;
 import com.example.petbuddybackend.repository.user.ClientRepository;
@@ -20,11 +22,11 @@ import com.example.petbuddybackend.service.notification.NotificationService;
 import com.example.petbuddybackend.testconfig.TestDataConfiguration;
 import com.example.petbuddybackend.testutils.PersistenceUtils;
 import com.example.petbuddybackend.testutils.ReflectionUtils;
-import com.example.petbuddybackend.utils.exception.throweable.user.InvalidRoleException;
-import com.example.petbuddybackend.utils.exception.throweable.general.StateTransitionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.ForbiddenException;
 import com.example.petbuddybackend.utils.exception.throweable.general.IllegalActionException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
+import com.example.petbuddybackend.utils.exception.throweable.general.StateTransitionException;
+import com.example.petbuddybackend.utils.exception.throweable.user.InvalidRoleException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,10 +54,10 @@ import java.util.stream.Stream;
 
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ContextConfiguration(classes = TestDataConfiguration.class)
@@ -80,6 +82,12 @@ public class CareServiceIntegrationTest {
     private CareService careService;
 
     @Autowired
+    private CaretakerNotificationRepository caretakerNotificationRepository;
+
+    @Autowired
+    private ClientNotificationRepository clientNotificationRepository;
+
+    @Autowired
     private TransactionTemplate transactionTemplate;
 
     @SpyBean
@@ -96,6 +104,8 @@ public class CareServiceIntegrationTest {
 
     @AfterEach
     public void tearDown() {
+        caretakerNotificationRepository.deleteAll();
+        clientNotificationRepository.deleteAll();
         careRepository.deleteAll();
         appUserRepository.deleteAll();
     }

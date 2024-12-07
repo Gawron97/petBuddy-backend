@@ -149,13 +149,13 @@ public class NotificationServiceTest {
         //Given
         transactionTemplate.execute(status -> {
             CaretakerNotification notification1 = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client
             );
             CaretakerNotification notification2 = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client
             );
             CaretakerNotification readNotification = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client
             );
             readNotification.setRead(true);
             return null;
@@ -181,7 +181,7 @@ public class NotificationServiceTest {
         //Given
         Long notificationId = transactionTemplate.execute(status -> {
             CaretakerNotification notification = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client
             );
             return notification.getId();
         });
@@ -223,7 +223,7 @@ public class NotificationServiceTest {
         //Given
         Long notificationId = transactionTemplate.execute(status -> {
             CaretakerNotification notification = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client
             );
             return notification.getId();
         });
