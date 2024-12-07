@@ -87,8 +87,8 @@ public class NotificationService {
                                                         Boolean read,
                                                         ZoneId timezone) {
         return userRole == Role.CARETAKER
-                ? getCaretakerUnreadNotifications(pageable, userEmail, read, timezone)
-                : getClientUnreadNotifications(pageable, userEmail, read, timezone);
+                ? getCaretakerNotifications(pageable, userEmail, read, timezone)
+                : getClientNotifications(pageable, userEmail, read, timezone);
     }
 
     public SimplyNotificationDTO markNotificationAsRead(Long notificationId, Role role, ZoneId timezone) {
@@ -120,10 +120,10 @@ public class NotificationService {
                                               ));
     }
 
-    private Page<SimplyNotificationDTO> getCaretakerUnreadNotifications(Pageable pageable,
-                                                                        String caretakerEmail,
-                                                                        Boolean read,
-                                                                        ZoneId timezone) {
+    private Page<SimplyNotificationDTO> getCaretakerNotifications(Pageable pageable,
+                                                                  String caretakerEmail,
+                                                                  Boolean read,
+                                                                  ZoneId timezone) {
         return caretakerNotificationRepository.getCaretakerNotificationByCaretaker_EmailAndIsRead(
                                                       caretakerEmail,
                                                       read,
@@ -136,10 +136,10 @@ public class NotificationService {
                                               ));
     }
 
-    private Page<SimplyNotificationDTO> getClientUnreadNotifications(Pageable pageable,
-                                                                     String clientEmail,
-                                                                     Boolean read,
-                                                                     ZoneId timezone) {
+    private Page<SimplyNotificationDTO> getClientNotifications(Pageable pageable,
+                                                               String clientEmail,
+                                                               Boolean read,
+                                                               ZoneId timezone) {
         return clientNotificationRepository.getClientNotificationByClient_EmailAndIsRead(clientEmail, read, pageable)
                                            .map(this::renewProfilePictureOfTriggeredByUser)
                                            .map(clientNotification -> notificationMapper.mapToSimplyNotificationDTO(
