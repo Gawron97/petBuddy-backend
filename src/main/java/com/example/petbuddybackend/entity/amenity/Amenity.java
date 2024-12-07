@@ -13,7 +13,7 @@ import java.util.List;
 public class Amenity {
 
     @Id
-    @Column(length = 60)
+    @Column(length = 25)
     private String name;
 
     @OneToMany(mappedBy = "amenity", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE, orphanRemoval = true)

@@ -15,7 +15,7 @@ public class AppUser {
     @Column(nullable = false, length = 255)
     private String email;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 50)
     private String name;
 
     @Column(nullable = false, length = 100)
@@ -26,10 +26,10 @@ public class AppUser {
     private PhotoLink profilePicture;
 
     @JoinColumn(name = "email")
-    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE)
     private Caretaker caretaker;
 
     @JoinColumn(name = "email")
-    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "accountData", cascade = CascadeType.REMOVE)
     private Client client;
 }

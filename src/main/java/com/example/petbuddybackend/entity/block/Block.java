@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @IdClass(BlockId.class)
-@Check(constraints = "blocker_email != blocked_email")
+@Check(constraints = "blocker_email <> blocked_email")
 public class Block {
 
     @Id
