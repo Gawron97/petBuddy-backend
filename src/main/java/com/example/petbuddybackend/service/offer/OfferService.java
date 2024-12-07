@@ -237,10 +237,13 @@ public class OfferService {
                 .offer(offer)
                 .build();
 
-        List<OfferOption> offerOptions =
-                createOfferOptionsForConfiguration(offerConfiguration.selectedOptions(), newOfferConfiguration);
+        if(offerConfiguration.selectedOptions() != null && !offerConfiguration.selectedOptions().isEmpty()) {
+            List<OfferOption> offerOptions =
+                    createOfferOptionsForConfiguration(offerConfiguration.selectedOptions(), newOfferConfiguration);
 
-        newOfferConfiguration.setOfferOptions(offerOptions);
+            newOfferConfiguration.getOfferOptions().addAll(offerOptions);
+        }
+
         return newOfferConfiguration;
     }
 

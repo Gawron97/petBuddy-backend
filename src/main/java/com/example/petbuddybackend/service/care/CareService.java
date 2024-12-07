@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.MessageFormat;
 import java.time.ZoneId;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -81,9 +82,13 @@ public class CareService {
         assertNotReservationToYourself(clientEmail, caretakerEmail);
         blockService.assertNotBlockedByAny(clientEmail, caretakerEmail);
 
-        Set<AnimalAttribute> animalAttributes = animalService.getAnimalAttributes(
-                createCare.animalType(), createCare.selectedOptions()
-        );
+        Set<AnimalAttribute> animalAttributes = new HashSet<>();
+        if(createCare.selectedOptions() != null && !createCare.selectedOptions().isEmpty()) {
+            animalAttributes = animalService.getAnimalAttributes(
+                    createCare.animalType(),
+                    createCare.selectedOptions()
+            );
+        }
 
         Care care = careRepository.save(
                 createCareFromReservation(clientEmail, caretakerEmail, createCare, animalAttributes)

@@ -19,8 +19,6 @@ public record ModifyConfigurationDTO(
         @Digits(integer = 5, fraction = 2)
         BigDecimal dailyPrice,
 
-        @NotNull
-        @NotEmpty
         Map<String, @NotEmpty List<String>> selectedOptions
 ) {
 }
