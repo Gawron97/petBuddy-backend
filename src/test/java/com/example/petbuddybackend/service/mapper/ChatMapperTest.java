@@ -85,6 +85,7 @@ public class ChatMapperTest {
                 1L,
                 MockUserProvider.createMockAppUserWithPhoto(),
                 chatMessage,
+                true,
                 ZoneId.systemDefault()
         );
         assertTrue(ValidationUtils.fieldsNotNullRecursive(mappedChatRoom));
