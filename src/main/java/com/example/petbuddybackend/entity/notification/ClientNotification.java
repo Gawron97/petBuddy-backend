@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.entity.notification;
 
+import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,5 +23,9 @@ public class ClientNotification extends Notification {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clientEmail", nullable = false, updatable = false)
     private Client client;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "triggeredBy", nullable = false, updatable = false)
+    private Caretaker triggeredBy;
 
 }

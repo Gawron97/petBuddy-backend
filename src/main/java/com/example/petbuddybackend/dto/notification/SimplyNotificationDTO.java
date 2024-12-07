@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.dto.notification;
 
+import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.entity.notification.ObjectType;
 import com.example.petbuddybackend.entity.user.Role;
 import lombok.*;
@@ -19,5 +20,6 @@ public class SimplyNotificationDTO extends NotificationDTO {
     private String messageKey;
     private Set<String> args;
     private Role receiverProfile;
+    private AccountDataDTO triggeredBy;
     private boolean isRead;
 }

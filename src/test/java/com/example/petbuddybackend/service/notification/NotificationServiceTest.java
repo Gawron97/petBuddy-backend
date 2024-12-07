@@ -85,7 +85,7 @@ public class NotificationServiceTest {
     void testAddNotificationForCaretakerAndSend_shouldAddNotificationAndSend() {
 
         //Given When
-        notificationService.addNotificationForCaretakerAndSend(1L, ObjectType.CARE, caretaker,
+        notificationService.addNotificationForCaretakerAndSend(1L, ObjectType.CARE, caretaker, client,
                 "messageKey", Set.of("clientEmail"));
 
         //Then
@@ -107,7 +107,7 @@ public class NotificationServiceTest {
     void testAddNotificationForClientAndSend_shouldAddNotificationAndSend() {
 
         //Given When
-        notificationService.addNotificationForClientAndSend(1L, ObjectType.CARE, client,
+        notificationService.addNotificationForClientAndSend(1L, ObjectType.CARE, client, caretaker,
                 "messageKey", Set.of("caretakerEmail"));
 
         //Then

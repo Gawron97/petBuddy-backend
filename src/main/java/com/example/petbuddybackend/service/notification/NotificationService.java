@@ -36,8 +36,8 @@ public class NotificationService {
     private final NotificationMapper notificationMapper = NotificationMapper.INSTANCE;
 
     public void addNotificationForCaretakerAndSend(Long objectId, ObjectType objectType, Caretaker caretaker,
-                                                   String messageKey, Set<String> args) {
-        CaretakerNotification notification = createCaretakerNotification(objectId, objectType, caretaker,
+                                                   Client triggeredBy, String messageKey, Set<String> args) {
+        CaretakerNotification notification = createCaretakerNotification(objectId, objectType, caretaker, triggeredBy,
                 messageKey, args);
         CaretakerNotification savedNotification = caretakerNotificationRepository.save(notification);
         websocketNotificationSender.sendNotification(
@@ -47,8 +47,9 @@ public class NotificationService {
     }
 
     public void addNotificationForClientAndSend(Long objectId, ObjectType objectType, Client client,
-                                                String messageKey, Set<String> args) {
-        ClientNotification notification = createClientNotification(objectId, objectType, client, messageKey, args);
+                                                Caretaker triggeredBy, String messageKey, Set<String> args) {
+        ClientNotification notification = createClientNotification(objectId, objectType, client, triggeredBy,
+                messageKey, args);
         ClientNotification savedNotification = clientNotificationRepository.save(notification);
         websocketNotificationSender.sendNotification(
                 client.getEmail(),
@@ -108,24 +109,26 @@ public class NotificationService {
     }
 
     private CaretakerNotification createCaretakerNotification(Long objectId, ObjectType objectType, Caretaker caretaker,
-                                                              String messageKey, Set<String> args) {
+                                                              Client triggeredBy, String messageKey, Set<String> args) {
         return CaretakerNotification.builder()
                 .objectId(objectId)
                 .objectType(objectType)
                 .messageKey(messageKey)
                 .args(args)
                 .caretaker(caretaker)
+                .triggeredBy(triggeredBy)
                 .build();
     }
 
     private ClientNotification createClientNotification(Long objectId, ObjectType objectType, Client client,
-                                                        String messageKey, Set<String> args) {
+                                                        Caretaker triggeredBy, String messageKey, Set<String> args) {
         return ClientNotification.builder()
                 .objectId(objectId)
                 .objectType(objectType)
                 .messageKey(messageKey)
                 .args(args)
                 .client(client)
+                .triggeredBy(triggeredBy)
                 .build();
     }
 }

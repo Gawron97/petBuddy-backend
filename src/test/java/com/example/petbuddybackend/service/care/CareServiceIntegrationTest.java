@@ -971,7 +971,7 @@ public class CareServiceIntegrationTest {
 
         //Then
         verify(notificationService, times(2))
-                .addNotificationForCaretakerAndSend(anyLong(), any(), any(), anyString(), any());
+                .addNotificationForCaretakerAndSend(anyLong(), any(), any(), any(), anyString(), any());
 
     }
 
