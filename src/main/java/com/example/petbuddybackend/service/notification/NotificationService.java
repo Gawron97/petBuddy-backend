@@ -98,6 +98,7 @@ public class NotificationService {
                 false,
                 pageable
                 )
+                .map(this::renewProfilePictureOfTriggeredByUser)
                 .map(caretakerNotification ->
                         notificationMapper.mapToSimplyNotificationDTO(caretakerNotification, timezone));
     }
@@ -109,6 +110,7 @@ public class NotificationService {
                 false,
                 pageable
                 )
+                .map(this::renewProfilePictureOfTriggeredByUser)
                 .map(clientNotification -> notificationMapper.mapToSimplyNotificationDTO(clientNotification, timezone));
     }
 
@@ -135,4 +137,16 @@ public class NotificationService {
                 .triggeredBy(triggeredBy)
                 .build();
     }
+
+    private Notification renewProfilePictureOfTriggeredByUser(Notification notification) {
+        if(notification instanceof CaretakerNotification) {
+            CaretakerNotification caretakerNotification = (CaretakerNotification) notification;
+            userService.renewProfilePicture(caretakerNotification.getTriggeredBy().getAccountData());
+        } else {
+            ClientNotification clientNotification = (ClientNotification) notification;
+            userService.renewProfilePicture(clientNotification.getTriggeredBy().getAccountData());
+        }
+        return notification;
+    }
+
 }
