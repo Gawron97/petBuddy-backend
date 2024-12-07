@@ -21,7 +21,7 @@ public final class MockNotificationProvider {
                 .messageKey("care_reservation")
                 .args(Set.of("clientEmail"))
                 .createdAt(ZonedDateTime.now())
-                .isRead(false)
+                .read(false)
                 .caretaker(caretaker)
                 .clientTrigger(client)
                 .build();
@@ -35,7 +35,7 @@ public final class MockNotificationProvider {
                                     .messageKey("care_reservation")
                                     .args(Set.of("clientEmail"))
                                     .createdAt(ZonedDateTime.now())
-                                    .isRead(false)
+                                    .read(false)
                                     .caretaker(caretaker)
                                     .clientTrigger(client)
                                     .build();
@@ -48,7 +48,7 @@ public final class MockNotificationProvider {
                 .messageKey("care_update")
                 .args(Set.of("caretakerEmail"))
                 .createdAt(ZonedDateTime.now())
-                .isRead(false)
+                .read(false)
                 .client(client)
                 .caretakerTriggered(caretaker)
                 .build();
