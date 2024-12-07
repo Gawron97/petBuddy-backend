@@ -23,7 +23,7 @@ public final class MockNotificationProvider {
                 .createdAt(ZonedDateTime.now())
                 .isRead(false)
                 .caretaker(caretaker)
-                .triggeredBy(client)
+                .clientTrigger(client)
                 .build();
     }
 
@@ -36,7 +36,7 @@ public final class MockNotificationProvider {
                 .createdAt(ZonedDateTime.now())
                 .isRead(false)
                 .client(client)
-                .triggeredBy(caretaker)
+                .caretakerTriggered(caretaker)
                 .build();
     }
 
