@@ -42,11 +42,11 @@ public class NotificationControllerTest {
 
     @Test
     @WithMockUser("caretakerEmail")
-    void getUnreadNotifications_shouldReturnProperAnswer() throws Exception {
+    void getNotifications_shouldReturnProperAnswer() throws Exception {
         Pageable pageable = PageRequest.of(0, 10);
         Page<SimplyNotificationDTO> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
 
-        when(notificationService.getUnreadNotifications(any(), any(), any(), any()))
+        when(notificationService.getNotifications(any(), any(), any(), any()))
                 .thenReturn(emptyPage);
 
         mockMvc.perform(get("/api/notifications")

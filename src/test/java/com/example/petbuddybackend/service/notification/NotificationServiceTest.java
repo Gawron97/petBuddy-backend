@@ -85,7 +85,7 @@ public class NotificationServiceTest {
     void testAddNotificationForCaretakerAndSend_shouldAddNotificationAndSend() {
 
         //Given When
-        notificationService.addNotificationForCaretakerAndSend(1L, ObjectType.CARE, caretaker,
+        notificationService.addNotificationForCaretakerAndSend(1L, ObjectType.CARE, caretaker, client,
                 "messageKey", Set.of("clientEmail"));
 
         //Then
@@ -107,7 +107,7 @@ public class NotificationServiceTest {
     void testAddNotificationForClientAndSend_shouldAddNotificationAndSend() {
 
         //Given When
-        notificationService.addNotificationForClientAndSend(1L, ObjectType.CARE, client,
+        notificationService.addNotificationForClientAndSend(1L, ObjectType.CARE, client, caretaker,
                 "messageKey", Set.of("caretakerEmail"));
 
         //Then
@@ -125,7 +125,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void testGetUnreadNotifications_sortingParamsShouldAlignWithDTO() {
+    void testGetNotifications_sortingParamsShouldAlignWithDTO() {
 
         List<String> fieldNames = ReflectionUtils.getPrimitiveNames(SimplyNotificationDTO.class);
         fieldNames.remove("notificationId");
@@ -133,7 +133,7 @@ public class NotificationServiceTest {
         fieldNames.remove("dType");
 
         for(String fieldName : fieldNames) {
-            assertDoesNotThrow(() -> notificationService.getUnreadNotifications(
+            assertDoesNotThrow(() -> notificationService.getNotifications(
                     PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, fieldName)),
                     "test",
                     Role.CARETAKER,
@@ -144,18 +144,18 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void getUnreadNotifications_shouldGetOnlyUnreadNotifications() {
+    void getNotifications_shouldGetAllNotifications() {
 
         //Given
         transactionTemplate.execute(status -> {
             CaretakerNotification notification1 = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client, 1L
             );
             CaretakerNotification notification2 = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client, 2L
             );
             CaretakerNotification readNotification = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client, 3L
             );
             readNotification.setRead(true);
             return null;
@@ -163,13 +163,13 @@ public class NotificationServiceTest {
 
         //When Then
         transactionTemplate.execute(status -> {
-            Page<SimplyNotificationDTO> result = notificationService.getUnreadNotifications(
+            Page<SimplyNotificationDTO> result = notificationService.getNotifications(
                     PageRequest.of(0, 10),
                     caretaker.getEmail(),
                     Role.CARETAKER,
                     ZoneId.systemDefault()
             );
-            assertEquals(2, result.getTotalElements());
+            assertEquals(3, result.getTotalElements());
             return null;
         });
 
@@ -181,7 +181,7 @@ public class NotificationServiceTest {
         //Given
         Long notificationId = transactionTemplate.execute(status -> {
             CaretakerNotification notification = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client
             );
             return notification.getId();
         });
@@ -223,7 +223,7 @@ public class NotificationServiceTest {
         //Given
         Long notificationId = transactionTemplate.execute(status -> {
             CaretakerNotification notification = PersistenceUtils.addCaretakerNotification(
-                    caretakerNotificationRepository, caretaker
+                    caretakerNotificationRepository, caretaker, client
             );
             return notification.getId();
         });

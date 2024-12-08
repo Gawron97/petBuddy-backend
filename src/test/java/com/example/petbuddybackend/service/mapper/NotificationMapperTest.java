@@ -10,8 +10,7 @@ import java.time.ZoneId;
 
 import static com.example.petbuddybackend.testutils.mock.MockNotificationProvider.createMockCaretakerNotification;
 import static com.example.petbuddybackend.testutils.mock.MockNotificationProvider.createMockClientNotification;
-import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
-import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NotificationMapperTest {
@@ -22,7 +21,7 @@ public class NotificationMapperTest {
     void mapToNotificationDTO_whenNotificationForCaretaker_shouldNotLeaveNullFields() {
 
         //Given
-        CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker());
+        CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker(), createMockClientWithPhoto("client"));
         notification.setId(1L);
 
         SimplyNotificationDTO simplyNotificationDTO = mapper.mapToSimplyNotificationDTO(notification, ZoneId.systemDefault());
@@ -34,7 +33,7 @@ public class NotificationMapperTest {
     void mapToNotificationDTO_whenNotificationForClient_shouldNotLeaveNullFields() {
 
         //Given
-        ClientNotification notification = createMockClientNotification(createMockClient());
+        ClientNotification notification = createMockClientNotification(createMockClient(), createMockCaretakerWithPhoto("caretaker"));
         notification.setId(1L);
 
         SimplyNotificationDTO simplyNotificationDTO = mapper.mapToSimplyNotificationDTO(notification, ZoneId.systemDefault());

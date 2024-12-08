@@ -32,7 +32,9 @@ public class NotificationController {
             description =
                     """
                             ## Endpoint description
-                            Get unread notifications for the current logged user for current profile.
+                            Get unread notifications for the current logged user for current profile if read set to false.
+                            Get read notifications for the current logged user for current profile if read set to true.
+                            By default read is set to false.
                             
                             ## Docs for websocket notifications:
                             
@@ -49,9 +51,9 @@ public class NotificationController {
                             - CHAT_NOTIFICATION
                             """
     )
-    @GetMapping
+    @GetMapping()
     @PreAuthorize("isAuthenticated()")
-    public Page<SimplyNotificationDTO> getUnreadNotifications(
+    public Page<SimplyNotificationDTO> getNotifications(
             @ParameterObject @ModelAttribute @Valid SortedPagingParams pagingParams,
             Principal principal,
             @RoleParameter
@@ -60,7 +62,7 @@ public class NotificationController {
             @TimeZoneParameter
             @RequestHeader(value = "${header-name.timezone}", required = false) String timezone) {
         Pageable pageable = PagingUtils.createSortedPageable(pagingParams);
-        return notificationService.getUnreadNotifications(
+        return notificationService.getNotifications(
                 pageable,
                 principal.getName(),
                 role,

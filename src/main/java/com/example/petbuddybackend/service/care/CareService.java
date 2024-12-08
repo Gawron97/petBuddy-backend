@@ -219,6 +219,7 @@ public class CareService {
                 care.getId(),
                 ObjectType.CARE,
                 client,
+                caretaker,
                 message,
                 Set.of(
                         MessageFormat.format(NAME_SURNAME_FORMAT,
@@ -235,10 +236,12 @@ public class CareService {
                 care.getId(),
                 ObjectType.CARE,
                 caretaker,
+                client,
                 message,
                 Set.of(
                         MessageFormat.format(NAME_SURNAME_FORMAT,
-                                client.getAccountData().getName(), client.getAccountData().getSurname())
+                                client.getAccountData().getName(), client.getAccountData().getSurname()
+                        )
                 )
         );
     }

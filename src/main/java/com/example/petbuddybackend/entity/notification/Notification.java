@@ -39,14 +39,14 @@ public class Notification {
     private Set<String> args;
 
     @Column(nullable = false)
-    private boolean isRead;
+    private boolean read;
 
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
             createdAt = ZonedDateTime.now();
         }
-        isRead = false;
+        read = false;
     }
 
 }

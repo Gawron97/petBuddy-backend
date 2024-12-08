@@ -13,7 +13,7 @@ import java.util.Set;
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class MockNotificationProvider {
 
-    public static CaretakerNotification createMockCaretakerNotification(Caretaker caretaker) {
+    public static CaretakerNotification createMockCaretakerNotification(Caretaker caretaker, Client client) {
         return CaretakerNotification.builder()
                 .id(1L)
                 .objectId(1L)
@@ -21,20 +21,36 @@ public final class MockNotificationProvider {
                 .messageKey("care_reservation")
                 .args(Set.of("clientEmail"))
                 .createdAt(ZonedDateTime.now())
-                .isRead(false)
+                .read(false)
                 .caretaker(caretaker)
+                .clientTrigger(client)
                 .build();
     }
 
-    public static ClientNotification createMockClientNotification(Client client) {
+    public static CaretakerNotification createMockCaretakerNotification(Caretaker caretaker, Client client, Long id) {
+        return CaretakerNotification.builder()
+                                    .id(id)
+                                    .objectId(1L)
+                                    .objectType(ObjectType.CARE)
+                                    .messageKey("care_reservation")
+                                    .args(Set.of("clientEmail"))
+                                    .createdAt(ZonedDateTime.now())
+                                    .read(false)
+                                    .caretaker(caretaker)
+                                    .clientTrigger(client)
+                                    .build();
+    }
+
+    public static ClientNotification createMockClientNotification(Client client, Caretaker caretaker) {
         return ClientNotification.builder()
                 .objectId(1L)
                 .objectType(ObjectType.CARE)
                 .messageKey("care_update")
                 .args(Set.of("caretakerEmail"))
                 .createdAt(ZonedDateTime.now())
-                .isRead(false)
+                .read(false)
                 .client(client)
+                .caretakerTriggered(caretaker)
                 .build();
     }
 

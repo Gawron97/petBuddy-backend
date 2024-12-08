@@ -22,6 +22,7 @@ import java.util.Collections;
 
 import static com.example.petbuddybackend.testutils.mock.MockNotificationProvider.createMockCaretakerNotification;
 import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockCaretaker;
+import static com.example.petbuddybackend.testutils.mock.MockUserProvider.createMockClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -63,7 +64,7 @@ public class WebsocketNotificationSenderTest {
         wsSessionService.storeUserTimeZoneWithSession(sessionId, userZoneId);
 
         //When
-        CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker());
+        CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker(), createMockClient());
         SimplyNotificationDTO notificationToSend = notificationMapper.mapToSimplyNotificationDTO(notification, ZoneId.of(userZoneId));
 
         wsNotificationSender.sendNotification(userEmail, notificationToSend);
@@ -99,7 +100,7 @@ public class WebsocketNotificationSenderTest {
     public void testSendNotification_whenUserNotConnected_shouldNotSendMessage() {
         //Given
         when(simpUserRegistry.getUser(userEmail)).thenReturn(null);
-        CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker());
+        CaretakerNotification notification = createMockCaretakerNotification(createMockCaretaker(), createMockClient());
         SimplyNotificationDTO notificationToSend = notificationMapper.mapToSimplyNotificationDTO(notification, ZoneId.of(userZoneId));
 
         //When
