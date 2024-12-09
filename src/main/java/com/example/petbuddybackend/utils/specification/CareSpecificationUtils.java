@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.utils.specification;
 
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CareStatisticsSearchCriteria;
 import com.example.petbuddybackend.entity.animal.Animal;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -13,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.util.Set;
 
@@ -104,6 +106,63 @@ public final class CareSpecificationUtils {
 
     }
 
+    public static Specification<Care> toSpecificationForCaretaker(CareStatisticsSearchCriteria filters,
+                                                                  Set<String> clientEmails,
+                                                                  Set<CareStatus> caretakerStatuses,
+                                                                  Set<CareStatus> clientStatuses,
+                                                                  String caretakerEmail) {
+
+        Specification<Care> spec = toSpecification(filters, caretakerStatuses, clientStatuses)
+                .and(addCaretakerEmailFilter(caretakerEmail));
+
+        if(CollectionUtil.isNotEmpty(clientEmails)) {
+            spec = spec.and(addClientEmailsFilter(clientEmails));
+        }
+
+        return spec;
+
+    }
+
+    public static Specification<Care> toSpecification(CareStatisticsSearchCriteria filters,
+                                                      Set<CareStatus> caretakerStatuses,
+                                                      Set<CareStatus> clientStatuses) {
+
+        Specification<Care> spec = Specification.where(
+                (root, query, criteriaBuilder) -> criteriaBuilder.conjunction()
+        );
+
+        if(CollectionUtil.isNotEmpty(filters.animalTypes())) {
+            spec = spec.and(animalTypesIn(filters.animalTypes()));
+        }
+
+        if(CollectionUtil.isNotEmpty(caretakerStatuses)) {
+            spec = spec.and(caretakerStatusesIn(caretakerStatuses));
+        }
+
+        if(CollectionUtil.isNotEmpty(clientStatuses)) {
+            spec = spec.and(clientStatusesIn(clientStatuses));
+        }
+
+        if(filters.minCareStart() != null) {
+            spec = spec.and(minYearMonthCareStart(filters.minCareStart()));
+        }
+
+        if(filters.maxCareStart() != null) {
+            spec = spec.and(maxYearMonthCareStart(filters.maxCareStart()));
+        }
+
+        if(filters.minDailyPrice() != null) {
+            spec = spec.and(minDailyPrice(filters.minDailyPrice()));
+        }
+
+        if(filters.maxDailyPrice() != null) {
+            spec = spec.and(maxDailyPrice(filters.maxDailyPrice()));
+        }
+
+        return spec;
+
+    }
+
     private static Specification<Care> animalTypesIn(Set<String> animalTypes) {
         return (root, query, criteriaBuilder) -> {
             Join<Care, Animal> animalJoin = root.join(ANIMAL);
@@ -139,6 +198,20 @@ public final class CareSpecificationUtils {
     private static Specification<Care> maxCareStart(LocalDate maxCareStart) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.lessThanOrEqualTo(root.get(CARE_START), maxCareStart);
+    }
+
+    private static Specification<Care> minYearMonthCareStart(YearMonth minCareStart) {
+        return (root, query, criteriaBuilder) -> {
+            LocalDate formattedMinCareStart = minCareStart.atDay(1);
+            return criteriaBuilder.greaterThanOrEqualTo(root.get(CARE_START), formattedMinCareStart);
+        };
+    }
+
+    private static Specification<Care> maxYearMonthCareStart(YearMonth maxCareStart) {
+        return (root, query, criteriaBuilder) -> {
+            LocalDate formattedMaxCareStart = maxCareStart.atEndOfMonth();
+            return criteriaBuilder.lessThanOrEqualTo(root.get(CARE_START), formattedMaxCareStart);
+        };
     }
 
     private static Specification<Care> minCareEnd(LocalDate minCareEnd) {

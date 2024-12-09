@@ -38,7 +38,7 @@ public class ZonedDateTimeConverterTest {
         // Given
         String source = "2020-01-07 12:05:05.123";
 
-        // When
+        // When Then
         assertThrows(DateTimeParseException.class, () -> converter.convert(source));
     }
 
