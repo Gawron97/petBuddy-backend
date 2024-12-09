@@ -187,10 +187,9 @@ public class ChatService {
         }
     }
 
-    public void assertHasAccessToChatRoom(Long chatId, String username, Role role) {
+    public void assertUserInChat(Long chatId, String username, Role role) {
         ChatRoom chatRoom = getChatRoomById(chatId);
         assertUserInChat(chatRoom, username, role);
-        blockService.assertNotBlockedByAny(chatRoom.getClient().getEmail(), chatRoom.getCaretaker().getEmail());
     }
 
     private ChatRoomDTO mapToChatRoomDTO(String principalUsername, ChatRoom chatRoom, ZoneId zoneId) {
