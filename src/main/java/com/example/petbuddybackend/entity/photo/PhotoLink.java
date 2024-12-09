@@ -17,8 +17,7 @@ import java.time.LocalDateTime;
 @EntityListeners(PhotoLinkDeleteListener.class)
 public class PhotoLink {
 
-    @Id
-    @Column(nullable = false, length = 64, unique = true)
+    @Id @Column(length = 64)
     private String blob;
 
     @Column(nullable = false, length = 1024)
