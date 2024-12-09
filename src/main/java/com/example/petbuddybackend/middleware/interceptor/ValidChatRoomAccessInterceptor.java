@@ -10,7 +10,6 @@ import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
 import com.example.petbuddybackend.utils.exception.throweable.HttpException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +33,8 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     @Value("${url.chat.topic.subscribe-prefix}")
     private String URL_CHAT_TOPIC_BASE;
 
-    @Value("${url.notification.topic.send-url}")
-    private String NOTIFICATION_BASE_URL;
+    @Value("${url.chat.topic.send-url}")
+    private String CHAT_TOPIC_URL_PATTERN;
 
     @Value("${url.exception.topic.send-url}")
     public String EXCEPTIONS_PATH;
@@ -87,11 +86,16 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
         return message;
     }
 
-
-    private boolean accessPermitted(StompCommand command, ChatRoom chatRoom, String username, String sessionId, Role role) {
+    private boolean accessPermitted(StompCommand command,
+                                    ChatRoom chatRoom,
+                                    String username,
+                                    String sessionId,
+                                    Role role) {
         if(StompCommand.SUBSCRIBE.equals(command)) {
             return validateUserParticipatesInChat(chatRoom, username, sessionId, role);
-        } else if(StompCommand.SEND.equals(command)) {
+        }
+
+        if(StompCommand.SEND.equals(command)) {
             return validateUserParticipatesInChat(chatRoom, username, sessionId, role) &&
                     validateUserNotBlocked(chatRoom, username, sessionId);
         }
@@ -101,13 +105,12 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
 
 
     private boolean validateUserNotBlocked(ChatRoom chatRoom, String username, String sessionId) {
-        try {
-            blockService.assertNotBlockedByAny(chatRoom.getCaretaker().getEmail(), chatRoom.getClient().getEmail());
-            return true;
-        } catch(BlockedException e) {
+        if(blockService.isBlockedByAny(chatRoom.getCaretaker().getEmail(), chatRoom.getClient().getEmail())) {
             sendBlockNotificationToChatTopic(chatRoom.getId(), username, sessionId);
             return false;
         }
+
+        return true;
     }
 
     private boolean validateUserParticipatesInChat(ChatRoom chatRoom, String username, String sessionId, Role role) {
@@ -133,9 +136,11 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     }
 
     private void sendBlockNotificationToChatTopic(Long chatId, String username, String sessionId) {
+        String destination = String.format(CHAT_TOPIC_URL_PATTERN, chatId);
+        log.trace("Sending block message to user at destination {}", destination);
         simpMessagingTemplate.convertAndSendToUser(
                 username,
-                NOTIFICATION_BASE_URL,
+                destination,
                 new ChatNotificationBlock(chatId, BlockType.BLOCKED),
                 HeaderUtils.createMessageHeadersWithSessionId(sessionId)
         );

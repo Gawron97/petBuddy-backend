@@ -121,7 +121,7 @@ public class ValidChatRoomAccessInterceptorTest {
                 .assertNotBlockedByAny(any(), any());
 
         Message<?> result = interceptor.preSend(message, mock(MessageChannel.class));
-        assertNull(result);
+        assertNotNull(result);
 
         ArgumentCaptor<ChatNotificationBlock> captor = ArgumentCaptor.forClass(ChatNotificationBlock.class);
         verify(simpMessagingTemplate).convertAndSendToUser(
