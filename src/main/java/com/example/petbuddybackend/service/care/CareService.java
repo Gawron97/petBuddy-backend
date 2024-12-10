@@ -301,8 +301,7 @@ public class CareService {
     }
 
     private boolean canCareBeRated(Care care) {
-        return CareStatus.CONFIRMED.equals(care.getClientStatus()) &&
-               CareStatus.CONFIRMED.equals(care.getCaretakerStatus()) &&
+        return careStateMachine.canBeRated(care) &&
                !isCareRated(care);
     }
 
