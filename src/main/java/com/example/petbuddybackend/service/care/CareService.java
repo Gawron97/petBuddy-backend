@@ -5,6 +5,8 @@ import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CareStatisticsSearchCriteria;
+import com.example.petbuddybackend.dto.statistic.MonthlyRevenueDTO;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
@@ -35,11 +37,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.text.MessageFormat;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -300,6 +306,7 @@ public class CareService {
         }
     }
 
+
     private boolean canCareBeRated(Care care) {
         return CareStatus.CONFIRMED.equals(care.getClientStatus()) &&
                CareStatus.CONFIRMED.equals(care.getCaretakerStatus()) &&
@@ -308,6 +315,37 @@ public class CareService {
 
     private boolean isCareRated(Care care) {
         return ratingRepository.existsByCareId(care.getId());
+      
+    }
+      
+    public MonthlyRevenueDTO getMonthlyRevenue(String caretakerEmail,
+                                               CareStatisticsSearchCriteria filters,
+                                               Set<String> emails) {
+        Specification<Care> spec = CareSpecificationUtils.toSpecificationForCaretaker(
+                filters,
+                emails,
+                Set.of(CareStatus.CONFIRMED),
+                Set.of(CareStatus.CONFIRMED),
+                caretakerEmail
+        );
+
+        List<Care> cares = careRepository.findAll(spec);
+        return createMonthlyRevenue(cares);
+    }
+
+    private MonthlyRevenueDTO createMonthlyRevenue(List<Care> cares) {
+        Map<YearMonth, BigDecimal> monthlyRevenue = cares.stream()
+                .collect(Collectors.groupingBy(
+                        care -> YearMonth.from(care.getCareStart()),
+                        Collectors.mapping(
+                                care -> {
+                                    long days = care.getCareEnd().toEpochDay() - care.getCareStart().toEpochDay() + 1;
+                                    return care.getDailyPrice().multiply(BigDecimal.valueOf(days));
+                                },
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                ));
+        return new MonthlyRevenueDTO(monthlyRevenue);
     }
 
 }
