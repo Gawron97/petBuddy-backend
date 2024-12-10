@@ -28,22 +28,20 @@ public interface CareMapper {
     @Mapping(target = "submittedAt", source = "submittedAt", qualifiedByName = "mapToZonedDateTime")
     CareDTO mapToCareDTO(Care care, @Context ZoneId zoneId);
 
-    @Mapping(target = "selectedOptions", source = "animalAttributes", qualifiedByName = "mapSelectedOptions")
-    @Mapping(target = "animalType", source = "animal.animalType")
-    @Mapping(target = "caretaker", source = "caretaker.accountData")
-    @Mapping(target = "client", source = "client.accountData")
-    @Mapping(target = "submittedAt", source = "submittedAt", qualifiedByName = "mapToZonedDateTime")
-    @Mapping(target = "canBeRated", source = "care", qualifiedByName = "mapToCanBeRated")
-    DetailedCareDTO mapToDetailedCareDTO(Care care, @Context ZoneId zoneId);
+    @Mapping(target = "selectedOptions", source = "care.animalAttributes", qualifiedByName = "mapSelectedOptions")
+    @Mapping(target = "animalType", source = "care.animal.animalType")
+    @Mapping(target = "caretaker", source = "care.caretaker.accountData")
+    @Mapping(target = "client", source = "care.client.accountData")
+    @Mapping(target = "submittedAt", source = "care.submittedAt", qualifiedByName = "mapToZonedDateTime")
+    DetailedCareDTO mapToDetailedCareDTO(Care care, @Context ZoneId zoneId, Boolean canBeRated);
 
-    @Mapping(target = "selectedOptions", source = "animalAttributes", qualifiedByName = "mapSelectedOptions")
-    @Mapping(target = "animalType", source = "animal.animalType")
-    @Mapping(target = "caretaker", source = "caretaker.accountData")
-    @Mapping(target = "client", source = "client.accountData")
-    @Mapping(target = "statusesHistory", source = "careStatusesHistory")
-    @Mapping(target = "submittedAt", source = "submittedAt", qualifiedByName = "mapToZonedDateTime")
-    @Mapping(target = "canBeRated", source = "care", qualifiedByName = "mapToCanBeRated")
-    DetailedCareWithHistoryDTO mapToDetailedCareWithHistoryDTO(Care care, @Context ZoneId zoneId);
+    @Mapping(target = "selectedOptions", source = "care.animalAttributes", qualifiedByName = "mapSelectedOptions")
+    @Mapping(target = "animalType", source = "care.animal.animalType")
+    @Mapping(target = "caretaker", source = "care.caretaker.accountData")
+    @Mapping(target = "client", source = "care.client.accountData")
+    @Mapping(target = "statusesHistory", source = "care.careStatusesHistory")
+    @Mapping(target = "submittedAt", source = "care.submittedAt", qualifiedByName = "mapToZonedDateTime")
+    DetailedCareWithHistoryDTO mapToDetailedCareWithHistoryDTO(Care care, @Context ZoneId zoneId, Boolean canBeRated);
 
     void updateCareFromDTO(UpdateCareDTO careDTO, @MappingTarget Care care);
 
