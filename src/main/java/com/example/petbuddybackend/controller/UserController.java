@@ -1,19 +1,13 @@
 package com.example.petbuddybackend.controller;
 
-import com.example.petbuddybackend.dto.paging.PagingParams;
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
 import com.example.petbuddybackend.dto.user.UserProfilesData;
 import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.user.UserService;
-import com.example.petbuddybackend.utils.paging.PagingUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -79,12 +74,8 @@ public class UserController {
             description = "Returns users blocked by the principal sorted by blocked user email."
     )
     @PreAuthorize("isAuthenticated()")
-    public Page<AccountDataDTO> getUsersBlockedByUser(
-            Principal principal,
-            @ParameterObject @ModelAttribute @Valid PagingParams pagingParams
-    ) {
-        Pageable pageable = PagingUtils.createPageable(pagingParams);
-        return blockService.getUsersBlockedByUserSortedByBlockedUsername(principal.getName(), pageable);
+    public List<AccountDataDTO> getUsersBlockedByUser(Principal principal) {
+        return blockService.getUsersBlockedByUserSortedByBlockedUsername(principal.getName());
     }
 
     @PostMapping("/block/{username}")
