@@ -14,4 +14,6 @@ public final class DefaultFormatter {
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(TimeUtils.DATE_FORMAT);
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(TimeUtils.DATE_TIME_FORMAT);
+
+    public static final DateTimeFormatter YEAR_MONTH_FORMATTER = DateTimeFormatter.ofPattern(TimeUtils.YEAR_MONTH_FORMAT);
 }
