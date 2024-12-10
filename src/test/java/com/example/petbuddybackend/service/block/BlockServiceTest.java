@@ -58,7 +58,7 @@ public class BlockServiceTest {
 
         List<Block> blocks = List.of(block1, block2);
 
-        when(blockRepository.findByBlockerEmail(any(String.class))).thenReturn(blocks);
+        when(blockRepository.findByBlockerEmailOrderByBlockedEmail(any(String.class))).thenReturn(blocks);
         when(userService.renewProfilePicture(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
