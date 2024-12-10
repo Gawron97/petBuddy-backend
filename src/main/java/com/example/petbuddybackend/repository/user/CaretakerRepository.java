@@ -24,4 +24,14 @@ public interface CaretakerRepository extends JpaRepository<Caretaker, String>, J
         """)
     void updateRatingScore(Float avgGlobalRating, Integer confidence);
 
+    @Query("""
+        
+        SELECT CASE WHEN COUNT(c) > 0 THEN TRUE ELSE FALSE END
+        FROM Client c
+        JOIN c.followingCaretakers as following
+        WHERE c.email = :clientEmail AND following.email = :caretakerEmail
+        
+        """)
+    boolean isCaretakerFollowedByClient(String caretakerEmail, String clientEmail);
+
 }
