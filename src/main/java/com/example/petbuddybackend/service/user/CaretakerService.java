@@ -74,14 +74,15 @@ public class CaretakerService {
     public CaretakerComplexPublicDTO getCaretaker(String caretakerEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
         renewCaretakerPictures(caretaker);
-        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker, null);
+        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker, null, null);
     }
 
     public CaretakerComplexPublicDTO getCaretaker(String caretakerEmail, String principalEmail) {
         Caretaker caretaker = getCaretakerByEmail(caretakerEmail);
         renewCaretakerPictures(caretaker);
         boolean blocked = blockService.isBlockedByAny(caretakerEmail, principalEmail);
-        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker, blocked);
+        boolean followed = caretakerRepository.isCaretakerFollowedByClient(caretakerEmail, principalEmail);
+        return caretakerMapper.mapToCaretakerComplexPublicDTO(caretaker, blocked, followed);
     }
 
     public CaretakerComplexDTO getMyCaretakerProfile(String caretakerEmail) {

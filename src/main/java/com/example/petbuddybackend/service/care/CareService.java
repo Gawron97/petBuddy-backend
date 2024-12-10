@@ -16,6 +16,7 @@ import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.repository.care.CareRepository;
+import com.example.petbuddybackend.repository.rating.RatingRepository;
 import com.example.petbuddybackend.service.animal.AnimalService;
 import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.care.state.CareStateMachine;
@@ -80,6 +81,7 @@ public class CareService {
     private final CareStateMachine careStateMachine;
     private final BlockService blockService;
     private final CareStatusesHistoryService careStatusesHistoryService;
+    private final RatingRepository ratingRepository;
 
     public DetailedCareWithHistoryDTO makeReservation(CreateCareDTO createCare, String clientEmail, String caretakerEmail,
                                    ZoneId timeZone) {
@@ -103,7 +105,7 @@ public class CareService {
         careStatusesHistoryService.addCareStatusesHistory(care);
         renewPhotosOfCareParticipants(care);
         sendCaretakerCareNotification(care, CREATE_RESERVATION_MESSAGE);
-        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone, canCareBeRated(care));
     }
 
     public DetailedCareWithHistoryDTO updateCare(Long careId, UpdateCareDTO updateCare, String caretakerEmail, ZoneId timeZone) {
@@ -116,7 +118,7 @@ public class CareService {
         careStatusesHistoryService.addCareStatusesHistory(savedCare);
         renewPhotosOfCareParticipants(savedCare);
         sendClientCareNotification(savedCare, UPDATE_RESERVATION_MESSAGE);
-        return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timeZone, canCareBeRated(savedCare));
     }
 
     public DetailedCareWithHistoryDTO clientChangeCareStatus(Long careId, String clientEmail, ZoneId timeZone,
@@ -130,7 +132,7 @@ public class CareService {
         careStatusesHistoryService.addCareStatusesHistory(care);
         renewPhotosOfCareParticipants(care);
         sendCaretakerCareNotification(care, getNotificationOnStatusChange(newStatus));
-        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone, canCareBeRated(care));
     }
 
     public DetailedCareWithHistoryDTO caretakerChangeCareStatus(Long careId, String caretakerEmail, ZoneId timeZone,
@@ -144,7 +146,7 @@ public class CareService {
         careStatusesHistoryService.addCareStatusesHistory(care);
         renewPhotosOfCareParticipants(care);
         sendClientCareNotification(care, getNotificationOnStatusChange(newStatus));
-        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timeZone, canCareBeRated(care));
     }
 
 
@@ -157,7 +159,7 @@ public class CareService {
 
         return careRepository.findAll(spec, pageable)
                 .map(this::renewPhotosOfCareParticipants)
-                .map(care -> careMapper.mapToDetailedCareDTO(care, zoneId));
+                .map(care -> careMapper.mapToDetailedCareDTO(care, zoneId, canCareBeRated(care)));
 
     }
 
@@ -176,7 +178,7 @@ public class CareService {
     public DetailedCareWithHistoryDTO getCare(Long careId, ZoneId timezone, String userEmail) {
         Care care = getCareById(careId);
         assertUserParticipatingInCare(care, userEmail);
-        return careMapper.mapToDetailedCareWithHistoryDTO(care, timezone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(care, timezone, canCareBeRated(care));
     }
 
     public DetailedCareWithHistoryDTO markCareAsConfirmed(Long careId, String caretakerUsername, Role role, ZoneId timezone) {
@@ -185,7 +187,7 @@ public class CareService {
         Care savedCare = careRepository.save(care);
         careStatusesHistoryService.addCareStatusesHistory(savedCare);
         renewPhotosOfCareParticipants(savedCare);
-        return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timezone);
+        return careMapper.mapToDetailedCareWithHistoryDTO(savedCare, timezone, canCareBeRated(savedCare));
     }
 
     @Transactional
@@ -194,6 +196,21 @@ public class CareService {
         caresStaredToday.forEach(
                 care -> sendCaretakerCareNotification(care, CONFIRM_NEEDED_MESSAGE)
         );
+    }
+
+    public MonthlyRevenueDTO getMonthlyRevenue(String caretakerEmail,
+                                               CareStatisticsSearchCriteria filters,
+                                               Set<String> emails) {
+        Specification<Care> spec = CareSpecificationUtils.toSpecificationForCaretaker(
+                filters,
+                emails,
+                Set.of(CareStatus.CONFIRMED),
+                Set.of(CareStatus.CONFIRMED),
+                caretakerEmail
+        );
+
+        List<Care> cares = careRepository.findAll(spec);
+        return createMonthlyRevenue(cares);
     }
 
     private Care renewPhotosOfCareParticipants(Care care) {
@@ -304,19 +321,15 @@ public class CareService {
         }
     }
 
-    public MonthlyRevenueDTO getMonthlyRevenue(String caretakerEmail,
-                                               CareStatisticsSearchCriteria filters,
-                                               Set<String> emails) {
-        Specification<Care> spec = CareSpecificationUtils.toSpecificationForCaretaker(
-                filters,
-                emails,
-                Set.of(CareStatus.CONFIRMED),
-                Set.of(CareStatus.CONFIRMED),
-                caretakerEmail
-        );
 
-        List<Care> cares = careRepository.findAll(spec);
-        return createMonthlyRevenue(cares);
+    private boolean canCareBeRated(Care care) {
+        return careStateMachine.canBeRated(care) &&
+               !isCareRated(care);
+    }
+
+    private boolean isCareRated(Care care) {
+        return ratingRepository.existsByCareId(care.getId());
+      
     }
 
     private MonthlyRevenueDTO createMonthlyRevenue(List<Care> cares) {

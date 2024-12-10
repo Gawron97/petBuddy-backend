@@ -11,19 +11,17 @@ import com.example.petbuddybackend.utils.exception.throweable.general.IllegalAct
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
 import com.example.petbuddybackend.utils.exception.throweable.user.AlreadyBlockedException;
 import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
-import com.example.petbuddybackend.utils.paging.PagingUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class BlockService {
 
-    public static final String BLOCKED_EMAIL_PROPERTY_NAME = "blockedEmail";
+    public static final String BLOCKED_EMAIL_PROPERTY_NAME = "email";
 
     private static final String USER_CANNOT_BLOCK_HIMSELF_MESSAGE = "User cannot block himself";
     private static final String USER_ALREADY_BLOCKED_MESSAGE = "User %s is already blocked";
@@ -34,14 +32,13 @@ public class BlockService {
     private final UserMapper userMapper = UserMapper.INSTANCE;
     private final ApplicationEventPublisher eventPublisher;
 
-    public Page<AccountDataDTO> getUsersBlockedByUserSortedByBlockedUsername(String username, Pageable pageable) {
-        Pageable sortedPageable = PagingUtils.sortedBy(
-                pageable, BLOCKED_EMAIL_PROPERTY_NAME, Sort.Direction.ASC);
-
-        return blockRepository.findByBlockerEmail(username, sortedPageable)
+    public List<AccountDataDTO> getUsersBlockedByUserSortedByBlockedUsername(String username) {
+        return blockRepository.findByBlockerEmailOrderByBlockedEmail(username)
+                .stream()
                 .map(Block::getBlocked)
                 .map(userService::renewProfilePicture)
-                .map(userMapper::mapToAccountDataDTO);
+                .map(userMapper::mapToAccountDataDTO)
+                .toList();
     }
 
     public Block getBlock(String blockerUsername, String blockedUsername) {

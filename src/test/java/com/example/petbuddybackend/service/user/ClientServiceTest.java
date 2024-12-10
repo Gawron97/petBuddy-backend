@@ -1,6 +1,6 @@
 package com.example.petbuddybackend.service.user;
 
-import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Caretaker;
 import com.example.petbuddybackend.entity.user.Client;
@@ -209,7 +209,7 @@ public class ClientServiceTest {
         PersistenceUtils.addFollowingCaretakersToClient(clientRepository, client, new HashSet<>(caretakers));
 
         //When
-        Set<AccountDataDTO> result = clientService.getFollowedCaretakers(client.getEmail());
+        Set<CaretakerDTO> result = clientService.getFollowedCaretakers(client.getEmail());
 
         //Then
         assertNotNull(result);

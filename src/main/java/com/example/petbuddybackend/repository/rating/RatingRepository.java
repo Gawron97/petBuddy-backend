@@ -34,5 +34,7 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
         """, nativeQuery = true)
     Integer findPercentileOfNumberOfRatings(Float percentile);
 
+    Boolean existsByCareId(Long careId);
+
 
 }

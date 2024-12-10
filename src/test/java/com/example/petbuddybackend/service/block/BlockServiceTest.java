@@ -57,27 +57,26 @@ public class BlockServiceTest {
         when(block2.getBlocked()).thenReturn(blockedUser2);
 
         List<Block> blocks = List.of(block1, block2);
-        Page<Block> blockPage = new PageImpl<>(blocks);
 
-        when(blockRepository.findByBlockerEmail(any(String.class), any(Pageable.class))).thenReturn(blockPage);
+        when(blockRepository.findByBlockerEmailOrderByBlockedEmail(any(String.class))).thenReturn(blocks);
         when(userService.renewProfilePicture(any(AppUser.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        Page<AccountDataDTO> result = blockService.getUsersBlockedByUserSortedByBlockedUsername(blockerUsername, pageable);
+        List<AccountDataDTO> result = blockService.getUsersBlockedByUserSortedByBlockedUsername(blockerUsername);
 
         // Then
-        assertEquals(2, result.getContent().size());
-        assertEquals(blockedUser1.getEmail(), result.getContent().get(0).email());
-        assertEquals(blockedUser2.getEmail(), result.getContent().get(1).email());
+        assertEquals(2, result.size());
+        assertEquals(blockedUser1.getEmail(), result.get(0).email());
+        assertEquals(blockedUser2.getEmail(), result.get(1).email());
     }
 
     @Test
     void blockedEmailPropertyName_shouldMatchBlockProperty() {
         try {
-            Field field = Block.class.getDeclaredField(BlockService.BLOCKED_EMAIL_PROPERTY_NAME);
+            Field field = Block.class.getDeclaredField("blockedEmail");
             assertEquals(String.class, field.getType(), "The property should be of type String");
         } catch (NoSuchFieldException e) {
-            fail("Field not found: " + BlockService.BLOCKED_EMAIL_PROPERTY_NAME);
+            fail("Field not found: " + "blockedEmail");
         }
     }
 

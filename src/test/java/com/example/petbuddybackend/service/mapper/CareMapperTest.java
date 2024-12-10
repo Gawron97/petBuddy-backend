@@ -64,7 +64,7 @@ public class CareMapperTest {
         care.setId(1L);
         care.setSubmittedAt(ZonedDateTime.now());
 
-        DetailedCareDTO careDTO = mapper.mapToDetailedCareDTO(care, ZoneId.systemDefault());
+        DetailedCareDTO careDTO = mapper.mapToDetailedCareDTO(care, ZoneId.systemDefault(), true);
 
         assertTrue(fieldsNotNullRecursive(careDTO));
     }

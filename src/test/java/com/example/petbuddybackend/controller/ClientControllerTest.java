@@ -1,6 +1,7 @@
 package com.example.petbuddybackend.controller;
 
 import com.example.petbuddybackend.dto.user.AccountDataDTO;
+import com.example.petbuddybackend.dto.user.CaretakerDTO;
 import com.example.petbuddybackend.dto.user.ClientDTO;
 import com.example.petbuddybackend.entity.user.Role;
 import com.example.petbuddybackend.service.user.ClientService;
@@ -122,17 +123,26 @@ public class ClientControllerTest {
     void getFollowedCaretakers_shouldReturnProperResponse() throws Exception {
 
         //Given
-        Set<AccountDataDTO> caretakers = Set.of(
-                AccountDataDTO.builder()
-                        .email("caretaker1@email")
-                        .name("caretaker1")
-                        .surname("caretaker1")
-                        .build(),
-                AccountDataDTO.builder()
-                        .email("caretaker2@email")
-                        .name("caretaker2")
-                        .surname("caretaker2")
-                        .build()
+        Set<CaretakerDTO> caretakers = Set.of(
+                CaretakerDTO.builder()
+                            .accountData(
+                                    AccountDataDTO.builder()
+                                                  .email("caretaker1@email")
+                                                  .name("caretaker1")
+                                                  .surname("caretaker1")
+                                                  .build()
+                            )
+                            .build(),
+                CaretakerDTO.builder()
+                            .accountData(
+                                    AccountDataDTO.builder()
+                                                  .email("caretaker2@email")
+                                                  .name("caretaker2")
+                                                  .surname("caretaker2")
+                                                  .build()
+                            )
+                            .build()
+
         );
 
         when(clientService.getFollowedCaretakers("clientEmail")).thenReturn(caretakers);
