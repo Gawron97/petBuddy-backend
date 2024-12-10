@@ -24,7 +24,7 @@ public class RatingScheduled {
         Float avgGlobalRating = ratingRepository.getAvgRating();
         Integer confidence = ratingRepository.findPercentileOfNumberOfRatings(0.75f);
         caretakerRepository.updateRatingScore(avgGlobalRating, confidence);
-        log.info("Updated rating score of caretakers");
+        log.debug("Updated rating score of caretakers");
 
     }
 
