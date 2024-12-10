@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -34,12 +33,11 @@ public class BlockService {
     private final ApplicationEventPublisher eventPublisher;
 
     public List<AccountDataDTO> getUsersBlockedByUserSortedByBlockedUsername(String username) {
-        return blockRepository.findByBlockerEmail(username)
+        return blockRepository.findByBlockerEmailOrderByBlockedEmail(username)
                 .stream()
                 .map(Block::getBlocked)
                 .map(userService::renewProfilePicture)
                 .map(userMapper::mapToAccountDataDTO)
-                .sorted(Comparator.comparing(AccountDataDTO::email))
                 .toList();
     }
 

@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface BlockRepository extends JpaRepository<Block, BlockId> {
 
-    List<Block> findByBlockerEmail(String username);
+    List<Block> findByBlockerEmailOrderByBlockedEmail(String username);
 }
