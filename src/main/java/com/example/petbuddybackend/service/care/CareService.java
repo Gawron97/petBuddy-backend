@@ -198,6 +198,21 @@ public class CareService {
         );
     }
 
+    public MonthlyRevenueDTO getMonthlyRevenue(String caretakerEmail,
+                                               CareStatisticsSearchCriteria filters,
+                                               Set<String> emails) {
+        Specification<Care> spec = CareSpecificationUtils.toSpecificationForCaretaker(
+                filters,
+                emails,
+                Set.of(CareStatus.CONFIRMED),
+                Set.of(CareStatus.CONFIRMED),
+                caretakerEmail
+        );
+
+        List<Care> cares = careRepository.findAll(spec);
+        return createMonthlyRevenue(cares);
+    }
+
     private Care renewPhotosOfCareParticipants(Care care) {
         userService.renewProfilePictureOfUsers(
                 List.of(care.getCaretaker().getAccountData(), care.getClient().getAccountData())
@@ -315,21 +330,6 @@ public class CareService {
     private boolean isCareRated(Care care) {
         return ratingRepository.existsByCareId(care.getId());
       
-    }
-      
-    public MonthlyRevenueDTO getMonthlyRevenue(String caretakerEmail,
-                                               CareStatisticsSearchCriteria filters,
-                                               Set<String> emails) {
-        Specification<Care> spec = CareSpecificationUtils.toSpecificationForCaretaker(
-                filters,
-                emails,
-                Set.of(CareStatus.CONFIRMED),
-                Set.of(CareStatus.CONFIRMED),
-                caretakerEmail
-        );
-
-        List<Care> cares = careRepository.findAll(spec);
-        return createMonthlyRevenue(cares);
     }
 
     private MonthlyRevenueDTO createMonthlyRevenue(List<Care> cares) {
