@@ -1,13 +1,15 @@
 package com.example.petbuddybackend.middleware.interceptor;
 
 import com.example.petbuddybackend.dto.chat.notification.ChatNotificationBlock;
+import com.example.petbuddybackend.entity.chat.ChatRoom;
 import com.example.petbuddybackend.entity.user.Role;
+import com.example.petbuddybackend.service.block.BlockService;
 import com.example.petbuddybackend.service.block.BlockType;
 import com.example.petbuddybackend.service.chat.ChatService;
 import com.example.petbuddybackend.utils.exception.ApiExceptionResponse;
+import com.example.petbuddybackend.utils.exception.throweable.HttpException;
 import com.example.petbuddybackend.utils.exception.throweable.chat.NotParticipateException;
 import com.example.petbuddybackend.utils.exception.throweable.general.NotFoundException;
-import com.example.petbuddybackend.utils.exception.throweable.user.BlockedException;
 import com.example.petbuddybackend.utils.header.HeaderUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +33,8 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     @Value("${url.chat.topic.subscribe-prefix}")
     private String URL_CHAT_TOPIC_BASE;
 
-    @Value("${url.notification.topic.send-url}")
-    private String NOTIFICATION_BASE_URL;
+    @Value("${url.chat.topic.send-url}")
+    private String CHAT_TOPIC_URL_PATTERN;
 
     @Value("${url.exception.topic.send-url}")
     public String EXCEPTIONS_PATH;
@@ -44,6 +46,7 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
     private String ROLE_HEADER_NAME;
 
     private final ChatService chatService;
+    private final BlockService blockService;
     private SimpMessagingTemplate simpMessagingTemplate;
     private ApplicationContext applicationContext;
 
@@ -65,56 +68,79 @@ public class ValidChatRoomAccessInterceptor implements ChannelInterceptor, Appli
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         String destination = accessor.getDestination();
 
-        if(HeaderUtils.destinationStartsWith(URL_CHAT_TOPIC_BASE, destination) && !accessPermitted(accessor, destination)) {
+        if(!HeaderUtils.destinationStartsWith(URL_CHAT_TOPIC_BASE, destination)) {
+            return message;
+        }
+
+        StompCommand command = accessor.getCommand();
+        Role role = Role.valueOf(accessor.getFirstNativeHeader(ROLE_HEADER_NAME));
+        String username = HeaderUtils.getUser(accessor);
+        Long chatId = extractChatId(destination);
+        String sessionId = accessor.getSessionId();
+        ChatRoom chatRoom = chatService.getChatRoomById(chatId);
+
+        if(!accessPermitted(command, chatRoom, username, sessionId, role)) {
             return null;
         }
 
         return message;
     }
 
-    private boolean accessPermitted(StompHeaderAccessor accessor, String destination) {
-        StompCommand command = accessor.getCommand();
-        Role role = Role.valueOf(accessor.getFirstNativeHeader(ROLE_HEADER_NAME));
-
-        if(!StompCommand.SUBSCRIBE.equals(command) && !StompCommand.SEND.equals(command)) {
-            return true;
+    private boolean accessPermitted(StompCommand command,
+                                    ChatRoom chatRoom,
+                                    String username,
+                                    String sessionId,
+                                    Role role) {
+        if(StompCommand.SUBSCRIBE.equals(command)) {
+            return validateUserParticipatesInChat(chatRoom, username, sessionId, role);
         }
 
-        String username = HeaderUtils.getUser(accessor);
-        Long chatId = extractChatId(destination);
-        String sessionId = accessor.getSessionId();
+        if(StompCommand.SEND.equals(command)) {
+            return validateUserParticipatesInChat(chatRoom, username, sessionId, role) &&
+                    validateUserNotBlocked(chatRoom, username, sessionId);
+        }
 
-        return validateChatPermission(chatId, username, sessionId, role);
+        return true;
     }
 
-    private boolean validateChatPermission(Long chatId, String username, String sessionId, Role role) {
-        try {
-            chatService.assertHasAccessToChatRoom(chatId, username, role);
-        } catch(NotParticipateException | NotFoundException | BlockedException e) {
-            log.debug("User {} is not allowed to access chat room {}", username, chatId);
-            log.trace("Exception: {}", e.getMessage());
-            log.trace("Sending exception message to user at destination {}", EXCEPTIONS_PATH);
-            simpMessagingTemplate.convertAndSendToUser(
-                    username,
-                    EXCEPTIONS_PATH,
-                    new ApiExceptionResponse(e, e.getMessage()),
-                    HeaderUtils.createMessageHeadersWithSessionId(sessionId)
-            );
 
-            if(e instanceof BlockedException) {
-                sendBlockNotificationToChatTopic(chatId, username, sessionId);
-            }
-
+    private boolean validateUserNotBlocked(ChatRoom chatRoom, String username, String sessionId) {
+        if(blockService.isBlockedByAny(chatRoom.getCaretaker().getEmail(), chatRoom.getClient().getEmail())) {
+            sendBlockNotificationToChatTopic(chatRoom.getId(), username, sessionId);
             return false;
         }
 
         return true;
     }
 
-    private void sendBlockNotificationToChatTopic(Long chatId, String username, String sessionId) {
+    private boolean validateUserParticipatesInChat(ChatRoom chatRoom, String username, String sessionId, Role role) {
+        try {
+            chatService.assertUserInChat(chatRoom, username, role);
+            return true;
+        } catch(NotParticipateException | NotFoundException e) {
+            sendGeneralExceptionMessage(e, username, chatRoom.getId(), sessionId);
+            return false;
+        }
+    }
+
+    private void sendGeneralExceptionMessage(HttpException e, String username, Long chatId, String sessionId) {
+        log.debug("User {} is not allowed to access chat room {}", username, chatId);
+        log.trace("Exception: {}", e.getMessage());
+        log.trace("Sending exception message to user at destination {}", EXCEPTIONS_PATH);
         simpMessagingTemplate.convertAndSendToUser(
                 username,
-                NOTIFICATION_BASE_URL,
+                EXCEPTIONS_PATH,
+                new ApiExceptionResponse(e, e.getMessage()),
+                HeaderUtils.createMessageHeadersWithSessionId(sessionId)
+        );
+    }
+
+    private void sendBlockNotificationToChatTopic(Long chatId, String username, String sessionId) {
+        String destination = String.format(CHAT_TOPIC_URL_PATTERN, chatId);
+        log.trace("Sending block message to user at destination {}", destination);
+        simpMessagingTemplate.convertAndSendToUser(
+                username,
+                destination,
                 new ChatNotificationBlock(chatId, BlockType.BLOCKED),
                 HeaderUtils.createMessageHeadersWithSessionId(sessionId)
         );

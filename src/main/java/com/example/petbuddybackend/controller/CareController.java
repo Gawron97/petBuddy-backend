@@ -5,8 +5,10 @@ import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CareStatisticsSearchCriteria;
 import com.example.petbuddybackend.dto.paging.PagingParams;
 import com.example.petbuddybackend.dto.paging.SortedPagingParams;
+import com.example.petbuddybackend.dto.statistic.MonthlyRevenueDTO;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
 import com.example.petbuddybackend.entity.care.CareStatus;
 import com.example.petbuddybackend.entity.user.Role;
@@ -253,6 +255,20 @@ public class CareController {
     ) {
         Pageable pageable = PagingUtils.createPageable(pagingParams);
         return careService.getUsersRelatedToYourCares(principal.getName(), pageable, role);
+    }
+
+    @GetMapping("/monthly-revenue")
+    @Operation(
+            summary = "Get monthly revenue for the logged in user",
+            description = "Returns monthly revenue from cares for logged in user"
+    )
+    @PreAuthorize("isAuthenticated()")
+    public MonthlyRevenueDTO getMonthlyRevenue(Principal principal,
+
+                                               @ParameterObject @ModelAttribute @Valid CareStatisticsSearchCriteria filters,
+                                               @RequestParam(required = false) Set<String> emails,
+                                               @RequestHeader(value = "${header-name.role}") @AcceptRole(acceptRole = Role.CARETAKER) Role role) {
+        return careService.getMonthlyRevenue(principal.getName(), filters, emails);
     }
 
 }

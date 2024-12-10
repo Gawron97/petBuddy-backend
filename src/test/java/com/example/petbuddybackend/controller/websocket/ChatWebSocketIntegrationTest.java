@@ -360,7 +360,7 @@ public class ChatWebSocketIntegrationTest {
     void subscribeToMessageTopic_userNotParticipating_shouldSendExceptionMessage() {
         doThrow(new NotParticipateException(""))
                 .when(chatService)
-                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
+                .assertUserInChat(any(Long.class), any(String.class), any(Role.class));
 
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         subscribeToExceptionTopic(clientSession, CLIENT_USERNAME , new ExceptionFrameHandler());
@@ -377,7 +377,7 @@ public class ChatWebSocketIntegrationTest {
     void subscribeToMessageTopic_chatNotFound_shouldSendExceptionMessage() {
         doThrow(new NotFoundException())
                 .when(chatService)
-                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
+                .assertUserInChat(any(Long.class), any(String.class), any(Role.class));
 
         StompSession clientSession = connectToWebSocket(CLIENT_USERNAME);
         subscribeToExceptionTopic(clientSession, CLIENT_USERNAME , new ExceptionFrameHandler());
@@ -394,7 +394,7 @@ public class ChatWebSocketIntegrationTest {
     void subscribeToMessageTopic_userBlocked_shouldSendExceptionMessage() {
         doThrow(new BlockedException())
                 .when(chatService)
-                .assertHasAccessToChatRoom(any(Long.class), any(String.class), any(Role.class));
+                .assertUserInChat(any(Long.class), any(String.class), any(Role.class));
 
         when(blockService.isBlockedByAny(any(String.class), any(String.class)))
                 .thenReturn(true);

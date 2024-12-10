@@ -5,6 +5,8 @@ import com.example.petbuddybackend.dto.care.DetailedCareDTO;
 import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.dto.criteriaSearch.CareSearchCriteria;
+import com.example.petbuddybackend.dto.criteriaSearch.CareStatisticsSearchCriteria;
+import com.example.petbuddybackend.dto.statistic.MonthlyRevenueDTO;
 import com.example.petbuddybackend.dto.user.SimplifiedAccountDataDTO;
 import com.example.petbuddybackend.entity.care.Care;
 import com.example.petbuddybackend.entity.care.CareStatus;
@@ -46,6 +48,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -983,6 +986,72 @@ public class CareServiceIntegrationTest {
         verify(notificationService, times(2))
                 .addNotificationForCaretakerAndSend(anyLong(), any(), any(), any(), anyString(), any());
 
+    }
+
+    @ParameterizedTest
+    @MethodSource("parameterProviderForGetMonthlyRevenue")
+    void testGetMonthlyRevenue(CareStatisticsSearchCriteria filters, BigDecimal expectedRevenue) {
+
+        //Given
+        Care care = PersistenceUtils.addCare(
+                careRepository,
+                caretaker,
+                client,
+                animalRepository.findById("DOG").orElseThrow(),
+                ZonedDateTime.of(2024, 5, 10, 12, 0, 0, 0, ZoneId.systemDefault()),
+                LocalDate.of(2024, 5, 15),
+                LocalDate.of(2024, 5, 20),
+                new BigDecimal("10.01"),
+                CareStatus.CONFIRMED,
+                CareStatus.CONFIRMED
+        );
+
+        Care care2 = PersistenceUtils.addCare(
+                careRepository,
+                caretaker,
+                client,
+                animalRepository.findById("CAT").orElseThrow(),
+                ZonedDateTime.of(2023, 5, 10, 12, 0, 0, 0, ZoneId.systemDefault()),
+                LocalDate.of(2024, 1, 15),
+                LocalDate.of(2024, 1, 20),
+                new BigDecimal("40.01"),
+                CareStatus.CONFIRMED,
+                CareStatus.CONFIRMED
+        );
+
+        //When
+        MonthlyRevenueDTO result = careService.getMonthlyRevenue(
+                caretaker.getEmail(),
+                filters,
+                Set.of()
+        );
+
+        //Then
+        assertEquals(expectedRevenue, result.monthlyRevenue().values().stream().reduce(BigDecimal.ZERO, BigDecimal::add));
+
+    }
+
+    private static Stream<Arguments> parameterProviderForGetMonthlyRevenue() {
+        return Stream.of(
+                Arguments.of(
+                        CareStatisticsSearchCriteria.builder()
+                                .build(),
+                        BigDecimal.valueOf(300.12)
+                ),
+                Arguments.of(
+                        CareStatisticsSearchCriteria.builder()
+                                .minCareStart(YearMonth.of(2024, 5))
+                                .maxCareStart(YearMonth.of(2024, 5))
+                                .build(),
+                        BigDecimal.valueOf(60.06)
+                ),
+                Arguments.of(
+                        CareStatisticsSearchCriteria.builder()
+                                .animalTypes(Set.of("CAT"))
+                                .build(),
+                        BigDecimal.valueOf(240.06)
+                )
+        );
     }
 
 }

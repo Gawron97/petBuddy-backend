@@ -67,8 +67,7 @@ public class BlockService {
     }
 
     public boolean isBlockedByAny(String firstUsername, String secondUsername) {
-        return blockRepository.existsById(new BlockId(firstUsername, secondUsername)) ||
-                blockRepository.existsById(new BlockId(secondUsername, firstUsername));
+        return isBlocked(firstUsername, secondUsername) || isBlocked(secondUsername, firstUsername);
     }
 
     public void assertNotBlockedByAny(String firstUsername, String secondUsername) {

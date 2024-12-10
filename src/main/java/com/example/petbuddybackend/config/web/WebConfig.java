@@ -1,5 +1,6 @@
 package com.example.petbuddybackend.config.web;
 
+import com.example.petbuddybackend.utils.conversion.converter.YearMonthConverter;
 import com.example.petbuddybackend.utils.conversion.converter.ZonedDateTimeConverter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
@@ -11,6 +12,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addFormatters(FormatterRegistry registry) {
         registry.addConverter(new ZonedDateTimeConverter());
+        registry.addConverter(new YearMonthConverter());
     }
 
 }
