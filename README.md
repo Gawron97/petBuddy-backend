@@ -59,7 +59,7 @@ This project integrates with other services that needs to be separately configur
 
 ### Keycloak and database
 To make the configuration simpler, we have created a separate repository with ready to use docker-compose.yml files.
-Check [PetBuddy-Deployment](https://github.com/Gawron97/PetBuddy-deployment) repository and **keycloak_db** section.
+Check [PetBuddy-Deployment](https://github.com/Gawron97/PetBuddy-deployment) repository and **Launching the dependencies for PetBuddy-Backend** section.
 
 ### Firebase
 
