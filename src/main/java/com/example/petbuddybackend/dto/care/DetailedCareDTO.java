@@ -26,6 +26,7 @@ public record DetailedCareDTO(
         String animalType,
         Map<String, List<String>> selectedOptions,
         AccountDataDTO caretaker,
-        AccountDataDTO client
+        AccountDataDTO client,
+        Boolean canBeRated
 ) {
 }

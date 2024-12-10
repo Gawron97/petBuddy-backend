@@ -6,6 +6,7 @@ import com.example.petbuddybackend.dto.care.DetailedCareWithHistoryDTO;
 import com.example.petbuddybackend.dto.care.UpdateCareDTO;
 import com.example.petbuddybackend.entity.animal.AnimalAttribute;
 import com.example.petbuddybackend.entity.care.Care;
+import com.example.petbuddybackend.entity.care.CareStatus;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -32,6 +33,7 @@ public interface CareMapper {
     @Mapping(target = "caretaker", source = "caretaker.accountData")
     @Mapping(target = "client", source = "client.accountData")
     @Mapping(target = "submittedAt", source = "submittedAt", qualifiedByName = "mapToZonedDateTime")
+    @Mapping(target = "canBeRated", source = "care", qualifiedByName = "mapToCanBeRated")
     DetailedCareDTO mapToDetailedCareDTO(Care care, @Context ZoneId zoneId);
 
     @Mapping(target = "selectedOptions", source = "animalAttributes", qualifiedByName = "mapSelectedOptions")
@@ -40,7 +42,10 @@ public interface CareMapper {
     @Mapping(target = "client", source = "client.accountData")
     @Mapping(target = "statusesHistory", source = "careStatusesHistory")
     @Mapping(target = "submittedAt", source = "submittedAt", qualifiedByName = "mapToZonedDateTime")
+    @Mapping(target = "canBeRated", source = "care", qualifiedByName = "mapToCanBeRated")
     DetailedCareWithHistoryDTO mapToDetailedCareWithHistoryDTO(Care care, @Context ZoneId zoneId);
+
+    void updateCareFromDTO(UpdateCareDTO careDTO, @MappingTarget Care care);
 
     @Named("mapSelectedOptions")
     default Map<String, List<String>> mapSelectedOptions(Set<AnimalAttribute> animalAttributes) {
@@ -54,6 +59,10 @@ public interface CareMapper {
                 ));
     }
 
-    void updateCareFromDTO(UpdateCareDTO careDTO, @MappingTarget Care care);
+    @Named("mapToCanBeRated")
+    default Boolean mapToCanBeRated(Care care) {
+        return CareStatus.CONFIRMED.equals(care.getClientStatus()) &&
+               CareStatus.CONFIRMED.equals(care.getCaretakerStatus());
+    }
 
 }

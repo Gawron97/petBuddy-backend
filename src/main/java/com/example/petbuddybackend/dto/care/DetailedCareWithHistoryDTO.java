@@ -27,6 +27,7 @@ public record DetailedCareWithHistoryDTO(
         Map<String, List<String>> selectedOptions,
         AccountDataDTO caretaker,
         AccountDataDTO client,
-        List<CareStatusesHistoryDTO> statusesHistory
+        List<CareStatusesHistoryDTO> statusesHistory,
+        Boolean canBeRated
 ) {
 }
